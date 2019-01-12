@@ -55,9 +55,9 @@ static hitable* random_scene()
 int main()
 {
 	// Raytracer params
-	const int outputWidth = 1200;
-	const int outputHeight = 800;
-	const int numSamples = 100;
+	const int outputWidth = 3840;
+	const int outputHeight = 2160;
+	const int numSamples = 50;
 	const int maxDepth = 50;
 	const int numThreads = 8;
 	const float aspect = float(outputWidth) / float(outputHeight);

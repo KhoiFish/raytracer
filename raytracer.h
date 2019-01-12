@@ -5,6 +5,7 @@
 #include <cfloat>
 #include <thread>
 #include <atomic>
+#include <iomanip>
 #include "ray.h"
 #include "vec3.h"
 #include "hitable.h"
@@ -47,7 +48,7 @@ public:
 		// Create the threads and run them
 		for (int i = 0; i < NumThreads; i++)
 		{
-			ThreadPtrs[i] = new std::thread(threadTraceNextPixel, this, cam, world);
+			ThreadPtrs[i] = new std::thread(threadTraceNextPixel, i, this, cam, world);
 		}
 
 		// Join all the threads
@@ -79,7 +80,7 @@ public:
 
 private:
 
-	static void threadTraceNextPixel(raytracer* tracer, camera cam, hitable* world)
+	static void threadTraceNextPixel(int id, raytracer* tracer, camera cam, hitable* world)
 	{
 		const int numPixels = (tracer->OutputWidth * tracer->OutputHeight);
 		int offset = tracer->CurrentOutputOffset.load();
@@ -118,6 +119,14 @@ private:
 
 				// Write color to output buffer
 				tracer->OutputBuffer[offset] = col;
+
+				// Print progress
+				int latestOffset = tracer->CurrentOutputOffset.load();
+				if (id == 0 && (latestOffset % tracer->OutputWidth) == 0)
+				{
+					float percentDone = (float(latestOffset) / float(numPixels)) * 100.f;
+					std::cout << "Rendering " << std::setprecision(2) << std::fixed << percentDone << "% complete..." << std::endl;
+				}
 			}
 		}
 	}

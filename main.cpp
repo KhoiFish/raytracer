@@ -54,8 +54,12 @@ static hitable* random_scene()
 
 int main()
 {
-	const int outputWidth = 200;
-	const int outputHeight = 100;
+	// Raytracer params
+	const int outputWidth = 1200;
+	const int outputHeight = 800;
+	const int numSamples = 100;
+	const int maxDepth = 50;
+	const int numThreads = 8;
 	const float aspect = float(outputWidth) / float(outputHeight);
 
 	// Create world
@@ -72,7 +76,7 @@ int main()
 		10.f);          // Distance to focus
 
 	// Ray trace world
-	raytracer tracer(outputWidth, outputHeight, 10, 50);
+	raytracer tracer(outputWidth, outputHeight, numSamples, maxDepth, numThreads);
 	tracer.render(cam, world);
 
 	// Write to file

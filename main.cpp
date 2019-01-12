@@ -8,51 +8,7 @@
 #include "camera.h"
 #include "util.h"
 #include "material.h"
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-// Output options
-static const char*  gOutputFilename = "test.ppm";
-static int          gOutputWidth = 1200;
-static int          gOutputHeight = 800;
-
-// Tracing options
-static int          gNumRaySamples = 10;
-static int          gMaxDepth = 50;
-
-// Camera options
-static vec3         gLookFrom(13, 2, 3);
-static vec3         gLookAt(0, 0, 0);
-static vec3         gUpVec(0, 1, 0);
-static float        gVerticalFOV = 20.f;
-static float        gAperture = .1f;
-static float        gDistToFocus = 10.f; //(gLookFrom - gLookAt).length();
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-inline vec3 color(const ray& r, hitable *world, int depth)
-{
-	hit_record rec;
-	if (world->hit(r, 0.001f, FLT_MAX, rec))
-	{
-		ray scattered;
-		vec3 attenuation;
-		if (depth < gMaxDepth && rec.mat_ptr->scatter(r, rec, attenuation, scattered))
-		{
-			return attenuation * color(scattered, world, depth + 1);
-		}
-		else
-		{
-			return vec3(0, 0, 0);
-		}
-	}
-	else
-	{
-		vec3 unit_direction = unit_vector(r.direction());
-		float t = 0.5f * (unit_direction.y() + 1.0f);
-		return ((1.0f - t) * vec3(1.0f, 1.0f, 1.0f)) + (t * vec3(0.5f, 0.7f, 1.0f));
-	}
-}
+#include "raytracer.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -98,37 +54,29 @@ static hitable* random_scene()
 
 int main()
 {
-	// Open file for writing
-	std::ofstream outFile(gOutputFilename);
-	outFile << "P3\n" << gOutputWidth << " " << gOutputHeight << "\n255\n";
+	const int outputWidth = 200;
+	const int outputHeight = 100;
+	const float aspect = float(outputWidth) / float(outputHeight);
 
-	// Setup world and camera
+	// Create world
 	hitable* world = random_scene();
-	camera cam(gLookFrom, gLookAt, gUpVec, gVerticalFOV, float(gOutputWidth)/float(gOutputHeight), gAperture, gDistToFocus);
 
-	// Trace each pixel
-	for (int j = gOutputHeight - 1; j >= 0; j--)
-	{
-		for (int i = 0; i < gOutputWidth; i++)
-		{
-			vec3 col(0.f, 0.f, 0.f);
-			for (int s = 0; s < gNumRaySamples; s++)
-			{
-				float u = float(i + drand48()) / float(gOutputWidth);
-				float v = float(j + drand48()) / float(gOutputHeight);
-				ray r = cam.get_ray(u, v);
-				col += color(r, world, 0);
-			}
-			col /= float(gNumRaySamples);
-			col = vec3(sqrt(col.r()), sqrt(col.g()), sqrt(col.b()));
+	// Setup camera
+	camera cam(
+		vec3(13, 2, 3), // Look from
+		vec3(0, 0, 0),  // Look at
+		vec3(0, 1, 0),  // Up vec
+		20.f,           // Vertical FOV
+		aspect,         // Aspect
+		.1f,            // Aperture
+		10.f);          // Distance to focus
 
-			// Write pixel to file
-			int ir = int(255.99*col.r());
-			int ig = int(255.99*col.g());
-			int ib = int(255.99*col.b());
-			outFile << ir << " " << ig << " " << ib << "\n";
-		}
-	}
+	// Ray trace world
+	raytracer tracer(outputWidth, outputHeight, 10, 50);
+	tracer.render(cam, world);
+
+	// Write to file
+	tracer.writeOutputToPPMFile(std::ofstream("test.ppm"));
 
 	// Done
 	return 0;

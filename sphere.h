@@ -12,6 +12,7 @@ public:
 	virtual bool hit(const ray& r, float tmin, float tmax, hit_record& rec) const;
 
 private:
+
 	vec3 center;
 	float radius;
 	material* mat_ptr;

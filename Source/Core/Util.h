@@ -37,7 +37,7 @@ inline Vec3 RandomInUnitDisk()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-float Schlick(float cosine, float refIdx)
+inline float Schlick(float cosine, float refIdx)
 {
 	float r0 = (1 - refIdx) / (1 + refIdx);
 	r0 = r0 * r0;

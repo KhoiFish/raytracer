@@ -42,19 +42,18 @@ public:
 		ThreadPtrs = nullptr;
 	}
 
-	void Render(Camera cam, Hitable* world)
+	void Render(const Camera& cam, Hitable* world)
 	{
 		// Trace each pixel
 		CurrentOutputOffset = 0;
 
 		// Create the threads and run them
-		printf("Rendering frame...\n");
+		printf("Rendering frame...\n\n");
 		for (int i = 0; i < NumThreads; i++)
 		{
 			ThreadPtrs[i] = new std::thread(threadTraceNextPixel, i, this, cam, world);
 			printf("Thread %d started.\n", i);
 		}
-		printProgress(0);
 
 		// Join all the threads
 		for (int i = 0; i < NumThreads; i++)
@@ -64,7 +63,7 @@ public:
 			ThreadPtrs[i] = nullptr;
 			printf("\nThread %d finished.", i);
 		}
-		printf("\nRendering done!\n");
+		printf("\n\nRendering done!\n\n");
 	}
 
 	void WriteOutputToPPMFile(std::ofstream outFile)
@@ -97,7 +96,7 @@ public:
 
 private:
 
-	static void threadTraceNextPixel(int id, Raytracer* tracer, Camera cam, Hitable* world)
+	static void threadTraceNextPixel(int id, Raytracer* tracer, const Camera& cam, Hitable* world)
 	{
 		const int numPixels = (tracer->OutputWidth * tracer->OutputHeight);
 
@@ -141,7 +140,7 @@ private:
 
 				// Print progress
 				int latestOffset = tracer->CurrentOutputOffset.load();
-				if (id == 0 && latestOffset > 0 && (latestOffset % tracer->OutputWidth) == 0)
+				if (id == 0 && offset > 0 && (latestOffset % tracer->OutputWidth) == 0)
 				{
 					float percentDone = (float(latestOffset) / float(numPixels));
 					printProgress(percentDone);
@@ -150,7 +149,7 @@ private:
 		}
 	}
 
-	static void printProgress(double percentage)
+	static inline void printProgress(double percentage)
 	{
 		static const char* PBSTR = "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||";
 		static const int PBWIDTH = 60;

@@ -27,7 +27,7 @@ public:
 		Vertical        = 2 * halfHeight * focusDist * V;
 	}
 
-	Ray GetRay(float s, float t)
+	Ray GetRay(float s, float t) const
 	{
 		Vec3 rd     = LensRadius * RandomInUnitDisk();
 		Vec3 offset = U * rd.X() + V * rd.Y();

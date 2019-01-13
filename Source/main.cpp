@@ -1,14 +1,14 @@
 #include <iostream>
 #include <fstream>
 #include <cfloat>
-#include "Vec3.h"
-#include "Ray.h"
-#include "Sphere.h"
-#include "HitableList.h"
-#include "Camera.h"
-#include "Util.h"
-#include "Material.h"
-#include "Raytracer.h"
+#include "Core/Vec3.h"
+#include "Core/Ray.h"
+#include "Core/Sphere.h"
+#include "Core/HitableList.h"
+#include "Core/Camera.h"
+#include "Core/Util.h"
+#include "Core/Material.h"
+#include "Core/Raytracer.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 

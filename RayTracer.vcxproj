@@ -18,6 +18,20 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Source\Core\Camera.h" />
+    <ClInclude Include="Source\Core\Hitable.h" />
+    <ClInclude Include="Source\Core\HitableList.h" />
+    <ClInclude Include="Source\Core\Material.h" />
+    <ClInclude Include="Source\Core\Ray.h" />
+    <ClInclude Include="Source\Core\Raytracer.h" />
+    <ClInclude Include="Source\Core\Sphere.h" />
+    <ClInclude Include="Source\Core\Util.h" />
+    <ClInclude Include="Source\Core\Vec3.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Source\main.cpp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{2AD2BE84-18D5-4F6B-B94E-47D60D4566FB}</ProjectGuid>
@@ -114,20 +128,6 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="main.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Camera.h" />
-    <ClInclude Include="Hitable.h" />
-    <ClInclude Include="HitableList.h" />
-    <ClInclude Include="Material.h" />
-    <ClInclude Include="Ray.h" />
-    <ClInclude Include="Raytracer.h" />
-    <ClInclude Include="Sphere.h" />
-    <ClInclude Include="Util.h" />
-    <ClInclude Include="Vec3.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

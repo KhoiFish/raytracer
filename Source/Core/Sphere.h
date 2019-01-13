@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Hitable.h"
+#include "IHitable.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-class Sphere : public Hitable
+class Sphere : public IHitable
 {
 public:
 
@@ -12,6 +12,7 @@ public:
 
 	Sphere(Vec3 cen, float r, Material* mat) : Center(cen), Radius(r), MatPtr(mat) {}
 	virtual bool Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const;
+	virtual bool BoundingBox(float t0, float t1, AABB& box) const;
 
 private:
 
@@ -48,4 +49,12 @@ bool Sphere::Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const
 	}
 
 	return false;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+bool Sphere::BoundingBox(float t0, float t1, AABB& box) const
+{
+	box = AABB::ComputerAABBForSphere(Center, Radius);
+	return true;
 }

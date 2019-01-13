@@ -10,13 +10,14 @@
 #include "Core/Util.h"
 #include "Core/Material.h"
 #include "Core/Raytracer.h"
+#include "Core/BVHNode.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static Hitable* randomScene()
+static IHitable* randomScene(float time0, float time1)
 {
 	const int numObjects = 500;
-	Hitable **list = new Hitable*[numObjects + 1];
+	IHitable **list = new IHitable*[numObjects + 1];
 	list[0] = new Sphere(Vec3(0, -1000, 0), 1000, new MLambertian(Vec3(.5f, .5f, .5f)));
 
 	int i = 1;
@@ -54,7 +55,10 @@ static Hitable* randomScene()
 	list[i++] = new Sphere(Vec3(-4, 1, 0), 1.f, new MLambertian(Vec3(0.4f, 0.2f, 0.1f)));
 	list[i++] = new Sphere(Vec3(4, 1, 0), 1.f, new MMetal(Vec3(0.7f, 0.6f, 0.5f), 0.f));
 
-	return new HitableList(list, i);
+	// Generate BVH tree
+	BVHNode* bvhHead = new BVHNode(list, i, time0, time1);
+
+	return bvhHead;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -62,8 +66,8 @@ static Hitable* randomScene()
 int main()
 {
 	// Raytracer params
-	const int    outputWidth  = 512;
-	const int    outputHeight = 256;
+	const int    outputWidth  = 3840;
+	const int    outputHeight = 2160;
 	const int    numSamples   = 100;
 	const int    maxDepth     = 50;
 	const int    numThreads   = 8;
@@ -80,7 +84,7 @@ int main()
 	const float  shutterTime1 = 1.f;
 
 	// Create world
-	Hitable* world = randomScene();
+	IHitable* world = randomScene(shutterTime0, shutterTime1);
 
 	// Setup camera
 	Camera cam(

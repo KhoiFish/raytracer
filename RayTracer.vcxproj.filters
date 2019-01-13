@@ -9,9 +9,6 @@
     <ClInclude Include="Source\Core\Camera.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Core\Hitable.h">
-      <Filter>Core</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Core\HitableList.h">
       <Filter>Core</Filter>
     </ClInclude>
@@ -34,6 +31,15 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Source\Core\MovingSphere.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\AABB.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\IHitable.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\BVHNode.h">
       <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>

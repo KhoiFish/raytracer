@@ -8,7 +8,7 @@
 #include <iomanip>
 #include "Ray.h"
 #include "Vec3.h"
-#include "Hitable.h"
+#include "IHitable.h"
 #include "HitableList.h"
 #include "Material.h"
 #include "Camera.h"
@@ -42,7 +42,7 @@ public:
 		ThreadPtrs = nullptr;
 	}
 
-	void Render(const Camera& cam, Hitable* world)
+	void Render(const Camera& cam, IHitable* world)
 	{
 		// Trace each pixel
 		CurrentOutputOffset = 0;
@@ -96,7 +96,7 @@ public:
 
 private:
 
-	static void threadTraceNextPixel(int id, Raytracer* tracer, const Camera& cam, Hitable* world)
+	static void threadTraceNextPixel(int id, Raytracer* tracer, const Camera& cam, IHitable* world)
 	{
 		const int numPixels = (tracer->OutputWidth * tracer->OutputHeight);
 
@@ -160,7 +160,7 @@ private:
 		fflush(stdout);
 	}
 
-	inline Vec3 trace(const Ray& r, Hitable *world, int depth)
+	inline Vec3 trace(const Ray& r, IHitable *world, int depth)
 	{
 		HitRecord rec;
 		if (world->Hit(r, 0.001f, FLT_MAX, rec))

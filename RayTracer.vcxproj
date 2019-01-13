@@ -19,8 +19,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Core\AABB.h" />
+    <ClInclude Include="Source\Core\BVHNode.h" />
     <ClInclude Include="Source\Core\Camera.h" />
-    <ClInclude Include="Source\Core\Hitable.h" />
+    <ClInclude Include="Source\Core\IHitable.h" />
     <ClInclude Include="Source\Core\HitableList.h" />
     <ClInclude Include="Source\Core\Material.h" />
     <ClInclude Include="Source\Core\MovingSphere.h" />

@@ -48,10 +48,13 @@ public:
 		CurrentOutputOffset = 0;
 
 		// Create the threads and run them
+		printf("Rendering frame...\n");
 		for (int i = 0; i < NumThreads; i++)
 		{
 			ThreadPtrs[i] = new std::thread(threadTraceNextPixel, i, this, cam, world);
+			printf("Thread %d started.\n", i);
 		}
+		printProgress(0);
 
 		// Join all the threads
 		for (int i = 0; i < NumThreads; i++)
@@ -59,11 +62,15 @@ public:
 			ThreadPtrs[i]->join();
 			delete ThreadPtrs[i];
 			ThreadPtrs[i] = nullptr;
+			printf("\nThread %d finished.", i);
 		}
+		printf("\nRendering done!\n");
 	}
 
 	void WriteOutputToPPMFile(std::ofstream outFile)
 	{
+		printf("Writing ppm file...\n");
+
 		outFile << "P3\n" << OutputWidth << " " << OutputHeight << "\n255\n";
 
 		int numPixels = OutputWidth * OutputHeight;
@@ -77,7 +84,15 @@ public:
 			int ig = int(255.99*col.G());
 			int ib = int(255.99*col.B());
 			outFile << ir << " " << ig << " " << ib << "\n";
-		}	
+
+			// Print progress
+			if ((i % OutputWidth) == 0)
+			{
+				printProgress(float(i) / float(numPixels));
+			}
+		}
+
+		printf("\nFinished writing ppm file!\n");
 	}
 
 private:
@@ -126,13 +141,24 @@ private:
 
 				// Print progress
 				int latestOffset = tracer->CurrentOutputOffset.load();
-				if (id == 0 && (latestOffset % tracer->OutputWidth) == 0)
+				if (id == 0 && latestOffset > 0 && (latestOffset % tracer->OutputWidth) == 0)
 				{
-					float percentDone = (float(latestOffset) / float(numPixels)) * 100.f;
-					std::cout << "Rendering " << std::setprecision(2) << std::fixed << percentDone << "% complete..." << std::endl;
+					float percentDone = (float(latestOffset) / float(numPixels));
+					printProgress(percentDone);
 				}
 			}
 		}
+	}
+
+	static void printProgress(double percentage)
+	{
+		static const char* PBSTR = "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||";
+		static const int PBWIDTH = 60;
+		int val = (int)(percentage * 100);
+		int lpad = (int)(percentage * PBWIDTH);
+		int rpad = PBWIDTH - lpad;
+		printf("\r%3d%% [%.*s%*s]", val, lpad, PBSTR, rpad, "");
+		fflush(stdout);
 	}
 
 	inline Vec3 trace(const Ray& r, Hitable *world, int depth)

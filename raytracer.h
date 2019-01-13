@@ -6,32 +6,34 @@
 #include <thread>
 #include <atomic>
 #include <iomanip>
-#include "ray.h"
-#include "vec3.h"
-#include "hitable.h"
-#include "hitablelist.h"
-#include "material.h"
-#include "camera.h"
-#include "util.h"
+#include "Ray.h"
+#include "Vec3.h"
+#include "Hitable.h"
+#include "HitableList.h"
+#include "Material.h"
+#include "Camera.h"
+#include "Util.h"
 
-class raytracer
+// ----------------------------------------------------------------------------------------------------------------------------
+
+class Raytracer
 {
 public:
 
 	typedef std::thread* ThreadPtr;
 
-	raytracer(int width, int height, int numSamples, int maxDepth, int numThreads) 
+	Raytracer(int width, int height, int numSamples, int maxDepth, int numThreads) 
 		: OutputWidth(width)
 		, OutputHeight(height)
 		, NumRaySamples(numSamples)
 		, MaxDepth(maxDepth)
 		, NumThreads(numThreads)
 	{
-		OutputBuffer = new vec3[OutputWidth * OutputHeight];
+		OutputBuffer = new Vec3[OutputWidth * OutputHeight];
 		ThreadPtrs = new ThreadPtr[NumThreads];
 	}
 
-	~raytracer()
+	~Raytracer()
 	{
 		delete[] OutputBuffer;
 		OutputBuffer = nullptr;
@@ -40,7 +42,7 @@ public:
 		ThreadPtrs = nullptr;
 	}
 
-	void render(camera cam, hitable* world)
+	void Render(Camera cam, Hitable* world)
 	{
 		// Trace each pixel
 		CurrentOutputOffset = 0;
@@ -60,7 +62,7 @@ public:
 		}
 	}
 
-	void writeOutputToPPMFile(std::ofstream outFile)
+	void WriteOutputToPPMFile(std::ofstream outFile)
 	{
 		outFile << "P3\n" << OutputWidth << " " << OutputHeight << "\n255\n";
 
@@ -68,21 +70,22 @@ public:
 		for (int i = 0; i < numPixels; i++)
 		{
 			// Get the pixel
-			vec3 col = OutputBuffer[i];
+			Vec3 col = OutputBuffer[i];
 
 			// Write pixel to file
-			int ir = int(255.99*col.r());
-			int ig = int(255.99*col.g());
-			int ib = int(255.99*col.b());
+			int ir = int(255.99*col.R());
+			int ig = int(255.99*col.G());
+			int ib = int(255.99*col.B());
 			outFile << ir << " " << ig << " " << ib << "\n";
 		}	
 	}
 
 private:
 
-	static void threadTraceNextPixel(int id, raytracer* tracer, camera cam, hitable* world)
+	static void threadTraceNextPixel(int id, Raytracer* tracer, Camera cam, Hitable* world)
 	{
 		const int numPixels = (tracer->OutputWidth * tracer->OutputHeight);
+
 		int offset = tracer->CurrentOutputOffset.load();
 		while (offset < numPixels)
 		{
@@ -100,22 +103,23 @@ private:
 			if (offset < numPixels)
 			{
 				// Get the offsets
-				int x = offset % tracer->OutputWidth;
-				int y = tracer->OutputHeight - (offset / tracer->OutputWidth);
+				const int x = offset % tracer->OutputWidth;
+				const int y = tracer->OutputHeight - (offset / tracer->OutputWidth);
 
 				// Send random rays to pixel, i.e. multi-sample
-				vec3 col(0.f, 0.f, 0.f);
+				Vec3 col(0.f, 0.f, 0.f);
 				for (int s = 0; s < tracer->NumRaySamples; s++)
 				{
-					float u = float(x + drand48()) / float(tracer->OutputWidth);
-					float v = float(y + drand48()) / float(tracer->OutputHeight);
-					ray r = cam.get_ray(u, v);
+					const float u = float(x + RandomFloat()) / float(tracer->OutputWidth);
+					const float v = float(y + RandomFloat()) / float(tracer->OutputHeight);
+
+					Ray r = cam.GetRay(u, v);
 					col += tracer->trace(r, world, 0);
 				}
 				col /= float(tracer->NumRaySamples);
 
 				// Gamma correct
-				col = vec3(sqrt(col.r()), sqrt(col.g()), sqrt(col.b()));
+				col = Vec3(sqrt(col.R()), sqrt(col.G()), sqrt(col.B()));
 
 				// Write color to output buffer
 				tracer->OutputBuffer[offset] = col;
@@ -131,27 +135,28 @@ private:
 		}
 	}
 
-	inline vec3 trace(const ray& r, hitable *world, int depth)
+	inline Vec3 trace(const Ray& r, Hitable *world, int depth)
 	{
-		hit_record rec;
-		if (world->hit(r, 0.001f, FLT_MAX, rec))
+		HitRecord rec;
+		if (world->Hit(r, 0.001f, FLT_MAX, rec))
 		{
-			ray scattered;
-			vec3 attenuation;
-			if (depth < MaxDepth && rec.mat_ptr->scatter(r, rec, attenuation, scattered))
+			Ray  scattered;
+			Vec3 attenuation;
+			if (depth < MaxDepth && rec.MatPtr->Scatter(r, rec, attenuation, scattered))
 			{
 				return attenuation * trace(scattered, world, depth + 1);
 			}
 			else
 			{
-				return vec3(0, 0, 0);
+				return Vec3(0, 0, 0);
 			}
 		}
 		else
 		{
-			vec3 unitDirection = unit_vector(r.direction());
-			float t = 0.5f * (unitDirection.y() + 1.0f);
-			return ((1.0f - t) * vec3(1.0f, 1.0f, 1.0f)) + (t * vec3(0.5f, 0.7f, 1.0f));
+			Vec3  unitDirection = UnitVector(r.Direction());
+			float t = 0.5f * (unitDirection.Y() + 1.0f);
+
+			return ((1.0f - t) * Vec3(1.0f, 1.0f, 1.0f)) + (t * Vec3(0.5f, 0.7f, 1.0f));
 		}
 	}
 
@@ -160,7 +165,7 @@ private:
 	// Output options
 	int               OutputWidth;
 	int               OutputHeight;
-	vec3*             OutputBuffer;
+	Vec3*             OutputBuffer;
 
 	// Tracing options
 	int               NumRaySamples;

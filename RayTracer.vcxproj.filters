@@ -20,31 +20,31 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="vec3.h">
+    <ClInclude Include="Util.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="ray.h">
+    <ClInclude Include="Camera.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="hitable.h">
+    <ClInclude Include="Hitable.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="sphere.h">
+    <ClInclude Include="HitableList.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="hitablelist.h">
+    <ClInclude Include="Ray.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="camera.h">
+    <ClInclude Include="Raytracer.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="material.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="util.h">
+    <ClInclude Include="Sphere.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="raytracer.h">
+    <ClInclude Include="Vec3.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Material.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

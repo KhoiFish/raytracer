@@ -1,19 +1,25 @@
 #pragma once
 
-#include "ray.h"
+#include "Ray.h"
 
-class material;
+// ----------------------------------------------------------------------------------------------------------------------------
 
-struct hit_record
+class Material;
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+struct HitRecord
 {
-	float t;
-	vec3 p;
-	vec3 normal;
-	material *mat_ptr;
+	float      T;
+	Vec3       P;
+	Vec3       Normal;
+	Material*  MatPtr;
 };
 
-class hitable
+// ----------------------------------------------------------------------------------------------------------------------------
+
+class Hitable
 {
 public:
-	virtual bool hit(const ray& r, float t_min, float t_max, hit_record& rec) const = 0;
+	virtual bool Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const = 0;
 };

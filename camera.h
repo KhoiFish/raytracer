@@ -1,42 +1,46 @@
 #pragma once
 
-#include "ray.h"
-#include "util.h"
+#include "Ray.h"
+#include "Util.h"
 
-class camera
+// ----------------------------------------------------------------------------------------------------------------------------
+
+class Camera
 {
 public:
 
-	camera(vec3 lookfrom, vec3 lookat, vec3 vup, float vfov, float aspect, float aperture, float focus_dist)
+	Camera(Vec3 lookFrom, Vec3 lookAt, Vec3 vup, float vertFov, float aspect, float aperture, float focusDist)
 	{
-		lens_radius = aperture / 2;	
-		float theta = vfov * 3.14159265359f / 180.f;
-		float half_height = tan(theta / 2);
-		float half_width = aspect * half_height;
+		LensRadius = aperture / 2;	
 
-		origin = lookfrom;
-		w = unit_vector(lookfrom - lookat);
-		u = unit_vector(cross(vup, w));
-		v = cross(w, u);
+		float theta      = vertFov * 3.14159265359f / 180.f;
+		float halfHeight = tan(theta / 2);
+		float halfWidth  = aspect * halfHeight;
 
-		lower_left_corner = origin - half_width * focus_dist * u - half_height * focus_dist * v - focus_dist * w;
-		horizontal = 2 * half_width * focus_dist * u;
-		vertical = 2 * half_height * focus_dist * v;
+		Origin = lookFrom;
+		W      = UnitVector(lookFrom - lookAt);
+		U      = UnitVector(Cross(vup, W));
+		V      = Cross(W, U);
+
+		LowerLeftCorner = Origin - halfWidth * focusDist * U - halfHeight * focusDist * V - focusDist * W;
+		Horizontal      = 2 * halfWidth * focusDist * U;
+		Vertical        = 2 * halfHeight * focusDist * V;
 	}
 
-	ray get_ray(float s, float t)
+	Ray GetRay(float s, float t)
 	{
-		vec3 rd = lens_radius * random_in_unit_disk();
-		vec3 offset = u * rd.x() + v * rd.y();
-		return ray(origin + offset, lower_left_corner + (s * horizontal) + (t * vertical) - origin - offset);
+		Vec3 rd     = LensRadius * RandomInUnitDisk();
+		Vec3 offset = U * rd.X() + V * rd.Y();
+
+		return Ray(Origin + offset, LowerLeftCorner + (s * Horizontal) + (t * Vertical) - Origin - offset);
 	}
 
 private:
 
-	vec3 origin;
-	vec3 lower_left_corner;
-	vec3 horizontal;
-	vec3 vertical;
-	vec3 u, v, w;
-	float lens_radius;
+	Vec3   Origin;
+	Vec3   LowerLeftCorner;
+	Vec3   Horizontal;
+	Vec3   Vertical;
+	Vec3   U, V, W;
+	float  LensRadius;
 };

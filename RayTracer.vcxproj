@@ -118,15 +118,15 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="camera.h" />
-    <ClInclude Include="hitable.h" />
-    <ClInclude Include="hitablelist.h" />
-    <ClInclude Include="material.h" />
-    <ClInclude Include="ray.h" />
-    <ClInclude Include="raytracer.h" />
-    <ClInclude Include="sphere.h" />
-    <ClInclude Include="util.h" />
-    <ClInclude Include="vec3.h" />
+    <ClInclude Include="Camera.h" />
+    <ClInclude Include="Hitable.h" />
+    <ClInclude Include="HitableList.h" />
+    <ClInclude Include="Material.h" />
+    <ClInclude Include="Ray.h" />
+    <ClInclude Include="Raytracer.h" />
+    <ClInclude Include="Sphere.h" />
+    <ClInclude Include="Util.h" />
+    <ClInclude Include="Vec3.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

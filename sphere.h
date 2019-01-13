@@ -1,44 +1,48 @@
 #pragma once
 
-#include "hitable.h"
+#include "Hitable.h"
 
-class sphere : public hitable
+// ----------------------------------------------------------------------------------------------------------------------------
+
+class Sphere : public Hitable
 {
 public:
 
-	sphere() {}
+	Sphere() {}
 
-	sphere(vec3 cen, float r, material* mat) : center(cen), radius(r), mat_ptr(mat) {}
-	virtual bool hit(const ray& r, float tmin, float tmax, hit_record& rec) const;
+	Sphere(Vec3 cen, float r, Material* mat) : Center(cen), Radius(r), MatPtr(mat) {}
+	virtual bool Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const;
 
 private:
 
-	vec3 center;
-	float radius;
-	material* mat_ptr;
+	Vec3       Center;
+	float      Radius;
+	Material*  MatPtr;
 };
 
-bool sphere::hit(const ray& r, float t_min, float t_max, hit_record& rec) const
-{
-	vec3 oc = r.origin() - center;
+// ----------------------------------------------------------------------------------------------------------------------------
 
-	float a = dot(r.direction(), r.direction());
-	float b = dot(oc, r.direction());
-	float c = dot(oc, oc) - radius * radius;
-	float discriminant = (b * b) - (a * c);
-	if (discriminant > 0)
+bool Sphere::Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const
+{
+	Vec3  oc = r.Origin() - Center;
+
+	float a = Dot(r.Direction(), r.Direction());
+	float b = Dot(oc, r.Direction());
+	float c = Dot(oc, oc) - Radius * Radius;
+	float d = (b * b) - (a * c);
+	if (d > 0)
 	{
 		float calc0 = sqrt((b*b) - (a*c));
 		float test0 = (-b - calc0) / a;
 		float test1 = (-b + calc0) / a;
-		bool test0Passed = (test0 < t_max && test0 > t_min);
-		bool test1Passed = (test1 < t_max && test1 > t_min);
+		bool test0Passed = (test0 < tMax && test0 > tMin);
+		bool test1Passed = (test1 < tMax && test1 > tMin);
 		if (test0Passed || test1Passed)
 		{
-			rec.t = test0Passed ? test0 : test1;
-			rec.p = r.point_at_parameter(rec.t);
-			rec.normal = (rec.p - center) / radius;
-			rec.mat_ptr = mat_ptr;
+			rec.T = test0Passed ? test0 : test1;
+			rec.P = r.PointAtParameter(rec.T);
+			rec.Normal = (rec.P - Center) / Radius;
+			rec.MatPtr = MatPtr;
 			return true;
 		}
 	}

@@ -1,40 +1,40 @@
 #pragma once
 
-#include "hitable.h"
+#include "Hitable.h"
 
-class hitable_list : public hitable
+// ----------------------------------------------------------------------------------------------------------------------------
+
+class HitableList : public Hitable
 {
 public:
 
-	hitable_list() {}
-	hitable_list(hitable **l, int n)
-	{
-		list = l;
-		list_size = n;
-	}
+	HitableList() {}
+	HitableList(Hitable **l, int n) : List(l), ListSize(n) {}
 
-	virtual bool hit(const ray& r, float tmin, float tmax, hit_record& rec) const;
+	virtual bool Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const;
 
 private:
 
-	hitable **list;
-	int list_size;
+	Hitable** List;
+	int       ListSize;
 };
 
-bool hitable_list::hit(const ray& r, float t_min, float t_max, hit_record& rec) const
+// ----------------------------------------------------------------------------------------------------------------------------
+
+bool HitableList::Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const
 {
-	hit_record temp_rec;
-	bool hit_anything = false;
-	float closest_so_far = t_max;
-	for (int i = 0; i < list_size; i++)
+	HitRecord tempRec;
+	bool      hitAnything = false;
+	float     closestSoFar = tMax;
+	for (int i = 0; i < ListSize; i++)
 	{
-		if (list[i]->hit(r, t_min, closest_so_far, temp_rec))
+		if (List[i]->Hit(r, tMin, closestSoFar, tempRec))
 		{
-			hit_anything = true;
-			closest_so_far = temp_rec.t;
-			rec = temp_rec;
+			hitAnything = true;
+			closestSoFar = tempRec.T;
+			rec = tempRec;
 		}
 	}
 
-	return hit_anything;
+	return hitAnything;
 }

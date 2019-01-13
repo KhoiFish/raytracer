@@ -1,109 +1,117 @@
 #pragma once
-#include "ray.h"
-#include "hitable.h"
-#include "util.h"
+#include "Ray.h"
+#include "Hitable.h"
+#include "Util.h"
 
-class material
+// ----------------------------------------------------------------------------------------------------------------------------
+
+class Material
 {
 public:
-	virtual bool scatter(const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered) const = 0;
+	virtual bool Scatter(const Ray& rayIn, const HitRecord& rec, Vec3& attenuation, Ray& scattered) const = 0;
 };
 
-class lambertian : public material
+// ----------------------------------------------------------------------------------------------------------------------------
+
+class MLambertian : public Material
 {
 public:
 
-	lambertian(const vec3& a) : albedo(a) {}
+	MLambertian(const Vec3& albedo) : Albedo(albedo) {}
 
-	virtual bool scatter(const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered) const
+	virtual bool Scatter(const Ray& rayIn, const HitRecord& rec, Vec3& attenuation, Ray& scattered) const
 	{
-		vec3 target = rec.p + rec.normal + random_in_unit_sphere();
-		scattered = ray(rec.p, target - rec.p);
-		attenuation = albedo;
+		Vec3 target = rec.P + rec.Normal + RandomInUnitSphere();
+		scattered = Ray(rec.P, target - rec.P);
+		attenuation = Albedo;
 		return true;
 	}
 
 private:
 
-	vec3 albedo;
+	Vec3 Albedo;
 };
 
-class metal : public material
+// ----------------------------------------------------------------------------------------------------------------------------
+
+class MMetal : public Material
 {
 public:
 
-	metal(const vec3& a, float f) : albedo(a)
+	MMetal(const Vec3& albedo, float fuzz) : Albedo(albedo)
 	{
-		if (f < 1)
+		if (fuzz < 1)
 		{
-			fuzz = f;
+			Fuzz = fuzz;
 		}
 		else
 		{
-			fuzz = 1;
+			Fuzz = 1;
 		}
 	}
 
-	virtual bool scatter(const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered) const
+	virtual bool Scatter(const Ray& rayIn, const HitRecord& rec, Vec3& attenuation, Ray& scattered) const
 	{
-		vec3 reflected = reflect(unit_vector(r_in.direction()), rec.normal);
-		scattered = ray(rec.p, reflected + fuzz*random_in_unit_sphere());
-		attenuation = albedo;
-		return (dot(scattered.direction(), rec.normal) > 0);
+		Vec3 reflected = Reflect(UnitVector(rayIn.Direction()), rec.Normal);
+		scattered = Ray(rec.P, reflected + Fuzz*RandomInUnitSphere());
+		attenuation = Albedo;
+		return (Dot(scattered.Direction(), rec.Normal) > 0);
 	}
 
 private:
 
-	vec3 albedo;
-	float fuzz;
+	Vec3 Albedo;
+	float Fuzz;
 };
 
-class dielectric : public material
+// ----------------------------------------------------------------------------------------------------------------------------
+
+class MDielectric : public Material
 {
 public:
 
-	dielectric(float ri) : ref_idx(ri) {}
+	MDielectric(float ri) : RefId(ri) {}
 
-	virtual bool scatter(const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered) const
+	virtual bool Scatter(const Ray& rayIn, const HitRecord& rec, Vec3& attenuation, Ray& scattered) const
 	{
-		vec3 outward_normal;
-		vec3 reflected = reflect(r_in.direction(), rec.normal);
-		attenuation = vec3(1.0f, 1.0f, 1.0f);
+		Vec3 outwardNormal;
+		Vec3 reflected = Reflect(rayIn.Direction(), rec.Normal);
+		attenuation = Vec3(1.0f, 1.0f, 1.0f);
 
-		float ni_over_nt;
-		vec3 refracted;
-		float reflect_prob;
+		float niOverNt;
+		Vec3 refracted;
+		float reflectProb;
 		float cosine;
-		if (dot(r_in.direction(), rec.normal) > 0)
+		if (Dot(rayIn.Direction(), rec.Normal) > 0)
 		{
-			outward_normal = -rec.normal;
-			ni_over_nt = ref_idx;
-			cosine = ref_idx * dot(r_in.direction(), rec.normal) / r_in.direction().length();
+			outwardNormal = -rec.Normal;
+			niOverNt = RefId;
+			cosine = RefId * Dot(rayIn.Direction(), rec.Normal) / rayIn.Direction().Length();
 		}
 		else
 		{
-			outward_normal = rec.normal;
-			ni_over_nt = 1.0f / ref_idx;
-			cosine = -dot(r_in.direction(), rec.normal) / r_in.direction().length();
+			outwardNormal = rec.Normal;
+			niOverNt = 1.0f / RefId;
+			cosine = -Dot(rayIn.Direction(), rec.Normal) / rayIn.Direction().Length();
 		}
 
-		if (refract(r_in.direction(), outward_normal, ni_over_nt, refracted))
+		if (Refract(rayIn.Direction(), outwardNormal, niOverNt, refracted))
 		{
-			reflect_prob = schlick(cosine, ref_idx);
+			reflectProb = Schlick(cosine, RefId);
 		}
 		else
 		{
-			scattered = ray(rec.p, reflected);
-			reflect_prob = 1.0f;
+			scattered = Ray(rec.P, reflected);
+			reflectProb = 1.0f;
 		}
 
-		if (drand48() < reflect_prob)
+		if (RandomFloat() < reflectProb)
 		{
-			scattered = ray(rec.p, reflected);
+			scattered = Ray(rec.P, reflected);
 		}
 		else
 		{
-			scattered = ray(rec.p, refracted);
+			scattered = Ray(rec.P, refracted);
 		}
 
 		return true;
@@ -111,5 +119,5 @@ public:
 
 private:
 	
-	float ref_idx;
+	float RefId;
 };

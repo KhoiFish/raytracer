@@ -1,31 +1,33 @@
 #pragma once
 
-#include "vec3.h"
+#include "Vec3.h"
 
-class ray
+// ----------------------------------------------------------------------------------------------------------------------------
+
+class Ray
 {
 public:
 
-	ray() {}
+	Ray() {}
 
-	ray(const vec3& a, const vec3& b)
+	Ray(const Vec3& a, const Vec3& b)
 	{
 		A = a;
 		B = b;
 	}
 
-	vec3 origin() const { return A; }
-	vec3 direction() const { return B; }
-	vec3& origin()  { return A; }
-	vec3& direction() { return B; }
+	Vec3  Origin() const    { return A; }
+	Vec3  Direction() const { return B; }
+	Vec3& Origin()          { return A; }
+	Vec3& Direction()       { return B; }
 
-	vec3 point_at_parameter(float t) const
+	Vec3 PointAtParameter(float t) const
 	{
 		return A + (t * B);
 	}
 
 private:
 
-	vec3 A;
-	vec3 B;
+	Vec3 A;
+	Vec3 B;
 };

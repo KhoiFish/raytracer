@@ -33,6 +33,9 @@
     <ClInclude Include="Source\Core\Vec3.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Core\MovingSphere.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\main.cpp" />

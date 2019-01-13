@@ -4,6 +4,7 @@
 #include "Core/Vec3.h"
 #include "Core/Ray.h"
 #include "Core/Sphere.h"
+#include "Core/MovingSphere.h"
 #include "Core/HitableList.h"
 #include "Core/Camera.h"
 #include "Core/Util.h"
@@ -29,7 +30,13 @@ static Hitable* randomScene()
 			{
 				if (chooseMat < .8f)
 				{
-					list[i++] = new Sphere(center, .2f, new MLambertian(Vec3(RandomFloat()*RandomFloat(), RandomFloat()*RandomFloat(), RandomFloat()*RandomFloat())));
+					list[i++] = new MovingSphere(
+						center, center + Vec3(0, .5f*RandomFloat(), 0), 
+						.0f, 1.f,
+						.2f, 
+						new MLambertian(Vec3(RandomFloat()*RandomFloat(), RandomFloat()*RandomFloat(), RandomFloat()*RandomFloat())
+						)
+					);
 				}
 				else if (chooseMat < .95f)
 				{
@@ -55,25 +62,31 @@ static Hitable* randomScene()
 int main()
 {
 	// Raytracer params
-	const int    outputWidth  = 3840;
-	const int    outputHeight = 2160;
-	const int    numSamples   = 1;
+	const int    outputWidth  = 512;
+	const int    outputHeight = 256;
+	const int    numSamples   = 100;
 	const int    maxDepth     = 50;
 	const int    numThreads   = 8;
+
+	// Camera options
+	const Vec3   lookFrom     = Vec3(13, 2, 3);
+	const Vec3   lookAt       = Vec3(0, 0, 0);
+	const Vec3   upVec        = Vec3(0, 1, 0);
+	const float  vertFov      = 20.f;
 	const float  aspect       = float(outputWidth) / float(outputHeight);
+	const float  aperture     = 0.0f;
+	const float  distToFocus  = 10.f;
+	const float  shutterTime0 = 0.f;
+	const float  shutterTime1 = 1.f;
 
 	// Create world
 	Hitable* world = randomScene();
 
 	// Setup camera
 	Camera cam(
-		Vec3(13, 2, 3), // Look from
-		Vec3(0, 0, 0),  // Look at
-		Vec3(0, 1, 0),  // Up vec
-		20.f,           // Vertical FOV
-		aspect,         // Aspect
-		.1f,            // Aperture
-		10.f);          // Distance to focus
+		lookFrom, lookAt, upVec,
+		vertFov, aspect, aperture, distToFocus,
+		shutterTime0, shutterTime1);
 
 	// Ray trace world
 	Raytracer tracer(outputWidth, outputHeight, numSamples, maxDepth, numThreads);

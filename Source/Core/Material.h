@@ -22,7 +22,7 @@ public:
 	virtual bool Scatter(const Ray& rayIn, const HitRecord& rec, Vec3& attenuation, Ray& scattered) const
 	{
 		Vec3 target = rec.P + rec.Normal + RandomInUnitSphere();
-		scattered = Ray(rec.P, target - rec.P);
+		scattered = Ray(rec.P, target - rec.P, rayIn.Time());
 		attenuation = Albedo;
 		return true;
 	}
@@ -53,7 +53,7 @@ public:
 	virtual bool Scatter(const Ray& rayIn, const HitRecord& rec, Vec3& attenuation, Ray& scattered) const
 	{
 		Vec3 reflected = Reflect(UnitVector(rayIn.Direction()), rec.Normal);
-		scattered = Ray(rec.P, reflected + Fuzz*RandomInUnitSphere());
+		scattered = Ray(rec.P, reflected + Fuzz*RandomInUnitSphere(), rayIn.Time());
 		attenuation = Albedo;
 		return (Dot(scattered.Direction(), rec.Normal) > 0);
 	}
@@ -101,17 +101,17 @@ public:
 		}
 		else
 		{
-			scattered = Ray(rec.P, reflected);
+			scattered = Ray(rec.P, reflected, rayIn.Time());
 			reflectProb = 1.0f;
 		}
 
 		if (RandomFloat() < reflectProb)
 		{
-			scattered = Ray(rec.P, reflected);
+			scattered = Ray(rec.P, reflected, rayIn.Time());
 		}
 		else
 		{
-			scattered = Ray(rec.P, refracted);
+			scattered = Ray(rec.P, refracted, rayIn.Time());
 		}
 
 		return true;

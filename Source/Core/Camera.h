@@ -9,8 +9,12 @@ class Camera
 {
 public:
 
-	Camera(Vec3 lookFrom, Vec3 lookAt, Vec3 vup, float vertFov, float aspect, float aperture, float focusDist)
+	Camera(Vec3 lookFrom, Vec3 lookAt, Vec3 vup, 
+		float vertFov, float aspect, float aperture, float focusDist,
+		float t0, float t1)
 	{
+		Time0 = t0;
+		Time1 = t1;
 		LensRadius = aperture / 2;	
 
 		float theta      = vertFov * 3.14159265359f / 180.f;
@@ -29,10 +33,11 @@ public:
 
 	Ray GetRay(float s, float t) const
 	{
-		Vec3 rd     = LensRadius * RandomInUnitDisk();
-		Vec3 offset = U * rd.X() + V * rd.Y();
+		Vec3  rd     = LensRadius * RandomInUnitDisk();
+		Vec3  offset = U * rd.X() + V * rd.Y();
+		float time = Time0 + RandomFloat()*(Time1 - Time0);
 
-		return Ray(Origin + offset, LowerLeftCorner + (s * Horizontal) + (t * Vertical) - Origin - offset);
+		return Ray(Origin + offset, LowerLeftCorner + (s * Horizontal) + (t * Vertical) - Origin - offset, time);
 	}
 
 private:
@@ -42,5 +47,6 @@ private:
 	Vec3   Horizontal;
 	Vec3   Vertical;
 	Vec3   U, V, W;
+	float  Time0, Time1;
 	float  LensRadius;
 };

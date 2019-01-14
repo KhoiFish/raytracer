@@ -26,13 +26,16 @@
     <ClInclude Include="Source\Core\HitableList.h" />
     <ClInclude Include="Source\Core\Material.h" />
     <ClInclude Include="Source\Core\MovingSphere.h" />
+    <ClInclude Include="Source\Core\Perlin.h" />
     <ClInclude Include="Source\Core\Ray.h" />
     <ClInclude Include="Source\Core\Raytracer.h" />
     <ClInclude Include="Source\Core\Sphere.h" />
+    <ClInclude Include="Source\Core\Texture.h" />
     <ClInclude Include="Source\Core\Util.h" />
     <ClInclude Include="Source\Core\Vec3.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Core\Perlin.cpp" />
     <ClCompile Include="Source\main.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

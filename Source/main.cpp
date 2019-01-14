@@ -11,6 +11,7 @@
 #include "Core/Material.h"
 #include "Core/Raytracer.h"
 #include "Core/BVHNode.h"
+#include "Core/Texture.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -18,7 +19,12 @@ static IHitable* randomScene(float time0, float time1)
 {
 	const int numObjects = 500;
 	IHitable **list = new IHitable*[numObjects + 1];
-	list[0] = new Sphere(Vec3(0, -1000, 0), 1000, new MLambertian(Vec3(.5f, .5f, .5f)));
+
+	Texture* checker = new CheckerTexture(
+		new ConstantTexture(Vec3(.2f, .3f, .1f)),
+		new ConstantTexture(Vec3(.9f, .9f, .9f))
+	);
+	list[0] = new Sphere(Vec3(0, -1000, 0), 1000, new MLambertian(checker));
 
 	int i = 1;
 	for (int a = -11; a < 11; a++)
@@ -35,7 +41,7 @@ static IHitable* randomScene(float time0, float time1)
 						center, center + Vec3(0, .5f*RandomFloat(), 0), 
 						.0f, 1.f,
 						.2f, 
-						new MLambertian(Vec3(RandomFloat()*RandomFloat(), RandomFloat()*RandomFloat(), RandomFloat()*RandomFloat())
+						new MLambertian(new ConstantTexture(Vec3(RandomFloat()*RandomFloat(), RandomFloat()*RandomFloat(), RandomFloat()*RandomFloat()))
 						)
 					);
 				}
@@ -52,7 +58,7 @@ static IHitable* randomScene(float time0, float time1)
 	}
 
 	list[i++] = new Sphere(Vec3(0, 1, 0), 1.f, new MDielectric(1.5f));
-	list[i++] = new Sphere(Vec3(-4, 1, 0), 1.f, new MLambertian(Vec3(0.4f, 0.2f, 0.1f)));
+	list[i++] = new Sphere(Vec3(-4, 1, 0), 1.f, new MLambertian(new ConstantTexture(Vec3(0.4f, 0.2f, 0.1f))));
 	list[i++] = new Sphere(Vec3(4, 1, 0), 1.f, new MMetal(Vec3(0.7f, 0.6f, 0.5f), 0.f));
 
 	// Generate BVH tree
@@ -63,12 +69,24 @@ static IHitable* randomScene(float time0, float time1)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+static IHitable* createTwoPerlinSpheres()
+{
+	Texture* perTex = new NoiseTexture(4.f);
+	IHitable **list = new IHitable*[2];
+	list[0] = new Sphere(Vec3(0, -1000, 0), 1000, new MLambertian(perTex));
+	list[1] = new Sphere(Vec3(0, 2, 0), 2, new MLambertian(perTex));
+
+	return new HitableList(list, 2);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 int main()
 {
 	// Raytracer params
-	const int    outputWidth  = 3840;
-	const int    outputHeight = 2160;
-	const int    numSamples   = 100;
+	const int    outputWidth  = 1920;
+	const int    outputHeight = 1080;
+	const int    numSamples   = 1;
 	const int    maxDepth     = 50;
 	const int    numThreads   = 8;
 
@@ -84,7 +102,8 @@ int main()
 	const float  shutterTime1 = 1.f;
 
 	// Create world
-	IHitable* world = randomScene(shutterTime0, shutterTime1);
+	//IHitable* world = randomScene(shutterTime0, shutterTime1);
+	IHitable* world = createTwoPerlinSpheres();
 
 	// Setup camera
 	Camera cam(

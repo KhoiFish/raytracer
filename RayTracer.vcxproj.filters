@@ -42,8 +42,17 @@
     <ClInclude Include="Source\Core\BVHNode.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Core\Texture.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\Perlin.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\main.cpp" />
+    <ClCompile Include="Source\Core\Perlin.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

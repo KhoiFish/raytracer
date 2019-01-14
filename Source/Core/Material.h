@@ -2,6 +2,7 @@
 #include "Ray.h"
 #include "IHitable.h"
 #include "Util.h"
+#include "Texture.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -17,19 +18,19 @@ class MLambertian : public Material
 {
 public:
 
-	MLambertian(const Vec3& albedo) : Albedo(albedo) {}
+	MLambertian(Texture* albedo) : Albedo(albedo) {}
 
 	virtual bool Scatter(const Ray& rayIn, const HitRecord& rec, Vec3& attenuation, Ray& scattered) const
 	{
 		Vec3 target = rec.P + rec.Normal + RandomInUnitSphere();
 		scattered = Ray(rec.P, target - rec.P, rayIn.Time());
-		attenuation = Albedo;
+		attenuation = Albedo->Value(0, 0, rec.P);
 		return true;
 	}
 
 private:
 
-	Vec3 Albedo;
+	Texture* Albedo;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------

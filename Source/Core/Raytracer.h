@@ -52,7 +52,6 @@ public:
 		for (int i = 0; i < NumThreads; i++)
 		{
 			ThreadPtrs[i] = new std::thread(threadTraceNextPixel, i, this, cam, world);
-			printf("Thread %d started.\n", i);
 		}
 
 		// Join all the threads
@@ -61,7 +60,6 @@ public:
 			ThreadPtrs[i]->join();
 			delete ThreadPtrs[i];
 			ThreadPtrs[i] = nullptr;
-			printf("\nThread %d finished.", i);
 		}
 		printf("\n\nRendering done!\n\n");
 	}

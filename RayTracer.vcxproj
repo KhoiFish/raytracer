@@ -22,6 +22,7 @@
     <ClInclude Include="Source\Core\AABB.h" />
     <ClInclude Include="Source\Core\BVHNode.h" />
     <ClInclude Include="Source\Core\Camera.h" />
+    <ClInclude Include="Source\Core\FlipNormals.h" />
     <ClInclude Include="Source\Core\IHitable.h" />
     <ClInclude Include="Source\Core\HitableList.h" />
     <ClInclude Include="Source\Core\Material.h" />
@@ -33,6 +34,7 @@
     <ClInclude Include="Source\Core\Texture.h" />
     <ClInclude Include="Source\Core\Util.h" />
     <ClInclude Include="Source\Core\Vec3.h" />
+    <ClInclude Include="Source\Core\XYZRect.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\Perlin.cpp" />

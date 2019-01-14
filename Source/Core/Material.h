@@ -9,7 +9,13 @@
 class Material
 {
 public:
+
 	virtual bool Scatter(const Ray& rayIn, const HitRecord& rec, Vec3& attenuation, Ray& scattered) const = 0;
+	
+	virtual Vec3 Emitted(float u, float v, Vec3& p) const
+	{
+		return Vec3(0, 0, 0);
+	}
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -121,4 +127,27 @@ public:
 private:
 	
 	float RefId;
+};
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+class DiffuseLight : public Material
+{
+public:
+
+	DiffuseLight(Texture* tex) : EmitTex(tex) {}
+
+	virtual bool Scatter(const Ray& rayIn, const HitRecord& rec, Vec3& attenuation, Ray& scattered) const
+	{
+		return false;
+	}
+
+	virtual Vec3 Emitted(float u, float v, Vec3& p) const
+	{
+		return EmitTex->Value(u, v, p);
+	}
+
+private:
+
+	Texture* EmitTex;
 };

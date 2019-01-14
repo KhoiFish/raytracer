@@ -61,7 +61,7 @@ public:
 			delete ThreadPtrs[i];
 			ThreadPtrs[i] = nullptr;
 		}
-		printf("\n\nRendering done!\n\n");
+		printf("\nRendering done!\n\n");
 	}
 
 	void WriteOutputToPPMFile(std::ofstream outFile)
@@ -165,21 +165,19 @@ private:
 		{
 			Ray  scattered;
 			Vec3 attenuation;
+			Vec3 emitted = rec.MatPtr->Emitted(rec.U, rec.V, rec.P);
 			if (depth < MaxDepth && rec.MatPtr->Scatter(r, rec, attenuation, scattered))
 			{
-				return attenuation * trace(scattered, world, depth + 1);
+				return emitted + attenuation * trace(scattered, world, depth + 1);
 			}
 			else
 			{
-				return Vec3(0, 0, 0);
+				return emitted;
 			}
 		}
 		else
 		{
-			Vec3  unitDirection = UnitVector(r.Direction());
-			float t = 0.5f * (unitDirection.Y() + 1.0f);
-
-			return ((1.0f - t) * Vec3(1.0f, 1.0f, 1.0f)) + (t * Vec3(0.5f, 0.7f, 1.0f));
+			return Vec3(0, 0, 0);
 		}
 	}
 

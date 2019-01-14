@@ -2,4 +2,4 @@
 Debug/
 Release/
 RayTracer.vcxproj.user
-test.ppm
+*.ppm

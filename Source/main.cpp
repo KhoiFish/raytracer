@@ -13,6 +13,9 @@
 #include "Core/BVHNode.h"
 #include "Core/Texture.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "StbImage/stb_image.h"
+
 // ----------------------------------------------------------------------------------------------------------------------------
 
 static IHitable* randomScene(float time0, float time1)
@@ -72,9 +75,16 @@ static IHitable* randomScene(float time0, float time1)
 static IHitable* createTwoPerlinSpheres()
 {
 	Texture* perTex = new NoiseTexture(4.f);
+	Texture* imageTex = nullptr;
+	{
+		int width, height, numChannels;
+		unsigned char* texData = stbi_load("guitar.jpg", &width, &height, &numChannels, 0);
+		imageTex = new ImageTexture(texData, width, height);
+	}
+
 	IHitable **list = new IHitable*[2];
 	list[0] = new Sphere(Vec3(0, -1000, 0), 1000, new MLambertian(perTex));
-	list[1] = new Sphere(Vec3(0, 2, 0), 2, new MLambertian(perTex));
+	list[1] = new Sphere(Vec3(0, 2, 0), 2, new MLambertian(imageTex));
 
 	return new HitableList(list, 2);
 }

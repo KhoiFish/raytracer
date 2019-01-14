@@ -24,7 +24,7 @@ public:
 	{
 		Vec3 target = rec.P + rec.Normal + RandomInUnitSphere();
 		scattered = Ray(rec.P, target - rec.P, rayIn.Time());
-		attenuation = Albedo->Value(0, 0, rec.P);
+		attenuation = Albedo->Value(rec.U, rec.V, rec.P);
 		return true;
 	}
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "IHitable.h"
+#include "Util.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -44,6 +45,7 @@ bool Sphere::Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const
 			rec.P = r.PointAtParameter(rec.T);
 			rec.Normal = (rec.P - Center) / Radius;
 			rec.MatPtr = MatPtr;
+			GetSphereUV((rec.P - Center) / Radius, rec.U, rec.V);
 			return true;
 		}
 	}

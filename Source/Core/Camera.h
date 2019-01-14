@@ -17,7 +17,7 @@ public:
 		Time1 = t1;
 		LensRadius = aperture / 2;	
 
-		float theta      = vertFov * 3.14159265359f / 180.f;
+		float theta      = vertFov * RT_PI / 180.f;
 		float halfHeight = tan(theta / 2);
 		float halfWidth  = aspect * halfHeight;
 

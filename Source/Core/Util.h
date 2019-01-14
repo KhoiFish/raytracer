@@ -1,6 +1,8 @@
 #pragma once
 #include "Vec3.h"
 
+#define RT_PI 3.14159265359f
+
 // ----------------------------------------------------------------------------------------------------------------------------
 
 inline float RandomFloat()
@@ -93,4 +95,14 @@ inline float PerlinInterp(Vec3 c[2][2][2], float u, float v, float w)
 	}
 
 	return fabs(accum);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+inline void GetSphereUV(const Vec3& p, float& u, float& v)
+{
+	float phi   = atan2(p.Z(), p.X());
+	float theta = asin(p.Y());
+	u = 1 - (phi + RT_PI) / (2 * RT_PI);
+	v = (theta + RT_PI / 2) / RT_PI;
 }

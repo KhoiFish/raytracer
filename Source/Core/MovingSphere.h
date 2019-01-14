@@ -57,6 +57,7 @@ bool MovingSphere::Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) con
 			rec.P = r.PointAtParameter(rec.T);
 			rec.Normal = (rec.P - Center(r.Time())) / Radius;
 			rec.MatPtr = MatPtr;
+			GetSphereUV((rec.P - Center(r.Time())) / Radius, rec.U, rec.V);
 			return true;
 		}
 	}

@@ -48,7 +48,7 @@ public:
 		CurrentOutputOffset = 0;
 
 		// Create the threads and run them
-		printf("Rendering frame...\n\n");
+		printf("Rendering frame...\n");
 		for (int i = 0; i < NumThreads; i++)
 		{
 			ThreadPtrs[i] = new std::thread(threadTraceNextPixel, i, this, cam, world);

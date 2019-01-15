@@ -14,6 +14,8 @@
 #include "Core/Texture.h"
 #include "Core/XYZRect.h"
 #include "Core/FlipNormals.h"
+#include "Core/HitableBox.h"
+#include "Core/HitableTransform.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "StbImage/stb_image.h"
@@ -109,7 +111,7 @@ static IHitable* SimpleLightScene()
 
 static IHitable* CornellBox()
 {
-	IHitable** list = new IHitable*[6];
+	IHitable** list = new IHitable*[8];
 	int i = 0;
 
 	Material* red = new MLambertian(new ConstantTexture(Vec3(.65f, .05f, .05f)));
@@ -123,6 +125,18 @@ static IHitable* CornellBox()
 	list[i++] = new FlipNormals(new XYZRect(XYZRect::XZ, 0, 555, 0, 555, 555, white));
 	list[i++] = new XYZRect(XYZRect::XZ, 0, 555, 0, 555, 0, white);
 	list[i++] = new FlipNormals(new XYZRect(XYZRect::XY, 0, 555, 0, 555, 555, white));
+
+	list[i++] = new HitableTranslate(
+		new HitableRotateY(
+			new HitableBox(Vec3(0, 0, 0), Vec3(165, 165, 165), white),
+			-18),
+		Vec3(130, 0, 65));
+
+	list[i++] = new HitableTranslate(
+		new HitableRotateY(
+			new HitableBox(Vec3(0, 0, 0), Vec3(165, 330, 165), white),
+			15),
+		Vec3(265, 0, 295));
 
 	return new HitableList(list, i);
 }
@@ -159,11 +173,8 @@ int main()
 			vertFov, aspect, aperture, distToFocus,
 			shutterTime0, shutterTime1);
 
-		// Create the world
-		IHitable* world = randomScene(shutterTime0, shutterTime1);
-
 		// Render and write out image
-		tracer.Render(cam, world);
+		tracer.Render(cam, randomScene(shutterTime0, shutterTime1));
 		tracer.WriteOutputToPPMFile(std::ofstream("randomworld.ppm"));
 	}
 
@@ -184,11 +195,8 @@ int main()
 			vertFov, aspect, aperture, distToFocus,
 			shutterTime0, shutterTime1);
 
-		// Create the world
-		IHitable* world = CornellBox();
-
 		// Render and write out image
-		tracer.Render(cam, world);
+		tracer.Render(cam, CornellBox());
 		tracer.WriteOutputToPPMFile(std::ofstream("cornell.ppm"));
 	}
 

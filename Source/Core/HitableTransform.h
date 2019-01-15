@@ -66,7 +66,7 @@ public:
 			{
 				for (int k = 0; k < 2; k++)
 				{
-					float x    = i * Bbox.Max().X() + (1 - j) * Bbox.Min().X();
+					float x    = i * Bbox.Max().X() + (1 - i) * Bbox.Min().X();
 					float y    = j * Bbox.Max().Y() + (1 - j) * Bbox.Min().Y();
 					float z    = k * Bbox.Max().Z() + (1 - k) * Bbox.Min().Z();
 					float newX =  CosTheta * x + SinTheta * z;
@@ -79,16 +79,15 @@ public:
 						{
 							max[c] = tester[c];
 						}
-						else if(tester[c] < min[c])
+						if(tester[c] < min[c])
 						{
 							min[c] = tester[c];
 						}
 					}
 				}
 			}
-
-			Bbox = AABB(min, max);
 		}
+		Bbox = AABB(min, max);
 	}
 
 	virtual bool Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const
@@ -109,7 +108,7 @@ public:
 			Vec3 normal = rec.Normal;
 
 			p[0] =  CosTheta * rec.P[0] + SinTheta * rec.P[2];
-			p[0] = -SinTheta * rec.P[0] + CosTheta * rec.P[2];
+			p[2] = -SinTheta * rec.P[0] + CosTheta * rec.P[2];
 
 			normal[0] =  CosTheta * rec.Normal[0] + SinTheta * rec.Normal[2];
 			normal[2] = -SinTheta * rec.Normal[0] + CosTheta * rec.Normal[2];

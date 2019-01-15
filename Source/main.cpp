@@ -129,13 +129,13 @@ static IHitable* CornellBox()
 	list[i++] = new HitableTranslate(
 		new HitableRotateY(
 			new HitableBox(Vec3(0, 0, 0), Vec3(165, 165, 165), white),
-			-18),
+			-30),
 		Vec3(130, 0, 65));
 
 	list[i++] = new HitableTranslate(
 		new HitableRotateY(
 			new HitableBox(Vec3(0, 0, 0), Vec3(165, 330, 165), white),
-			15),
+			30),
 		Vec3(265, 0, 295));
 
 	return new HitableList(list, i);
@@ -148,7 +148,7 @@ int main()
 	// Raytracer params
 	const int    outputWidth  = 1000;
 	const int    outputHeight = 512;
-	const int    numSamples   = 50;
+	const int    numSamples   = 200;
 	const int    maxDepth     = 50;
 	const int    numThreads   = 8;
 

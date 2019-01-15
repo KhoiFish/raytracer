@@ -18,11 +18,13 @@ public:
 		IHitable** list = new IHitable*[6];
 
 		int i = 0;
-		list[i++] = new XYZRect(XYZRect::XY, p0.X(), p1.X(), p0.Y(), p1.Y(), p1.Z(), Mat);
+		list[i++] =                 new XYZRect(XYZRect::XY, p0.X(), p1.X(), p0.Y(), p1.Y(), p1.Z(), Mat);
 		list[i++] = new FlipNormals(new XYZRect(XYZRect::XY, p0.X(), p1.X(), p0.Y(), p1.Y(), p0.Z(), Mat));
-		list[i++] = new XYZRect(XYZRect::XZ, p0.X(), p1.X(), p0.Z(), p1.Z(), p1.Y(), Mat);
+
+		list[i++] =                 new XYZRect(XYZRect::XZ, p0.X(), p1.X(), p0.Z(), p1.Z(), p1.Y(), Mat);
 		list[i++] = new FlipNormals(new XYZRect(XYZRect::XZ, p0.X(), p1.X(), p0.Z(), p1.Z(), p0.Y(), Mat));
-		list[i++] = new XYZRect(XYZRect::YZ, p0.Y(), p1.Y(), p0.Z(), p1.Z(), p1.X(), Mat);
+
+		list[i++] =                 new XYZRect(XYZRect::YZ, p0.Y(), p1.Y(), p0.Z(), p1.Z(), p1.X(), Mat);
 		list[i++] = new FlipNormals(new XYZRect(XYZRect::YZ, p0.Y(), p1.Y(), p0.Z(), p1.Z(), p0.X(), Mat));
 
 		HitList = new HitableList(list, 6);

@@ -131,11 +131,11 @@ private:
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-class DiffuseLight : public Material
+class MDiffuseLight : public Material
 {
 public:
 
-	DiffuseLight(Texture* tex) : EmitTex(tex) {}
+	MDiffuseLight(Texture* tex) : EmitTex(tex) {}
 
 	virtual bool Scatter(const Ray& rayIn, const HitRecord& rec, Vec3& attenuation, Ray& scattered) const
 	{
@@ -150,4 +150,25 @@ public:
 private:
 
 	Texture* EmitTex;
+};
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+class MIsotropic : public Material
+{
+public:
+
+	MIsotropic(Texture* albedo) : Albedo(albedo) {}
+
+	virtual bool Scatter(const Ray& rayIn, const HitRecord& rec, Vec3& attenuation, Ray& scattered) const
+	{
+		scattered = Ray(rec.P, RandomInUnitSphere());
+		attenuation = Albedo->Value(rec.U, rec.V, rec.P);
+
+		return true;
+	}
+
+private:
+
+	Texture* Albedo;
 };

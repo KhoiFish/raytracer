@@ -22,6 +22,7 @@
     <ClInclude Include="Source\Core\AABB.h" />
     <ClInclude Include="Source\Core\BVHNode.h" />
     <ClInclude Include="Source\Core\Camera.h" />
+    <ClInclude Include="Source\Core\ConstantMedium.h" />
     <ClInclude Include="Source\Core\FlipNormals.h" />
     <ClInclude Include="Source\Core\HitableBox.h" />
     <ClInclude Include="Source\Core\HitableTransform.h" />

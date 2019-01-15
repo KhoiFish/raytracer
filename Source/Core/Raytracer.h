@@ -80,6 +80,11 @@ public:
 			int ir = int(255.99*col.R());
 			int ig = int(255.99*col.G());
 			int ib = int(255.99*col.B());
+
+			ir = (ir > 255) ? 255 : ir;
+			ig = (ig > 255) ? 255 : ig;
+			ib = (ib > 255) ? 255 : ib;
+
 			outFile << ir << " " << ig << " " << ib << "\n";
 
 			// Print progress

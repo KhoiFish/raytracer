@@ -251,9 +251,9 @@ static IHitable* finalScene()
 int main()
 {
 	// Raytracer params
-	const int    outputWidth  = 1000;
+	const int    outputWidth  = 512;
 	const int    outputHeight = 512;
-	const int    numSamples   = 5000;
+	const int    numSamples   = 1000;
 	const int    maxDepth     = 50;
 	const int    numThreads   = 8;
 
@@ -312,7 +312,7 @@ int main()
 	// Final
 	{
 		// Camera options
-		const Vec3   lookFrom = Vec3(278, 278, -800);
+		const Vec3   lookFrom = Vec3(478, 278, -600);
 		const Vec3   lookAt = Vec3(278, 278, 0);
 		const Vec3   upVec = Vec3(0, 1, 0);
 		const float  vertFov = 40.f;

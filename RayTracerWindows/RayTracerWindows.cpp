@@ -11,11 +11,10 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static const int MAX_LOADSTRING = 100;
-
-static HINSTANCE hInst;
-static WCHAR     szTitle[MAX_LOADSTRING];
-static WCHAR     szWindowClass[MAX_LOADSTRING];
+static const int   MAX_LOADSTRING = 100;
+static HINSTANCE   hInst;
+static WCHAR       szTitle[MAX_LOADSTRING];
+static WCHAR       szWindowClass[MAX_LOADSTRING];
 
 // ----------------------------------------------------------------------------------------------------------------------------
 

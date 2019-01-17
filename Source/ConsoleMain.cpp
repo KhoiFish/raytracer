@@ -13,9 +13,10 @@
 
 static int  sOutputWidth      = 512;
 static int  sOutputHeight     = 512;
-static int  sNumSamplesPerRay = 50;
+static int  sNumSamplesPerRay = 100;
 static int  sMaxScatterDepth  = 50;
 static int  sNumThreads       = 8;
+
 static bool sSceneEnabled[MaxScene] =
 {
     true,  // Random
@@ -23,6 +24,35 @@ static bool sSceneEnabled[MaxScene] =
     true,  // Cornell smoke
     true,  // Final
 };
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+static void RaytraceAndPrintProgress(Raytracer& tracer, Camera& cam, IHitable* world)
+{
+    static const char* PBSTR = "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||";
+    static const int   PBWIDTH = 60;
+
+    // Start the trace
+    printf("\nRendering frame...\n");
+    tracer.BeginRaytrace(cam, world);
+
+    // Wait for trace to finish
+    while (!tracer.WaitForTraceToFinish(1000 * 500))
+    {
+        // Get stats
+        Raytracer::Stats stats = tracer.GetStats();
+        float percentage = float(stats.NumPixelsTraced) / float(stats.TotalNumPixels);
+
+        // Print percentage
+        int val = (int)(percentage * 100);
+        int lpad = (int)(percentage * PBWIDTH);
+        int rpad = PBWIDTH - lpad;
+        printf("\r%3d%% [%.*s%*s]", val, lpad, PBSTR, rpad, "");
+        fflush(stdout);
+    }
+
+    printf("\nRendering done!");
+}
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -51,7 +81,7 @@ int main()
 
         // Render and write out image
         tracer.SetDefaultAmbient(Vec3(.7f, .7f, .7f));
-        tracer.Render(cam, SampleSceneRandom(shutterTime0, shutterTime1));
+        RaytraceAndPrintProgress(tracer, cam, SampleSceneRandom(shutterTime0, shutterTime1));
         tracer.WriteOutputToPPMFile(std::ofstream(OUTPUT_IMAGE_DIR "randomworld.ppm"));
     }
 
@@ -77,14 +107,14 @@ int main()
         if (sSceneEnabled[Cornell])
         {
             tracer.SetDefaultAmbient(Vec3(0, 0, 0));
-            tracer.Render(cam, SampleSceneCornellBox(false));
+            RaytraceAndPrintProgress(tracer, cam, SampleSceneCornellBox(false));
             tracer.WriteOutputToPPMFile(std::ofstream(OUTPUT_IMAGE_DIR "cornell.ppm"));
         }
 
         if (sSceneEnabled[CornellSmoke])
         {
             tracer.SetDefaultAmbient(Vec3(0, 0, 0));
-            tracer.Render(cam, SampleSceneCornellBox(true));
+            RaytraceAndPrintProgress(tracer, cam, SampleSceneCornellBox(true));
             tracer.WriteOutputToPPMFile(std::ofstream(OUTPUT_IMAGE_DIR "cornell_smoke.ppm"));
         }
     }
@@ -109,7 +139,7 @@ int main()
 
         // Render and write out image
         tracer.SetDefaultAmbient(Vec3(0, 0, 0));
-        tracer.Render(cam, SampleSceneFinal());
+        RaytraceAndPrintProgress(tracer, cam, SampleSceneFinal());
         tracer.WriteOutputToPPMFile(std::ofstream(OUTPUT_IMAGE_DIR "final.ppm"));
     }
 

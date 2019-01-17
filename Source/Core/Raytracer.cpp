@@ -12,6 +12,10 @@ Raytracer::Raytracer(int width, int height, int numSamples, int maxDepth, int nu
     , NumRaySamples(numSamples)
     , MaxDepth(maxDepth)
     , NumThreads(numThreads)
+    , CurrentOutputOffset(0)
+    , TotalRaysFired(0)
+    , NumThreadsDone(0)
+    , IsRaytracing(false)
 {
     OutputBuffer = new Vec3[OutputWidth * OutputHeight];
     ThreadPtrs = new std::thread*[NumThreads];
@@ -22,6 +26,8 @@ Raytracer::Raytracer(int width, int height, int numSamples, int maxDepth, int nu
 
 Raytracer::~Raytracer()
 {
+    cleanupRaytrace();
+
     delete[] OutputBuffer;
     OutputBuffer = nullptr;
 
@@ -31,33 +37,75 @@ Raytracer::~Raytracer()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void Raytracer::Render(const Camera& cam, IHitable* world)
+void Raytracer::BeginRaytrace(const Camera& cam, IHitable* world)
 {
-    // Trace each pixel
+    // Clean up last trace, if any
+    cleanupRaytrace();
+
+    IsRaytracing = true;
+    TotalRaysFired = 0;
     CurrentOutputOffset = 0;
+    NumThreadsDone = 0;
 
     // Create the threads and run them
-    printf("Rendering frame...\n");
     for (int i = 0; i < NumThreads; i++)
     {
         ThreadPtrs[i] = new std::thread(threadTraceNextPixel, i, this, cam, world);
     }
+}
 
-    // Join all the threads
-    for (int i = 0; i < NumThreads; i++)
+// ----------------------------------------------------------------------------------------------------------------------------
+
+bool Raytracer::WaitForTraceToFinish(int timeoutMicroSeconds)
+{
+    if (IsRaytracing)
     {
-        ThreadPtrs[i]->join();
-        delete ThreadPtrs[i];
-        ThreadPtrs[i] = nullptr;
+        return RaytraceEvent.WaitOne(timeoutMicroSeconds);
     }
-    printf("\nRendering done!\n");
+
+    return true;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+Raytracer::Stats Raytracer::GetStats() const
+{
+    Stats stats;
+    stats.TotalRaysFired  = TotalRaysFired.load();
+    stats.NumPixelsTraced = CurrentOutputOffset.load();
+    stats.TotalNumPixels  = (OutputWidth * OutputHeight);
+
+    return stats;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void Raytracer::cleanupRaytrace()
+{
+    if (IsRaytracing)
+    {
+        // Wait for last thread to rendering
+        RaytraceEvent.WaitOne(-1);
+
+        // Join all the threads
+        for (int i = 0; i < NumThreads; i++)
+        {
+            ThreadPtrs[i]->join();
+            delete ThreadPtrs[i];
+            ThreadPtrs[i] = nullptr;
+        }
+
+        // Reset event
+        IsRaytracing = false;
+        RaytraceEvent.Reset();
+    }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
 void Raytracer::WriteOutputToPPMFile(std::ofstream outFile)
 {
-    printf("Writing ppm file...\n");
+    printf("\nWriting ppm file...\n");
 
     outFile << "P3\n" << OutputWidth << " " << OutputHeight << "\n255\n";
 
@@ -138,15 +186,14 @@ void Raytracer::threadTraceNextPixel(int id, Raytracer* tracer, const Camera& ca
 
             // Write color to output buffer
             tracer->OutputBuffer[offset] = col;
-
-            // Print progress
-            int latestOffset = tracer->CurrentOutputOffset.load();
-            if (id == 0 && offset > 0 && (latestOffset % tracer->OutputWidth) == 0)
-            {
-                float percentDone = (float(latestOffset) / float(numPixels));
-                printProgress(percentDone);
-            }
         }
+    }
+
+    tracer->NumThreadsDone++;
+    if (tracer->NumThreadsDone.load() >= tracer->NumThreads)
+    {
+        // Last thread, signal trace is done
+        tracer->RaytraceEvent.Signal();
     }
 }
 
@@ -169,6 +216,9 @@ void Raytracer::printProgress(double percentage)
 
 Vec3 Raytracer::trace(const Ray& r, IHitable *world, int depth)
 {
+    // Increment num rays fired
+    TotalRaysFired++;
+
     HitRecord rec;
     if (world->Hit(r, 0.001f, FLT_MAX, rec))
     {

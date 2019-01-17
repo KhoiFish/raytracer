@@ -67,6 +67,9 @@ void Raytracer::WriteOutputToPPMFile(std::ofstream outFile)
 		// Get the pixel
 		Vec3 col = OutputBuffer[i];
 
+		// Gamma correct
+		col = Vec3(sqrt(col.R()), sqrt(col.G()), sqrt(col.B()));
+
 		// Write pixel to file
 		int ir = int(255.99*col.R());
 		int ig = int(255.99*col.G());
@@ -132,9 +135,6 @@ void Raytracer::threadTraceNextPixel(int id, Raytracer* tracer, const Camera& ca
 				col += tracer->trace(r, world, 0);
 			}
 			col /= float(tracer->NumRaySamples);
-
-			// Gamma correct
-			col = Vec3(sqrt(col.R()), sqrt(col.G()), sqrt(col.B()));
 
 			// Write color to output buffer
 			tracer->OutputBuffer[offset] = col;

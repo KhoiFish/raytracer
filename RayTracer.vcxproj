@@ -38,6 +38,7 @@
     <ClInclude Include="Source\Core\Util.h" />
     <ClInclude Include="Source\Core\Vec3.h" />
     <ClInclude Include="Source\Core\XYZRect.h" />
+    <ClInclude Include="Source\SampleScenes.h" />
     <ClInclude Include="Source\StbImage\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
@@ -56,6 +57,7 @@
     <ClCompile Include="Source\Core\Texture.cpp" />
     <ClCompile Include="Source\Core\XYZRect.cpp" />
     <ClCompile Include="Source\main.cpp" />
+    <ClCompile Include="Source\SampleScenes.cpp" />
     <ClCompile Include="Source\StbImage\StbImageImpl.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

@@ -78,6 +78,7 @@
     <ClInclude Include="Source\StbImage\stb_image.h">
       <Filter>3rdParty\StbImage</Filter>
     </ClInclude>
+    <ClInclude Include="Source\SampleScenes.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\main.cpp" />
@@ -126,5 +127,6 @@
     <ClCompile Include="Source\StbImage\StbImageImpl.cpp">
       <Filter>3rdParty\StbImage</Filter>
     </ClCompile>
+    <ClCompile Include="Source\SampleScenes.cpp" />
   </ItemGroup>
 </Project>

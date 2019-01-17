@@ -12,10 +12,7 @@ public:
 
 	virtual bool Scatter(const Ray& rayIn, const HitRecord& rec, Vec3& attenuation, Ray& scattered) const = 0;
 	
-	virtual Vec3 Emitted(float u, float v, Vec3& p) const
-	{
-		return Vec3(0, 0, 0);
-	}
+	virtual Vec3 Emitted(float u, float v, Vec3& p) const;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -24,15 +21,9 @@ class MLambertian : public Material
 {
 public:
 
-	MLambertian(Texture* albedo) : Albedo(albedo) {}
+	MLambertian(Texture* albedo);
 
-	virtual bool Scatter(const Ray& rayIn, const HitRecord& rec, Vec3& attenuation, Ray& scattered) const
-	{
-		Vec3 target = rec.P + rec.Normal + RandomInUnitSphere();
-		scattered = Ray(rec.P, target - rec.P, rayIn.Time());
-		attenuation = Albedo->Value(rec.U, rec.V, rec.P);
-		return true;
-	}
+	virtual bool Scatter(const Ray& rayIn, const HitRecord& rec, Vec3& attenuation, Ray& scattered) const;
 
 private:
 
@@ -45,25 +36,9 @@ class MMetal : public Material
 {
 public:
 
-	MMetal(const Vec3& albedo, float fuzz) : Albedo(albedo)
-	{
-		if (fuzz < 1)
-		{
-			Fuzz = fuzz;
-		}
-		else
-		{
-			Fuzz = 1;
-		}
-	}
+	MMetal(const Vec3& albedo, float fuzz);
 
-	virtual bool Scatter(const Ray& rayIn, const HitRecord& rec, Vec3& attenuation, Ray& scattered) const
-	{
-		Vec3 reflected = Reflect(UnitVector(rayIn.Direction()), rec.Normal);
-		scattered = Ray(rec.P, reflected + Fuzz*RandomInUnitSphere(), rayIn.Time());
-		attenuation = Albedo;
-		return (Dot(scattered.Direction(), rec.Normal) > 0);
-	}
+	virtual bool Scatter(const Ray& rayIn, const HitRecord& rec, Vec3& attenuation, Ray& scattered) const;
 
 private:
 
@@ -77,52 +52,9 @@ class MDielectric : public Material
 {
 public:
 
-	MDielectric(float ri) : RefId(ri) {}
+	MDielectric(float ri);
 
-	virtual bool Scatter(const Ray& rayIn, const HitRecord& rec, Vec3& attenuation, Ray& scattered) const
-	{
-		Vec3 outwardNormal;
-		Vec3 reflected = Reflect(rayIn.Direction(), rec.Normal);
-		attenuation = Vec3(1.0f, 1.0f, 1.0f);
-
-		float niOverNt;
-		Vec3 refracted;
-		float reflectProb;
-		float cosine;
-		if (Dot(rayIn.Direction(), rec.Normal) > 0)
-		{
-			outwardNormal = -rec.Normal;
-			niOverNt = RefId;
-			cosine = RefId * Dot(rayIn.Direction(), rec.Normal) / rayIn.Direction().Length();
-		}
-		else
-		{
-			outwardNormal = rec.Normal;
-			niOverNt = 1.0f / RefId;
-			cosine = -Dot(rayIn.Direction(), rec.Normal) / rayIn.Direction().Length();
-		}
-
-		if (Refract(rayIn.Direction(), outwardNormal, niOverNt, refracted))
-		{
-			reflectProb = Schlick(cosine, RefId);
-		}
-		else
-		{
-			scattered = Ray(rec.P, reflected, rayIn.Time());
-			reflectProb = 1.0f;
-		}
-
-		if (RandomFloat() < reflectProb)
-		{
-			scattered = Ray(rec.P, reflected, rayIn.Time());
-		}
-		else
-		{
-			scattered = Ray(rec.P, refracted, rayIn.Time());
-		}
-
-		return true;
-	}
+	virtual bool Scatter(const Ray& rayIn, const HitRecord& rec, Vec3& attenuation, Ray& scattered) const;
 
 private:
 	
@@ -135,17 +67,11 @@ class MDiffuseLight : public Material
 {
 public:
 
-	MDiffuseLight(Texture* tex) : EmitTex(tex) {}
+	MDiffuseLight(Texture* tex);
 
-	virtual bool Scatter(const Ray& rayIn, const HitRecord& rec, Vec3& attenuation, Ray& scattered) const
-	{
-		return false;
-	}
+	virtual bool Scatter(const Ray& rayIn, const HitRecord& rec, Vec3& attenuation, Ray& scattered) const;
 
-	virtual Vec3 Emitted(float u, float v, Vec3& p) const
-	{
-		return EmitTex->Value(u, v, p);
-	}
+	virtual Vec3 Emitted(float u, float v, Vec3& p) const;
 
 private:
 
@@ -158,15 +84,9 @@ class MIsotropic : public Material
 {
 public:
 
-	MIsotropic(Texture* albedo) : Albedo(albedo) {}
+	MIsotropic(Texture* albedo);
 
-	virtual bool Scatter(const Ray& rayIn, const HitRecord& rec, Vec3& attenuation, Ray& scattered) const
-	{
-		scattered = Ray(rec.P, RandomInUnitSphere());
-		attenuation = Albedo->Value(rec.U, rec.V, rec.P);
-
-		return true;
-	}
+	virtual bool Scatter(const Ray& rayIn, const HitRecord& rec, Vec3& attenuation, Ray& scattered) const;
 
 private:
 

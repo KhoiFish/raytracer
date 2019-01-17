@@ -8,8 +8,8 @@ class AABB
 {
 public:
 
-	AABB() {}
-	AABB(const Vec3& minP, const Vec3& maxP) : MinP(minP), MaxP(maxP) {}
+	inline AABB() {}
+	inline AABB(const Vec3& minP, const Vec3& maxP) : MinP(minP), MaxP(maxP) {}
 
 	inline Vec3 Min() const { return MinP; }
 	inline Vec3 Max() const { return MaxP; }

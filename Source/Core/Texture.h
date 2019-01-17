@@ -18,14 +18,10 @@ class ConstantTexture : public Texture
 {
 public:
 
-	ConstantTexture() {}
+	inline ConstantTexture() {}
+	inline ConstantTexture(Vec3 color) : Color(color) {}
 
-	ConstantTexture(Vec3 color) : Color(color) {}
-
-	virtual Vec3 Value(float u, float v, const Vec3& p) const
-	{
-		return Color;
-	}
+	virtual Vec3 Value(float u, float v, const Vec3& p) const;
 
 private:
 
@@ -38,21 +34,10 @@ class CheckerTexture : public Texture
 {
 public:
 
-	CheckerTexture() {}
-	CheckerTexture(Texture* t0, Texture* t1) : Odd(t0), Even(t1) {}
+	inline CheckerTexture() {}
+	inline CheckerTexture(Texture* t0, Texture* t1) : Odd(t0), Even(t1) {}
 
-	virtual Vec3 Value(float u, float v, const Vec3& p) const
-	{
-		float sines = sin(10.f * p.X()) * sin(10.f * p.Y()) * sin(10.f * p.Z());
-		if (sines < 0)
-		{
-			return Odd->Value(u, v, p);
-		}
-		else
-		{
-			return Even->Value(u, v, p);
-		}
-	}
+	virtual Vec3 Value(float u, float v, const Vec3& p) const;
 
 private:
 
@@ -66,12 +51,9 @@ class NoiseTexture : public Texture
 {
 public:
 
-	NoiseTexture(float scale) : Scale(scale) {}
+	inline NoiseTexture(float scale) : Scale(scale) {}
 
-	virtual Vec3 Value(float u, float v, const Vec3& p) const
-	{
-		return Vec3(1, 1, 1) * 0.5f * (1 + sin(Scale * p.Z() + 10 * Perlin::Turb(p)));
-	}
+	virtual Vec3 Value(float u, float v, const Vec3& p) const;
 
 private:
 
@@ -84,27 +66,10 @@ class ImageTexture : public Texture
 {
 public:
 
-	ImageTexture (unsigned char* pixels, int width, int height)
+	inline ImageTexture (unsigned char* pixels, int width, int height)
 		: Data(pixels), Width(width), Height(height) {}
 
-	virtual Vec3 Value(float u, float v, const Vec3& p) const
-	{
-		int i = int((  u) * Width);
-		int j = int((1-v) * Height);
-
-		// Clamp
-		if (i < 0) i = 0;
-		if (j < 0) j = 0;
-		if (i > Width - 1)  i = Width - 1;
-		if (j > Height - 1) j = Height - 1;
-
-		int offset = 3 * i + 3 * Width * j;
-		float r = int(Data[offset + 0]) / 255.f;
-		float g = int(Data[offset + 1]) / 255.f;
-		float b = int(Data[offset + 2]) / 255.f;
-
-		return Vec3(r, g, b);
-	}
+	virtual Vec3 Value(float u, float v, const Vec3& p) const;
 
 private:
 

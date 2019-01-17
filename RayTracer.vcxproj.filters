@@ -4,70 +4,115 @@
     <Filter Include="Core">
       <UniqueIdentifier>{0623e3c2-dd35-4f9c-a8d3-6aa29cac4274}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Core\Headers">
+      <UniqueIdentifier>{ea418e3b-7919-4e22-8210-f32a97af9a5e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Implementation">
+      <UniqueIdentifier>{390f9dce-abc4-49ad-8019-9145266ea47a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Source\Core\Camera.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Core\HitableList.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Core\Material.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Core\Ray.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Core\Raytracer.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Core\Sphere.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Core\Util.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Core\Vec3.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Core\MovingSphere.h">
-      <Filter>Core</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Core\AABB.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Core\IHitable.h">
-      <Filter>Core</Filter>
+      <Filter>Core\Headers</Filter>
     </ClInclude>
     <ClInclude Include="Source\Core\BVHNode.h">
-      <Filter>Core</Filter>
+      <Filter>Core\Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Core\Texture.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Core\Perlin.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Core\XYZRect.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Core\FlipNormals.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Core\HitableBox.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Core\HitableTransform.h">
-      <Filter>Core</Filter>
+    <ClInclude Include="Source\Core\Camera.h">
+      <Filter>Core\Headers</Filter>
     </ClInclude>
     <ClInclude Include="Source\Core\ConstantMedium.h">
-      <Filter>Core</Filter>
+      <Filter>Core\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\FlipNormals.h">
+      <Filter>Core\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\HitableBox.h">
+      <Filter>Core\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\HitableList.h">
+      <Filter>Core\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\HitableTransform.h">
+      <Filter>Core\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\IHitable.h">
+      <Filter>Core\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\Material.h">
+      <Filter>Core\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\MovingSphere.h">
+      <Filter>Core\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\Perlin.h">
+      <Filter>Core\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\Ray.h">
+      <Filter>Core\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\Raytracer.h">
+      <Filter>Core\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\Sphere.h">
+      <Filter>Core\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\Texture.h">
+      <Filter>Core\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\Util.h">
+      <Filter>Core\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\Vec3.h">
+      <Filter>Core\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\XYZRect.h">
+      <Filter>Core\Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\main.cpp" />
     <ClCompile Include="Source\Core\Perlin.cpp">
-      <Filter>Core</Filter>
+      <Filter>Core\Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Core\BVHNode.cpp">
+      <Filter>Core\Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Core\Camera.cpp">
+      <Filter>Core\Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Core\ConstantMedium.cpp">
+      <Filter>Core\Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Core\FlipNormals.cpp">
+      <Filter>Core\Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Core\HitableBox.cpp">
+      <Filter>Core\Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Core\HitableList.cpp">
+      <Filter>Core\Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Core\HitableTransform.cpp">
+      <Filter>Core\Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Core\Material.cpp">
+      <Filter>Core\Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Core\MovingSphere.cpp">
+      <Filter>Core\Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Core\Raytracer.cpp">
+      <Filter>Core\Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Core\Sphere.cpp">
+      <Filter>Core\Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Core\Texture.cpp">
+      <Filter>Core\Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Core\XYZRect.cpp">
+      <Filter>Core\Implementation</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

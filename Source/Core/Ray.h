@@ -8,17 +8,17 @@ class Ray
 {
 public:
 
-	Ray() {}
+	inline Ray() {}
 
-	Ray(const Vec3& a, const Vec3& b, float ti = 0.f)
+	inline Ray(const Vec3& a, const Vec3& b, float ti = 0.f)
 		: A(a), B(b), Timestamp(ti)
 	{}
 
-	Vec3  Origin() const    { return A; }
-	Vec3  Direction() const { return B; }
-	float Time() const      { return Timestamp; }
+	inline Vec3  Origin() const    { return A; }
+	inline Vec3  Direction() const { return B; }
+	inline float Time() const      { return Timestamp; }
 
-	Vec3 PointAtParameter(float t) const
+	inline Vec3 PointAtParameter(float t) const
 	{
 		return A + (t * B);
 	}

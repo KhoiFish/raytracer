@@ -40,7 +40,20 @@
     <ClInclude Include="Source\Core\XYZRect.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Core\BVHNode.cpp" />
+    <ClCompile Include="Source\Core\Camera.cpp" />
+    <ClCompile Include="Source\Core\ConstantMedium.cpp" />
+    <ClCompile Include="Source\Core\FlipNormals.cpp" />
+    <ClCompile Include="Source\Core\HitableBox.cpp" />
+    <ClCompile Include="Source\Core\HitableList.cpp" />
+    <ClCompile Include="Source\Core\HitableTransform.cpp" />
+    <ClCompile Include="Source\Core\Material.cpp" />
+    <ClCompile Include="Source\Core\MovingSphere.cpp" />
     <ClCompile Include="Source\Core\Perlin.cpp" />
+    <ClCompile Include="Source\Core\Raytracer.cpp" />
+    <ClCompile Include="Source\Core\Sphere.cpp" />
+    <ClCompile Include="Source\Core\Texture.cpp" />
+    <ClCompile Include="Source\Core\XYZRect.cpp" />
     <ClCompile Include="Source\main.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

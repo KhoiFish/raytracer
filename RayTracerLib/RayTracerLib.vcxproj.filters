@@ -78,8 +78,10 @@
     <ClInclude Include="..\Source\StbImage\stb_image.h">
       <Filter>3rdParty\StbImage</Filter>
     </ClInclude>
-    <ClInclude Include="..\Source\Core\ThreadEvent.h" />
     <ClInclude Include="..\Source\Core\ImageIO.h">
+      <Filter>Core\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Core\ThreadEvent.h">
       <Filter>Core\Headers</Filter>
     </ClInclude>
   </ItemGroup>
@@ -129,7 +131,11 @@
     <ClCompile Include="..\Source\StbImage\StbImageImpl.cpp">
       <Filter>3rdParty\StbImage</Filter>
     </ClCompile>
-    <ClCompile Include="..\Source\Core\Util.cpp" />
-    <ClCompile Include="..\Source\Core\ImageIO.cpp" />
+    <ClCompile Include="..\Source\Core\Util.cpp">
+      <Filter>Core\Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Core\ImageIO.cpp">
+      <Filter>Core\Implementation</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -16,7 +16,6 @@ Raytracer::Raytracer(int width, int height, int numSamples, int maxDepth, int nu
 {
     OutputBuffer = new Vec3[OutputWidth * OutputHeight];
     ThreadPtrs = new std::thread*[NumThreads];
-    DefaultAmbient = Vec3(0, 0, 0);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -100,13 +99,6 @@ void Raytracer::cleanupRaytrace()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void Raytracer::SetDefaultAmbient(const Vec3& ambient)
-{
-    DefaultAmbient = ambient;
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
 void Raytracer::threadTraceNextPixel(int id, Raytracer* tracer, const Camera& cam, IHitable* world)
 {
     const int numPixels = (tracer->OutputWidth * tracer->OutputHeight);
@@ -139,7 +131,7 @@ void Raytracer::threadTraceNextPixel(int id, Raytracer* tracer, const Camera& ca
                 const float v = float(y + RandomFloat()) / float(tracer->OutputHeight);
 
                 Ray r = cam.GetRay(u, v);
-                col += tracer->trace(r, world, 0);
+                col += tracer->trace(r, world, 0, cam.GetClearColor());
             }
             col /= float(tracer->NumRaySamples);
 
@@ -158,7 +150,7 @@ void Raytracer::threadTraceNextPixel(int id, Raytracer* tracer, const Camera& ca
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-Vec3 Raytracer::trace(const Ray& r, IHitable *world, int depth)
+Vec3 Raytracer::trace(const Ray& r, IHitable *world, int depth, const Vec3& clearColor)
 {
     // Increment num rays fired
     TotalRaysFired++;
@@ -171,7 +163,7 @@ Vec3 Raytracer::trace(const Ray& r, IHitable *world, int depth)
         Vec3 emitted = rec.MatPtr->Emitted(rec.U, rec.V, rec.P);
         if (depth < MaxDepth && rec.MatPtr->Scatter(r, rec, attenuation, scattered))
         {
-            return emitted + attenuation * trace(scattered, world, depth + 1);
+            return emitted + attenuation * trace(scattered, world, depth + 1, clearColor);
         }
         else
         {
@@ -180,6 +172,6 @@ Vec3 Raytracer::trace(const Ray& r, IHitable *world, int depth)
     }
     else
     {
-        return DefaultAmbient;
+        return clearColor;
     }
 }

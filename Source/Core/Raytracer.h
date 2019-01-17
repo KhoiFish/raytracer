@@ -34,7 +34,6 @@ public:
     void          BeginRaytrace(const Camera& cam, IHitable* world);
     bool          WaitForTraceToFinish(int timeoutMicroSeconds);
     Stats         GetStats() const;
-    void          SetDefaultAmbient(const Vec3& ambient);
 
     inline Vec3*  GetOutputBuffer() const { return OutputBuffer; }
     inline int    GetOutputWidth() const  { return OutputWidth; }
@@ -43,7 +42,7 @@ public:
 private:
 
     static void   threadTraceNextPixel(int id, Raytracer* tracer, const Camera& cam, IHitable* world);
-    Vec3          trace(const Ray& r, IHitable *world, int depth);
+    Vec3          trace(const Ray& r, IHitable *world, int depth, const Vec3& clearColor);
     void          cleanupRaytrace();
 
 private:
@@ -57,7 +56,6 @@ private:
     int                   NumRaySamples;
     int                   MaxDepth;
     int                   NumThreads;
-    Vec3                  DefaultAmbient;
 
     // Thread tracking
     std::atomic<int>      CurrentOutputOffset;

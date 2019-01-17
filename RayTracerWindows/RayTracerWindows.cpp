@@ -8,6 +8,22 @@
 
 #include "RayTracerWindows.h"
 #include "Core/Raytracer.h"
+#include "Core/IHitable.h"
+#include "SampleScenes.h"
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+static int          sOutputWidth = 512;
+static int          sOutputHeight = 512;
+static float        sAspect = float(sOutputWidth) / float(sOutputHeight);
+static int          sNumSamplesPerRay = 100;
+static int          sMaxScatterDepth = 50;
+static int          sNumThreads = 8;
+
+static Raytracer*   sRaytracer = nullptr;
+static SampleScene  sSampleSceneSelected = SceneRandom;
+static IHitable*    sScenes[MaxScene];
+static Camera       sSampleCameras[MaxScene];
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -15,6 +31,7 @@ static const int   MAX_LOADSTRING = 100;
 static HINSTANCE   hInst;
 static WCHAR       szTitle[MAX_LOADSTRING];
 static WCHAR       szWindowClass[MAX_LOADSTRING];
+static HBITMAP     hBitmap;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -25,6 +42,21 @@ static INT_PTR CALLBACK    aboutBox(HWND, UINT, WPARAM, LPARAM);
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+static void InitalizeSampleScenes()
+{
+    sSampleCameras[SceneRandom]         = GetCameraForSample(SceneRandom, sAspect);
+    sSampleCameras[SceneCornell]        = GetCameraForSample(SceneCornell, sAspect);
+    sSampleCameras[SceneCornellSmoke]   = GetCameraForSample(SceneCornellSmoke, sAspect);
+    sSampleCameras[SceneFinal]          = GetCameraForSample(SceneFinal, sAspect);
+
+    sScenes[SceneRandom]                = SampleSceneRandom(sSampleCameras[SceneRandom]);
+    sScenes[SceneCornell]               = SampleSceneRandom(sSampleCameras[SceneCornell]);
+    sScenes[SceneCornellSmoke]          = SampleSceneRandom(sSampleCameras[SceneCornellSmoke]);
+    sScenes[SceneFinal]                 = SampleSceneRandom(sSampleCameras[SceneFinal]);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
                      _In_ LPWSTR    lpCmdLine,
@@ -32,8 +64,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 {
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
-
-    // TODO: Place code here.
 
     // Initialize global strings
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
@@ -46,9 +76,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         return FALSE;
     }
 
-    HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_RAYTRACERWINDOWS));
-
+    InitalizeSampleScenes();
+    
     // Main message loop
+    HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_RAYTRACERWINDOWS));
     MSG msg;
     while (GetMessage(&msg, nullptr, 0, 0))
     {
@@ -117,14 +148,39 @@ LRESULT CALLBACK wndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             // Parse the menu selections:
             switch (wmId)
             {
-            case IDM_ABOUT:
-                DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, aboutBox);
+                case IDM_ABOUT:
+                    DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, aboutBox);
+                    break;
+
+                case IDM_EXIT:
+                    DestroyWindow(hWnd);
+                    break;
+
+                case ID_SCENE_RANDOM:
+                    sSampleSceneSelected = SceneRandom;
+                    break;
+
+                case ID_SCENE_CORNELL:
+                    sSampleSceneSelected = SceneCornell;
+                    break;
+
+                case ID_SCENE_CORNELLSMOKE:
+                    sSampleSceneSelected = SceneCornellSmoke;
+                    break;
+
+                case ID_SCENE_FINAL:
+                    sSampleSceneSelected = SceneFinal;
+                    break;
+
+                case ID_RENDER_STARTRAYTRACE:
+                {
+                    sRaytracer = new Raytracer(sOutputWidth, sOutputHeight, sNumSamplesPerRay, sMaxScatterDepth, sNumThreads);
+                    sRaytracer->BeginRaytrace(sSampleCameras[sSampleSceneSelected], sScenes[sSampleSceneSelected]);
+                }
                 break;
-            case IDM_EXIT:
-                DestroyWindow(hWnd);
-                break;
-            default:
-                return DefWindowProc(hWnd, message, wParam, lParam);
+
+                default:
+                    return DefWindowProc(hWnd, message, wParam, lParam);
             }
         }
         break;

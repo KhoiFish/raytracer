@@ -19,7 +19,7 @@ static int    sNumSamplesPerRay = 100;
 static int    sMaxScatterDepth  = 50;
 static int    sNumThreads       = 8;
 
-static bool sSceneEnabled[MaxScene] =
+static bool   sSceneEnabled[MaxScene] =
 {
     true,  // Random
     true,  // Cornell
@@ -61,7 +61,6 @@ int main()
     if (sSceneEnabled[SceneRandom])
     {
         Camera cam = GetCameraForSample(SceneRandom, sAspect);
-        tracer.SetDefaultAmbient(Vec3(.7f, .7f, .7f));
         RaytraceAndPrintProgress(tracer, cam, SampleSceneRandom(cam));
         ImageIO::WriteToPPMFile(tracer.GetOutputBuffer(), tracer.GetOutputWidth(), tracer.GetOutputHeight(), 
             OUTPUT_IMAGE_DIR "randomworld.ppm");
@@ -71,7 +70,6 @@ int main()
     if (sSceneEnabled[SceneCornell])
     {
         Camera cam = GetCameraForSample(SceneCornell, sAspect);
-        tracer.SetDefaultAmbient(Vec3(0, 0, 0));
         RaytraceAndPrintProgress(tracer, cam, SampleSceneCornellBox(false));
         ImageIO::WriteToPPMFile(tracer.GetOutputBuffer(), tracer.GetOutputWidth(), tracer.GetOutputHeight(),
             OUTPUT_IMAGE_DIR "cornell.ppm");
@@ -81,7 +79,6 @@ int main()
     if (sSceneEnabled[SceneCornellSmoke])
     {
         Camera cam = GetCameraForSample(SceneCornellSmoke, sAspect);
-        tracer.SetDefaultAmbient(Vec3(0, 0, 0));
         RaytraceAndPrintProgress(tracer, cam, SampleSceneCornellBox(true));
         ImageIO::WriteToPPMFile(tracer.GetOutputBuffer(), tracer.GetOutputWidth(), tracer.GetOutputHeight(),
             OUTPUT_IMAGE_DIR "cornell_smoke.ppm");
@@ -91,7 +88,6 @@ int main()
     if (sSceneEnabled[SceneFinal])
     {
         Camera cam = GetCameraForSample(SceneFinal, sAspect);
-        tracer.SetDefaultAmbient(Vec3(0, 0, 0));
         RaytraceAndPrintProgress(tracer, cam, SampleSceneFinal());
         ImageIO::WriteToPPMFile(tracer.GetOutputBuffer(), tracer.GetOutputWidth(), tracer.GetOutputHeight(),
             OUTPUT_IMAGE_DIR "final.ppm");

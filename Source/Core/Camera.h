@@ -9,9 +9,10 @@ class Camera
 {
 public:
 
-    Camera(Vec3 lookFrom, Vec3 lookAt, Vec3 vup, 
+    Camera();
+    Camera(Vec3 lookFrom, Vec3 lookAt, Vec3 vup,
         float vertFov, float aspect, float aperture, float focusDist,
-        float t0, float t1);
+        float t0, float t1, Vec3 clearColor);
 
     inline Ray GetRay(float s, float t) const
     {
@@ -28,6 +29,8 @@ public:
         time1 = Time1;
     }
 
+    inline Vec3 GetClearColor() const { return ClearColor; }
+
 private:
 
     Vec3   Origin;
@@ -37,4 +40,5 @@ private:
     Vec3   U, V, W;
     float  Time0, Time1;
     float  LensRadius;
+    Vec3   ClearColor;
 };

@@ -33,11 +33,12 @@ Camera GetCameraForSample(SampleScene scene, float aspect)
             const float  distToFocus = 10.f;
             const float  shutterTime0 = 0.f;
             const float  shutterTime1 = 1.f;
+            const Vec3   clearColor(.7f, .7f, .7f);
 
             return Camera(
                 lookFrom, lookAt, upVec,
                 vertFov, aspect, aperture, distToFocus,
-                shutterTime0, shutterTime1);
+                shutterTime0, shutterTime1, clearColor);
         }
         break;
 
@@ -53,11 +54,12 @@ Camera GetCameraForSample(SampleScene scene, float aspect)
             const float  distToFocus = 10.f;
             const float  shutterTime0 = 0.f;
             const float  shutterTime1 = 1.f;
+            const Vec3   clearColor(0, 0, 0);
 
             return Camera(
                 lookFrom, lookAt, upVec,
                 vertFov, aspect, aperture, distToFocus,
-                shutterTime0, shutterTime1);
+                shutterTime0, shutterTime1, clearColor);
         }
         break;
 
@@ -72,11 +74,12 @@ Camera GetCameraForSample(SampleScene scene, float aspect)
             const float  distToFocus = 10.f;
             const float  shutterTime0 = 0.f;
             const float  shutterTime1 = 1.f;
+            const Vec3   clearColor(0, 0, 0);
 
             return Camera (
                 lookFrom, lookAt, upVec,
                 vertFov, aspect, aperture, distToFocus,
-                shutterTime0, shutterTime1);
+                shutterTime0, shutterTime1, clearColor);
         }
         break;
 
@@ -90,11 +93,12 @@ Camera GetCameraForSample(SampleScene scene, float aspect)
             const float  distToFocus = 10.f;
             const float  shutterTime0 = 0.f;
             const float  shutterTime1 = 1.f;
+            const Vec3   clearColor(.7f, .7f, .7f);
 
             return Camera(
                 lookFrom, lookAt, upVec,
                 vertFov, aspect, aperture, distToFocus,
-                shutterTime0, shutterTime1);
+                shutterTime0, shutterTime1, clearColor);
         }
     }
 }

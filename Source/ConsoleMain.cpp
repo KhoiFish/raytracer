@@ -29,26 +29,20 @@ static bool sSceneEnabled[MaxScene] =
 
 static void RaytraceAndPrintProgress(Raytracer& tracer, Camera& cam, IHitable* world)
 {
-    static const char* PBSTR = "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||";
-    static const int   PBWIDTH = 60;
-
     // Start the trace
     printf("\nRendering frame...\n");
     tracer.BeginRaytrace(cam, world);
 
     // Wait for trace to finish
+    char buf[256];
     while (!tracer.WaitForTraceToFinish(1000 * 500))
     {
         // Get stats
         Raytracer::Stats stats = tracer.GetStats();
         float percentage = float(stats.NumPixelsTraced) / float(stats.TotalNumPixels);
 
-        // Print percentage
-        int val = (int)(percentage * 100);
-        int lpad = (int)(percentage * PBWIDTH);
-        int rpad = PBWIDTH - lpad;
-        printf("\r%3d%% [%.*s%*s]", val, lpad, PBSTR, rpad, "");
-        fflush(stdout);
+        snprintf(buf, 256, "#-rays:%lld #-pixels:%d", stats.TotalRaysFired, stats.NumPixelsTraced);
+        PrintProgress(buf, percentage);
     }
 
     printf("\nRendering done!");

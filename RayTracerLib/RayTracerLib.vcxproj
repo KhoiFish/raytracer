@@ -169,6 +169,7 @@
     <ClInclude Include="..\Source\Core\Raytracer.h" />
     <ClInclude Include="..\Source\Core\Sphere.h" />
     <ClInclude Include="..\Source\Core\Texture.h" />
+    <ClInclude Include="..\Source\Core\ThreadEvent.h" />
     <ClInclude Include="..\Source\Core\Util.h" />
     <ClInclude Include="..\Source\Core\Vec3.h" />
     <ClInclude Include="..\Source\Core\XYZRect.h" />
@@ -188,6 +189,7 @@
     <ClCompile Include="..\Source\Core\Raytracer.cpp" />
     <ClCompile Include="..\Source\Core\Sphere.cpp" />
     <ClCompile Include="..\Source\Core\Texture.cpp" />
+    <ClCompile Include="..\Source\Core\Util.cpp" />
     <ClCompile Include="..\Source\Core\XYZRect.cpp" />
     <ClCompile Include="..\Source\StbImage\StbImageImpl.cpp" />
   </ItemGroup>

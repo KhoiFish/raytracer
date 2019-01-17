@@ -1,13 +1,13 @@
 #pragma once
 #include "Vec3.h"
-#include <mutex>
-#include <condition_variable>
-#include <chrono>
-#include <atomic>
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
 #define RT_PI 3.14159265359f
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void PrintProgress(const char* otherInfo, double percentage);
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -112,63 +112,3 @@ inline void GetSphereUV(const Vec3& p, float& u, float& v)
     u = 1 - (phi + RT_PI) / (2 * RT_PI);
     v = (theta + RT_PI / 2) / RT_PI;
 }
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-class ThreadEvent
-{
-public:
-
-    inline ThreadEvent() : Triggered(false) {}
-
-    inline void Signal()
-    {
-        std::unique_lock<std::mutex> lck(Mutex);
-
-        Triggered = true;
-        CondVar.notify_one();
-    }
-
-    inline void Reset()
-    {
-        std::unique_lock<std::mutex> lck(Mutex);
-
-        Triggered = false;
-    }
-
-    inline bool WaitOne(int timeOutMicroseconds)
-    {
-        std::unique_lock<std::mutex> lck(Mutex);
-
-        while (!Triggered)
-        {
-            if (timeOutMicroseconds >= 0)
-            {
-                bool timedOut = CondVar.wait_for(
-                    lck,
-                    std::chrono::microseconds(timeOutMicroseconds),
-                    [this]() { return !Triggered; }
-                );
-
-                if (timedOut)
-                    return Triggered;
-            }
-            else
-            {
-                CondVar.wait(
-                    lck,
-                    [this]() { return !Triggered; }
-                );
-            }
-        }
-
-        return Triggered;
-    }
-
-private:
-
-    std::mutex               Mutex;
-    std::condition_variable  CondVar;
-    std::atomic<bool>        Triggered;
-};
-

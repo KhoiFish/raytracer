@@ -132,7 +132,7 @@ void Raytracer::WriteOutputToPPMFile(std::ofstream outFile)
         // Print progress
         if ((i % OutputWidth) == 0)
         {
-            printProgress(float(i) / float(numPixels));
+            PrintProgress("", float(i) / float(numPixels));
         }
     }
 
@@ -195,21 +195,6 @@ void Raytracer::threadTraceNextPixel(int id, Raytracer* tracer, const Camera& ca
         // Last thread, signal trace is done
         tracer->RaytraceEvent.Signal();
     }
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-void Raytracer::printProgress(double percentage)
-{
-    static const char* PBSTR = "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||";
-    static const int   PBWIDTH = 60;
-
-    int val  = (int)(percentage * 100);
-    int lpad = (int)(percentage * PBWIDTH);
-    int rpad = PBWIDTH - lpad;
-
-    printf("\r%3d%% [%.*s%*s]", val, lpad, PBSTR, rpad, "");
-    fflush(stdout);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

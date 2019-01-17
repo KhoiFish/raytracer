@@ -11,6 +11,7 @@
 #include "Material.h"
 #include "Camera.h"
 #include "Util.h"
+#include "ThreadEvent.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -39,7 +40,6 @@ public:
 private:
 
     static void  threadTraceNextPixel(int id, Raytracer* tracer, const Camera& cam, IHitable* world);
-    static void  printProgress(double percentage);
     Vec3         trace(const Ray& r, IHitable *world, int depth);
     void         cleanupRaytrace();
 

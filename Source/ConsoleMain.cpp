@@ -12,11 +12,12 @@
 
 #define  OUTPUT_IMAGE_DIR  "OutputImages/"
 
-static int  sOutputWidth      = 512;
-static int  sOutputHeight     = 512;
-static int  sNumSamplesPerRay = 100;
-static int  sMaxScatterDepth  = 50;
-static int  sNumThreads       = 8;
+static int    sOutputWidth      = 512;
+static int    sOutputHeight     = 512;
+static float  sAspect           = float(sOutputWidth) / float(sOutputHeight);
+static int    sNumSamplesPerRay = 100;
+static int    sMaxScatterDepth  = 50;
+static int    sNumThreads       = 8;
 
 static bool sSceneEnabled[MaxScene] =
 {
@@ -57,59 +58,30 @@ int main()
     Raytracer tracer(sOutputWidth, sOutputHeight, sNumSamplesPerRay, sMaxScatterDepth, sNumThreads);
 
     // Random scene
-    if (sSceneEnabled[Random])
+    if (sSceneEnabled[SceneRandom])
     {
-        // Camera options
-        const Vec3   lookFrom     = Vec3(13, 2, 3);
-        const Vec3   lookAt       = Vec3(0, 0, 0);
-        const Vec3   upVec        = Vec3(0, 1, 0);
-        const float  vertFov      = 20.f;
-        const float  aspect       = float(sOutputWidth) / float(sOutputHeight);
-        const float  aperture     = 0.0f;
-        const float  distToFocus  = 10.f;
-        const float  shutterTime0 = 0.f;
-        const float  shutterTime1 = 1.f;
-        Camera cam(
-            lookFrom, lookAt, upVec,
-            vertFov, aspect, aperture, distToFocus,
-            shutterTime0, shutterTime1);
-
-        // Render and write out image
+        Camera cam = GetCameraForSample(SceneRandom, sAspect);
         tracer.SetDefaultAmbient(Vec3(.7f, .7f, .7f));
-        RaytraceAndPrintProgress(tracer, cam, SampleSceneRandom(shutterTime0, shutterTime1));
+        RaytraceAndPrintProgress(tracer, cam, SampleSceneRandom(cam));
         ImageIO::WriteToPPMFile(tracer.GetOutputBuffer(), tracer.GetOutputWidth(), tracer.GetOutputHeight(), 
             OUTPUT_IMAGE_DIR "randomworld.ppm");
     }
 
     // Cornell box
-    if (sSceneEnabled[Cornell] || sSceneEnabled[CornellSmoke])
+    if (sSceneEnabled[SceneCornell] || sSceneEnabled[SceneCornellSmoke])
     {
-        // Camera options
-        const Vec3   lookFrom     = Vec3(278, 278, -800);
-        const Vec3   lookAt       = Vec3(278, 278, 0);
-        const Vec3   upVec        = Vec3(0, 1, 0);
-        const float  vertFov      = 40.f;
-        const float  aspect       = float(sOutputWidth) / float(sOutputHeight);
-        const float  aperture     = 0.0f;
-        const float  distToFocus  = 10.f;
-        const float  shutterTime0 = 0.f;
-        const float  shutterTime1 = 1.f;
-        Camera cam(
-            lookFrom, lookAt, upVec,
-            vertFov, aspect, aperture, distToFocus,
-            shutterTime0, shutterTime1);
-
-        // Render and write out image
-        if (sSceneEnabled[Cornell])
+        if (sSceneEnabled[SceneCornell])
         {
+            Camera cam = GetCameraForSample(SceneCornell, sAspect);
             tracer.SetDefaultAmbient(Vec3(0, 0, 0));
             RaytraceAndPrintProgress(tracer, cam, SampleSceneCornellBox(false));
             ImageIO::WriteToPPMFile(tracer.GetOutputBuffer(), tracer.GetOutputWidth(), tracer.GetOutputHeight(),
                 OUTPUT_IMAGE_DIR "cornell.ppm");
         }
 
-        if (sSceneEnabled[CornellSmoke])
+        if (sSceneEnabled[SceneCornellSmoke])
         {
+            Camera cam = GetCameraForSample(SceneCornellSmoke, sAspect);
             tracer.SetDefaultAmbient(Vec3(0, 0, 0));
             RaytraceAndPrintProgress(tracer, cam, SampleSceneCornellBox(true));
             ImageIO::WriteToPPMFile(tracer.GetOutputBuffer(), tracer.GetOutputWidth(), tracer.GetOutputHeight(),
@@ -118,24 +90,9 @@ int main()
     }
 
     // Final
-    if (sSceneEnabled[Final])
+    if (sSceneEnabled[SceneFinal])
     {
-        // Camera options
-        const Vec3   lookFrom     = Vec3(478, 278, -600);
-        const Vec3   lookAt       = Vec3(278, 278, 0);
-        const Vec3   upVec        = Vec3(0, 1, 0);
-        const float  vertFov      = 40.f;
-        const float  aspect       = float(sOutputWidth) / float(sOutputHeight);
-        const float  aperture     = 0.0f;
-        const float  distToFocus  = 10.f;
-        const float  shutterTime0 = 0.f;
-        const float  shutterTime1 = 1.f;
-        Camera cam(
-            lookFrom, lookAt, upVec,
-            vertFov, aspect, aperture, distToFocus,
-            shutterTime0, shutterTime1);
-
-        // Render and write out image
+        Camera cam = GetCameraForSample(SceneFinal, sAspect);
         tracer.SetDefaultAmbient(Vec3(0, 0, 0));
         RaytraceAndPrintProgress(tracer, cam, SampleSceneFinal());
         ImageIO::WriteToPPMFile(tracer.GetOutputBuffer(), tracer.GetOutputWidth(), tracer.GetOutputHeight(),

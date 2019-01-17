@@ -19,8 +19,93 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-IHitable* SampleSceneRandom(float time0, float time1)
+Camera GetCameraForSample(SampleScene scene, float aspect)
 {
+    switch (scene)
+    {
+        case SceneRandom:
+        {
+            const Vec3   lookFrom = Vec3(13, 2, 3);
+            const Vec3   lookAt = Vec3(0, 0, 0);
+            const Vec3   upVec = Vec3(0, 1, 0);
+            const float  vertFov = 20.f;
+            const float  aperture = 0.0f;
+            const float  distToFocus = 10.f;
+            const float  shutterTime0 = 0.f;
+            const float  shutterTime1 = 1.f;
+
+            return Camera(
+                lookFrom, lookAt, upVec,
+                vertFov, aspect, aperture, distToFocus,
+                shutterTime0, shutterTime1);
+        }
+        break;
+
+        case SceneCornell:
+        case SceneCornellSmoke:
+        {
+            // Camera options
+            const Vec3   lookFrom = Vec3(278, 278, -800);
+            const Vec3   lookAt = Vec3(278, 278, 0);
+            const Vec3   upVec = Vec3(0, 1, 0);
+            const float  vertFov = 40.f;
+            const float  aperture = 0.0f;
+            const float  distToFocus = 10.f;
+            const float  shutterTime0 = 0.f;
+            const float  shutterTime1 = 1.f;
+
+            return Camera(
+                lookFrom, lookAt, upVec,
+                vertFov, aspect, aperture, distToFocus,
+                shutterTime0, shutterTime1);
+        }
+        break;
+
+        case SceneFinal:
+        {
+            // Camera options
+            const Vec3   lookFrom = Vec3(478, 278, -600);
+            const Vec3   lookAt = Vec3(278, 278, 0);
+            const Vec3   upVec = Vec3(0, 1, 0);
+            const float  vertFov = 40.f;
+            const float  aperture = 0.0f;
+            const float  distToFocus = 10.f;
+            const float  shutterTime0 = 0.f;
+            const float  shutterTime1 = 1.f;
+
+            return Camera (
+                lookFrom, lookAt, upVec,
+                vertFov, aspect, aperture, distToFocus,
+                shutterTime0, shutterTime1);
+        }
+        break;
+
+        default:
+        {
+            const Vec3   lookFrom = Vec3(13, 2, 3);
+            const Vec3   lookAt = Vec3(0, 0, 0);
+            const Vec3   upVec = Vec3(0, 1, 0);
+            const float  vertFov = 20.f;
+            const float  aperture = 0.0f;
+            const float  distToFocus = 10.f;
+            const float  shutterTime0 = 0.f;
+            const float  shutterTime1 = 1.f;
+
+            return Camera(
+                lookFrom, lookAt, upVec,
+                vertFov, aspect, aperture, distToFocus,
+                shutterTime0, shutterTime1);
+        }
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+IHitable* SampleSceneRandom(const Camera& cam)
+{
+    float time0, time1;
+    cam.GetShutterTime(time0, time1);
+
     const int numObjects = 500;
     IHitable **list = new IHitable*[numObjects + 1];
 

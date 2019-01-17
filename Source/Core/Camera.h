@@ -22,6 +22,12 @@ public:
         return Ray(Origin + offset, LowerLeftCorner + (s * Horizontal) + (t * Vertical) - Origin - offset, time);
     }
 
+    inline void GetShutterTime(float& time0, float& time1) const
+    {
+        time0 = Time0;
+        time1 = Time1;
+    }
+
 private:
 
     Vec3   Origin;

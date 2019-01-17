@@ -1,23 +1,25 @@
 #pragma once
 
 #include "Core/IHitable.h"
+#include "Core/Camera.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
 enum SampleScene
 {
-    Random = 0,
-    Cornell,
-    CornellSmoke,
-    Final,
+    SceneRandom = 0,
+    SceneCornell,
+    SceneCornellSmoke,
+    SceneFinal,
 
     MaxScene
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-IHitable* SampleSceneRandom(float time0, float time1);
-IHitable* SampleSceneCreateTwoPerlinSpheres();
-IHitable* SampleSceneSimpleLight();
-IHitable* SampleSceneCornellBox(bool smoke);
-IHitable* SampleSceneFinal();
+Camera      GetCameraForSample(SampleScene scene, float aspect);
+IHitable*   SampleSceneRandom(const Camera& cam);
+IHitable*   SampleSceneCreateTwoPerlinSpheres();
+IHitable*   SampleSceneSimpleLight();
+IHitable*   SampleSceneCornellBox(bool smoke);
+IHitable*   SampleSceneFinal();

@@ -1,5 +1,5 @@
 .vs/
 Debug/
 Release/
-RayTracer.vcxproj.user
-*.ppm
+OutputImages/
+*.vcxproj.user

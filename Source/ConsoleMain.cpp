@@ -9,12 +9,13 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static int sOutputWidth      = 512;
-static int sOutputHeight     = 512;
-static int sNumSamplesPerRay = 50;
-static int sMaxScatterDepth  = 50;
-static int sNumThreads       = 8;
+#define  OUTPUT_IMAGE_DIR  "OutputImages/"
 
+static int  sOutputWidth      = 512;
+static int  sOutputHeight     = 512;
+static int  sNumSamplesPerRay = 50;
+static int  sMaxScatterDepth  = 50;
+static int  sNumThreads       = 8;
 static bool sSceneEnabled[MaxScene] =
 {
 	true,  // Random
@@ -51,7 +52,7 @@ int main()
 		// Render and write out image
 		tracer.SetDefaultAmbient(Vec3(.7f, .7f, .7f));
 		tracer.Render(cam, SampleSceneRandom(shutterTime0, shutterTime1));
-		tracer.WriteOutputToPPMFile(std::ofstream("randomworld.ppm"));
+		tracer.WriteOutputToPPMFile(std::ofstream(OUTPUT_IMAGE_DIR "randomworld.ppm"));
 	}
 
 	// Cornell box
@@ -77,14 +78,14 @@ int main()
 		{
 			tracer.SetDefaultAmbient(Vec3(0, 0, 0));
 			tracer.Render(cam, SampleSceneCornellBox(false));
-			tracer.WriteOutputToPPMFile(std::ofstream("cornell.ppm"));
+			tracer.WriteOutputToPPMFile(std::ofstream(OUTPUT_IMAGE_DIR "cornell.ppm"));
 		}
 
 		if (sSceneEnabled[CornellSmoke])
 		{
 			tracer.SetDefaultAmbient(Vec3(0, 0, 0));
 			tracer.Render(cam, SampleSceneCornellBox(true));
-			tracer.WriteOutputToPPMFile(std::ofstream("cornell_smoke.ppm"));
+			tracer.WriteOutputToPPMFile(std::ofstream(OUTPUT_IMAGE_DIR "cornell_smoke.ppm"));
 		}
 	}
 
@@ -109,7 +110,7 @@ int main()
 		// Render and write out image
 		tracer.SetDefaultAmbient(Vec3(0, 0, 0));
 		tracer.Render(cam, SampleSceneFinal());
-		tracer.WriteOutputToPPMFile(std::ofstream("final.ppm"));
+		tracer.WriteOutputToPPMFile(std::ofstream(OUTPUT_IMAGE_DIR "final.ppm"));
 	}
 
 	// Done

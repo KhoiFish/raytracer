@@ -56,7 +56,7 @@
     <ClCompile Include="Source\Core\Sphere.cpp" />
     <ClCompile Include="Source\Core\Texture.cpp" />
     <ClCompile Include="Source\Core\XYZRect.cpp" />
-    <ClCompile Include="Source\main.cpp" />
+    <ClCompile Include="Source\ConsoleMain.cpp" />
     <ClCompile Include="Source\SampleScenes.cpp" />
     <ClCompile Include="Source\StbImage\StbImageImpl.cpp" />
   </ItemGroup>

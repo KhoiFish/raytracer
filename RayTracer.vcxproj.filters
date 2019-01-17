@@ -81,7 +81,6 @@
     <ClInclude Include="Source\SampleScenes.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source\main.cpp" />
     <ClCompile Include="Source\Core\Perlin.cpp">
       <Filter>Core\Implementation</Filter>
     </ClCompile>
@@ -128,5 +127,6 @@
       <Filter>3rdParty\StbImage</Filter>
     </ClCompile>
     <ClCompile Include="Source\SampleScenes.cpp" />
+    <ClCompile Include="Source\ConsoleMain.cpp" />
   </ItemGroup>
 </Project>

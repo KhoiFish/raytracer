@@ -4,10 +4,10 @@
 class SeedRandom
 {
 public:
-	SeedRandom()
-	{
-		srand((unsigned int)time(NULL));
-	}
+    SeedRandom()
+    {
+        srand((unsigned int)time(NULL));
+    }
 };
 
 // This should seed random on app startup

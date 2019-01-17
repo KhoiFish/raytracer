@@ -6,12 +6,12 @@
 
 enum SampleScene
 {
-	Random = 0,
-	Cornell,
-	CornellSmoke,
-	Final,
+    Random = 0,
+    Cornell,
+    CornellSmoke,
+    Final,
 
-	MaxScene
+    MaxScene
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------

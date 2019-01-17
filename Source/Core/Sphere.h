@@ -9,14 +9,14 @@ class Sphere : public IHitable
 {
 public:
 
-	inline Sphere(Vec3 cen, float r, Material* mat) : Center(cen), Radius(r), MatPtr(mat) {}
+    inline Sphere(Vec3 cen, float r, Material* mat) : Center(cen), Radius(r), MatPtr(mat) {}
 
-	virtual bool Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const;
-	virtual bool BoundingBox(float t0, float t1, AABB& box) const;
+    virtual bool Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const;
+    virtual bool BoundingBox(float t0, float t1, AABB& box) const;
 
 private:
 
-	Vec3       Center;
-	float      Radius;
-	Material*  MatPtr;
+    Vec3       Center;
+    float      Radius;
+    Material*  MatPtr;
 };

@@ -10,12 +10,12 @@ class FlipNormals : public IHitable
 {
 public:
 
-	inline FlipNormals(IHitable* hitable) : Hitable(hitable) {}
+    inline FlipNormals(IHitable* hitable) : Hitable(hitable) {}
 
-	virtual bool Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const;
-	virtual bool BoundingBox(float t0, float t1, AABB& box) const;
+    virtual bool Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const;
+    virtual bool BoundingBox(float t0, float t1, AABB& box) const;
 
 private:
 
-	IHitable* Hitable;
+    IHitable* Hitable;
 };

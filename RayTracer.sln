@@ -10,6 +10,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RayTracerConsole", "RayTrac
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RayTracerLib", "RayTracerLib\RayTracerLib.vcxproj", "{393812B2-42A1-4EB3-B5C9-F4DC05470394}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RayTracerWindows", "RayTracerWindows\RayTracerWindows.vcxproj", "{42D26F47-C869-4E43-9DB1-F8046F8A4252}"
+	ProjectSection(ProjectDependencies) = postProject
+		{393812B2-42A1-4EB3-B5C9-F4DC05470394} = {393812B2-42A1-4EB3-B5C9-F4DC05470394}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -34,6 +39,14 @@ Global
 		{393812B2-42A1-4EB3-B5C9-F4DC05470394}.Release|x64.Build.0 = Release|x64
 		{393812B2-42A1-4EB3-B5C9-F4DC05470394}.Release|x86.ActiveCfg = Release|Win32
 		{393812B2-42A1-4EB3-B5C9-F4DC05470394}.Release|x86.Build.0 = Release|Win32
+		{42D26F47-C869-4E43-9DB1-F8046F8A4252}.Debug|x64.ActiveCfg = Debug|x64
+		{42D26F47-C869-4E43-9DB1-F8046F8A4252}.Debug|x64.Build.0 = Debug|x64
+		{42D26F47-C869-4E43-9DB1-F8046F8A4252}.Debug|x86.ActiveCfg = Debug|Win32
+		{42D26F47-C869-4E43-9DB1-F8046F8A4252}.Debug|x86.Build.0 = Debug|Win32
+		{42D26F47-C869-4E43-9DB1-F8046F8A4252}.Release|x64.ActiveCfg = Release|x64
+		{42D26F47-C869-4E43-9DB1-F8046F8A4252}.Release|x64.Build.0 = Release|x64
+		{42D26F47-C869-4E43-9DB1-F8046F8A4252}.Release|x86.ActiveCfg = Release|Win32
+		{42D26F47-C869-4E43-9DB1-F8046F8A4252}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

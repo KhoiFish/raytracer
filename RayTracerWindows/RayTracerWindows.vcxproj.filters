@@ -5,11 +5,20 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Source">
+      <UniqueIdentifier>{32e8e1c5-e8f6-4850-be09-1ce1f2349f7f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="RayTracerWindows.h" />
-    <ClInclude Include="Resource.h" />
-    <ClInclude Include="..\Source\SampleScenes.h" />
+    <ClInclude Include="RayTracerWindows.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\SampleScenes.h">
+      <Filter>Source</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="RayTracerWindows.rc">
@@ -25,7 +34,11 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="RayTracerWindows.cpp" />
-    <ClCompile Include="..\Source\SampleScenes.cpp" />
+    <ClCompile Include="RayTracerWindows.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\SampleScenes.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

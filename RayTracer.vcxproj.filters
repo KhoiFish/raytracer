@@ -10,6 +10,12 @@
     <Filter Include="Core\Implementation">
       <UniqueIdentifier>{390f9dce-abc4-49ad-8019-9145266ea47a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3rdParty">
+      <UniqueIdentifier>{854a327b-e0c2-4d19-9c95-175bb2a844ff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\StbImage">
+      <UniqueIdentifier>{9b00e82f-7446-4c53-86c0-d1a8ed53b75c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Core\AABB.h">
@@ -69,6 +75,9 @@
     <ClInclude Include="Source\Core\XYZRect.h">
       <Filter>Core\Headers</Filter>
     </ClInclude>
+    <ClInclude Include="Source\StbImage\stb_image.h">
+      <Filter>3rdParty\StbImage</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\main.cpp" />
@@ -113,6 +122,9 @@
     </ClCompile>
     <ClCompile Include="Source\Core\XYZRect.cpp">
       <Filter>Core\Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\StbImage\StbImageImpl.cpp">
+      <Filter>3rdParty\StbImage</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

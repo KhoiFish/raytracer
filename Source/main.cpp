@@ -1,6 +1,11 @@
+// ----------------------------------------------------------------------------------------------------------------------------
+
 #include <iostream>
 #include <fstream>
 #include <cfloat>
+
+#include "StbImage/stb_image.h"
+
 #include "Core/Vec3.h"
 #include "Core/Ray.h"
 #include "Core/Sphere.h"
@@ -17,9 +22,6 @@
 #include "Core/HitableBox.h"
 #include "Core/HitableTransform.h"
 #include "Core/ConstantMedium.h"
-
-#define STB_IMAGE_IMPLEMENTATION
-#include "StbImage/stb_image.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -250,7 +252,7 @@ int main()
 	// Raytracer params
 	const int    outputWidth  = 512;
 	const int    outputHeight = 512;
-	const int    numSamples   = 256;
+	const int    numSamples   = 50;
 	const int    maxDepth     = 50;
 	const int    numThreads   = 8;
 

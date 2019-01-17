@@ -9,6 +9,7 @@
   <ItemGroup>
     <ClInclude Include="RayTracerWindows.h" />
     <ClInclude Include="Resource.h" />
+    <ClInclude Include="..\Source\SampleScenes.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="RayTracerWindows.rc">
@@ -25,5 +26,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="RayTracerWindows.cpp" />
+    <ClCompile Include="..\Source\SampleScenes.cpp" />
   </ItemGroup>
 </Project>

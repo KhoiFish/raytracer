@@ -153,10 +153,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\Source\SampleScenes.h" />
     <ClInclude Include="RayTracerWindows.h" />
     <ClInclude Include="Resource.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\Source\SampleScenes.cpp" />
     <ClCompile Include="RayTracerWindows.cpp" />
   </ItemGroup>
   <ItemGroup>

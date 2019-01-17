@@ -68,25 +68,23 @@ int main()
     }
 
     // Cornell box
-    if (sSceneEnabled[SceneCornell] || sSceneEnabled[SceneCornellSmoke])
+    if (sSceneEnabled[SceneCornell])
     {
-        if (sSceneEnabled[SceneCornell])
-        {
-            Camera cam = GetCameraForSample(SceneCornell, sAspect);
-            tracer.SetDefaultAmbient(Vec3(0, 0, 0));
-            RaytraceAndPrintProgress(tracer, cam, SampleSceneCornellBox(false));
-            ImageIO::WriteToPPMFile(tracer.GetOutputBuffer(), tracer.GetOutputWidth(), tracer.GetOutputHeight(),
-                OUTPUT_IMAGE_DIR "cornell.ppm");
-        }
+        Camera cam = GetCameraForSample(SceneCornell, sAspect);
+        tracer.SetDefaultAmbient(Vec3(0, 0, 0));
+        RaytraceAndPrintProgress(tracer, cam, SampleSceneCornellBox(false));
+        ImageIO::WriteToPPMFile(tracer.GetOutputBuffer(), tracer.GetOutputWidth(), tracer.GetOutputHeight(),
+            OUTPUT_IMAGE_DIR "cornell.ppm");
+    }
 
-        if (sSceneEnabled[SceneCornellSmoke])
-        {
-            Camera cam = GetCameraForSample(SceneCornellSmoke, sAspect);
-            tracer.SetDefaultAmbient(Vec3(0, 0, 0));
-            RaytraceAndPrintProgress(tracer, cam, SampleSceneCornellBox(true));
-            ImageIO::WriteToPPMFile(tracer.GetOutputBuffer(), tracer.GetOutputWidth(), tracer.GetOutputHeight(),
-                OUTPUT_IMAGE_DIR "cornell_smoke.ppm");
-        }
+    // Cornell smoke
+    if (sSceneEnabled[SceneCornellSmoke])
+    {
+        Camera cam = GetCameraForSample(SceneCornellSmoke, sAspect);
+        tracer.SetDefaultAmbient(Vec3(0, 0, 0));
+        RaytraceAndPrintProgress(tracer, cam, SampleSceneCornellBox(true));
+        ImageIO::WriteToPPMFile(tracer.GetOutputBuffer(), tracer.GetOutputWidth(), tracer.GetOutputHeight(),
+            OUTPUT_IMAGE_DIR "cornell_smoke.ppm");
     }
 
     // Final

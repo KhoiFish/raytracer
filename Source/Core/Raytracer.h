@@ -31,6 +31,7 @@ public:
 	{
 		OutputBuffer = new Vec3[OutputWidth * OutputHeight];
 		ThreadPtrs = new ThreadPtr[NumThreads];
+		DefaultAmbient = Vec3(0, 0, 0);
 	}
 
 	~Raytracer()
@@ -95,6 +96,11 @@ public:
 		}
 
 		printf("\nFinished writing ppm file!\n");
+	}
+
+	void SetDefaultAmbient(const Vec3& ambient)
+	{
+		DefaultAmbient = ambient;
 	}
 
 private:
@@ -182,7 +188,7 @@ private:
 		}
 		else
 		{
-			return Vec3(0, 0, 0);
+			return DefaultAmbient;
 		}
 	}
 
@@ -197,6 +203,7 @@ private:
 	int               NumRaySamples;
 	int               MaxDepth;
 	int               NumThreads;
+	Vec3              DefaultAmbient;
 
 	// Thread tracking
 	std::atomic<int>  CurrentOutputOffset;

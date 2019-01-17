@@ -123,10 +123,7 @@ static IHitable* cornellBox(bool smoke)
 	list[i++] = new FlipNormals(new XYZRect(XYZRect::YZ, 0, 555, 0, 555, 555, green));
 	list[i++] = new XYZRect(XYZRect::YZ, 0, 555, 0, 555, 0, red);
 
-	// The commented line creates a light that causes the output to be black.
-	// This might be due to values passing 1.0, we should investigate
-	//list[i++] = new XYZRect(XYZRect::XZ, 113, 443, 127, 432, 554, light);
-	list[i++] = new XYZRect(XYZRect::XZ, 213, 343, 227, 332, 554, light);
+	list[i++] = new XYZRect(XYZRect::XZ, 113, 443, 127, 432, 554, light);
 
 	list[i++] = new FlipNormals(new XYZRect(XYZRect::XZ, 0, 555, 0, 555, 555, white));
 	list[i++] = new XYZRect(XYZRect::XZ, 0, 555, 0, 555, 0, white);
@@ -253,15 +250,34 @@ int main()
 	// Raytracer params
 	const int    outputWidth  = 512;
 	const int    outputHeight = 512;
-	const int    numSamples   = 1000;
+	const int    numSamples   = 256;
 	const int    maxDepth     = 50;
 	const int    numThreads   = 8;
+
+	// Scenes to render
+	enum Scene
+	{
+		Random = 0,
+		Cornell,
+		CornellSmoke,
+		Final,
+
+		MaxScene
+	};
+
+	bool sceneEnabled[MaxScene] =
+	{
+		true,  // Random
+		true,  // Cornell
+		true,  // Cornell smoke
+		true,  // Final
+	};
 
 	// Create ray tracer
 	Raytracer tracer(outputWidth, outputHeight, numSamples, maxDepth, numThreads);
 
 	// Random scene
-	if (false)
+	if (sceneEnabled[Random])
 	{
 		// Camera options
 		const Vec3   lookFrom     = Vec3(13, 2, 3);
@@ -279,12 +295,13 @@ int main()
 			shutterTime0, shutterTime1);
 
 		// Render and write out image
+		tracer.SetDefaultAmbient(Vec3(.7f, .7f, .7f));
 		tracer.Render(cam, randomScene(shutterTime0, shutterTime1));
 		tracer.WriteOutputToPPMFile(std::ofstream("randomworld.ppm"));
 	}
 
 	// Cornell box
-	if (false)
+	if (sceneEnabled[Cornell] || sceneEnabled[CornellSmoke])
 	{
 		// Camera options
 		const Vec3   lookFrom = Vec3(278, 278, -800);
@@ -302,14 +319,23 @@ int main()
 			shutterTime0, shutterTime1);
 
 		// Render and write out image
-		tracer.Render(cam, cornellBox(false));
-		tracer.WriteOutputToPPMFile(std::ofstream("cornell.ppm"));
+		if (sceneEnabled[Cornell])
+		{
+			tracer.SetDefaultAmbient(Vec3(0, 0, 0));
+			tracer.Render(cam, cornellBox(false));
+			tracer.WriteOutputToPPMFile(std::ofstream("cornell.ppm"));
+		}
 
-		tracer.Render(cam, cornellBox(true));
-		tracer.WriteOutputToPPMFile(std::ofstream("cornell_smoke.ppm"));
+		if (sceneEnabled[CornellSmoke])
+		{
+			tracer.SetDefaultAmbient(Vec3(0, 0, 0));
+			tracer.Render(cam, cornellBox(true));
+			tracer.WriteOutputToPPMFile(std::ofstream("cornell_smoke.ppm"));
+		}
 	}
 
 	// Final
+	if (sceneEnabled[Final])
 	{
 		// Camera options
 		const Vec3   lookFrom = Vec3(478, 278, -600);
@@ -327,6 +353,7 @@ int main()
 			shutterTime0, shutterTime1);
 
 		// Render and write out image
+		tracer.SetDefaultAmbient(Vec3(0, 0, 0));
 		tracer.Render(cam, finalScene());
 		tracer.WriteOutputToPPMFile(std::ofstream("final.ppm"));
 	}

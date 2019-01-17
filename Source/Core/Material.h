@@ -21,13 +21,13 @@ class MLambertian : public Material
 {
 public:
 
-    MLambertian(Texture* albedo);
+    MLambertian(BaseTexture* albedo);
 
     virtual bool Scatter(const Ray& rayIn, const HitRecord& rec, Vec3& attenuation, Ray& scattered) const;
 
 private:
 
-    Texture* Albedo;
+    BaseTexture* Albedo;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -67,7 +67,7 @@ class MDiffuseLight : public Material
 {
 public:
 
-    MDiffuseLight(Texture* tex);
+    MDiffuseLight(BaseTexture* tex);
 
     virtual bool Scatter(const Ray& rayIn, const HitRecord& rec, Vec3& attenuation, Ray& scattered) const;
 
@@ -75,7 +75,7 @@ public:
 
 private:
 
-    Texture* EmitTex;
+    BaseTexture* EmitTex;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -84,11 +84,11 @@ class MIsotropic : public Material
 {
 public:
 
-    MIsotropic(Texture* albedo);
+    MIsotropic(BaseTexture* albedo);
 
     virtual bool Scatter(const Ray& rayIn, const HitRecord& rec, Vec3& attenuation, Ray& scattered) const;
 
 private:
 
-    Texture* Albedo;
+    BaseTexture* Albedo;
 };

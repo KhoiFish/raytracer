@@ -9,7 +9,7 @@ Vec3 Material::Emitted(float u, float v, Vec3& p) const
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-MLambertian::MLambertian(Texture* albedo) : Albedo(albedo)
+MLambertian::MLambertian(BaseTexture* albedo) : Albedo(albedo)
 {
 
 }
@@ -107,7 +107,7 @@ bool MDielectric::Scatter(const Ray& rayIn, const HitRecord& rec, Vec3& attenuat
 // ----------------------------------------------------------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------------------------------
 
-MDiffuseLight::MDiffuseLight(Texture* tex) : EmitTex(tex)
+MDiffuseLight::MDiffuseLight(BaseTexture* tex) : EmitTex(tex)
 {
 
 }
@@ -129,7 +129,7 @@ Vec3 MDiffuseLight::Emitted(float u, float v, Vec3& p) const
 // ----------------------------------------------------------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------------------------------
 
-MIsotropic::MIsotropic(Texture* albedo) : Albedo(albedo)
+MIsotropic::MIsotropic(BaseTexture* albedo) : Albedo(albedo)
 {
 
 }

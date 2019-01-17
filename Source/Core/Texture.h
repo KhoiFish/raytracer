@@ -5,7 +5,7 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-class Texture
+class BaseTexture
 {
 public:
 
@@ -14,7 +14,7 @@ public:
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-class ConstantTexture : public Texture
+class ConstantTexture : public BaseTexture
 {
 public:
 
@@ -30,24 +30,24 @@ private:
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-class CheckerTexture : public Texture
+class CheckerTexture : public BaseTexture
 {
 public:
 
     inline CheckerTexture() {}
-    inline CheckerTexture(Texture* t0, Texture* t1) : Odd(t0), Even(t1) {}
+    inline CheckerTexture(BaseTexture* t0, BaseTexture* t1) : Odd(t0), Even(t1) {}
 
     virtual Vec3 Value(float u, float v, const Vec3& p) const;
 
 private:
 
-    Texture* Odd;
-    Texture* Even;
+    BaseTexture* Odd;
+    BaseTexture* Even;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-class NoiseTexture : public Texture
+class NoiseTexture : public BaseTexture
 {
 public:
 
@@ -62,7 +62,7 @@ private:
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-class ImageTexture : public Texture
+class ImageTexture : public BaseTexture
 {
 public:
 

@@ -113,7 +113,7 @@ IHitable* SampleSceneRandom(const Camera& cam)
     const int numObjects = 500;
     IHitable **list = new IHitable*[numObjects + 1];
 
-    Texture* checker = new CheckerTexture(
+    BaseTexture* checker = new CheckerTexture(
         new ConstantTexture(Vec3(.2f, .3f, .1f)),
         new ConstantTexture(Vec3(.9f, .9f, .9f))
     );
@@ -164,8 +164,8 @@ IHitable* SampleSceneRandom(const Camera& cam)
 
 IHitable* SampleSceneCreateTwoPerlinSpheres()
 {
-    Texture* perTex = new NoiseTexture(4.f);
-    Texture* imageTex = nullptr;
+    BaseTexture* perTex = new NoiseTexture(4.f);
+    BaseTexture* imageTex = nullptr;
     {
         int width, height, numChannels;
         unsigned char* texData = stbi_load("guitar.jpg", &width, &height, &numChannels, 0);
@@ -183,7 +183,7 @@ IHitable* SampleSceneCreateTwoPerlinSpheres()
 
 IHitable* SampleSceneSimpleLight()
 {
-    Texture* perlinTex = new NoiseTexture(4);
+    BaseTexture* perlinTex = new NoiseTexture(4);
     IHitable** list = new IHitable*[4];
     list[0] = new Sphere(Vec3(0, -1000, 0), 1000, new MLambertian(perlinTex));
     list[1] = new Sphere(Vec3(0, 2, 0), 2, new MLambertian(perlinTex));
@@ -313,7 +313,7 @@ IHitable* SampleSceneFinal()
 
     // Perlin noise sphere
     {
-        Texture *perTex = new NoiseTexture(0.1f);
+        BaseTexture *perTex = new NoiseTexture(0.1f);
         list[total++] = new Sphere(Vec3(220, 280, 300), 80, new MLambertian(perTex));
     }
 

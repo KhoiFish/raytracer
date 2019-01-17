@@ -2,7 +2,7 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-ConstantMedium::ConstantMedium(IHitable* boundary, float density, Texture* tex) : Boundary(boundary), Density(density)
+ConstantMedium::ConstantMedium(IHitable* boundary, float density, BaseTexture* tex) : Boundary(boundary), Density(density)
 {
     PhaseFunction = new MIsotropic(tex);
 }

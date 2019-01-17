@@ -10,13 +10,22 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="RayTracerWindows.h">
-      <Filter>Source</Filter>
-    </ClInclude>
     <ClInclude Include="Resource.h">
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="..\Source\SampleScenes.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Windows\RaytracerWindows.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Windows\Light.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Windows\CameraDX12.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Windows\MaterialDX12.h">
       <Filter>Source</Filter>
     </ClInclude>
   </ItemGroup>
@@ -34,10 +43,20 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="RayTracerWindows.cpp">
+    <ClCompile Include="..\Source\SampleScenes.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="..\Source\SampleScenes.cpp">
+    <ClCompile Include="WinMain.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Windows\RaytracerWindows.cpp" />
+    <ClCompile Include="..\Source\Windows\Light.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Windows\CameraDX12.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Windows\MaterialDX12.cpp">
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>

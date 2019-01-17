@@ -5,6 +5,7 @@
 #include "Core/Vec3.h"
 #include "Core/Camera.h"
 #include "Core/Raytracer.h"
+#include "Core/ImageIO.h"
 #include "SampleScenes.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -41,7 +42,7 @@ static void RaytraceAndPrintProgress(Raytracer& tracer, Camera& cam, IHitable* w
         Raytracer::Stats stats = tracer.GetStats();
         float percentage = float(stats.NumPixelsTraced) / float(stats.TotalNumPixels);
 
-        snprintf(buf, 256, "#-rays:%lld #-pixels:%d", stats.TotalRaysFired, stats.NumPixelsTraced);
+        snprintf(buf, 256, "#rays:%lld #pixels:%d", stats.TotalRaysFired, stats.NumPixelsTraced);
         PrintProgress(buf, percentage);
     }
 
@@ -76,7 +77,8 @@ int main()
         // Render and write out image
         tracer.SetDefaultAmbient(Vec3(.7f, .7f, .7f));
         RaytraceAndPrintProgress(tracer, cam, SampleSceneRandom(shutterTime0, shutterTime1));
-        tracer.WriteOutputToPPMFile(std::ofstream(OUTPUT_IMAGE_DIR "randomworld.ppm"));
+        ImageIO::WriteToPPMFile(tracer.GetOutputBuffer(), tracer.GetOutputWidth(), tracer.GetOutputHeight(), 
+            OUTPUT_IMAGE_DIR "randomworld.ppm");
     }
 
     // Cornell box
@@ -102,14 +104,16 @@ int main()
         {
             tracer.SetDefaultAmbient(Vec3(0, 0, 0));
             RaytraceAndPrintProgress(tracer, cam, SampleSceneCornellBox(false));
-            tracer.WriteOutputToPPMFile(std::ofstream(OUTPUT_IMAGE_DIR "cornell.ppm"));
+            ImageIO::WriteToPPMFile(tracer.GetOutputBuffer(), tracer.GetOutputWidth(), tracer.GetOutputHeight(),
+                OUTPUT_IMAGE_DIR "cornell.ppm");
         }
 
         if (sSceneEnabled[CornellSmoke])
         {
             tracer.SetDefaultAmbient(Vec3(0, 0, 0));
             RaytraceAndPrintProgress(tracer, cam, SampleSceneCornellBox(true));
-            tracer.WriteOutputToPPMFile(std::ofstream(OUTPUT_IMAGE_DIR "cornell_smoke.ppm"));
+            ImageIO::WriteToPPMFile(tracer.GetOutputBuffer(), tracer.GetOutputWidth(), tracer.GetOutputHeight(),
+                OUTPUT_IMAGE_DIR "cornell_smoke.ppm");
         }
     }
 
@@ -134,7 +138,8 @@ int main()
         // Render and write out image
         tracer.SetDefaultAmbient(Vec3(0, 0, 0));
         RaytraceAndPrintProgress(tracer, cam, SampleSceneFinal());
-        tracer.WriteOutputToPPMFile(std::ofstream(OUTPUT_IMAGE_DIR "final.ppm"));
+        ImageIO::WriteToPPMFile(tracer.GetOutputBuffer(), tracer.GetOutputWidth(), tracer.GetOutputHeight(),
+            OUTPUT_IMAGE_DIR "final.ppm");
     }
 
     // Done

@@ -1,8 +1,5 @@
 #include "Raytracer.h"
-#include <iostream>
-#include <fstream>
 #include <cfloat>
-#include <iomanip>
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -99,44 +96,6 @@ void Raytracer::cleanupRaytrace()
         IsRaytracing = false;
         RaytraceEvent.Reset();
     }
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-void Raytracer::WriteOutputToPPMFile(std::ofstream outFile)
-{
-    printf("\nWriting ppm file...\n");
-
-    outFile << "P3\n" << OutputWidth << " " << OutputHeight << "\n255\n";
-
-    int numPixels = OutputWidth * OutputHeight;
-    for (int i = 0; i < numPixels; i++)
-    {
-        // Get the pixel
-        Vec3 col = OutputBuffer[i];
-
-        // Gamma correct
-        col = Vec3(sqrt(col.R()), sqrt(col.G()), sqrt(col.B()));
-
-        // Write pixel to file
-        int ir = int(255.99*col.R());
-        int ig = int(255.99*col.G());
-        int ib = int(255.99*col.B());
-
-        ir = (ir > 255) ? 255 : ir;
-        ig = (ig > 255) ? 255 : ig;
-        ib = (ib > 255) ? 255 : ib;
-
-        outFile << ir << " " << ig << " " << ib << "\n";
-
-        // Print progress
-        if ((i % OutputWidth) == 0)
-        {
-            PrintProgress("", float(i) / float(numPixels));
-        }
-    }
-
-    printf("\nFinished writing ppm file!\n");
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

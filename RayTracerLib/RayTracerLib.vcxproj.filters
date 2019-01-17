@@ -79,6 +79,9 @@
       <Filter>3rdParty\StbImage</Filter>
     </ClInclude>
     <ClInclude Include="..\Source\Core\ThreadEvent.h" />
+    <ClInclude Include="..\Source\Core\ImageIO.h">
+      <Filter>Core\Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Source\Core\BVHNode.cpp">
@@ -127,5 +130,6 @@
       <Filter>3rdParty\StbImage</Filter>
     </ClCompile>
     <ClCompile Include="..\Source\Core\Util.cpp" />
+    <ClCompile Include="..\Source\Core\ImageIO.cpp" />
   </ItemGroup>
 </Project>

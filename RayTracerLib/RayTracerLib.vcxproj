@@ -162,6 +162,7 @@
     <ClInclude Include="..\Source\Core\HitableList.h" />
     <ClInclude Include="..\Source\Core\HitableTransform.h" />
     <ClInclude Include="..\Source\Core\IHitable.h" />
+    <ClInclude Include="..\Source\Core\ImageIO.h" />
     <ClInclude Include="..\Source\Core\Material.h" />
     <ClInclude Include="..\Source\Core\MovingSphere.h" />
     <ClInclude Include="..\Source\Core\Perlin.h" />
@@ -183,6 +184,7 @@
     <ClCompile Include="..\Source\Core\HitableBox.cpp" />
     <ClCompile Include="..\Source\Core\HitableList.cpp" />
     <ClCompile Include="..\Source\Core\HitableTransform.cpp" />
+    <ClCompile Include="..\Source\Core\ImageIO.cpp" />
     <ClCompile Include="..\Source\Core\Material.cpp" />
     <ClCompile Include="..\Source\Core\MovingSphere.cpp" />
     <ClCompile Include="..\Source\Core\Perlin.cpp" />

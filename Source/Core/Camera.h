@@ -33,7 +33,19 @@ public:
         time1 = Time1;
     }
 
-    inline Vec3 GetClearColor() const { return ClearColor; }
+    inline Vec3 GetClearColor() const
+    {
+        return ClearColor;
+    }
+
+    inline void GetCameraParams(Vec3& lookFrom, Vec3& lookAt, Vec3& up, float& aspect, float& vertFov) const
+    {
+        lookFrom = LookFrom;
+        lookAt = LookAt;
+        up = Up;
+        aspect = Aspect;
+        vertFov = VertFov;
+    }
 
 private:
 

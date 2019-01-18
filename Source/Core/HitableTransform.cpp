@@ -103,6 +103,8 @@ bool HitableRotateY::Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) c
     return false;
 }
 
+// ----------------------------------------------------------------------------------------------------------------------------
+
 bool HitableRotateY::BoundingBox(float t0, float t1, AABB& box) const
 {
     box = Bbox;

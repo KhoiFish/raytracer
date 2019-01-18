@@ -1,5 +1,10 @@
 #include "RaytracerWindows.h"
 #include "Core/Util.h"
+#include "Core/IHitable.h"
+#include "Core/Sphere.h"
+#include "Core/MovingSphere.h"
+#include "Core/HitableList.h"
+#include "Core/HitableTransform.h"
 #include "SampleScenes.h"
 
 #include <Application.h>
@@ -28,14 +33,21 @@ struct Mat
 
 struct PipelineStateStream
 {
-    CD3DX12_PIPELINE_STATE_STREAM_ROOT_SIGNATURE pRootSignature;
-    CD3DX12_PIPELINE_STATE_STREAM_INPUT_LAYOUT InputLayout;
-    CD3DX12_PIPELINE_STATE_STREAM_PRIMITIVE_TOPOLOGY PrimitiveTopologyType;
-    CD3DX12_PIPELINE_STATE_STREAM_VS VS;
-    CD3DX12_PIPELINE_STATE_STREAM_PS PS;
-    CD3DX12_PIPELINE_STATE_STREAM_DEPTH_STENCIL_FORMAT DSVFormat;
-    CD3DX12_PIPELINE_STATE_STREAM_RENDER_TARGET_FORMATS RTVFormats;
-    CD3DX12_PIPELINE_STATE_STREAM_SAMPLE_DESC SampleDesc;
+    CD3DX12_PIPELINE_STATE_STREAM_ROOT_SIGNATURE            RootSignature;
+    CD3DX12_PIPELINE_STATE_STREAM_INPUT_LAYOUT              InputLayout;
+    CD3DX12_PIPELINE_STATE_STREAM_PRIMITIVE_TOPOLOGY        PrimitiveTopologyType;
+    CD3DX12_PIPELINE_STATE_STREAM_VS                        VS;
+    CD3DX12_PIPELINE_STATE_STREAM_PS                        PS;
+    CD3DX12_PIPELINE_STATE_STREAM_DEPTH_STENCIL_FORMAT      DSVFormat;
+    CD3DX12_PIPELINE_STATE_STREAM_RENDER_TARGET_FORMATS     RTVFormats;
+    CD3DX12_PIPELINE_STATE_STREAM_SAMPLE_DESC               SampleDesc;
+};
+
+struct RenderSceneNode
+{
+    IHitable*               Hitable;
+    std::shared_ptr<Mesh>   MeshData;
+    XMMATRIX                WorldMatrix;
 };
 
 enum RootParameters
@@ -50,10 +62,9 @@ static const UINT   sRootParamRegisters[NumRootParameters] =
     0, // MatricesCB
     0, // TextureDiffuse
 };
-
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static int    sNumSamplesPerRay       = 100;
+static int    sNumSamplesPerRay       = 1;
 static int    sMaxScatterDepth        = 50;
 static int    sNumThreads             = 4;
 static FLOAT  sClearColor[]           = { 0.4f, 0.6f, 0.9f, 1.0f };
@@ -87,11 +98,27 @@ static void XM_CALLCONV ComputeMatrices(FXMMATRIX model, CXMMATRIX view, CXMMATR
     mat.ModelViewProjectionMatrix       = model * viewProjection;
 }
 
+static void UpdateRenderCamera(Camera& raytracerCamera, CameraDX12& renderCamera)
+{
+    // Get ray tracer camera params
+    Vec3 lookFrom, lookAt, up;
+    float aspect, vertFov;
+    raytracerCamera.GetCameraParams(lookFrom, lookAt, up, aspect, vertFov);
+
+    // Set the render camera
+    XMVECTOR cameraPos = XMVectorSet(lookFrom.X(), lookFrom.Y(), -lookFrom.Z(), 0);
+    XMVECTOR cameraTarget = XMVectorSet(lookAt.X(), lookAt.Y(), -lookAt.Z(), 0);
+    XMVECTOR cameraUp = XMVectorSet(up.X(), up.Y(), -up.Z(), 0);
+    renderCamera.set_LookAt(cameraPos, cameraTarget, cameraUp);
+    renderCamera.set_Projection(vertFov, aspect, 0.1f, 10000.0f);
+}
+
 // ----------------------------------------------------------------------------------------------------------------------------
 
 RaytracerWindows::RaytracerWindows(const std::wstring& name, int width, int height, bool vSync)
     : super(name, width, height, vSync)
     , RenderMode(ModePreview)
+    //, RenderMode(ModeRaytracer)
     , TheRaytracer(nullptr)
     , World(nullptr)
     , ScissorRect(CD3DX12_RECT(0, 0, LONG_MAX, LONG_MAX))
@@ -110,21 +137,17 @@ RaytracerWindows::RaytracerWindows(const std::wstring& name, int width, int heig
     , BackbufferHeight(0)
 {
 
-    XMVECTOR cameraPos    = XMVectorSet(0, 5, -20, 1);
-    XMVECTOR cameraTarget = XMVectorSet(0, 5, 0, 1);
+    XMVECTOR cameraPos    = XMVectorSet(0, 0, 10, 1);
+    XMVECTOR cameraTarget = XMVectorSet(0, 0, 0, 1);
     XMVECTOR cameraUp     = XMVectorSet(0, 1, 0, 0);
     RenderCamera.set_LookAt(cameraPos, cameraTarget, cameraUp);
-
-    PtrAlignedCameraData = (CameraData*)_aligned_malloc(sizeof(CameraData), 16);
-    PtrAlignedCameraData->InitialCamPos = RenderCamera.get_Translation();
-    PtrAlignedCameraData->InitialCamRot = RenderCamera.get_Rotation();
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
 RaytracerWindows::~RaytracerWindows()
 {
-    _aligned_free(PtrAlignedCameraData);
+    
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -171,11 +194,75 @@ void RaytracerWindows::StartRaytrace()
 {
     if (TheRaytracer)
     {
-        float     aspect = float(BackbufferWidth) / float(BackbufferHeight);
-        Camera    cam    = GetCameraForSample(SceneFinal, aspect);
-        IHitable* world  = SampleSceneFinal();
+        RenderMode = ModeRaytracer;
+        TheRaytracer->BeginRaytrace(RaytracerCamera, World);
+    }
+}
 
-        TheRaytracer->BeginRaytrace(cam, world);
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void RaytracerWindows::LoadScene(std::shared_ptr<CommandList> commandList)
+{
+    const float aspect = (float)BackbufferWidth / (float)BackbufferHeight;
+
+    RaytracerCamera = GetCameraForSample(SceneFinal, aspect);
+    World = SampleSceneFinal();
+
+    XMMATRIX worldMatrix = XMMatrixIdentity();
+    GenerateSceneGraph(commandList, World, RenderSceneList, worldMatrix);
+    UpdateRenderCamera(RaytracerCamera, RenderCamera);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void RaytracerWindows::GenerateSceneGraph(std::shared_ptr<CommandList> commandList, const IHitable* currentHead, std::vector<RenderSceneNode*>& outSceneList, XMMATRIX& currentMatrix)
+{
+    const std::type_info& tid = typeid(*currentHead);
+
+    if (tid == typeid(HitableList))
+    {
+        HitableList* hitList = (HitableList*)currentHead;
+
+        const IHitable** list = hitList->GetList();
+        const int        listSize = hitList->GetListSize();
+        for (int i = 0; i < listSize; i++)
+        {
+            GenerateSceneGraph(commandList, list[i], outSceneList, currentMatrix);
+        }
+    }
+    else if (tid == typeid(HitableTranslate))
+    {
+        HitableTranslate* translateHitable = (HitableTranslate*)currentHead;
+        Vec3              offset = translateHitable->GetOffset();
+        XMMATRIX          translation = XMMatrixTranslation(offset.X(), offset.Y(), -offset.Z());
+        XMMATRIX          newMatrix = currentMatrix * translation;
+
+        GenerateSceneGraph(commandList, translateHitable->GetHitObject(), outSceneList, newMatrix);
+    }
+    else if (tid == typeid(Sphere) || tid == typeid(MovingSphere))
+    {
+        Vec3  offset;
+        float radius;
+        if (tid == typeid(Sphere))
+        {
+            Sphere* sphere = (Sphere*)currentHead;
+            offset = sphere->GetCenter();
+            radius = sphere->GetRadius();
+        }
+        else if (tid == typeid(MovingSphere))
+        {
+            MovingSphere* sphere = (MovingSphere*)currentHead;
+            offset = sphere->Center(1.f);
+            radius = sphere->GetRadius();
+        }
+
+        XMMATRIX         translation = XMMatrixTranslation(offset.X(), offset.Y(), -offset.Z());
+        XMMATRIX         newMatrix = currentMatrix * translation;
+        RenderSceneNode* newNode = new RenderSceneNode();
+
+        newNode->MeshData    = Mesh::CreateSphere(*commandList, radius * 2.f);
+        newNode->WorldMatrix = newMatrix;
+        outSceneList.push_back(newNode);
     }
 }
 
@@ -194,6 +281,13 @@ bool RaytracerWindows::LoadContent()
 
     // Check the best multi-sample quality level that can be used for the given back buffer format
     const DXGI_SAMPLE_DESC sampleDesc = Application::Get().GetMultisampleQualityLevels(backBufferFormat, D3D12_MAX_MULTISAMPLE_SAMPLE_COUNT);
+
+
+    // -------------------------------------------------------------------
+    // Load scene
+    // -------------------------------------------------------------------
+    LoadScene(commandList);
+    commandList->LoadTextureFromFile(PreviewTex, L"RuntimeData\\default.png");    
     
 
     // -------------------------------------------------------------------
@@ -231,7 +325,7 @@ bool RaytracerWindows::LoadContent()
 
 
     // -------------------------------------------------------------------
-    // Setup the pipeline state for fullscreen quad rendering
+    // Setup the pipeline state for full screen quad rendering
     // -------------------------------------------------------------------
     {
         // Load shaders
@@ -244,7 +338,7 @@ bool RaytracerWindows::LoadContent()
         rtvFormats.RTFormats[0]     = backBufferFormat;
 
         PipelineStateStream pipelineStateStream;
-        pipelineStateStream.pRootSignature        = RootSignature.GetRootSignature().Get();
+        pipelineStateStream.RootSignature         = RootSignature.GetRootSignature().Get();
         pipelineStateStream.InputLayout           = { VertexPositionNormalTexture::InputElements, VertexPositionNormalTexture::InputElementCount };
         pipelineStateStream.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
         pipelineStateStream.VS                    = CD3DX12_SHADER_BYTECODE(vertexShaderBlob.Get());
@@ -272,7 +366,7 @@ bool RaytracerWindows::LoadContent()
         rtvFormats.RTFormats[0]     = backBufferFormat;
 
         PipelineStateStream pipelineStateStream;
-        pipelineStateStream.pRootSignature        = RootSignature.GetRootSignature().Get();
+        pipelineStateStream.RootSignature         = RootSignature.GetRootSignature().Get();
         pipelineStateStream.InputLayout           = { VertexPositionNormalTexture::InputElements, VertexPositionNormalTexture::InputElementCount };
         pipelineStateStream.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
         pipelineStateStream.VS                    = CD3DX12_SHADER_BYTECODE(vertexShaderBlob.Get());
@@ -380,9 +474,11 @@ void RaytracerWindows::OnUpdate(UpdateEventArgs& e)
     XMVECTOR cameraPan       = XMVectorSet(0.0f, Up - Down, 0.0f, 1.0f) * speedMultipler * static_cast<float>(e.ElapsedTime);
     XMVECTOR cameraRotation  = XMQuaternionRotationRollPitchYaw(XMConvertToRadians(Pitch), XMConvertToRadians(Yaw), 0.0f);
 
-    RenderCamera.Translate(cameraTranslate, Space::Local);
+    UpdateRenderCamera(RaytracerCamera, RenderCamera);
+
+    /*RenderCamera.Translate(cameraTranslate, Space::Local);
     RenderCamera.Translate(cameraPan, Space::Local);
-    RenderCamera.set_Rotation(cameraRotation);    
+    RenderCamera.set_Rotation(cameraRotation);*/
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -406,9 +502,8 @@ void RaytracerWindows::OnRender(RenderEventArgs& e)
 
 
     // -------------------------------------------------------------------
-    // Setup pipeline, root sig, viewport, and render target
+    // Setup root sig, viewport, and render target
     // -------------------------------------------------------------------
-    commandList->SetPipelineState(FullscreenPipelineState);
     commandList->SetGraphicsRootSignature(RootSignature);
     commandList->SetViewport(Viewport);
     commandList->SetScissorRect(ScissorRect);
@@ -416,9 +511,31 @@ void RaytracerWindows::OnRender(RenderEventArgs& e)
 
 
     // -------------------------------------------------------------------
-    // Update raytraced frame
+    // Render preview objects
     // -------------------------------------------------------------------
-    if (RenderMode == ModePreview && TheRaytracer != nullptr)
+    //if (RenderMode == ModePreview)
+    {
+        for (int i = 0; i < RenderSceneList.size(); i++)
+        {
+            XMMATRIX worldMatrix            = RenderSceneList[i]->WorldMatrix;
+            XMMATRIX viewMatrix             = RenderCamera.get_ViewMatrix();
+            XMMATRIX viewProjectionMatrix   = viewMatrix * RenderCamera.get_ProjectionMatrix();
+
+            Mat matrices;
+            ComputeMatrices(worldMatrix, viewMatrix, viewProjectionMatrix, matrices);
+            commandList->SetPipelineState(PreviewPipelineState);
+            commandList->SetGraphicsDynamicConstantBuffer(RootParameters::MatricesCB, matrices);
+            commandList->SetShaderResourceView(RootParameters::TextureDiffuse, 0, PreviewTex, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+
+            RenderSceneList[i]->MeshData->Draw(*commandList);
+        }
+    }
+
+
+    // -------------------------------------------------------------------
+    // Render raytraced frame
+    // -------------------------------------------------------------------
+    if (RenderMode == ModeRaytracer && TheRaytracer != nullptr)
     {
         // Update texture
         D3D12_SUBRESOURCE_DATA subresource;
@@ -428,6 +545,7 @@ void RaytracerWindows::OnRender(RenderEventArgs& e)
         commandList->CopyTextureSubresource(CPURaytracerTex, 0, 1, &subresource);
 
         // Draw fullscreen quad
+        commandList->SetPipelineState(FullscreenPipelineState);
         commandList->SetShaderResourceView(RootParameters::TextureDiffuse, 0, CPURaytracerTex, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
         commandList->SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         commandList->SetNullVertexBuffer(0);
@@ -486,8 +604,6 @@ void RaytracerWindows::OnKeyPressed(KeyEventArgs& e)
             case KeyCode::R:
             {
                 // Reset camera transform
-                RenderCamera.set_Translation(PtrAlignedCameraData->InitialCamPos);
-                RenderCamera.set_Rotation(PtrAlignedCameraData->InitialCamRot);
                 Pitch = 0.0f;
                 Yaw = 0.0f;
             }

@@ -17,6 +17,10 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+struct RenderSceneNode;
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 class RaytracerWindows : public Game
 {
 public:
@@ -41,14 +45,10 @@ private:
 
     void OnResizeRaytracer();
     void StartRaytrace();
+    void LoadScene(std::shared_ptr<CommandList> commandList);
+    void GenerateSceneGraph(std::shared_ptr<CommandList> commandList, const IHitable* currentHead, std::vector<RenderSceneNode*>& outSceneList, DirectX::XMMATRIX& currentMatrix);
 
 private:
-
-    struct alignas(16) CameraData
-    {
-        DirectX::XMVECTOR InitialCamPos;
-        DirectX::XMVECTOR InitialCamRot;
-    };
 
     enum RenderingMode
     {
@@ -59,37 +59,40 @@ private:
     typedef Microsoft::WRL::ComPtr<ID3D12PipelineState> DX12PipeState;
     using super = Game;
 
+    typedef std::vector<RenderSceneNode*> RenderNodeList;
+
 private:
 
-    RenderingMode   RenderMode;
+    RenderingMode       RenderMode;
 
-    Raytracer*      TheRaytracer; 
-    Camera          RaytracerCamera;
-    IHitable*       World;
+    Raytracer*          TheRaytracer;
+    Camera              RaytracerCamera;
+    IHitable*           World;
+    RenderNodeList      RenderSceneList;
 
-    Texture         CPURaytracerTex;
-    RenderTarget    RenderTarget;
-    RootSignature   RootSignature;
-    DX12PipeState   FullscreenPipelineState;
-    DX12PipeState   PreviewPipelineState;
+    Texture             CPURaytracerTex;
+    Texture             PreviewTex;
+    RenderTarget        RenderTarget;
+    RootSignature       RootSignature;
+    DX12PipeState       FullscreenPipelineState;
+    DX12PipeState       PreviewPipelineState;
 
-    D3D12_VIEWPORT  Viewport;
-    D3D12_RECT      ScissorRect;
-    CameraDX12      RenderCamera;
-    CameraData*     PtrAlignedCameraData;
+    D3D12_VIEWPORT      Viewport;
+    D3D12_RECT          ScissorRect;
+    CameraDX12          RenderCamera;
 
-    float           Forward;
-    float           Backward;
-    float           Left;
-    float           Right;
-    float           Up;
-    float           Down;
-    float           Pitch;
-    float           Yaw;
+    float               Forward;
+    float               Backward;
+    float               Left;
+    float               Right;
+    float               Up;
+    float               Down;
+    float               Pitch;
+    float               Yaw;
 
-    bool            AllowFullscreenToggle;
-    bool            ShiftKeyPressed;
+    bool                AllowFullscreenToggle;
+    bool                ShiftKeyPressed;
 
-    int             BackbufferWidth;
-    int             BackbufferHeight;
+    int                 BackbufferWidth;
+    int                 BackbufferHeight;
 };

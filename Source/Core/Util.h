@@ -5,6 +5,16 @@
 
 #define RT_PI 3.14159265359f
 
+inline float DegreesToRadians(float degrees)
+{
+    return (degrees * RT_PI / 180.f);
+}
+
+inline float RadiansToDegrees(float radians)
+{
+    return (radians * 180.f / RT_PI);
+}
+
 // ----------------------------------------------------------------------------------------------------------------------------
 
 void PrintProgress(const char* otherInfo, double percentage);

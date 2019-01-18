@@ -14,6 +14,9 @@ public:
     virtual bool Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const;
     virtual bool BoundingBox(float t0, float t1, AABB& box) const;
 
+    const Vec3& GetCenter() const { return Center; }
+    float       GetRadius() const { return Radius; }
+
 private:
 
     Vec3       Center;

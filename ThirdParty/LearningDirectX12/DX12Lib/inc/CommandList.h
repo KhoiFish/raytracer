@@ -243,6 +243,7 @@ public:
      * Set the vertex buffer to the rendering pipeline.
      */
     void SetVertexBuffer( uint32_t slot, const VertexBuffer& vertexBuffer );
+    void SetNullVertexBuffer(uint32_t slot);
 
     /**
      * Set dynamic vertex buffer data to the rendering pipeline.
@@ -258,6 +259,7 @@ public:
      * Bind the index buffer to the rendering pipeline.
      */
     void SetIndexBuffer( const IndexBuffer& indexBuffer );
+    void SetNullIndexBuffer();
 
     /**
      * Bind dynamic index buffer data to the rendering pipeline.

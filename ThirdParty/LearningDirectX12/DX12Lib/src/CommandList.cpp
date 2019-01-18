@@ -809,6 +809,11 @@ void CommandList::SetVertexBuffer( uint32_t slot, const VertexBuffer& vertexBuff
     TrackResource(vertexBuffer);
 }
 
+void CommandList::SetNullVertexBuffer(uint32_t slot)
+{
+    m_d3d12CommandList->IASetVertexBuffers(slot, 0, 0);
+}
+
 void CommandList::SetDynamicVertexBuffer( uint32_t slot, size_t numVertices, size_t vertexSize, const void* vertexBufferData )
 {
     size_t bufferSize = numVertices * vertexSize;
@@ -833,6 +838,11 @@ void CommandList::SetIndexBuffer( const IndexBuffer& indexBuffer )
     m_d3d12CommandList->IASetIndexBuffer( &indexBufferView );
 
     TrackResource(indexBuffer);
+}
+
+void CommandList::SetNullIndexBuffer()
+{
+    m_d3d12CommandList->IASetIndexBuffer(NULL);
 }
 
 void CommandList::SetDynamicIndexBuffer( size_t numIndicies, DXGI_FORMAT indexFormat, const void* indexBufferData )

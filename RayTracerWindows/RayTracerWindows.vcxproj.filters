@@ -54,10 +54,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="..\Source\Windows\Shaders\PixelShader.hlsl">
+    <FxCompile Include="..\Source\Windows\Shaders\FullscreenQuad_VS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="..\Source\Windows\Shaders\VertexShader.hlsl">
+    <FxCompile Include="..\Source\Windows\Shaders\FullscreenQuad_PS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>

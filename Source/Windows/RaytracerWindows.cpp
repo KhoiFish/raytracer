@@ -29,14 +29,14 @@ struct Mat
 enum RootParameters
 {
     MatricesCB,         // ConstantBuffer<Mat> MatCB
-    Textures,           // Texture2D DiffuseTexture
+    TextureDiffuse,     // Texture2D DiffuseTexture
     NumRootParameters
 };
 
 static const UINT   sRootParamRegisters[NumRootParameters] =
 {
     0, // MatricesCB
-    0, // Textures
+    0, // TextureDiffuse
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -188,8 +188,8 @@ bool RaytracerWindows::LoadContent()
     // -------------------------------------------------------------------
     ComPtr<ID3DBlob> vertexShaderBlob, pixelShaderBlob;
     {
-        ThrowIfFailed(D3DReadFileToBlob(L"RuntimeData\\VertexShader.cso", &vertexShaderBlob));
-        ThrowIfFailed(D3DReadFileToBlob(L"RuntimeData\\PixelShader.cso", &pixelShaderBlob));
+        ThrowIfFailed(D3DReadFileToBlob(L"RuntimeData\\FullscreenQuad_VS.cso", &vertexShaderBlob));
+        ThrowIfFailed(D3DReadFileToBlob(L"RuntimeData\\FullscreenQuad_PS.cso", &pixelShaderBlob));
     }
 
 
@@ -211,11 +211,11 @@ bool RaytracerWindows::LoadContent()
             D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
             D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
 
-        CD3DX12_DESCRIPTOR_RANGE1 texDescRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, sRootParamRegisters[RootParameters::Textures]);
+        CD3DX12_DESCRIPTOR_RANGE1 texDescRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, sRootParamRegisters[RootParameters::TextureDiffuse]);
 
         CD3DX12_ROOT_PARAMETER1 rootParameters[RootParameters::NumRootParameters];
         rootParameters[RootParameters::MatricesCB].InitAsConstantBufferView(0, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_VERTEX);
-        rootParameters[RootParameters::Textures].InitAsDescriptorTable(1, &texDescRange, D3D12_SHADER_VISIBILITY_PIXEL);
+        rootParameters[RootParameters::TextureDiffuse].InitAsDescriptorTable(1, &texDescRange, D3D12_SHADER_VISIBILITY_PIXEL);
 
         CD3DX12_STATIC_SAMPLER_DESC linearRepeatSampler(0, D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR);
         CD3DX12_STATIC_SAMPLER_DESC anisotropicSampler(0, D3D12_FILTER_ANISOTROPIC);
@@ -395,11 +395,19 @@ void RaytracerWindows::OnRender(RenderEventArgs& e)
     // -------------------------------------------------------------------
     if (TheRaytracer != nullptr)
     {
+        // Update texture
         D3D12_SUBRESOURCE_DATA subresource;
-        subresource.RowPitch    = 4 * 512;
-        subresource.SlicePitch  = subresource.RowPitch * 512;
+        subresource.RowPitch    = 4 * BackbufferWidth;
+        subresource.SlicePitch  = subresource.RowPitch * BackbufferHeight;
         subresource.pData       = TheRaytracer->GetOutputBufferRGBA();
         commandList->CopyTextureSubresource(CPURaytracerTex, 0, 1, &subresource);
+
+        // Draw fullscreen quad
+        commandList->SetShaderResourceView(RootParameters::TextureDiffuse, 0, CPURaytracerTex, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+        commandList->SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        commandList->SetNullVertexBuffer(0);
+        commandList->SetNullIndexBuffer();
+        commandList->Draw(3);
     }
 
 

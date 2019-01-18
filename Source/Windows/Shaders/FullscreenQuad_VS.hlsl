@@ -13,6 +13,7 @@ struct VertexPositionNormalTexture
     float3 Position : POSITION;
     float3 Normal   : NORMAL;
     float2 TexCoord : TEXCOORD;
+    uint   Id       : SV_VERTEXID;
 };
 
 struct VertexShaderOutput
@@ -27,10 +28,18 @@ VertexShaderOutput main(VertexPositionNormalTexture IN)
 {
     VertexShaderOutput OUT;
 
-    OUT.Position = mul( MatCB.ModelViewProjectionMatrix, float4(IN.Position, 1.0f));
-    OUT.PositionVS = mul( MatCB.ModelViewMatrix, float4(IN.Position, 1.0f));
+    uint id = IN.Id;
+
+    OUT.PositionVS.x = (float)(id / 2) * 4.0f - 1.0f;
+    OUT.PositionVS.y = (float)(id % 2) * 4.0f - 1.0f;
+    OUT.PositionVS.z = 0.0f;
+    OUT.PositionVS.w = 1.0f;
+
+    OUT.TexCoord.x = (float)(id / 2) * 2.0f;
+    OUT.TexCoord.y = 1.0f - (float)(id % 2) * 2.0f;
+
+    OUT.Position = OUT.PositionVS;
     OUT.NormalVS = mul((float3x3)MatCB.InverseTransposeModelViewMatrix, IN.Normal);
-    OUT.TexCoord = IN.TexCoord;
 
     return OUT;
 }

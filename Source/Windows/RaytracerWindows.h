@@ -73,6 +73,7 @@ private:
     float           Pitch;
     float           Yaw;
 
+    bool            AllowFullscreenToggle;
     bool            ShiftKeyPressed;
 
     int             Width;

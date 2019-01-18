@@ -34,10 +34,6 @@ enum RootParameters
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static bool g_AllowFullscreenToggle = true;
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
 static XMMATRIX XM_CALLCONV LookAtMatrix(FXMVECTOR Position, FXMVECTOR Direction, FXMVECTOR Up)
 {
     assert(!XMVector3Equal(Direction, XMVectorZero()));
@@ -74,19 +70,18 @@ RaytracerWindows::RaytracerWindows(Raytracer* tracer, const Camera& cam, IHitabl
     , Down(0)
     , Pitch(0)
     , Yaw(0)
+    , AllowFullscreenToggle(true)
     , ShiftKeyPressed(false)
     , Width(0)
     , Height(0)
 {
 
-    XMVECTOR cameraPos = XMVectorSet(0, 5, -20, 1);
+    XMVECTOR cameraPos    = XMVectorSet(0, 5, -20, 1);
     XMVECTOR cameraTarget = XMVectorSet(0, 5, 0, 1);
-    XMVECTOR cameraUp = XMVectorSet(0, 1, 0, 0);
-
+    XMVECTOR cameraUp     = XMVectorSet(0, 1, 0, 0);
     RenderCamera.set_LookAt(cameraPos, cameraTarget, cameraUp);
 
     PtrAlignedCameraData = (CameraData*)_aligned_malloc(sizeof(CameraData), 16);
-
     PtrAlignedCameraData->InitialCamPos = RenderCamera.get_Translation();
     PtrAlignedCameraData->InitialCamRot = RenderCamera.get_Rotation();
 }
@@ -360,57 +355,90 @@ void RaytracerWindows::OnKeyPressed(KeyEventArgs& e)
     {
         switch (e.Key)
         {
-        case KeyCode::Escape:
-            Application::Get().Quit(0);
-            break;
-        case KeyCode::Enter:
-            if (e.Alt)
+            case KeyCode::Escape:
             {
-        case KeyCode::F11:
-            if (g_AllowFullscreenToggle)
-            {
-                m_pWindow->ToggleFullscreen();
-                g_AllowFullscreenToggle = false;
+                Application::Get().Quit(0);
             }
             break;
+
+            case KeyCode::Enter:
+            {
+                if (e.Alt)
+                {
+                    if (AllowFullscreenToggle)
+                    {
+                        m_pWindow->ToggleFullscreen();
+                        AllowFullscreenToggle = false;
+                    }
+                }
             }
-        case KeyCode::V:
-            m_pWindow->ToggleVSync();
             break;
-        case KeyCode::R:
-            // Reset camera transform
-            RenderCamera.set_Translation(PtrAlignedCameraData->InitialCamPos);
-            RenderCamera.set_Rotation(PtrAlignedCameraData->InitialCamRot);
-            Pitch = 0.0f;
-            Yaw = 0.0f;
+
+            case KeyCode::V:
+            {
+                m_pWindow->ToggleVSync();
+            }
             break;
-        case KeyCode::Up:
-        case KeyCode::W:
-            Forward = 1.0f;
+
+            case KeyCode::R:
+            {
+                // Reset camera transform
+                RenderCamera.set_Translation(PtrAlignedCameraData->InitialCamPos);
+                RenderCamera.set_Rotation(PtrAlignedCameraData->InitialCamRot);
+                Pitch = 0.0f;
+                Yaw = 0.0f;
+            }
             break;
-        case KeyCode::Left:
-        case KeyCode::A:
-            Left = 1.0f;
+
+            case KeyCode::Up:
+            case KeyCode::W:
+            {
+                Forward = 1.0f;
+            }
             break;
-        case KeyCode::Down:
-        case KeyCode::S:
-            Backward = 1.0f;
+
+            case KeyCode::Left:
+            case KeyCode::A:
+            {
+                Left = 1.0f;
+            }
             break;
-        case KeyCode::Right:
-        case KeyCode::D:
-            Right = 1.0f;
+
+            case KeyCode::Down:
+            case KeyCode::S:
+            {
+                Backward = 1.0f;
+            }
             break;
-        case KeyCode::Q:
-            Down = 1.0f;
+
+            case KeyCode::Right:
+            case KeyCode::D:
+            {
+                Right = 1.0f;
+            }
             break;
-        case KeyCode::E:
-            Up = 1.0f;
+
+            case KeyCode::Q:
+            {
+                Down = 1.0f;
+            }
             break;
-        case KeyCode::Space:
-            
+
+            case KeyCode::E:
+            {
+                Up = 1.0f;
+            }
             break;
-        case KeyCode::ShiftKey:
-            ShiftKeyPressed = true;
+
+            case KeyCode::Space:
+            {
+            }
+            break;
+
+            case KeyCode::ShiftKey:
+            {
+                ShiftKeyPressed = true;
+            }
             break;
         }
     }
@@ -424,37 +452,59 @@ void RaytracerWindows::OnKeyReleased(KeyEventArgs& e)
 
     switch (e.Key)
     {
-    case KeyCode::Enter:
-        if (e.Alt)
+        case KeyCode::Enter:
         {
-    case KeyCode::F11:
-        g_AllowFullscreenToggle = true;
+            if (e.Alt)
+            {
+                AllowFullscreenToggle = true;
+            }
         }
         break;
-    case KeyCode::Up:
-    case KeyCode::W:
-        Forward = 0.0f;
+
+        case KeyCode::Up:
+        case KeyCode::W:
+        {
+            Forward = 0.0f;
+        }
         break;
-    case KeyCode::Left:
-    case KeyCode::A:
-        Left = 0.0f;
+
+        case KeyCode::Left:
+        case KeyCode::A:
+        {
+            Left = 0.0f;
+        }
         break;
-    case KeyCode::Down:
-    case KeyCode::S:
-        Backward = 0.0f;
+
+        case KeyCode::Down:
+        case KeyCode::S:
+        {
+            Backward = 0.0f;
+        }
         break;
-    case KeyCode::Right:
-    case KeyCode::D:
-        Right = 0.0f;
+
+        case KeyCode::Right:
+        case KeyCode::D:
+        {
+            Right = 0.0f;
+        }
         break;
-    case KeyCode::Q:
-        Down = 0.0f;
+
+        case KeyCode::Q:
+        {
+            Down = 0.0f;
+        }
         break;
-    case KeyCode::E:
-        Up = 0.0f;
+
+        case KeyCode::E:
+        {
+            Up = 0.0f;
+        }
         break;
-    case KeyCode::ShiftKey:
-        ShiftKeyPressed = false;
+
+        case KeyCode::ShiftKey:
+        {
+            ShiftKeyPressed = false;
+        }
         break;
     }
 }
@@ -472,10 +522,8 @@ void RaytracerWindows::OnMouseMoved(MouseMotionEventArgs& e)
         if (e.LeftButton)
         {
             Pitch -= e.RelY * mouseSpeed;
-
-            Pitch = Clamp(Pitch, -90.0f, 90.0f);
-
-            Yaw -= e.RelX * mouseSpeed;
+            Pitch  = Clamp(Pitch, -90.0f, 90.0f);
+            Yaw   -= e.RelX * mouseSpeed;
         }
     }
 }

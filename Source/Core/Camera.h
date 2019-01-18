@@ -14,6 +14,10 @@ public:
         float vertFov, float aspect, float aperture, float focusDist,
         float t0, float t1, Vec3 clearColor);
 
+    void Setup(Vec3 lookFrom, Vec3 lookAt, Vec3 vup,
+        float vertFov, float aspect, float aperture, float focusDist,
+        float t0, float t1, Vec3 clearColor);
+
     inline Ray GetRay(float s, float t) const
     {
         Vec3  rd     = LensRadius * RandomInUnitDisk();
@@ -33,6 +37,15 @@ public:
 
 private:
 
+    Vec3   LookFrom; 
+    Vec3   LookAt; 
+    Vec3   Up;
+    float  VertFov;
+    float  Aspect;
+    float  Aperture;
+    float  FocusDist;
+    Vec3   ClearColor;
+
     Vec3   Origin;
     Vec3   LowerLeftCorner;
     Vec3   Horizontal;
@@ -40,5 +53,4 @@ private:
     Vec3   U, V, W;
     float  Time0, Time1;
     float  LensRadius;
-    Vec3   ClearColor;
 };

@@ -66,7 +66,7 @@ static const UINT   sRootParamRegisters[NumRootParameters] =
 
 static int    sNumSamplesPerRay       = 1;
 static int    sMaxScatterDepth        = 50;
-static int    sNumThreads             = 4;
+static int    sNumThreads             = 8;
 static FLOAT  sClearColor[]           = { 0.4f, 0.6f, 0.9f, 1.0f };
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -98,17 +98,41 @@ static void XM_CALLCONV ComputeMatrices(FXMMATRIX model, CXMMATRIX view, CXMMATR
     mat.ModelViewProjectionMatrix       = model * viewProjection;
 }
 
-static void UpdateRenderCamera(Camera& raytracerCamera, CameraDX12& renderCamera)
+static XMVECTOR ConvertFromVec3(const Vec3& vec)
+{
+    // Negate Z
+    return XMVectorSet(vec.X(), vec.Y(), -vec.Z(), 0);
+}
+
+static Vec3 ConvertFromXMVector(const XMVECTOR& vec)
+{
+    XMFLOAT4 v4;
+    XMStoreFloat4(&v4, vec);
+
+    // Negate Z
+    return Vec3(v4.x, v4.y, -v4.z);
+}
+
+static void UpdateRenderCamera(XMVECTOR cameraTranslate, XMVECTOR cameraPan, XMVECTOR cameraRotation, Camera& raytracerCamera, CameraDX12& renderCamera)
 {
     // Get ray tracer camera params
-    Vec3 lookFrom, lookAt, up;
-    float aspect, vertFov;
-    raytracerCamera.GetCameraParams(lookFrom, lookAt, up, aspect, vertFov);
+    Vec3   lookFrom, lookAt, up;
+    float  vertFov, aspect, aperture, focusDist, t0, t1;
+    Vec3   clearColor;
+    raytracerCamera.GetCameraParams(lookFrom, lookAt, up, vertFov, aspect, aperture, focusDist, t0, t1, clearColor);
+
+    // Update raytracer camera
+    Vec3 translateOffset = ConvertFromXMVector(cameraTranslate) + ConvertFromXMVector(cameraPan);
+    lookFrom += translateOffset;
+    lookAt += translateOffset;
+
+    // Update raytracer camera
+    raytracerCamera.Setup(lookFrom, lookAt, up, vertFov, aspect, aperture, focusDist, t0, t1, clearColor);
 
     // Set the render camera
-    XMVECTOR cameraPos = XMVectorSet(lookFrom.X(), lookFrom.Y(), -lookFrom.Z(), 0);
-    XMVECTOR cameraTarget = XMVectorSet(lookAt.X(), lookAt.Y(), -lookAt.Z(), 0);
-    XMVECTOR cameraUp = XMVectorSet(up.X(), up.Y(), -up.Z(), 0);
+    XMVECTOR cameraPos    = ConvertFromVec3(lookFrom);
+    XMVECTOR cameraTarget = ConvertFromVec3(lookAt);
+    XMVECTOR cameraUp     = ConvertFromVec3(up);
     renderCamera.set_LookAt(cameraPos, cameraTarget, cameraUp);
     renderCamera.set_Projection(vertFov, aspect, 0.1f, 10000.0f);
 }
@@ -210,7 +234,6 @@ void RaytracerWindows::LoadScene(std::shared_ptr<CommandList> commandList)
 
     XMMATRIX worldMatrix = XMMatrixIdentity();
     GenerateSceneGraph(commandList, World, RenderSceneList, worldMatrix);
-    UpdateRenderCamera(RaytracerCamera, RenderCamera);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -474,11 +497,7 @@ void RaytracerWindows::OnUpdate(UpdateEventArgs& e)
     XMVECTOR cameraPan       = XMVectorSet(0.0f, Up - Down, 0.0f, 1.0f) * speedMultipler * static_cast<float>(e.ElapsedTime);
     XMVECTOR cameraRotation  = XMQuaternionRotationRollPitchYaw(XMConvertToRadians(Pitch), XMConvertToRadians(Yaw), 0.0f);
 
-    UpdateRenderCamera(RaytracerCamera, RenderCamera);
-
-    /*RenderCamera.Translate(cameraTranslate, Space::Local);
-    RenderCamera.Translate(cameraPan, Space::Local);
-    RenderCamera.set_Rotation(cameraRotation);*/
+    UpdateRenderCamera(cameraTranslate, cameraPan, cameraRotation, RaytracerCamera, RenderCamera);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

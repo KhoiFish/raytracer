@@ -38,13 +38,21 @@ public:
         return ClearColor;
     }
 
-    inline void GetCameraParams(Vec3& lookFrom, Vec3& lookAt, Vec3& up, float& aspect, float& vertFov) const
+    inline void GetCameraParams(
+        Vec3& lookFrom, Vec3& lookAt, Vec3& up,
+        float& vertFov, float& aspect, float& aperture, float& focusDist,
+        float& t0, float& t1, Vec3& clearColor) const
     {
         lookFrom = LookFrom;
         lookAt = LookAt;
         up = Up;
-        aspect = Aspect;
         vertFov = VertFov;
+        aspect = Aspect;
+        aperture = Aperture;
+        focusDist = FocusDist;
+        t0 = Time0;
+        t1 = Time1;
+        clearColor = ClearColor;
     }
 
 private:

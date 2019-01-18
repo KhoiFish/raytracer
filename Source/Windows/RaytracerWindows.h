@@ -50,10 +50,18 @@ private:
         DirectX::XMVECTOR InitialCamRot;
     };
 
+    enum RenderingMode
+    {
+        ModePreview,
+        ModeRaytracer
+    };
+
     typedef Microsoft::WRL::ComPtr<ID3D12PipelineState> DX12PipeState;
     using super = Game;
 
 private:
+
+    RenderingMode   RenderMode;
 
     Raytracer*      TheRaytracer; 
     Camera          RaytracerCamera;
@@ -62,7 +70,8 @@ private:
     Texture         CPURaytracerTex;
     RenderTarget    RenderTarget;
     RootSignature   RootSignature;
-    DX12PipeState   PipelineState;
+    DX12PipeState   FullscreenPipelineState;
+    DX12PipeState   PreviewPipelineState;
 
     D3D12_VIEWPORT  Viewport;
     D3D12_RECT      ScissorRect;

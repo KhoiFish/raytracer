@@ -88,7 +88,7 @@ void Raytracer::cleanupRaytrace()
 {
     if (IsRaytracing)
     {
-        // Signal threads to shutdown and wait
+        // Signal threads to shutdown and wait for shutdown
         ThreadExitRequested = true;
         RaytraceEvent.WaitOne(-1);
 

@@ -26,6 +26,18 @@ struct Mat
     XMMATRIX ModelViewProjectionMatrix;
 };
 
+struct PipelineStateStream
+{
+    CD3DX12_PIPELINE_STATE_STREAM_ROOT_SIGNATURE pRootSignature;
+    CD3DX12_PIPELINE_STATE_STREAM_INPUT_LAYOUT InputLayout;
+    CD3DX12_PIPELINE_STATE_STREAM_PRIMITIVE_TOPOLOGY PrimitiveTopologyType;
+    CD3DX12_PIPELINE_STATE_STREAM_VS VS;
+    CD3DX12_PIPELINE_STATE_STREAM_PS PS;
+    CD3DX12_PIPELINE_STATE_STREAM_DEPTH_STENCIL_FORMAT DSVFormat;
+    CD3DX12_PIPELINE_STATE_STREAM_RENDER_TARGET_FORMATS RTVFormats;
+    CD3DX12_PIPELINE_STATE_STREAM_SAMPLE_DESC SampleDesc;
+};
+
 enum RootParameters
 {
     MatricesCB,         // ConstantBuffer<Mat> MatCB
@@ -79,6 +91,7 @@ static void XM_CALLCONV ComputeMatrices(FXMMATRIX model, CXMMATRIX view, CXMMATR
 
 RaytracerWindows::RaytracerWindows(const std::wstring& name, int width, int height, bool vSync)
     : super(name, width, height, vSync)
+    , RenderMode(ModePreview)
     , TheRaytracer(nullptr)
     , World(nullptr)
     , ScissorRect(CD3DX12_RECT(0, 0, LONG_MAX, LONG_MAX))
@@ -159,8 +172,8 @@ void RaytracerWindows::StartRaytrace()
     if (TheRaytracer)
     {
         float     aspect = float(BackbufferWidth) / float(BackbufferHeight);
-        Camera    cam    = GetCameraForSample(SceneRandom, aspect);
-        IHitable* world  = SampleSceneRandom(cam);
+        Camera    cam    = GetCameraForSample(SceneFinal, aspect);
+        IHitable* world  = SampleSceneFinal();
 
         TheRaytracer->BeginRaytrace(cam, world);
     }
@@ -182,16 +195,6 @@ bool RaytracerWindows::LoadContent()
     // Check the best multi-sample quality level that can be used for the given back buffer format
     const DXGI_SAMPLE_DESC sampleDesc = Application::Get().GetMultisampleQualityLevels(backBufferFormat, D3D12_MAX_MULTISAMPLE_SAMPLE_COUNT);
     
-
-    // -------------------------------------------------------------------
-    // Load shaders
-    // -------------------------------------------------------------------
-    ComPtr<ID3DBlob> vertexShaderBlob, pixelShaderBlob;
-    {
-        ThrowIfFailed(D3DReadFileToBlob(L"RuntimeData\\FullscreenQuad_VS.cso", &vertexShaderBlob));
-        ThrowIfFailed(D3DReadFileToBlob(L"RuntimeData\\FullscreenQuad_PS.cso", &pixelShaderBlob));
-    }
-
 
     // -------------------------------------------------------------------
     // Create a root signature
@@ -228,25 +231,19 @@ bool RaytracerWindows::LoadContent()
 
 
     // -------------------------------------------------------------------
-    // Setup the pipeline state
+    // Setup the pipeline state for fullscreen quad rendering
     // -------------------------------------------------------------------
     {
+        // Load shaders
+        ComPtr<ID3DBlob> vertexShaderBlob, pixelShaderBlob;
+        ThrowIfFailed(D3DReadFileToBlob(L"RuntimeData\\FullscreenQuad_VS.cso", &vertexShaderBlob));
+        ThrowIfFailed(D3DReadFileToBlob(L"RuntimeData\\FullscreenQuad_PS.cso", &pixelShaderBlob));
+
         D3D12_RT_FORMAT_ARRAY rtvFormats = {};
         rtvFormats.NumRenderTargets = 1;
         rtvFormats.RTFormats[0]     = backBufferFormat;
 
-        struct PipelineStateStream
-        {
-            CD3DX12_PIPELINE_STATE_STREAM_ROOT_SIGNATURE pRootSignature;
-            CD3DX12_PIPELINE_STATE_STREAM_INPUT_LAYOUT InputLayout;
-            CD3DX12_PIPELINE_STATE_STREAM_PRIMITIVE_TOPOLOGY PrimitiveTopologyType;
-            CD3DX12_PIPELINE_STATE_STREAM_VS VS;
-            CD3DX12_PIPELINE_STATE_STREAM_PS PS;
-            CD3DX12_PIPELINE_STATE_STREAM_DEPTH_STENCIL_FORMAT DSVFormat;
-            CD3DX12_PIPELINE_STATE_STREAM_RENDER_TARGET_FORMATS RTVFormats;
-            CD3DX12_PIPELINE_STATE_STREAM_SAMPLE_DESC SampleDesc;
-        } pipelineStateStream;
-
+        PipelineStateStream pipelineStateStream;
         pipelineStateStream.pRootSignature        = RootSignature.GetRootSignature().Get();
         pipelineStateStream.InputLayout           = { VertexPositionNormalTexture::InputElements, VertexPositionNormalTexture::InputElementCount };
         pipelineStateStream.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
@@ -257,7 +254,35 @@ bool RaytracerWindows::LoadContent()
         pipelineStateStream.SampleDesc            = sampleDesc;
 
         D3D12_PIPELINE_STATE_STREAM_DESC pipelineStateStreamDesc = { sizeof(PipelineStateStream), &pipelineStateStream };
-        ThrowIfFailed(device->CreatePipelineState(&pipelineStateStreamDesc, IID_PPV_ARGS(&PipelineState)));
+        ThrowIfFailed(device->CreatePipelineState(&pipelineStateStreamDesc, IID_PPV_ARGS(&FullscreenPipelineState)));
+    }
+
+
+    // -------------------------------------------------------------------
+    // Setup the pipeline state for preview rendering
+    // -------------------------------------------------------------------
+    {
+        // Load shaders
+        ComPtr<ID3DBlob> vertexShaderBlob, pixelShaderBlob;
+        ThrowIfFailed(D3DReadFileToBlob(L"RuntimeData\\Preview_VS.cso", &vertexShaderBlob));
+        ThrowIfFailed(D3DReadFileToBlob(L"RuntimeData\\Preview_PS.cso", &pixelShaderBlob));
+
+        D3D12_RT_FORMAT_ARRAY rtvFormats = {};
+        rtvFormats.NumRenderTargets = 1;
+        rtvFormats.RTFormats[0]     = backBufferFormat;
+
+        PipelineStateStream pipelineStateStream;
+        pipelineStateStream.pRootSignature        = RootSignature.GetRootSignature().Get();
+        pipelineStateStream.InputLayout           = { VertexPositionNormalTexture::InputElements, VertexPositionNormalTexture::InputElementCount };
+        pipelineStateStream.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+        pipelineStateStream.VS                    = CD3DX12_SHADER_BYTECODE(vertexShaderBlob.Get());
+        pipelineStateStream.PS                    = CD3DX12_SHADER_BYTECODE(pixelShaderBlob.Get());
+        pipelineStateStream.DSVFormat             = depthBufferFormat;
+        pipelineStateStream.RTVFormats            = rtvFormats;
+        pipelineStateStream.SampleDesc            = sampleDesc;
+
+        D3D12_PIPELINE_STATE_STREAM_DESC pipelineStateStreamDesc = { sizeof(PipelineStateStream), &pipelineStateStream };
+        ThrowIfFailed(device->CreatePipelineState(&pipelineStateStreamDesc, IID_PPV_ARGS(&PreviewPipelineState)));
     }
 
 
@@ -383,7 +408,7 @@ void RaytracerWindows::OnRender(RenderEventArgs& e)
     // -------------------------------------------------------------------
     // Setup pipeline, root sig, viewport, and render target
     // -------------------------------------------------------------------
-    commandList->SetPipelineState(PipelineState);
+    commandList->SetPipelineState(FullscreenPipelineState);
     commandList->SetGraphicsRootSignature(RootSignature);
     commandList->SetViewport(Viewport);
     commandList->SetScissorRect(ScissorRect);
@@ -393,7 +418,7 @@ void RaytracerWindows::OnRender(RenderEventArgs& e)
     // -------------------------------------------------------------------
     // Update raytraced frame
     // -------------------------------------------------------------------
-    if (TheRaytracer != nullptr)
+    if (RenderMode == ModePreview && TheRaytracer != nullptr)
     {
         // Update texture
         D3D12_SUBRESOURCE_DATA subresource;

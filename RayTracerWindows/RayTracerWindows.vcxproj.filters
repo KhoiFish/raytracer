@@ -60,5 +60,11 @@
     <FxCompile Include="..\Source\Windows\Shaders\FullscreenQuad_PS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="..\Source\Windows\Shaders\Preview_PS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Source\Windows\Shaders\Preview_VS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

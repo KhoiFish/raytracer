@@ -63,6 +63,7 @@ private:
     std::atomic<int>      CurrentOutputOffset;
     std::atomic<int64_t>  TotalRaysFired;
     std::atomic<int>      NumThreadsDone;
+    std::atomic<bool>     ThreadExitRequested;
     std::thread**         ThreadPtrs;
     ThreadEvent           RaytraceEvent;
     bool                  IsRaytracing;

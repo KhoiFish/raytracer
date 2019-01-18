@@ -12,11 +12,12 @@ Raytracer::Raytracer(int width, int height, int numSamples, int maxDepth, int nu
     , CurrentOutputOffset(0)
     , TotalRaysFired(0)
     , NumThreadsDone(0)
+    , ThreadExitRequested(false)
     , IsRaytracing(false)
 {
-    OutputBuffer = new Vec3[OutputWidth * OutputHeight];
-    OutputBufferRGBA = new uint8_t[OutputWidth * OutputHeight * 4];
-    ThreadPtrs = new std::thread*[NumThreads];
+    OutputBuffer      = new Vec3[OutputWidth * OutputHeight];
+    OutputBufferRGBA  = new uint8_t[OutputWidth * OutputHeight * 4];
+    ThreadPtrs        = new std::thread*[NumThreads];
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -46,6 +47,9 @@ void Raytracer::BeginRaytrace(const Camera& cam, IHitable* world)
     TotalRaysFired = 0;
     CurrentOutputOffset = 0;
     NumThreadsDone = 0;
+
+    // Memset out buffers
+    memset(OutputBufferRGBA, 0, sizeof(uint8_t) * OutputWidth * OutputHeight * 4);
 
     // Create the threads and run them
     for (int i = 0; i < NumThreads; i++)
@@ -84,7 +88,8 @@ void Raytracer::cleanupRaytrace()
 {
     if (IsRaytracing)
     {
-        // Wait for last thread to rendering
+        // Signal threads to shutdown and wait
+        ThreadExitRequested = true;
         RaytraceEvent.WaitOne(-1);
 
         // Join all the threads
@@ -96,6 +101,7 @@ void Raytracer::cleanupRaytrace()
         }
 
         // Reset event
+        ThreadExitRequested = false;
         IsRaytracing = false;
         RaytraceEvent.Reset();
     }
@@ -108,7 +114,7 @@ void Raytracer::threadTraceNextPixel(int id, Raytracer* tracer, const Camera& ca
     const int numPixels = (tracer->OutputWidth * tracer->OutputHeight);
 
     int offset = tracer->CurrentOutputOffset.load();
-    while (offset < numPixels)
+    while (offset < numPixels && (tracer->ThreadExitRequested.load() == false))
     {
         // Find the next offset to the pixel to trace
         while (offset < numPixels)
@@ -136,6 +142,12 @@ void Raytracer::threadTraceNextPixel(int id, Raytracer* tracer, const Camera& ca
 
                 Ray r = cam.GetRay(u, v);
                 col += tracer->trace(r, world, 0, cam.GetClearColor());
+
+                // Bail if we're requested to exit
+                if (tracer->ThreadExitRequested.load() == true)
+                {
+                    break;
+                }
             }
             col /= float(tracer->NumRaySamples);
 
@@ -146,7 +158,7 @@ void Raytracer::threadTraceNextPixel(int id, Raytracer* tracer, const Camera& ca
             {
                 int rgbaOffset = offset * 4;
                 int ir, ig, ib, ia;
-                GetRGBA8888(col, true, ir, ig, ib, ia);
+                GetRGBA8888(col, false, ir, ig, ib, ia);
 
                 tracer->OutputBufferRGBA[rgbaOffset + 0] = (uint8_t)ir;
                 tracer->OutputBufferRGBA[rgbaOffset + 1] = (uint8_t)ig;
@@ -168,6 +180,12 @@ void Raytracer::threadTraceNextPixel(int id, Raytracer* tracer, const Camera& ca
 
 Vec3 Raytracer::trace(const Ray& r, IHitable *world, int depth, const Vec3& clearColor)
 {
+    // Bail if we're requested to exit
+    if (ThreadExitRequested.load() == true)
+    {
+        return clearColor;
+    }
+
     // Increment num rays fired
     TotalRaysFired++;
 

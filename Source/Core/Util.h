@@ -112,3 +112,24 @@ inline void GetSphereUV(const Vec3& p, float& u, float& v)
     u = 1 - (phi + RT_PI) / (2 * RT_PI);
     v = (theta + RT_PI / 2) / RT_PI;
 }
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+inline void GetRGBA8888(Vec3 col, bool gammaCorrect, int& ir, int& ig, int& ib, int& ia)
+{
+    // Gamma correct
+    if (gammaCorrect)
+    {
+        col = Vec3(sqrt(col.R()), sqrt(col.G()), sqrt(col.B()));
+    }
+
+    // Write pixel to file
+    ir = int(255.99*col.R());
+    ig = int(255.99*col.G());
+    ib = int(255.99*col.B());
+    ia = 255;
+
+    ir = (ir > 255) ? 255 : ir;
+    ig = (ig > 255) ? 255 : ig;
+    ib = (ib > 255) ? 255 : ib;
+}

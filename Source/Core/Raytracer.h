@@ -31,13 +31,14 @@ public:
     Raytracer(int width, int height, int numSamples, int maxDepth, int numThreads);
     ~Raytracer();
 
-    void          BeginRaytrace(const Camera& cam, IHitable* world);
-    bool          WaitForTraceToFinish(int timeoutMicroSeconds);
-    Stats         GetStats() const;
+    void             BeginRaytrace(const Camera& cam, IHitable* world);
+    bool             WaitForTraceToFinish(int timeoutMicroSeconds);
+    Stats            GetStats() const;
 
-    inline Vec3*  GetOutputBuffer() const { return OutputBuffer; }
-    inline int    GetOutputWidth() const  { return OutputWidth; }
-    inline int    GetOutputHeight() const { return OutputHeight; }
+    inline Vec3*     GetOutputBuffer() const { return OutputBuffer; }
+    inline uint8_t*  GetOutputBufferRGBA() const { return OutputBufferRGBA; }
+    inline int       GetOutputWidth() const { return OutputWidth; }
+    inline int       GetOutputHeight() const { return OutputHeight; }
 
 private:
 
@@ -51,6 +52,7 @@ private:
     int                   OutputWidth;
     int                   OutputHeight;
     Vec3*                 OutputBuffer;
+    uint8_t*              OutputBufferRGBA;
 
     // Tracing options
     int                   NumRaySamples;

@@ -21,17 +21,8 @@ void ImageIO::WriteToPPMFile(const Vec3* buffer, int width, int height, const ch
         // Get the pixel
         Vec3 col = buffer[i];
 
-        // Gamma correct
-        col = Vec3(sqrt(col.R()), sqrt(col.G()), sqrt(col.B()));
-
-        // Write pixel to file
-        int ir = int(255.99*col.R());
-        int ig = int(255.99*col.G());
-        int ib = int(255.99*col.B());
-
-        ir = (ir > 255) ? 255 : ir;
-        ig = (ig > 255) ? 255 : ig;
-        ib = (ib > 255) ? 255 : ib;
+        int ir, ig, ib, ia;
+        GetRGBA8888(col, true, ir, ig, ib, ia);
 
         outFile << ir << " " << ig << " " << ib << "\n";
 

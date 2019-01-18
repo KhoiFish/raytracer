@@ -15,6 +15,7 @@ Raytracer::Raytracer(int width, int height, int numSamples, int maxDepth, int nu
     , IsRaytracing(false)
 {
     OutputBuffer = new Vec3[OutputWidth * OutputHeight];
+    OutputBufferRGBA = new uint8_t[OutputWidth * OutputHeight * 4];
     ThreadPtrs = new std::thread*[NumThreads];
 }
 
@@ -26,6 +27,9 @@ Raytracer::~Raytracer()
 
     delete[] OutputBuffer;
     OutputBuffer = nullptr;
+
+    delete[] OutputBufferRGBA;
+    OutputBufferRGBA = nullptr;
 
     delete[] ThreadPtrs;
     ThreadPtrs = nullptr;
@@ -137,6 +141,18 @@ void Raytracer::threadTraceNextPixel(int id, Raytracer* tracer, const Camera& ca
 
             // Write color to output buffer
             tracer->OutputBuffer[offset] = col;
+
+            // Write RGBA
+            {
+                int rgbaOffset = offset * 4;
+                int ir, ig, ib, ia;
+                GetRGBA8888(col, true, ir, ig, ib, ia);
+
+                tracer->OutputBufferRGBA[rgbaOffset + 0] = (uint8_t)ir;
+                tracer->OutputBufferRGBA[rgbaOffset + 1] = (uint8_t)ig;
+                tracer->OutputBufferRGBA[rgbaOffset + 2] = (uint8_t)ib;
+                tracer->OutputBufferRGBA[rgbaOffset + 3] = (uint8_t)ia;
+            }
         }
     }
 

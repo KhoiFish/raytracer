@@ -21,7 +21,7 @@ class RaytracerWindows : public Game
 {
 public:
 
-    RaytracerWindows(Raytracer* tracer, const Camera& cam, IHitable* world, const std::wstring& name, int width, int height, bool vSync = false);
+    RaytracerWindows(const std::wstring& name, int width, int height, bool vSync = false);
     virtual ~RaytracerWindows();
 
     virtual bool LoadContent() override;
@@ -39,6 +39,11 @@ protected:
 
 private:
 
+    void OnResizeRaytracer();
+    void StartRaytrace();
+
+private:
+
     struct alignas(16) CameraData
     {
         DirectX::XMVECTOR InitialCamPos;
@@ -50,11 +55,11 @@ private:
 
 private:
 
-    Raytracer*      Tracer; 
+    Raytracer*      TheRaytracer; 
     Camera          RaytracerCamera;
     IHitable*       World;
 
-    Texture         CPURaytracerFrame;
+    Texture         CPURaytracerTex;
     RenderTarget    RenderTarget;
     RootSignature   RootSignature;
     DX12PipeState   PipelineState;
@@ -76,6 +81,6 @@ private:
     bool            AllowFullscreenToggle;
     bool            ShiftKeyPressed;
 
-    int             Width;
-    int             Height;
+    int             BackbufferWidth;
+    int             BackbufferHeight;
 };

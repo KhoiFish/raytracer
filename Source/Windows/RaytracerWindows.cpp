@@ -1,5 +1,6 @@
 #include "RaytracerWindows.h"
 #include "Core/Util.h"
+#include "SampleScenes.h"
 
 #include <Application.h>
 #include <CommandQueue.h>
@@ -32,13 +33,18 @@ enum RootParameters
     NumRootParameters
 };
 
-static const UINT sRootParamRegisters[NumRootParameters] =
+static const UINT   sRootParamRegisters[NumRootParameters] =
 {
     0, // MatricesCB
     0, // Textures
 };
 
-static FLOAT sClearColor[] = { 0.4f, 0.6f, 0.9f, 1.0f };
+// ----------------------------------------------------------------------------------------------------------------------------
+
+static int    sNumSamplesPerRay       = 100;
+static int    sMaxScatterDepth        = 50;
+static int    sNumThreads             = 4;
+static FLOAT  sClearColor[]           = { 0.4f, 0.6f, 0.9f, 1.0f };
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -71,11 +77,10 @@ static void XM_CALLCONV ComputeMatrices(FXMMATRIX model, CXMMATRIX view, CXMMATR
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-RaytracerWindows::RaytracerWindows(Raytracer* tracer, const Camera& cam, IHitable* world, const std::wstring& name, int width, int height, bool vSync)
+RaytracerWindows::RaytracerWindows(const std::wstring& name, int width, int height, bool vSync)
     : super(name, width, height, vSync)
-    , Tracer(tracer)
-    , RaytracerCamera(cam)
-    , World(world)
+    , TheRaytracer(nullptr)
+    , World(nullptr)
     , ScissorRect(CD3DX12_RECT(0, 0, LONG_MAX, LONG_MAX))
     , Viewport(CD3DX12_VIEWPORT(0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height)))
     , Forward(0)
@@ -88,8 +93,8 @@ RaytracerWindows::RaytracerWindows(Raytracer* tracer, const Camera& cam, IHitabl
     , Yaw(0)
     , AllowFullscreenToggle(true)
     , ShiftKeyPressed(false)
-    , Width(0)
-    , Height(0)
+    , BackbufferWidth(0)
+    , BackbufferHeight(0)
 {
 
     XMVECTOR cameraPos    = XMVectorSet(0, 5, -20, 1);
@@ -111,6 +116,58 @@ RaytracerWindows::~RaytracerWindows()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+void RaytracerWindows::OnResizeRaytracer()
+{
+    // Is this the first time running?
+    if (TheRaytracer == nullptr)
+    {
+        auto device = Application::Get().GetDevice();
+
+        D3D12_RESOURCE_DESC textureDesc
+            = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM, BackbufferWidth, BackbufferHeight, 1);
+
+        Microsoft::WRL::ComPtr<ID3D12Resource> textureResource;
+        ThrowIfFailed(device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+            D3D12_HEAP_FLAG_NONE,
+            &textureDesc,
+            D3D12_RESOURCE_STATE_COMMON,
+            nullptr,
+            IID_PPV_ARGS(&textureResource)));
+
+        CPURaytracerTex.SetTextureUsage(TextureUsage::Albedo);
+        CPURaytracerTex.SetD3D12Resource(textureResource);
+        CPURaytracerTex.CreateViews();
+        CPURaytracerTex.SetName(L"RaytraceSourceTexture");
+    }
+    else
+    {
+        // Resize
+        CPURaytracerTex.Resize(BackbufferWidth, BackbufferHeight);
+
+        delete TheRaytracer;
+        TheRaytracer = nullptr;
+    }
+    
+    // Create the ray tracer
+    TheRaytracer = new Raytracer(BackbufferWidth, BackbufferHeight, sNumSamplesPerRay, sMaxScatterDepth, sNumThreads);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void RaytracerWindows::StartRaytrace()
+{
+    if (TheRaytracer)
+    {
+        float     aspect = float(BackbufferWidth) / float(BackbufferHeight);
+        Camera    cam    = GetCameraForSample(SceneRandom, aspect);
+        IHitable* world  = SampleSceneRandom(cam);
+
+        TheRaytracer->BeginRaytrace(cam, world);
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 bool RaytracerWindows::LoadContent()
 {
     // Cache these for easy reference
@@ -124,25 +181,6 @@ bool RaytracerWindows::LoadContent()
 
     // Check the best multi-sample quality level that can be used for the given back buffer format
     const DXGI_SAMPLE_DESC sampleDesc = Application::Get().GetMultisampleQualityLevels(backBufferFormat, D3D12_MAX_MULTISAMPLE_SAMPLE_COUNT);
-
-#if 1
-    D3D12_RESOURCE_DESC textureDesc
-        = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM, static_cast<UINT64>(512), static_cast<UINT>(512), static_cast<UINT16>(1));;
-
-    Microsoft::WRL::ComPtr<ID3D12Resource> textureResource;
-    ThrowIfFailed(device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
-        D3D12_HEAP_FLAG_NONE,
-        &textureDesc,
-        D3D12_RESOURCE_STATE_COMMON,
-        nullptr,
-        IID_PPV_ARGS(&textureResource)));
-
-    CPURaytracerFrame.SetTextureUsage(TextureUsage::Albedo);
-    CPURaytracerFrame.SetD3D12Resource(textureResource);
-    CPURaytracerFrame.CreateViews();
-    CPURaytracerFrame.SetName(L"RaytraceSourceTexture");
-
-#endif
     
 
     // -------------------------------------------------------------------
@@ -230,7 +268,7 @@ bool RaytracerWindows::LoadContent()
         Texture colorTexture;
         {
             auto colorDesc = CD3DX12_RESOURCE_DESC::Tex2D(backBufferFormat,
-                Width, Height,
+                BackbufferWidth, BackbufferHeight,
                 1, 1,
                 sampleDesc.Count, sampleDesc.Quality,
                 D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
@@ -248,7 +286,7 @@ bool RaytracerWindows::LoadContent()
         Texture depthTexture;
         {
             auto depthDesc = CD3DX12_RESOURCE_DESC::Tex2D(depthBufferFormat,
-                Width, Height,
+                BackbufferWidth, BackbufferHeight,
                 1, 1,
                 sampleDesc.Count, sampleDesc.Quality,
                 D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
@@ -278,28 +316,31 @@ bool RaytracerWindows::LoadContent()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RaytracerWindows::OnResize(ResizeEventArgs& e)
+void RaytracerWindows::UnloadContent()
 {
-    super::OnResize(e);
-
-    if (Width != e.Width || Height != e.Height)
-    {
-        Width  = GetMax(1, e.Width);
-        Height = GetMax(1, e.Height);
-
-        float aspectRatio = Width / (float)Height;
-        RenderCamera.set_Projection(45.0f, aspectRatio, 0.1f, 100.0f);
-
-        Viewport = CD3DX12_VIEWPORT(0.0f, 0.0f, static_cast<float>(Width), static_cast<float>(Height));
-
-        RenderTarget.Resize(Width, Height);
-    }
+    ;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RaytracerWindows::UnloadContent()
+void RaytracerWindows::OnResize(ResizeEventArgs& e)
 {
+    super::OnResize(e);
+
+    if (BackbufferWidth != e.Width || BackbufferHeight != e.Height)
+    {
+        BackbufferWidth  = GetMax(1, e.Width);
+        BackbufferHeight = GetMax(1, e.Height);
+
+        float aspectRatio = BackbufferWidth / (float)BackbufferHeight;
+        RenderCamera.set_Projection(45.0f, aspectRatio, 0.1f, 100.0f);
+
+        Viewport = CD3DX12_VIEWPORT(0.0f, 0.0f, static_cast<float>(BackbufferWidth), static_cast<float>(BackbufferHeight));
+
+        RenderTarget.Resize(BackbufferWidth, BackbufferHeight);
+
+        OnResizeRaytracer();
+    }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -329,30 +370,48 @@ void RaytracerWindows::OnRender(RenderEventArgs& e)
     auto commandQueue = Application::Get().GetCommandQueue(D3D12_COMMAND_LIST_TYPE_DIRECT);
     auto commandList  = commandQueue->GetCommandList();
 
+
+    // -------------------------------------------------------------------
     // Clear the render targets
+    // -------------------------------------------------------------------
     {
         commandList->ClearTexture(RenderTarget.GetTexture(AttachmentPoint::Color0), sClearColor);
         commandList->ClearDepthStencilTexture(RenderTarget.GetTexture(AttachmentPoint::DepthStencil), D3D12_CLEAR_FLAG_DEPTH);
     }
 
+
+    // -------------------------------------------------------------------
     // Setup pipeline, root sig, viewport, and render target
+    // -------------------------------------------------------------------
     commandList->SetPipelineState(PipelineState);
     commandList->SetGraphicsRootSignature(RootSignature);
     commandList->SetViewport(Viewport);
     commandList->SetScissorRect(ScissorRect);
     commandList->SetRenderTarget(RenderTarget);
 
-    // Update raytraced frame
-    D3D12_SUBRESOURCE_DATA subresource;
-    subresource.RowPitch    = 4 * 512;
-    subresource.SlicePitch  = subresource.RowPitch * 512;
-    subresource.pData       = Tracer->GetOutputBufferRGBA();
-    commandList->CopyTextureSubresource(CPURaytracerFrame, 0, static_cast<uint32_t>(1), &subresource);
 
+    // -------------------------------------------------------------------
+    // Update raytraced frame
+    // -------------------------------------------------------------------
+    if (TheRaytracer != nullptr)
+    {
+        D3D12_SUBRESOURCE_DATA subresource;
+        subresource.RowPitch    = 4 * 512;
+        subresource.SlicePitch  = subresource.RowPitch * 512;
+        subresource.pData       = TheRaytracer->GetOutputBufferRGBA();
+        commandList->CopyTextureSubresource(CPURaytracerTex, 0, 1, &subresource);
+    }
+
+
+    // -------------------------------------------------------------------
     // Execute the command list
+    // -------------------------------------------------------------------
     commandQueue->ExecuteCommandList(commandList);
 
-    // Present the frame
+
+    // -------------------------------------------------------------------
+    // Present
+    // -------------------------------------------------------------------
     m_pWindow->Present(RenderTarget.GetTexture(AttachmentPoint::Color0));
 }
 
@@ -443,6 +502,7 @@ void RaytracerWindows::OnKeyPressed(KeyEventArgs& e)
 
             case KeyCode::Space:
             {
+                StartRaytrace();
             }
             break;
 

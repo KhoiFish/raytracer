@@ -1,59 +1,12 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
-#include "Core/Raytracer.h"
-#include "Core/IHitable.h"
-#include "SampleScenes.h"
 #include "Windows/RaytracerWindows.h"
 
 #include <Application.h>
 #include <dxgidebug.h>
 #include <shellapi.h>
 #include <Shlwapi.h>
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-static int          sOutputWidth = 512;
-static int          sOutputHeight = 512;
-static float        sAspect = float(sOutputWidth) / float(sOutputHeight);
-static int          sNumSamplesPerRay = 100;
-static int          sMaxScatterDepth = 50;
-static int          sNumThreads = 6;
-
-static Raytracer*   sRaytracer = nullptr;
-static SampleScene  sSampleSceneSelected = SceneRandom;
-static IHitable*    sScenes[MaxScene];
-static Camera       sSampleCameras[MaxScene];
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-static const int   MAX_LOADSTRING = 100;
-static HINSTANCE   hInst;
-static WCHAR       szTitle[MAX_LOADSTRING];
-static WCHAR       szWindowClass[MAX_LOADSTRING];
-static HBITMAP     hBitmap;
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-static ATOM                myRegisterClass(HINSTANCE hInstance);
-static BOOL                initInstance(HINSTANCE, int);
-static LRESULT CALLBACK    wndProc(HWND, UINT, WPARAM, LPARAM);
-static INT_PTR CALLBACK    aboutBox(HWND, UINT, WPARAM, LPARAM);
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-static void InitalizeSampleScenes()
-{
-    sSampleCameras[SceneRandom]         = GetCameraForSample(SceneRandom, sAspect);
-    sSampleCameras[SceneCornell]        = GetCameraForSample(SceneCornell, sAspect);
-    sSampleCameras[SceneCornellSmoke]   = GetCameraForSample(SceneCornellSmoke, sAspect);
-    sSampleCameras[SceneFinal]          = GetCameraForSample(SceneFinal, sAspect);
-
-    sScenes[SceneRandom]                = SampleSceneRandom(sSampleCameras[SceneRandom]);
-    sScenes[SceneCornell]               = SampleSceneRandom(sSampleCameras[SceneCornell]);
-    sScenes[SceneCornellSmoke]          = SampleSceneRandom(sSampleCameras[SceneCornellSmoke]);
-    sScenes[SceneFinal]                 = SampleSceneRandom(sSampleCameras[SceneFinal]);
-}
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -70,14 +23,13 @@ void ReportLiveObjects()
 
 int CALLBACK wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLine, int nCmdShow)
 {
-    int retCode = 0;
-
-    WCHAR path[MAX_PATH];
-
-    int argc = 0;
-    LPWSTR* argv = CommandLineToArgvW(lpCmdLine, &argc);
+    int     retCode = 0;
+    int     argc    = 0;
+    LPWSTR* argv    = CommandLineToArgvW(lpCmdLine, &argc);
+    
     if (argv)
     {
+        WCHAR path[MAX_PATH];
         for (int i = 0; i < argc; ++i)
         {
             // -wd Specify the Working Directory.
@@ -90,15 +42,9 @@ int CALLBACK wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdL
         LocalFree(argv);
     }
 
-    InitalizeSampleScenes();
-    sRaytracer = new Raytracer(sOutputWidth, sOutputHeight, sNumSamplesPerRay, sMaxScatterDepth, sNumThreads);
-    Camera    cam = sSampleCameras[sSampleSceneSelected];
-    IHitable* world = sScenes[sSampleSceneSelected];
-    sRaytracer->BeginRaytrace(cam, world);
-
     Application::Create(hInstance);
     {
-        std::shared_ptr<RaytracerWindows> demo = std::make_shared<RaytracerWindows>(sRaytracer, cam, world, L"Learning DirectX 12 - Lesson 3", 1280, 720);
+        std::shared_ptr<RaytracerWindows> demo = std::make_shared<RaytracerWindows>(L"Raytracer", 1280, 720);
         retCode = Application::Get().Run(demo);
     }
     Application::Destroy();

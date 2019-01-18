@@ -4,6 +4,7 @@
 #include <condition_variable>
 #include <chrono>
 #include <atomic>
+#include <functional>
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -39,7 +40,7 @@ public:
                 bool timedOut = CondVar.wait_for(
                     lck,
                     std::chrono::microseconds(timeOutMicroseconds),
-                    [this]() { return !Triggered; }
+                    std::bind(&ThreadEvent::Triggered, this)
                 );
 
                 if (timedOut)
@@ -51,7 +52,7 @@ public:
             {
                 CondVar.wait(
                     lck,
-                    [this]() { return !Triggered; }
+                    std::bind(&ThreadEvent::Triggered, this)
                 );
             }
         }

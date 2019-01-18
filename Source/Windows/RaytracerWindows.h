@@ -1,7 +1,9 @@
 #pragma once
 
+#include "Core/Raytracer.h"
+#include "Core/Camera.h"
 #include "CameraDX12.h"
-#include "Light.h"
+
 #include <Game.h>
 #include <IndexBuffer.h>
 #include <Window.h>
@@ -13,12 +15,13 @@
 
 #include <DirectXMath.h>
 
+// ----------------------------------------------------------------------------------------------------------------------------
+
 class RaytracerWindows : public Game
 {
 public:
-    using super = Game;
 
-    RaytracerWindows(const std::wstring& name, int width, int height, bool vSync = false);
+    RaytracerWindows(Raytracer* tracer, const Camera& cam, IHitable* world, const std::wstring& name, int width, int height, bool vSync = false);
     virtual ~RaytracerWindows();
 
     virtual bool LoadContent() override;
@@ -36,58 +39,42 @@ protected:
 
 private:
 
-    // Some geometry to render.
-    std::unique_ptr<Mesh> m_CubeMesh;
-    std::unique_ptr<Mesh> m_SphereMesh;
-    std::unique_ptr<Mesh> m_ConeMesh;
-    std::unique_ptr<Mesh> m_TorusMesh;
-    std::unique_ptr<Mesh> m_PlaneMesh;
-
-    Texture m_DefaultTexture;
-    Texture m_DirectXTexture;
-    Texture m_EarthTexture;
-    Texture m_MonaLisaTexture;
-
-    // Render target
-    RenderTarget m_RenderTarget;
-
-    // Root signature
-    RootSignature m_RootSignature;
-
-    // Pipeline state object.
-    Microsoft::WRL::ComPtr<ID3D12PipelineState> m_PipelineState;
-
-    D3D12_VIEWPORT m_Viewport;
-    D3D12_RECT m_ScissorRect;
-
-    CameraDX12 m_Camera;
     struct alignas(16) CameraData
     {
-        DirectX::XMVECTOR m_InitialCamPos;
-        DirectX::XMVECTOR m_InitialCamRot;
+        DirectX::XMVECTOR InitialCamPos;
+        DirectX::XMVECTOR InitialCamRot;
     };
-    CameraData* m_pAlignedCameraData;
 
-    // Camera controller
-    float m_Forward;
-    float m_Backward;
-    float m_Left;
-    float m_Right;
-    float m_Up;
-    float m_Down;
+    typedef Microsoft::WRL::ComPtr<ID3D12PipelineState> DX12PipeState;
+    using super = Game;
 
-    float m_Pitch;
-    float m_Yaw;
+private:
 
-    // Rotate the lights in a circle.
-    bool m_AnimateLights;
-    // Set to true if the Shift key is pressed.
-    bool m_Shift;
+    Raytracer*      Tracer; 
+    Camera          RaytracerCamera;
+    IHitable*       World;
 
-    int m_Width;
-    int m_Height;
+    Texture         CPURaytracerFrame;
+    RenderTarget    RenderTarget;
+    RootSignature   RootSignature;
+    DX12PipeState   PipelineState;
 
-    // Define some lights.
-    std::vector<PointLight> m_PointLights;
-    std::vector<SpotLight> m_SpotLights;
+    D3D12_VIEWPORT  Viewport;
+    D3D12_RECT      ScissorRect;
+    CameraDX12      RenderCamera;
+    CameraData*     PtrAlignedCameraData;
+
+    float           Forward;
+    float           Backward;
+    float           Left;
+    float           Right;
+    float           Up;
+    float           Down;
+    float           Pitch;
+    float           Yaw;
+
+    bool            ShiftKeyPressed;
+
+    int             Width;
+    int             Height;
 };

@@ -155,16 +155,12 @@
   <ItemGroup>
     <ClInclude Include="..\Source\SampleScenes.h" />
     <ClInclude Include="..\Source\Windows\CameraDX12.h" />
-    <ClInclude Include="..\Source\Windows\Light.h" />
-    <ClInclude Include="..\Source\Windows\MaterialDX12.h" />
     <ClInclude Include="..\Source\Windows\RaytracerWindows.h" />
     <ClInclude Include="Resource.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Source\SampleScenes.cpp" />
     <ClCompile Include="..\Source\Windows\CameraDX12.cpp" />
-    <ClCompile Include="..\Source\Windows\Light.cpp" />
-    <ClCompile Include="..\Source\Windows\MaterialDX12.cpp" />
     <ClCompile Include="..\Source\Windows\RaytracerWindows.cpp" />
     <ClCompile Include="WinMain.cpp" />
   </ItemGroup>
@@ -174,6 +170,24 @@
   <ItemGroup>
     <Image Include="RayTracerWindows.ico" />
     <Image Include="small.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\Source\Windows\Shaders\PixelShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.1</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.1</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)RuntimeData\%(Filename).cso</ObjectFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)RuntimeData\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="..\Source\Windows\Shaders\VertexShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.1</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.1</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)RuntimeData\%(Filename).cso</ObjectFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)RuntimeData\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

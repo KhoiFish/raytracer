@@ -18,7 +18,7 @@ static int          sOutputHeight = 512;
 static float        sAspect = float(sOutputWidth) / float(sOutputHeight);
 static int          sNumSamplesPerRay = 100;
 static int          sMaxScatterDepth = 50;
-static int          sNumThreads = 8;
+static int          sNumThreads = 6;
 
 static Raytracer*   sRaytracer = nullptr;
 static SampleScene  sSampleSceneSelected = SceneRandom;
@@ -90,9 +90,15 @@ int CALLBACK wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdL
         LocalFree(argv);
     }
 
+    InitalizeSampleScenes();
+    sRaytracer = new Raytracer(sOutputWidth, sOutputHeight, sNumSamplesPerRay, sMaxScatterDepth, sNumThreads);
+    Camera    cam = sSampleCameras[sSampleSceneSelected];
+    IHitable* world = sScenes[sSampleSceneSelected];
+    sRaytracer->BeginRaytrace(cam, world);
+
     Application::Create(hInstance);
     {
-        std::shared_ptr<RaytracerWindows> demo = std::make_shared<RaytracerWindows>(L"Learning DirectX 12 - Lesson 3", 1280, 720);
+        std::shared_ptr<RaytracerWindows> demo = std::make_shared<RaytracerWindows>(sRaytracer, cam, world, L"Learning DirectX 12 - Lesson 3", 1280, 720);
         retCode = Application::Get().Run(demo);
     }
     Application::Destroy();

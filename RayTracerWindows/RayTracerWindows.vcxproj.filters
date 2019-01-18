@@ -8,6 +8,9 @@
     <Filter Include="Source">
       <UniqueIdentifier>{32e8e1c5-e8f6-4850-be09-1ce1f2349f7f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{3335aa2c-b747-49b4-89d5-c673be41be9e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Resource.h">
@@ -19,13 +22,7 @@
     <ClInclude Include="..\Source\Windows\RaytracerWindows.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="..\Source\Windows\Light.h">
-      <Filter>Source</Filter>
-    </ClInclude>
     <ClInclude Include="..\Source\Windows\CameraDX12.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Source\Windows\MaterialDX12.h">
       <Filter>Source</Filter>
     </ClInclude>
   </ItemGroup>
@@ -49,15 +46,19 @@
     <ClCompile Include="WinMain.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="..\Source\Windows\RaytracerWindows.cpp" />
-    <ClCompile Include="..\Source\Windows\Light.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
     <ClCompile Include="..\Source\Windows\CameraDX12.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="..\Source\Windows\MaterialDX12.cpp">
+    <ClCompile Include="..\Source\Windows\RaytracerWindows.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\Source\Windows\Shaders\PixelShader.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Source\Windows\Shaders\VertexShader.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

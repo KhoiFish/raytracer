@@ -168,7 +168,7 @@ IHitable* SampleSceneCreateTwoPerlinSpheres()
     BaseTexture* imageTex = nullptr;
     {
         int width, height, numChannels;
-        unsigned char* texData = stbi_load("guitar.jpg", &width, &height, &numChannels, 0);
+        unsigned char* texData = stbi_load("RuntimeData/guitar.jpg", &width, &height, &numChannels, 0);
         imageTex = new ImageTexture(texData, width, height);
     }
 
@@ -306,7 +306,7 @@ IHitable* SampleSceneFinal()
     // Image texture sphere
     {
         int nx, ny, nn;
-        unsigned char *texData = stbi_load("guitar.jpg", &nx, &ny, &nn, 0);
+        unsigned char *texData = stbi_load("RuntimeData/guitar.jpg", &nx, &ny, &nn, 0);
         Material *emat = new MLambertian(new ImageTexture(texData, nx, ny));
         list[total++] = new Sphere(Vec3(400, 200, 400), 100, emat);
     }

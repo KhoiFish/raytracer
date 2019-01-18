@@ -11,6 +11,26 @@ void PrintProgress(const char* otherInfo, double percentage);
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+template<typename T>
+constexpr const T& GetMax(const T& a, const T& b)
+{
+    return (a > b) ? a : b;
+}
+
+template<typename T>
+constexpr const T& GetMin(const T& a, const T& b)
+{
+    return (a < b) ? a : b;
+}
+
+template<typename T>
+constexpr const T& Clamp(const T& val, const T& min, const T& max)
+{
+    return val < min ? min : val > max ? max : val;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 inline float RandomFloat()
 {
     float num = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);

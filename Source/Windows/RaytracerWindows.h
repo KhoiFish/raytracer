@@ -1,5 +1,6 @@
 #pragma once
 
+#include <DirectXMath.h>
 #include "Core/Raytracer.h"
 #include "Core/Camera.h"
 #include "CameraDX12.h"
@@ -13,7 +14,7 @@
 #include <Texture.h>
 #include <VertexBuffer.h>
 
-struct DirectX::XMMATRIX;
+#include <stack>
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -44,16 +45,19 @@ protected:
 private:
 
     void OnResizeRaytracer();
-    void StartRaytrace();
+    void ToggleRaytrace();
+    void NextRenderMode();
     void LoadScene(std::shared_ptr<CommandList> commandList);
-    void GenerateRenderListFromWorld(std::shared_ptr<CommandList> commandList, const IHitable* currentHead, std::vector<RenderSceneNode*>& outSceneList, DirectX::XMMATRIX& currentMatrix);
+    void GenerateRenderListFromWorld(std::shared_ptr<CommandList> commandList, const IHitable* currentHead, std::vector<RenderSceneNode*>& outSceneList, std::vector<DirectX::XMMATRIX>& matrixStack);
 
 private:
 
     enum RenderingMode
     {
-        ModePreview,
-        ModeRaytracer
+        ModePreview = 0,
+        ModeRaytracer,
+
+        MaxRenderModes
     };
 
     typedef Microsoft::WRL::ComPtr<ID3D12PipelineState> DX12PipeState;

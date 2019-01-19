@@ -12,24 +12,30 @@ public:
 
     inline Vec3() {}
 
-    inline Vec3(float e0, float e1, float e2)
+    inline Vec3(float e0, float e1, float e2, float e3 = 1.f)
     {
-        e[0] = e0; e[1] = e1; e[2] = e2;
+        e[0] = e0; e[1] = e1; e[2] = e2; e[3] = e3;
     }
 
     inline float X() const { return e[0]; }
     inline float Y() const { return e[1]; }
     inline float Z() const { return e[2]; }
+    inline float W() const { return e[3]; }
+
     inline float R() const { return e[0]; }
     inline float G() const { return e[1]; }
     inline float B() const { return e[2]; }
+    inline float A() const { return e[3]; }
 
     inline float& X() { return e[0]; }
     inline float& Y() { return e[1]; }
     inline float& Z() { return e[2]; }
+    inline float& W() { return e[3]; }
+
     inline float& R() { return e[0]; }
     inline float& G() { return e[1]; }
     inline float& B() { return e[2]; }
+    inline float& A() { return e[3]; }
 
     inline const Vec3& operator+() const       { return *this; }
     inline Vec3        operator-() const       { return Vec3(-e[0], -e[1], -e[2]); }
@@ -57,7 +63,7 @@ public:
 
 private:
 
-    float e[3];
+    float e[4];
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -271,4 +277,18 @@ inline bool Refract(const Vec3& v, const Vec3& n, float ni_over_nt, Vec3& refrac
     {
         return false;
     }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+inline Vec3 RotateVectorByQuaternion(const Vec3& v, const Vec3& q)
+{
+    Vec3 u(q[0], q[1], q[2]);
+    float s = q[3];
+
+    Vec3 vRet = 2.0f * Dot(u, v) * u
+        + (s*s - Dot(u, u)) * v
+        + 2.0f * s * Cross(u, v);
+
+    return vRet;
 }

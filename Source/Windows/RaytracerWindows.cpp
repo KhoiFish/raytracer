@@ -100,7 +100,7 @@ static const UINT sShaderRegisterParams[NumRootParameters][2] =
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static int    sNumSamplesPerRay   = 10;
+static int    sNumSamplesPerRay   = 5;
 static int    sMaxScatterDepth    = 50;
 static int    sNumThreads         = 8;
 static float  sClearColor[]       = { 0.4f, 0.6f, 0.9f, 1.0f };
@@ -143,10 +143,21 @@ static void XM_CALLCONV ComputeMatrices(FXMMATRIX model, CXMMATRIX view, CXMMATR
     mat.ModelViewProjectionMatrix       = model * viewProjection;
 }
 
+static XMMATRIX ComputeFinalMatrix(std::vector<DirectX::XMMATRIX>& matrixStack, XMMATRIX innerMatrix)
+{
+    XMMATRIX final = innerMatrix;
+    for (int i = (int)matrixStack.size() - 1; i >= 0; i--)
+    {
+        final = final * matrixStack[i];
+    }
+
+    return final;
+}
+
 static XMVECTOR ConvertFromVec3(const Vec3& vec)
 {
     // Negate Z
-    return XMVectorSet(vec.X(), vec.Y(), -vec.Z(), 0);
+    return XMVectorSet(vec.X(), vec.Y(), -vec.Z(), vec.W());
 }
 
 static Vec3 ConvertFromXMVector(const XMVECTOR& vec)
@@ -155,7 +166,7 @@ static Vec3 ConvertFromXMVector(const XMVECTOR& vec)
     XMStoreFloat4(&v4, vec);
 
     // Negate Z
-    return Vec3(v4.x, v4.y, -v4.z);
+    return Vec3(v4.x, v4.y, v4.z, v4.w);
 }
 
 static void UpdateRenderCamera(Vec3 cameraTranslate, Vec3 cameraPan, Vec3 cameraRotation, Camera& raytracerCamera, CameraDX12& renderCamera)
@@ -166,9 +177,13 @@ static void UpdateRenderCamera(Vec3 cameraTranslate, Vec3 cameraPan, Vec3 camera
     Vec3   clearColor;
     raytracerCamera.GetCameraParams(lookFrom, lookAt, up, vertFov, aspect, aperture, focusDist, t0, t1, clearColor);
 
+    static Vec3 lookAtOrig = lookAt;
+
     // Update raytracer camera
+    Vec3 totalTranslate = cameraTranslate + cameraPan;
     lookFrom += cameraTranslate + cameraPan;
     lookAt   += cameraTranslate + cameraPan;
+    //lookAt    = RotateVectorByQuaternion(lookAt, cameraRotation);
 
     // Update raytracer camera
     raytracerCamera.Setup(lookFrom, lookAt, up, vertFov, aspect, aperture, focusDist, t0, t1, clearColor);
@@ -257,13 +272,38 @@ void RaytracerWindows::OnResizeRaytracer()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RaytracerWindows::StartRaytrace()
+void RaytracerWindows::ToggleRaytrace()
 {
-    if (TheRaytracer)
+    static bool toggle = false;
+
+    toggle = !toggle;
+    if (toggle)
     {
+        if (!TheRaytracer)
+        {
+            OnResizeRaytracer();
+        }
+
         RenderMode = ModeRaytracer;
         TheRaytracer->BeginRaytrace(RaytracerCamera, World);
     }
+    else
+    {
+        if (TheRaytracer)
+        {
+            delete TheRaytracer;
+            TheRaytracer = nullptr;
+        }
+
+        RenderMode = ModePreview;
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void RaytracerWindows::NextRenderMode()
+{
+    RenderMode = (RenderingMode)(((int)RenderMode + 1) % (int)MaxRenderModes);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -275,13 +315,13 @@ void RaytracerWindows::LoadScene(std::shared_ptr<CommandList> commandList)
     RaytracerCamera = GetCameraForSample(SceneFinal, aspect);
     World = SampleSceneFinal();
 
-    XMMATRIX worldMatrix = XMMatrixIdentity();
-    GenerateRenderListFromWorld(commandList, World, RenderSceneList, worldMatrix);
+    std::vector<DirectX::XMMATRIX> matrixStack;
+    GenerateRenderListFromWorld(commandList, World, RenderSceneList, matrixStack);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RaytracerWindows::GenerateRenderListFromWorld(std::shared_ptr<CommandList> commandList, const IHitable* currentHead, std::vector<RenderSceneNode*>& outSceneList, XMMATRIX& currentMatrix)
+void RaytracerWindows::GenerateRenderListFromWorld(std::shared_ptr<CommandList> commandList, const IHitable* currentHead, std::vector<RenderSceneNode*>& outSceneList, std::vector<DirectX::XMMATRIX>& matrixStack)
 {
     const std::type_info& tid = typeid(*currentHead);
 
@@ -293,17 +333,17 @@ void RaytracerWindows::GenerateRenderListFromWorld(std::shared_ptr<CommandList> 
         const int        listSize = hitList->GetListSize();
         for (int i = 0; i < listSize; i++)
         {
-            GenerateRenderListFromWorld(commandList, list[i], outSceneList, currentMatrix);
+            GenerateRenderListFromWorld(commandList, list[i], outSceneList, matrixStack);
         }
     }
     else if (tid == typeid(BVHNode))
     {
         BVHNode* bvhNode = (BVHNode*)currentHead;
 
-        GenerateRenderListFromWorld(commandList, bvhNode->GetLeft(), outSceneList, currentMatrix);
+        GenerateRenderListFromWorld(commandList, bvhNode->GetLeft(), outSceneList, matrixStack);
         if (bvhNode->GetLeft() != bvhNode->GetRight())
         {
-            GenerateRenderListFromWorld(commandList, bvhNode->GetRight(), outSceneList, currentMatrix);
+            GenerateRenderListFromWorld(commandList, bvhNode->GetRight(), outSceneList, matrixStack);
         }
     }
     else if (tid == typeid(HitableTranslate))
@@ -311,17 +351,19 @@ void RaytracerWindows::GenerateRenderListFromWorld(std::shared_ptr<CommandList> 
         HitableTranslate* translateHitable = (HitableTranslate*)currentHead;
         Vec3              offset           = translateHitable->GetOffset();
         XMMATRIX          translation      = XMMatrixTranslation(offset.X(), offset.Y(), -offset.Z());
-        XMMATRIX          newMatrix        = translation * currentMatrix;
 
-        GenerateRenderListFromWorld(commandList, translateHitable->GetHitObject(), outSceneList, newMatrix);
+        matrixStack.push_back(translation);
+        GenerateRenderListFromWorld(commandList, translateHitable->GetHitObject(), outSceneList, matrixStack);
+        matrixStack.pop_back();
     }
     else if (tid == typeid(HitableRotateY))
     {
         HitableRotateY*   rotateYHitable = (HitableRotateY*)currentHead;
-        XMMATRIX          rotation       = XMMatrixRotationY(XMConvertToRadians(rotateYHitable->GetAngleDegrees()));
-        XMMATRIX          newMatrix      = rotation * currentMatrix;
+        XMMATRIX          rotation       = XMMatrixRotationY(XMConvertToRadians(-rotateYHitable->GetAngleDegrees()));
 
-        GenerateRenderListFromWorld(commandList, rotateYHitable->GetHitObject(), outSceneList, newMatrix);
+        matrixStack.push_back(rotation);
+        GenerateRenderListFromWorld(commandList, rotateYHitable->GetHitObject(), outSceneList, matrixStack);
+        matrixStack.pop_back();
     }
     else if (tid == typeid(Sphere) || tid == typeid(MovingSphere))
     {
@@ -344,8 +386,8 @@ void RaytracerWindows::GenerateRenderListFromWorld(std::shared_ptr<CommandList> 
         }
 
         XMMATRIX         translation = XMMatrixTranslation(offset.X(), offset.Y(), -offset.Z());
-        XMMATRIX         newMatrix = currentMatrix * translation;
-        RenderSceneNode* newNode = new RenderSceneNode();
+        XMMATRIX         newMatrix   = ComputeFinalMatrix(matrixStack, translation);
+        RenderSceneNode* newNode     = new RenderSceneNode();
 
         Vec3 color = material->AlbedoValue(0.5f, 0.5f, Vec3(0, 0, 0));
         const RenderMaterial newMaterial =
@@ -370,14 +412,14 @@ void RaytracerWindows::GenerateRenderListFromWorld(std::shared_ptr<CommandList> 
         box->GetPoints(minP, maxP);
 
         float            sideLength  = fabs(maxP.X() - minP.X());
-        Vec3             offset      = (minP + maxP) * 0.5f;
+        Vec3             offset      = minP + ((maxP - minP) * 0.5f);
         XMMATRIX         translation = XMMatrixTranslation(offset.X(), offset.Y(), -offset.Z());
-        XMMATRIX         newMatrix   = currentMatrix * translation;
+        XMMATRIX         newMatrix   = ComputeFinalMatrix(matrixStack, translation);
         RenderSceneNode* newNode     = new RenderSceneNode();
 
         newNode->MeshData    = Mesh::CreateCube(*commandList, sideLength);
         newNode->WorldMatrix = newMatrix;
-        newNode->Material = MaterialWhite;
+        newNode->Material    = MaterialWhite;
         outSceneList.push_back(newNode);
     }
     else if (tid == typeid(XYZRect))
@@ -589,11 +631,12 @@ void RaytracerWindows::OnUpdate(UpdateEventArgs& e)
     super::OnUpdate(e);
 
     // Update the camera
-    float  speedMultipler  = (ShiftKeyPressed ? 64.f : 32.0f) * 8.f;
-    Vec3   cameraTranslate = Vec3(Left - Right, 0.0f, Forward - Backward) * speedMultipler * e.ElapsedTime;
-    Vec3   cameraPan       = Vec3(0.0f, Up - Down, 0.0f) * speedMultipler * e.ElapsedTime;
-    Vec3   cameraRotation;
-    //XMVECTOR cameraRotation  = XMQuaternionRotationRollPitchYaw(XMConvertToRadians(Pitch), XMConvertToRadians(Yaw), 0.0f);
+    XMVECTOR xmRotation      = XMQuaternionRotationRollPitchYaw(XMConvertToRadians(Pitch), XMConvertToRadians(Yaw), 0.0f);
+    float    speedMultipler  = (ShiftKeyPressed ? 64.f : 32.0f) * 8.f;
+    Vec3     cameraTranslate = Vec3(Left - Right, 0.0f, Forward - Backward) * speedMultipler * float(e.ElapsedTime);
+    Vec3     cameraPan       = Vec3(0.0f, Up - Down, 0.0f) * speedMultipler * float(e.ElapsedTime);
+    Vec3     cameraRotation  = ConvertFromXMVector(xmRotation);
+    //Vec3 cameraRotation = Vec3(0, 0, 0, 1);
 
     UpdateRenderCamera(cameraTranslate, cameraPan, cameraRotation, RaytracerCamera, RenderCamera);
 }
@@ -754,6 +797,12 @@ void RaytracerWindows::OnKeyPressed(KeyEventArgs& e)
             }
             break;
 
+            case KeyCode::N:
+            {
+                NextRenderMode();
+            }
+            break;
+
             case KeyCode::Q:
             {
                 Down = 1.0f;
@@ -768,7 +817,7 @@ void RaytracerWindows::OnKeyPressed(KeyEventArgs& e)
 
             case KeyCode::Space:
             {
-                StartRaytrace();
+                ToggleRaytrace();
             }
             break;
 

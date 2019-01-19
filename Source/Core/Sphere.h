@@ -16,6 +16,7 @@ public:
 
     const Vec3& GetCenter() const { return Center; }
     float       GetRadius() const { return Radius; }
+    Material*   GetMaterial() const { return MatPtr; }
 
 private:
 

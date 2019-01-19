@@ -9,6 +9,13 @@ Vec3 Material::Emitted(float u, float v, Vec3& p) const
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+Vec3 Material::AlbedoValue(float u, float v, const Vec3& p) const
+{
+    return Vec3(0, 0, 0);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 MLambertian::MLambertian(BaseTexture* albedo) : Albedo(albedo)
 {
 
@@ -22,6 +29,13 @@ bool MLambertian::Scatter(const Ray& rayIn, const HitRecord& rec, Vec3& attenuat
     scattered = Ray(rec.P, target - rec.P, rayIn.Time());
     attenuation = Albedo->Value(rec.U, rec.V, rec.P);
     return true;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+Vec3 MLambertian::AlbedoValue(float u, float v, const Vec3& p) const
+{
+    return Albedo->Value(u, v, p);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -47,6 +61,13 @@ bool MMetal::Scatter(const Ray& rayIn, const HitRecord& rec, Vec3& attenuation, 
     scattered = Ray(rec.P, reflected + Fuzz * RandomInUnitSphere(), rayIn.Time());
     attenuation = Albedo;
     return (Dot(scattered.Direction(), rec.Normal) > 0);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+Vec3 MMetal::AlbedoValue(float u, float v, const Vec3& p) const
+{
+    return Albedo;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -142,4 +163,11 @@ bool MIsotropic::Scatter(const Ray& rayIn, const HitRecord& rec, Vec3& attenuati
     attenuation = Albedo->Value(rec.U, rec.V, rec.P);
 
     return true;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+Vec3 MIsotropic::AlbedoValue(float u, float v, const Vec3& p) const
+{
+    return Albedo->Value(u, v, p);
 }

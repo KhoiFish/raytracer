@@ -8,6 +8,7 @@
 #include "Core/BVHNode.h"
 #include "Core/HitableBox.h"
 #include "Core/XYZRect.h"
+#include "Core/Material.h"
 #include "SampleScenes.h"
 
 #include <Application.h>
@@ -26,13 +27,39 @@ using namespace Microsoft::WRL;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-struct Mat
+struct RenderMatrices
 {
     XMMATRIX ModelMatrix;
     XMMATRIX ModelViewMatrix;
     XMMATRIX InverseTransposeModelViewMatrix;
     XMMATRIX ModelViewProjectionMatrix;
 };
+
+#pragma pack(push, 16) 
+struct RenderMaterial
+{
+    RenderMaterial(
+        DirectX::XMFLOAT4 emissive = { 0.0f, 0.0f, 0.0f, 1.0f },
+        DirectX::XMFLOAT4 ambient  = { 0.1f, 0.1f, 0.1f, 1.0f },
+        DirectX::XMFLOAT4 diffuse  = { 1.0f, 1.0f, 1.0f, 1.0f },
+        DirectX::XMFLOAT4 specular = { 1.0f, 1.0f, 1.0f, 1.0f },
+        float specularPower = 128.0f
+    )
+        : Emissive(emissive)
+        , Ambient(ambient)
+        , Diffuse(diffuse)
+        , Specular(specular)
+        , SpecularPower(specularPower) {}
+
+    DirectX::XMFLOAT4   Emissive;
+    DirectX::XMFLOAT4   Ambient;
+    DirectX::XMFLOAT4   Diffuse;
+    DirectX::XMFLOAT4   Specular;
+
+    float               SpecularPower;
+    uint32_t            Padding[3];
+};
+#pragma pack(pop)
 
 struct PipelineStateStream
 {
@@ -51,26 +78,41 @@ struct RenderSceneNode
     IHitable*               Hitable;
     std::shared_ptr<Mesh>   MeshData;
     XMMATRIX                WorldMatrix;
+    RenderMaterial          Material;
 };
 
 enum RootParameters
 {
     MatricesCB,         // ConstantBuffer<Mat> MatCB
+    MaterialCB,         // ConstantBuffer<Material> MaterialCB : register( b0, space1 );
     TextureDiffuse,     // Texture2D DiffuseTexture
     NumRootParameters
 };
 
-static const UINT   sRootParamRegisters[NumRootParameters] =
+
+// [register, space]
+static const UINT sShaderRegisterParams[NumRootParameters][2] =
 {
-    0, // MatricesCB
-    0, // TextureDiffuse
+    { 0, 0 }, // MatricesCB
+    { 0, 1 }, // MaterialCB
+    { 0, 0 }  // TextureDiffuse
 };
+
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static int    sNumSamplesPerRay       = 50;
-static int    sMaxScatterDepth        = 50;
-static int    sNumThreads             = 8;
-static FLOAT  sClearColor[]           = { 0.4f, 0.6f, 0.9f, 1.0f };
+static int    sNumSamplesPerRay   = 10;
+static int    sMaxScatterDepth    = 50;
+static int    sNumThreads         = 8;
+static float  sClearColor[]       = { 0.4f, 0.6f, 0.9f, 1.0f };
+
+static const RenderMaterial MaterialWhite =
+{
+    { 0.0f, 0.0f, 0.0f, 1.0f },
+    { 0.1f, 0.1f, 0.1f, 1.0f },
+    { 1.0f, 1.0f, 1.0f, 1.0f },
+    { 1.0f, 1.0f, 1.0f, 1.0f },
+    128.0f
+};
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -93,7 +135,7 @@ static XMMATRIX XM_CALLCONV LookAtMatrix(FXMVECTOR Position, FXMVECTOR Direction
     return M;
 }
 
-static void XM_CALLCONV ComputeMatrices(FXMMATRIX model, CXMMATRIX view, CXMMATRIX viewProjection, Mat& mat)
+static void XM_CALLCONV ComputeMatrices(FXMMATRIX model, CXMMATRIX view, CXMMATRIX viewProjection, RenderMatrices& mat)
 {
     mat.ModelMatrix                     = model;
     mat.ModelViewMatrix                 = model * view;
@@ -116,7 +158,7 @@ static Vec3 ConvertFromXMVector(const XMVECTOR& vec)
     return Vec3(v4.x, v4.y, -v4.z);
 }
 
-static void UpdateRenderCamera(XMVECTOR cameraTranslate, XMVECTOR cameraPan, XMVECTOR cameraRotation, Camera& raytracerCamera, CameraDX12& renderCamera)
+static void UpdateRenderCamera(Vec3 cameraTranslate, Vec3 cameraPan, Vec3 cameraRotation, Camera& raytracerCamera, CameraDX12& renderCamera)
 {
     // Get ray tracer camera params
     Vec3   lookFrom, lookAt, up;
@@ -125,9 +167,8 @@ static void UpdateRenderCamera(XMVECTOR cameraTranslate, XMVECTOR cameraPan, XMV
     raytracerCamera.GetCameraParams(lookFrom, lookAt, up, vertFov, aspect, aperture, focusDist, t0, t1, clearColor);
 
     // Update raytracer camera
-    Vec3 translateOffset = ConvertFromXMVector(cameraTranslate) + ConvertFromXMVector(cameraPan);
-    lookFrom += translateOffset;
-    lookAt += translateOffset;
+    lookFrom += cameraTranslate + cameraPan;
+    lookAt   += cameraTranslate + cameraPan;
 
     // Update raytracer camera
     raytracerCamera.Setup(lookFrom, lookAt, up, vertFov, aspect, aperture, focusDist, t0, t1, clearColor);
@@ -145,7 +186,6 @@ static void UpdateRenderCamera(XMVECTOR cameraTranslate, XMVECTOR cameraPan, XMV
 RaytracerWindows::RaytracerWindows(const std::wstring& name, int width, int height, bool vSync)
     : super(name, width, height, vSync)
     , RenderMode(ModePreview)
-    //, RenderMode(ModeRaytracer)
     , TheRaytracer(nullptr)
     , World(nullptr)
     , ScissorRect(CD3DX12_RECT(0, 0, LONG_MAX, LONG_MAX))
@@ -236,12 +276,12 @@ void RaytracerWindows::LoadScene(std::shared_ptr<CommandList> commandList)
     World = SampleSceneFinal();
 
     XMMATRIX worldMatrix = XMMatrixIdentity();
-    GenerateSceneGraph(commandList, World, RenderSceneList, worldMatrix);
+    GenerateRenderListFromWorld(commandList, World, RenderSceneList, worldMatrix);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RaytracerWindows::GenerateSceneGraph(std::shared_ptr<CommandList> commandList, const IHitable* currentHead, std::vector<RenderSceneNode*>& outSceneList, XMMATRIX& currentMatrix)
+void RaytracerWindows::GenerateRenderListFromWorld(std::shared_ptr<CommandList> commandList, const IHitable* currentHead, std::vector<RenderSceneNode*>& outSceneList, XMMATRIX& currentMatrix)
 {
     const std::type_info& tid = typeid(*currentHead);
 
@@ -253,17 +293,17 @@ void RaytracerWindows::GenerateSceneGraph(std::shared_ptr<CommandList> commandLi
         const int        listSize = hitList->GetListSize();
         for (int i = 0; i < listSize; i++)
         {
-            GenerateSceneGraph(commandList, list[i], outSceneList, currentMatrix);
+            GenerateRenderListFromWorld(commandList, list[i], outSceneList, currentMatrix);
         }
     }
     else if (tid == typeid(BVHNode))
     {
         BVHNode* bvhNode = (BVHNode*)currentHead;
 
-        GenerateSceneGraph(commandList, bvhNode->GetLeft(), outSceneList, currentMatrix);
+        GenerateRenderListFromWorld(commandList, bvhNode->GetLeft(), outSceneList, currentMatrix);
         if (bvhNode->GetLeft() != bvhNode->GetRight())
         {
-            GenerateSceneGraph(commandList, bvhNode->GetRight(), outSceneList, currentMatrix);
+            GenerateRenderListFromWorld(commandList, bvhNode->GetRight(), outSceneList, currentMatrix);
         }
     }
     else if (tid == typeid(HitableTranslate))
@@ -273,7 +313,7 @@ void RaytracerWindows::GenerateSceneGraph(std::shared_ptr<CommandList> commandLi
         XMMATRIX          translation      = XMMatrixTranslation(offset.X(), offset.Y(), -offset.Z());
         XMMATRIX          newMatrix        = translation * currentMatrix;
 
-        GenerateSceneGraph(commandList, translateHitable->GetHitObject(), outSceneList, newMatrix);
+        GenerateRenderListFromWorld(commandList, translateHitable->GetHitObject(), outSceneList, newMatrix);
     }
     else if (tid == typeid(HitableRotateY))
     {
@@ -281,31 +321,45 @@ void RaytracerWindows::GenerateSceneGraph(std::shared_ptr<CommandList> commandLi
         XMMATRIX          rotation       = XMMatrixRotationY(XMConvertToRadians(rotateYHitable->GetAngleDegrees()));
         XMMATRIX          newMatrix      = rotation * currentMatrix;
 
-        GenerateSceneGraph(commandList, rotateYHitable->GetHitObject(), outSceneList, newMatrix);
+        GenerateRenderListFromWorld(commandList, rotateYHitable->GetHitObject(), outSceneList, newMatrix);
     }
     else if (tid == typeid(Sphere) || tid == typeid(MovingSphere))
     {
         Vec3  offset;
         float radius;
+        Material* material = nullptr;
         if (tid == typeid(Sphere))
         {
             Sphere* sphere = (Sphere*)currentHead;
-            offset = sphere->GetCenter();
-            radius = sphere->GetRadius();
+            offset   = sphere->GetCenter();
+            radius   = sphere->GetRadius();
+            material = sphere->GetMaterial();
         }
         else if (tid == typeid(MovingSphere))
         {
             MovingSphere* sphere = (MovingSphere*)currentHead;
-            offset = sphere->Center(1.f);
-            radius = sphere->GetRadius();
+            offset   = sphere->Center(1.f);
+            radius   = sphere->GetRadius();
+            material = sphere->GetMaterial();
         }
 
         XMMATRIX         translation = XMMatrixTranslation(offset.X(), offset.Y(), -offset.Z());
         XMMATRIX         newMatrix = currentMatrix * translation;
         RenderSceneNode* newNode = new RenderSceneNode();
 
+        Vec3 color = material->AlbedoValue(0.5f, 0.5f, Vec3(0, 0, 0));
+        const RenderMaterial newMaterial =
+        {
+            { 0.0f, 0.0f, 0.0f, 1.0f },
+            { 0.0f, 0.0f, 0.0f, 1.0f },
+            { color.X(), color.Y(), color.Z(), 1.0f },
+            { 0.0f, 0.0f, 0.0f, 1.0f },
+            128.0f
+        };
+
         newNode->MeshData    = Mesh::CreateSphere(*commandList, radius * 2.f);
         newNode->WorldMatrix = newMatrix;
+        newNode->Material    = newMaterial;
         outSceneList.push_back(newNode);
     }
     else if (tid == typeid(HitableBox))
@@ -323,6 +377,7 @@ void RaytracerWindows::GenerateSceneGraph(std::shared_ptr<CommandList> commandLi
 
         newNode->MeshData    = Mesh::CreateCube(*commandList, sideLength);
         newNode->WorldMatrix = newMatrix;
+        newNode->Material = MaterialWhite;
         outSceneList.push_back(newNode);
     }
     else if (tid == typeid(XYZRect))
@@ -335,7 +390,6 @@ void RaytracerWindows::GenerateSceneGraph(std::shared_ptr<CommandList> commandLi
 
 bool RaytracerWindows::LoadContent()
 {
-    // Cache these for easy reference
     auto device       = Application::Get().GetDevice();
     auto commandQueue = Application::Get().GetCommandQueue(D3D12_COMMAND_LIST_TYPE_COPY);
     auto commandList  = commandQueue->GetCommandList();
@@ -352,7 +406,7 @@ bool RaytracerWindows::LoadContent()
     // Load scene
     // -------------------------------------------------------------------
     LoadScene(commandList);
-    commandList->LoadTextureFromFile(PreviewTex, L"RuntimeData\\default.png");    
+    commandList->LoadTextureFromFile(PreviewTex, L"RuntimeData\\checker.jpg");    
     
 
     // -------------------------------------------------------------------
@@ -373,10 +427,11 @@ bool RaytracerWindows::LoadContent()
             D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
             D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
 
-        CD3DX12_DESCRIPTOR_RANGE1 texDescRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, sRootParamRegisters[RootParameters::TextureDiffuse]);
+        CD3DX12_DESCRIPTOR_RANGE1 texDescRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, sShaderRegisterParams[RootParameters::TextureDiffuse][0]);
 
         CD3DX12_ROOT_PARAMETER1 rootParameters[RootParameters::NumRootParameters];
-        rootParameters[RootParameters::MatricesCB].InitAsConstantBufferView(0, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_VERTEX);
+        rootParameters[RootParameters::MatricesCB].InitAsConstantBufferView(sShaderRegisterParams[RootParameters::MatricesCB][0], sShaderRegisterParams[RootParameters::MatricesCB][1], D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_VERTEX);
+        rootParameters[RootParameters::MaterialCB].InitAsConstantBufferView(sShaderRegisterParams[RootParameters::MaterialCB][0], sShaderRegisterParams[RootParameters::MaterialCB][1], D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_PIXEL);
         rootParameters[RootParameters::TextureDiffuse].InitAsDescriptorTable(1, &texDescRange, D3D12_SHADER_VISIBILITY_PIXEL);
 
         CD3DX12_STATIC_SAMPLER_DESC linearRepeatSampler(0, D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR);
@@ -534,10 +589,11 @@ void RaytracerWindows::OnUpdate(UpdateEventArgs& e)
     super::OnUpdate(e);
 
     // Update the camera
-    float    speedMultipler  = (ShiftKeyPressed ? 64.f : 32.0f);
-    XMVECTOR cameraTranslate = XMVectorSet(Right - Left, 0.0f, Forward - Backward, 1.0f) * speedMultipler * static_cast<float>(e.ElapsedTime);
-    XMVECTOR cameraPan       = XMVectorSet(0.0f, Up - Down, 0.0f, 1.0f) * speedMultipler * static_cast<float>(e.ElapsedTime);
-    XMVECTOR cameraRotation  = XMQuaternionRotationRollPitchYaw(XMConvertToRadians(Pitch), XMConvertToRadians(Yaw), 0.0f);
+    float  speedMultipler  = (ShiftKeyPressed ? 64.f : 32.0f) * 8.f;
+    Vec3   cameraTranslate = Vec3(Left - Right, 0.0f, Forward - Backward) * speedMultipler * e.ElapsedTime;
+    Vec3   cameraPan       = Vec3(0.0f, Up - Down, 0.0f) * speedMultipler * e.ElapsedTime;
+    Vec3   cameraRotation;
+    //XMVECTOR cameraRotation  = XMQuaternionRotationRollPitchYaw(XMConvertToRadians(Pitch), XMConvertToRadians(Yaw), 0.0f);
 
     UpdateRenderCamera(cameraTranslate, cameraPan, cameraRotation, RaytracerCamera, RenderCamera);
 }
@@ -548,7 +604,6 @@ void RaytracerWindows::OnRender(RenderEventArgs& e)
 {
     super::OnRender(e);
 
-    // Cache these for easy reference
     auto commandQueue = Application::Get().GetCommandQueue(D3D12_COMMAND_LIST_TYPE_DIRECT);
     auto commandList  = commandQueue->GetCommandList();
 
@@ -574,7 +629,7 @@ void RaytracerWindows::OnRender(RenderEventArgs& e)
     // -------------------------------------------------------------------
     // Render preview objects
     // -------------------------------------------------------------------
-    //if (RenderMode == ModePreview)
+    if (RenderMode == ModePreview)
     {
         for (int i = 0; i < RenderSceneList.size(); i++)
         {
@@ -582,10 +637,11 @@ void RaytracerWindows::OnRender(RenderEventArgs& e)
             XMMATRIX viewMatrix             = RenderCamera.get_ViewMatrix();
             XMMATRIX viewProjectionMatrix   = viewMatrix * RenderCamera.get_ProjectionMatrix();
 
-            Mat matrices;
+            RenderMatrices matrices;
             ComputeMatrices(worldMatrix, viewMatrix, viewProjectionMatrix, matrices);
             commandList->SetPipelineState(PreviewPipelineState);
             commandList->SetGraphicsDynamicConstantBuffer(RootParameters::MatricesCB, matrices);
+            commandList->SetGraphicsDynamicConstantBuffer(RootParameters::MaterialCB, RenderSceneList[i]->Material);
             commandList->SetShaderResourceView(RootParameters::TextureDiffuse, 0, PreviewTex, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
             RenderSceneList[i]->MeshData->Draw(*commandList);

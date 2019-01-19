@@ -11,19 +11,22 @@
     <Filter Include="Shaders">
       <UniqueIdentifier>{3335aa2c-b747-49b4-89d5-c673be41be9e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Render">
+      <UniqueIdentifier>{39354d31-0fe7-44c2-ac94-72d4db55f16e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Resource.h">
-      <Filter>Source</Filter>
-    </ClInclude>
     <ClInclude Include="..\Source\SampleScenes.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="..\Source\Windows\RaytracerWindows.h">
-      <Filter>Source</Filter>
-    </ClInclude>
     <ClInclude Include="..\Source\Windows\CameraDX12.h">
-      <Filter>Source</Filter>
+      <Filter>Source\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Windows\RaytracerWindows.h">
+      <Filter>Source\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>Resource Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -47,10 +50,10 @@
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="..\Source\Windows\CameraDX12.cpp">
-      <Filter>Source</Filter>
+      <Filter>Source\Render</Filter>
     </ClCompile>
     <ClCompile Include="..\Source\Windows\RaytracerWindows.cpp">
-      <Filter>Source</Filter>
+      <Filter>Source\Render</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

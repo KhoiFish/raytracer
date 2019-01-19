@@ -46,7 +46,7 @@ private:
     void OnResizeRaytracer();
     void StartRaytrace();
     void LoadScene(std::shared_ptr<CommandList> commandList);
-    void GenerateSceneGraph(std::shared_ptr<CommandList> commandList, const IHitable* currentHead, std::vector<RenderSceneNode*>& outSceneList, DirectX::XMMATRIX& currentMatrix);
+    void GenerateRenderListFromWorld(std::shared_ptr<CommandList> commandList, const IHitable* currentHead, std::vector<RenderSceneNode*>& outSceneList, DirectX::XMMATRIX& currentMatrix);
 
 private:
 

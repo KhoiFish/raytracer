@@ -17,6 +17,7 @@ public:
     virtual bool  BoundingBox(float t0, float t1, AABB& box) const;
     Vec3          Center(float time) const;
     float         GetRadius() const { return Radius; }
+    Material*     GetMaterial() const { return MatPtr; }
 
 private:
 

@@ -5,6 +5,9 @@
 #include "Core/MovingSphere.h"
 #include "Core/HitableList.h"
 #include "Core/HitableTransform.h"
+#include "Core/BVHNode.h"
+#include "Core/HitableBox.h"
+#include "Core/XYZRect.h"
 #include "SampleScenes.h"
 
 #include <Application.h>
@@ -64,7 +67,7 @@ static const UINT   sRootParamRegisters[NumRootParameters] =
 };
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static int    sNumSamplesPerRay       = 1;
+static int    sNumSamplesPerRay       = 50;
 static int    sMaxScatterDepth        = 50;
 static int    sNumThreads             = 8;
 static FLOAT  sClearColor[]           = { 0.4f, 0.6f, 0.9f, 1.0f };
@@ -253,14 +256,32 @@ void RaytracerWindows::GenerateSceneGraph(std::shared_ptr<CommandList> commandLi
             GenerateSceneGraph(commandList, list[i], outSceneList, currentMatrix);
         }
     }
+    else if (tid == typeid(BVHNode))
+    {
+        BVHNode* bvhNode = (BVHNode*)currentHead;
+
+        GenerateSceneGraph(commandList, bvhNode->GetLeft(), outSceneList, currentMatrix);
+        if (bvhNode->GetLeft() != bvhNode->GetRight())
+        {
+            GenerateSceneGraph(commandList, bvhNode->GetRight(), outSceneList, currentMatrix);
+        }
+    }
     else if (tid == typeid(HitableTranslate))
     {
         HitableTranslate* translateHitable = (HitableTranslate*)currentHead;
-        Vec3              offset = translateHitable->GetOffset();
-        XMMATRIX          translation = XMMatrixTranslation(offset.X(), offset.Y(), -offset.Z());
-        XMMATRIX          newMatrix = currentMatrix * translation;
+        Vec3              offset           = translateHitable->GetOffset();
+        XMMATRIX          translation      = XMMatrixTranslation(offset.X(), offset.Y(), -offset.Z());
+        XMMATRIX          newMatrix        = translation * currentMatrix;
 
         GenerateSceneGraph(commandList, translateHitable->GetHitObject(), outSceneList, newMatrix);
+    }
+    else if (tid == typeid(HitableRotateY))
+    {
+        HitableRotateY*   rotateYHitable = (HitableRotateY*)currentHead;
+        XMMATRIX          rotation       = XMMatrixRotationY(XMConvertToRadians(rotateYHitable->GetAngleDegrees()));
+        XMMATRIX          newMatrix      = rotation * currentMatrix;
+
+        GenerateSceneGraph(commandList, rotateYHitable->GetHitObject(), outSceneList, newMatrix);
     }
     else if (tid == typeid(Sphere) || tid == typeid(MovingSphere))
     {
@@ -286,6 +307,27 @@ void RaytracerWindows::GenerateSceneGraph(std::shared_ptr<CommandList> commandLi
         newNode->MeshData    = Mesh::CreateSphere(*commandList, radius * 2.f);
         newNode->WorldMatrix = newMatrix;
         outSceneList.push_back(newNode);
+    }
+    else if (tid == typeid(HitableBox))
+    {
+        HitableBox* box = (HitableBox*)currentHead;
+
+        Vec3 minP, maxP;
+        box->GetPoints(minP, maxP);
+
+        float            sideLength  = fabs(maxP.X() - minP.X());
+        Vec3             offset      = (minP + maxP) * 0.5f;
+        XMMATRIX         translation = XMMatrixTranslation(offset.X(), offset.Y(), -offset.Z());
+        XMMATRIX         newMatrix   = currentMatrix * translation;
+        RenderSceneNode* newNode     = new RenderSceneNode();
+
+        newNode->MeshData    = Mesh::CreateCube(*commandList, sideLength);
+        newNode->WorldMatrix = newMatrix;
+        outSceneList.push_back(newNode);
+    }
+    else if (tid == typeid(XYZRect))
+    {
+        ; // TODO
     }
 }
 
@@ -492,7 +534,7 @@ void RaytracerWindows::OnUpdate(UpdateEventArgs& e)
     super::OnUpdate(e);
 
     // Update the camera
-    float    speedMultipler  = (ShiftKeyPressed ? 16.0f : 4.0f);
+    float    speedMultipler  = (ShiftKeyPressed ? 64.f : 32.0f);
     XMVECTOR cameraTranslate = XMVectorSet(Right - Left, 0.0f, Forward - Backward, 1.0f) * speedMultipler * static_cast<float>(e.ElapsedTime);
     XMVECTOR cameraPan       = XMVectorSet(0.0f, Up - Down, 0.0f, 1.0f) * speedMultipler * static_cast<float>(e.ElapsedTime);
     XMVECTOR cameraRotation  = XMQuaternionRotationRollPitchYaw(XMConvertToRadians(Pitch), XMConvertToRadians(Yaw), 0.0f);

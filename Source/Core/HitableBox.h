@@ -16,6 +16,12 @@ public:
     virtual bool BoundingBox(float t0, float t1, AABB& box) const;
     virtual bool Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const;
 
+    inline void  GetPoints(Vec3& minP, Vec3& maxP) const
+    {
+        minP = Pmin;
+        maxP = Pmax;
+    }
+
 private:
 
     Vec3      Pmin, Pmax;

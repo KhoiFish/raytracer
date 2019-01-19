@@ -29,7 +29,7 @@ bool HitableTranslate::BoundingBox(float t0, float t1, AABB& box) const
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-HitableRotateY::HitableRotateY(IHitable* obj, float angleDeg) : HitObject(obj)
+HitableRotateY::HitableRotateY(IHitable* obj, float angleDeg) : HitObject(obj), AngleDegrees(angleDeg)
 {
     float radians = (RT_PI / 180.f) * angleDeg;
 

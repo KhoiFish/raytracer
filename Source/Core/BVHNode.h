@@ -15,6 +15,9 @@ public:
     virtual bool Hit(const Ray& ray, float tMin, float tMax, HitRecord& rec) const;
     virtual bool BoundingBox(float t0, float t1, AABB& box) const;
 
+    const IHitable* GetLeft()  const { return Left; }
+    const IHitable* GetRight() const { return Right; }
+
 private:
 
     enum ECompareMode

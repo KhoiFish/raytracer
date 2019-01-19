@@ -13,7 +13,7 @@
 #include <Texture.h>
 #include <VertexBuffer.h>
 
-#include <DirectXMath.h>
+struct DirectX::XMMATRIX;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 

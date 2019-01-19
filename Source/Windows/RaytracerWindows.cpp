@@ -411,13 +411,14 @@ void RaytracerWindows::GenerateRenderListFromWorld(std::shared_ptr<CommandList> 
         Vec3 minP, maxP;
         box->GetPoints(minP, maxP);
 
-        float            sideLength  = fabs(maxP.X() - minP.X());
-        Vec3             offset      = minP + ((maxP - minP) * 0.5f);
+        Vec3             diff        = maxP - minP;
+        Vec3             offset      = minP + (diff * 0.5f);
         XMMATRIX         translation = XMMatrixTranslation(offset.X(), offset.Y(), -offset.Z());
         XMMATRIX         newMatrix   = ComputeFinalMatrix(matrixStack, translation);
+        XMFLOAT3         sideLengths(fabs(diff.X()), fabs(diff.Y()), fabs(diff.Z()));
         RenderSceneNode* newNode     = new RenderSceneNode();
 
-        newNode->MeshData    = Mesh::CreateCube(*commandList, sideLength);
+        newNode->MeshData    = Mesh::CreateCube(*commandList, sideLengths);
         newNode->WorldMatrix = newMatrix;
         newNode->Material    = MaterialWhite;
         outSceneList.push_back(newNode);

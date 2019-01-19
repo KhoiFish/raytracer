@@ -78,6 +78,7 @@ public:
     void Draw(CommandList& commandList);
 
     static std::unique_ptr<Mesh> CreateCube(CommandList& commandList, float size = 1, bool rhcoords = false);
+    static std::unique_ptr<Mesh> CreateCube(CommandList& commandList, const DirectX::XMFLOAT3& sideLengths, bool rhcoords = false);
     static std::unique_ptr<Mesh> CreateSphere(CommandList& commandList, float diameter = 1, size_t tessellation = 16, bool rhcoords = false);
     static std::unique_ptr<Mesh> CreateCone(CommandList& commandList, float diameter = 1, float height = 1, size_t tessellation = 32, bool rhcoords = false);
     static std::unique_ptr<Mesh> CreateTorus(CommandList& commandList, float diameter = 1, float thickness = 0.333f, size_t tessellation = 32, bool rhcoords = false);

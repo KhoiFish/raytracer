@@ -165,6 +165,75 @@ std::unique_ptr<Mesh> Mesh::CreateCube(CommandList& commandList, float size, boo
     return mesh;
 }
 
+
+std::unique_ptr<Mesh> Mesh::CreateCube(CommandList& commandList, const DirectX::XMFLOAT3& sideLengths, bool rhcoords /*= false*/)
+{
+    // A cube has six faces, each one pointing in a different direction.
+    const int FaceCount = 6;
+
+    static const XMVECTORF32 faceNormals[FaceCount] =
+    {
+        { 0,  0,  1 },
+        { 0,  0, -1 },
+        { 1,  0,  0 },
+        { -1,  0,  0 },
+        { 0,  1,  0 },
+        { 0, -1,  0 },
+    };
+
+    static const XMVECTORF32 textureCoordinates[4] =
+    {
+        { 1, 0 },
+        { 1, 1 },
+        { 0, 1 },
+        { 0, 0 },
+    };
+
+    VertexCollection vertices;
+    IndexCollection indices;
+
+    XMVECTOR halfLengths = XMVectorSet(
+        sideLengths.x * 0.5f,
+        sideLengths.y * 0.5f,
+        sideLengths.z * 0.5f,
+        0.f);
+
+    // Create each face in turn.
+    for (int i = 0; i < FaceCount; i++)
+    {
+        XMVECTOR normal = faceNormals[i];
+
+        // Get two vectors perpendicular both to the face normal and to each other.
+        XMVECTOR basis = (i >= 4) ? g_XMIdentityR2 : g_XMIdentityR1;
+
+        XMVECTOR side1 = XMVector3Cross(normal, basis);
+        XMVECTOR side2 = XMVector3Cross(normal, side1);
+
+        // Six indices (two triangles) per face.
+        size_t vbase = vertices.size();
+        indices.push_back(static_cast<uint16_t>(vbase + 0));
+        indices.push_back(static_cast<uint16_t>(vbase + 1));
+        indices.push_back(static_cast<uint16_t>(vbase + 2));
+
+        indices.push_back(static_cast<uint16_t>(vbase + 0));
+        indices.push_back(static_cast<uint16_t>(vbase + 2));
+        indices.push_back(static_cast<uint16_t>(vbase + 3));
+
+        // Four vertices per face.
+        vertices.push_back(VertexPositionNormalTexture((normal - side1 - side2) * halfLengths, normal, textureCoordinates[0]));
+        vertices.push_back(VertexPositionNormalTexture((normal - side1 + side2) * halfLengths, normal, textureCoordinates[1]));
+        vertices.push_back(VertexPositionNormalTexture((normal + side1 + side2) * halfLengths, normal, textureCoordinates[2]));
+        vertices.push_back(VertexPositionNormalTexture((normal + side1 - side2) * halfLengths, normal, textureCoordinates[3]));
+    }
+
+    // Create the primitive object.
+    std::unique_ptr<Mesh> mesh(new Mesh());
+
+    mesh->Initialize(commandList, vertices, indices, rhcoords);
+
+    return mesh;
+}
+
 // Helper computes a point on a unit circle, aligned to the x/z plane and centered on the origin.
 static inline XMVECTOR GetCircleVector(size_t i, size_t tessellation)
 {

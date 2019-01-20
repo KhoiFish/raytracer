@@ -9,6 +9,7 @@
 #include "Core/HitableBox.h"
 #include "Core/XYZRect.h"
 #include "Core/Material.h"
+#include "Core/Quat.h"
 #include "SampleScenes.h"
 
 #include <Application.h>
@@ -143,7 +144,7 @@ static void XM_CALLCONV ComputeMatrices(FXMMATRIX model, CXMMATRIX view, CXMMATR
     mat.ModelViewProjectionMatrix       = model * viewProjection;
 }
 
-static XMMATRIX ComputeFinalMatrix(std::vector<DirectX::XMMATRIX>& matrixStack, XMMATRIX innerMatrix)
+static inline XMMATRIX ComputeFinalMatrix(std::vector<DirectX::XMMATRIX>& matrixStack, XMMATRIX innerMatrix)
 {
     XMMATRIX final = innerMatrix;
     for (int i = (int)matrixStack.size() - 1; i >= 0; i--)
@@ -154,22 +155,21 @@ static XMMATRIX ComputeFinalMatrix(std::vector<DirectX::XMMATRIX>& matrixStack, 
     return final;
 }
 
-static XMVECTOR ConvertFromVec3(const Vec3& vec)
+static inline XMVECTOR ConvertFromVec3(const Vec3& vec)
 {
     // Negate Z
     return XMVectorSet(vec.X(), vec.Y(), -vec.Z(), vec.W());
 }
 
-static Vec3 ConvertFromXMVector(const XMVECTOR& vec)
+static inline Vec3 ConvertFromXMVector(const XMVECTOR& vec)
 {
+    // Negate Z
     XMFLOAT4 v4;
     XMStoreFloat4(&v4, vec);
-
-    // Negate Z
-    return Vec3(v4.x, v4.y, v4.z, v4.w);
+    return Vec3(v4.x, v4.y, -v4.z, v4.w);
 }
 
-static void UpdateRenderCamera(Vec3 cameraTranslate, Vec3 cameraPan, Vec3 cameraRotation, Camera& raytracerCamera, CameraDX12& renderCamera)
+static void UpdateCameras(float forwardAmount, float strafeAmount, float upDownAmount, int mouseDx, int mouseDy, Camera& raytracerCamera, CameraDX12& renderCamera)
 {
     // Get ray tracer camera params
     Vec3   lookFrom, lookAt, up;
@@ -177,13 +177,23 @@ static void UpdateRenderCamera(Vec3 cameraTranslate, Vec3 cameraPan, Vec3 camera
     Vec3   clearColor;
     raytracerCamera.GetCameraParams(lookFrom, lookAt, up, vertFov, aspect, aperture, focusDist, t0, t1, clearColor);
 
-    static Vec3 lookAtOrig = lookAt;
+    // Update render camera look at
+    Vec3  diffVec    = (lookAt - lookFrom);
+    Vec3  viewDir    = diffVec.MakeUnitVector();
+    Vec3  rightDir   = Cross(up, viewDir).MakeUnitVector();
+    float upAngle    = mouseDx * -.1f;
+    float rightAngle = mouseDy * -.1f;
 
-    // Update raytracer camera
-    Vec3 totalTranslate = cameraTranslate + cameraPan;
-    lookFrom += cameraTranslate + cameraPan;
-    lookAt   += cameraTranslate + cameraPan;
-    //lookAt    = RotateVectorByQuaternion(lookAt, cameraRotation);
+    // Rotate around up axis
+    viewDir  = Quat::RotateVector(viewDir, up, upAngle);
+    rightDir = Quat::RotateVector(rightDir, up, upAngle);
+
+    // Rotate around right axis
+    viewDir  = Quat::RotateVector(viewDir, rightDir, rightAngle);
+
+    Vec3 cameraTranslate = (viewDir * forwardAmount) + (rightDir * strafeAmount) + (up * upDownAmount);
+    lookFrom += cameraTranslate;
+    lookAt    = lookFrom + (viewDir * diffVec.Length());
 
     // Update raytracer camera
     raytracerCamera.Setup(lookFrom, lookAt, up, vertFov, aspect, aperture, focusDist, t0, t1, clearColor);
@@ -211,8 +221,8 @@ RaytracerWindows::RaytracerWindows(const std::wstring& name, int width, int heig
     , Right(0)
     , Up(0)
     , Down(0)
-    , Pitch(0)
-    , Yaw(0)
+    , MouseDx(0)
+    , MouseDy(0)
     , AllowFullscreenToggle(true)
     , ShiftKeyPressed(false)
     , BackbufferWidth(0)
@@ -415,7 +425,7 @@ void RaytracerWindows::GenerateRenderListFromWorld(std::shared_ptr<CommandList> 
         Vec3             offset      = minP + (diff * 0.5f);
         XMMATRIX         translation = XMMatrixTranslation(offset.X(), offset.Y(), -offset.Z());
         XMMATRIX         newMatrix   = ComputeFinalMatrix(matrixStack, translation);
-        XMFLOAT3         sideLengths(fabs(diff.X()), fabs(diff.Y()), fabs(diff.Z()));
+        XMFLOAT3         sideLengths = XMFLOAT3(fabs(diff.X()), fabs(diff.Y()), fabs(diff.Z()));
         RenderSceneNode* newNode     = new RenderSceneNode();
 
         newNode->MeshData    = Mesh::CreateCube(*commandList, sideLengths);
@@ -631,15 +641,15 @@ void RaytracerWindows::OnUpdate(UpdateEventArgs& e)
 {
     super::OnUpdate(e);
 
-    // Update the camera
-    XMVECTOR xmRotation      = XMQuaternionRotationRollPitchYaw(XMConvertToRadians(Pitch), XMConvertToRadians(Yaw), 0.0f);
-    float    speedMultipler  = (ShiftKeyPressed ? 64.f : 32.0f) * 8.f;
-    Vec3     cameraTranslate = Vec3(Left - Right, 0.0f, Forward - Backward) * speedMultipler * float(e.ElapsedTime);
-    Vec3     cameraPan       = Vec3(0.0f, Up - Down, 0.0f) * speedMultipler * float(e.ElapsedTime);
-    Vec3     cameraRotation  = ConvertFromXMVector(xmRotation);
-    //Vec3 cameraRotation = Vec3(0, 0, 0, 1);
+    float speedMultipler = (ShiftKeyPressed ? 64.f : 32.0f) * 16.f;
+    float scale          = speedMultipler * float(e.ElapsedTime);
+    float forwardAmount  = (Forward - Backward) * scale;
+    float strafeAmount   = (Left - Right) * scale;
+    float upDownAmount   = (Up - Down) * scale;
 
-    UpdateRenderCamera(cameraTranslate, cameraPan, cameraRotation, RaytracerCamera, RenderCamera);
+    UpdateCameras(forwardAmount, strafeAmount, upDownAmount, MouseDx, MouseDy, RaytracerCamera, RenderCamera);
+    MouseDx = 0;
+    MouseDy = 0;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -764,9 +774,7 @@ void RaytracerWindows::OnKeyPressed(KeyEventArgs& e)
 
             case KeyCode::R:
             {
-                // Reset camera transform
-                Pitch = 0.0f;
-                Yaw = 0.0f;
+                ;
             }
             break;
 
@@ -906,11 +914,10 @@ void RaytracerWindows::OnMouseMoved(MouseMotionEventArgs& e)
 
     if (!ImGui::GetIO().WantCaptureMouse)
     {
-        if (e.LeftButton)
+        if (e.RightButton)
         {
-            Pitch -= e.RelY * mouseSpeed;
-            Pitch  = Clamp(Pitch, -90.0f, 90.0f);
-            Yaw   -= e.RelX * mouseSpeed;
+            MouseDx = e.RelX;
+            MouseDy = e.RelY;
         }
     }
 }

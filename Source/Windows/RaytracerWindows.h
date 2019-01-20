@@ -91,8 +91,8 @@ private:
     float               Right;
     float               Up;
     float               Down;
-    float               Pitch;
-    float               Yaw;
+    int                 MouseDx;
+    int                 MouseDy;
 
     bool                AllowFullscreenToggle;
     bool                ShiftKeyPressed;

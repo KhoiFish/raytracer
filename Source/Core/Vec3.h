@@ -59,7 +59,7 @@ public:
         return (e[0] * e[0] + e[1] * e[1] + e[2] * e[2]);
     }
 
-    inline void MakeUnitVector();
+    inline Vec3 MakeUnitVector();
 
 private:
 
@@ -83,12 +83,14 @@ inline std::ostream& operator<<(std::ostream &os, const Vec3 &t)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline void Vec3::MakeUnitVector()
+inline Vec3 Vec3::MakeUnitVector()
 {
     float k = 1.0f / Length();
     X() *= k;
     Y() *= k;
     Z() *= k;
+
+    return (*this);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

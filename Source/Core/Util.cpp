@@ -1,4 +1,8 @@
 #include "Util.h"
+#include <stdlib.h>
+#include <varargs.h>
+
+// ----------------------------------------------------------------------------------------------------------------------------
 
 void PrintProgress(const char* otherInfo, double percentage)
 {
@@ -11,4 +15,22 @@ void PrintProgress(const char* otherInfo, double percentage)
 
     printf("\r%s %3d%% [%.*s%*s]", otherInfo, val, lpad, PBSTR, rpad, "");
     fflush(stdout);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void RenderDebugPrintf(const char *fmt, ...)
+{
+    char buf[1024];
+    va_list arg;
+
+    va_start(arg, fmt);
+    vsprintf_s(buf, fmt, arg);
+    va_end(arg);
+
+    printf(buf);
+
+#if defined(_WINDOWS)
+    OutputDebugStringA(buf);
+#endif
 }

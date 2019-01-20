@@ -166,6 +166,7 @@
     <ClInclude Include="..\Source\Core\Material.h" />
     <ClInclude Include="..\Source\Core\MovingSphere.h" />
     <ClInclude Include="..\Source\Core\Perlin.h" />
+    <ClInclude Include="..\Source\Core\Quat.h" />
     <ClInclude Include="..\Source\Core\Ray.h" />
     <ClInclude Include="..\Source\Core\Raytracer.h" />
     <ClInclude Include="..\Source\Core\Sphere.h" />

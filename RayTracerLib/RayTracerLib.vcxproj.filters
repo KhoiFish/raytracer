@@ -84,6 +84,9 @@
     <ClInclude Include="..\Source\Core\ThreadEvent.h">
       <Filter>Core\Headers</Filter>
     </ClInclude>
+    <ClInclude Include="..\Source\Core\Quat.h">
+      <Filter>Core\Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Source\Core\BVHNode.cpp">

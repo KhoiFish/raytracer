@@ -37,15 +37,16 @@ protected:
     virtual void OnUpdate(UpdateEventArgs& e) override;
     virtual void OnRender(RenderEventArgs& e) override;
     virtual void OnKeyPressed(KeyEventArgs& e) override;
-    virtual void OnKeyReleased(KeyEventArgs& e);
-    virtual void OnMouseMoved(MouseMotionEventArgs& e);
+    virtual void OnKeyReleased(KeyEventArgs& e) override;
+    virtual void OnMouseButtonPressed(MouseButtonEventArgs& e) override;
+    virtual void OnMouseMoved(MouseMotionEventArgs& e) override;
     virtual void OnMouseWheel(MouseWheelEventArgs& e) override;
     virtual void OnResize(ResizeEventArgs& e) override;
 
 private:
 
     void OnResizeRaytracer();
-    void ToggleRaytrace();
+    void Raytrace(bool enable);
     void NextRenderMode();
     void LoadScene(std::shared_ptr<CommandList> commandList);
     void GenerateRenderListFromWorld(std::shared_ptr<CommandList> commandList, const IHitable* currentHead, std::vector<RenderSceneNode*>& outSceneList, std::vector<DirectX::XMMATRIX>& matrixStack);

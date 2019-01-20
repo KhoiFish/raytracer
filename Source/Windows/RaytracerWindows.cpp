@@ -282,12 +282,15 @@ void RaytracerWindows::OnResizeRaytracer()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RaytracerWindows::ToggleRaytrace()
+void RaytracerWindows::Raytrace(bool enable)
 {
-    static bool toggle = false;
+    if (TheRaytracer)
+    {
+        delete TheRaytracer;
+        TheRaytracer = nullptr;
+    }
 
-    toggle = !toggle;
-    if (toggle)
+    if (enable)
     {
         if (!TheRaytracer)
         {
@@ -299,12 +302,6 @@ void RaytracerWindows::ToggleRaytrace()
     }
     else
     {
-        if (TheRaytracer)
-        {
-            delete TheRaytracer;
-            TheRaytracer = nullptr;
-        }
-
         RenderMode = ModePreview;
     }
 }
@@ -826,7 +823,7 @@ void RaytracerWindows::OnKeyPressed(KeyEventArgs& e)
 
             case KeyCode::Space:
             {
-                ToggleRaytrace();
+                Raytrace(true);
             }
             break;
 
@@ -906,6 +903,22 @@ void RaytracerWindows::OnKeyReleased(KeyEventArgs& e)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+void RaytracerWindows::OnMouseButtonPressed(MouseButtonEventArgs& e)
+{
+    super::OnMouseButtonPressed(e);
+
+    switch (e.State)
+    {
+        case KeyCode::LButton:
+        {
+            NextRenderMode();
+        }
+        break;
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 void RaytracerWindows::OnMouseMoved(MouseMotionEventArgs& e)
 {
     super::OnMouseMoved(e);
@@ -918,6 +931,8 @@ void RaytracerWindows::OnMouseMoved(MouseMotionEventArgs& e)
         {
             MouseDx = e.RelX;
             MouseDy = e.RelY;
+            Raytrace(false);
+
         }
     }
 }

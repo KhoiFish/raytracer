@@ -198,14 +198,17 @@ WorldScene* SampleSceneSimpleLight()
 WorldScene* SampleSceneCornellBox(bool smoke)
 {
     IHitable** list = new IHitable*[8];
-    IHitable** lsList = new IHitable*[2];
     int i = 0;
+
+    IHitable** lsList = new IHitable*[2];
     int numLs = 0;
 
-    Material* red = new MLambertian(new ConstantTexture(Vec3(.65f, .05f, .05f)));
+    Material* red   = new MLambertian(new ConstantTexture(Vec3(.65f, .05f, .05f)));
     Material* white = new MLambertian(new ConstantTexture(Vec3(.73f, .73f, .73f)));
     Material* green = new MLambertian(new ConstantTexture(Vec3(.12f, .45f, .15f)));
     Material* light = new MDiffuseLight(new ConstantTexture(Vec3(15, 15, 15)));
+    Material* glass = new MDielectric(1.5f);
+
 
     list[i++] = new FlipNormals(new XYZRect(XYZRect::YZ, 0, 555, 0, 555, 555, green));
     list[i++] = new XYZRect(XYZRect::YZ, 0, 555, 0, 555, 0, red);
@@ -218,11 +221,9 @@ WorldScene* SampleSceneCornellBox(bool smoke)
     list[i++] = new XYZRect(XYZRect::XZ, 0, 555, 0, 555, 0, white);
     list[i++] = new FlipNormals(new XYZRect(XYZRect::XY, 0, 555, 0, 555, 555, white));
 
-    IHitable* box1 = new HitableTranslate(
-        new HitableRotateY(
-            new HitableBox(Vec3(0, 0, 0), Vec3(165, 165, 165), white),
-            -18),
-        Vec3(130, 0, 65));
+    list[i] = new Sphere(Vec3(190, 90, 190), 90, glass, true);
+    lsList[numLs++] = list[i];
+    i++;
 
     IHitable* box2 = new HitableTranslate(
         new HitableRotateY(
@@ -232,12 +233,10 @@ WorldScene* SampleSceneCornellBox(bool smoke)
 
     if (smoke)
     {
-        list[i++] = new ConstantMedium(box1, 0.01f, new ConstantTexture(Vec3(1.f, 1.f, 1.f)));
         list[i++] = new ConstantMedium(box2, 0.01f, new ConstantTexture(Vec3(0.f, 0.f, 0.f)));
     }
     else
     {
-        list[i++] = box1;
         list[i++] = box2;
     }
 
@@ -256,6 +255,9 @@ WorldScene* SampleSceneFinal()
     IHitable** boxlist2 = new IHitable*[10000];
     Material*  white = new MLambertian(new ConstantTexture(Vec3(0.73f, 0.73f, 0.73f)));
     Material*  ground = new MLambertian(new ConstantTexture(Vec3(0.48f, 0.83f, 0.53f)));
+
+    IHitable** lsList = new IHitable*[2];
+    int numLs = 0;
 
     // Create random hitable boxes, in BVH tree
     {
@@ -281,7 +283,9 @@ WorldScene* SampleSceneFinal()
     // Create light
     {
         Material *light = new MDiffuseLight(new ConstantTexture(Vec3(7, 7, 7)));
-        list[total++] = new XYZRect(XYZRect::XZ, 123, 423, 147, 412, 554, light);
+        list[total] = new XYZRect(XYZRect::XZ, 123, 423, 147, 412, 554, light, true);
+        lsList[numLs++] = list[total];
+        total++;
     }
 
     // Moving sphere
@@ -292,7 +296,10 @@ WorldScene* SampleSceneFinal()
 
     // Dielectric and metal spheres
     {
-        list[total++] = new Sphere(Vec3(260, 150, 45), 50, new MDielectric(1.5f));
+        list[total] = new Sphere(Vec3(260, 150, 45), 50, new MDielectric(1.5f));
+        lsList[numLs++] = list[total];
+        total++;
+
         list[total++] = new Sphere(Vec3(0, 150, 145), 50, new MMetal(Vec3(0.8f, 0.8f, 0.9f), 10.0f));
     }
 
@@ -331,5 +338,5 @@ WorldScene* SampleSceneFinal()
         list[total++] = new HitableTranslate(new HitableRotateY(new BVHNode(boxlist2, ns, 0.0, 1.0), 15), Vec3(-100, 270, 395));
     }
 
-    return WorldScene::Create(list, total);
+    return WorldScene::Create(list, total, lsList, numLs);
 }

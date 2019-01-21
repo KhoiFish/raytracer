@@ -101,7 +101,7 @@ static const UINT sShaderRegisterParams[NumRootParameters][2] =
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static int    sNumSamplesPerRay   = 500;
+static int    sNumSamplesPerRay   = 5000;
 static int    sMaxScatterDepth    = 50;
 static int    sNumThreads         = 8;
 static float  sClearColor[]       = { 0.4f, 0.6f, 0.9f, 1.0f };
@@ -319,9 +319,9 @@ void RaytracerWindows::LoadScene(std::shared_ptr<CommandList> commandList)
 {
     const float aspect = (float)BackbufferWidth / (float)BackbufferHeight;
 
-#if 0
+#if 1
     RaytracerCamera = GetCameraForSample(SceneFinal, aspect);
-    World = SampleSceneFinal();
+    Scene = SampleSceneFinal();
 #else
     RaytracerCamera = GetCameraForSample(SceneCornell, aspect);
     Scene = SampleSceneCornellBox(false);

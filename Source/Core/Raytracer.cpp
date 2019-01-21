@@ -3,6 +3,23 @@
 #include "BVHNode.h"
 #include <cfloat>
 #include <vector>
+#include <math.h>
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+static inline Vec3 DeNaN(const Vec3& c)
+{
+    Vec3 temp = c;
+    for (int i = 0; i < 3; i++)
+    {
+        if (isnan(temp[i]))
+        {
+            temp[i] = 0;
+        }
+    }
+
+    return temp;
+}
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -112,15 +129,6 @@ void Raytracer::cleanupRaytrace()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline Vec3 DeNaN(const Vec3& c)
-{
-    Vec3 temp = c;
-    if (!(temp[0] == temp[0])) temp[0] = 0;
-    if (!(temp[1] == temp[1])) temp[1] = 0;
-    if (!(temp[2] == temp[2])) temp[2] = 0;
-    return temp;
-}
-
 void Raytracer::threadTraceNextPixel(int id, Raytracer* tracer, const Camera& cam, WorldScene* scene)
 {
     const int numPixels = (tracer->OutputWidth * tracer->OutputHeight);
@@ -216,9 +224,24 @@ Vec3 Raytracer::trace(const Ray& r, WorldScene* scene, int depth, const Vec3& cl
             {
                 HitablePdf  hitablePdf(scene->GetLightShapes(), hitRec.P);
                 MixturePdf  pdf(&hitablePdf, scatterRec.Pdf);
-                Ray         scattered = Ray(hitRec.P, pdf.Generate(), r.Time());
-                float       pdfValue  = pdf.Value(scattered.Direction());
 
+                // PDF values may be zero or close to it, or close to infinity.
+                // We retry and retry in these cases
+                Ray   scattered;
+                float pdfValue;
+                int numRetries = 0;
+                do
+                {
+                   scattered = Ray(hitRec.P, pdf.Generate(), r.Time());
+                   pdfValue  = pdf.Value(scattered.Direction());
+                   numRetries++;
+                } while (pdfValue <= 0.0000001f || pdfValue > 99999999.f);
+
+                if ((numRetries > 1))
+                {
+                    DEBUG_PRINTF("Num-retries:%d pdf:%f\n", numRetries, pdfValue);
+                }
+                
                 return emitted +
                     scatterRec.Attenuation *
                     hitRec.MatPtr->ScatteringPdf(r, hitRec, scattered) *

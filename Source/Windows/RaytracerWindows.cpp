@@ -212,7 +212,7 @@ RaytracerWindows::RaytracerWindows(const std::wstring& name, int width, int heig
     : super(name, width, height, vSync)
     , RenderMode(ModePreview)
     , TheRaytracer(nullptr)
-    , World(nullptr)
+    , Scene(nullptr)
     , ScissorRect(CD3DX12_RECT(0, 0, LONG_MAX, LONG_MAX))
     , Viewport(CD3DX12_VIEWPORT(0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height)))
     , Forward(0)
@@ -298,7 +298,7 @@ void RaytracerWindows::Raytrace(bool enable)
         }
 
         RenderMode = ModeRaytracer;
-        TheRaytracer->BeginRaytrace(RaytracerCamera, World);
+        TheRaytracer->BeginRaytrace(RaytracerCamera, Scene);
     }
     else
     {
@@ -324,11 +324,11 @@ void RaytracerWindows::LoadScene(std::shared_ptr<CommandList> commandList)
     World = SampleSceneFinal();
 #else
     RaytracerCamera = GetCameraForSample(SceneCornell, aspect);
-    World = SampleSceneCornellBox(false);
+    Scene = SampleSceneCornellBox(false);
 #endif
 
     std::vector<DirectX::XMMATRIX> matrixStack;
-    GenerateRenderListFromWorld(commandList, World, RenderSceneList, matrixStack);
+    GenerateRenderListFromWorld(commandList, Scene->GetWorld(), RenderSceneList, matrixStack);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

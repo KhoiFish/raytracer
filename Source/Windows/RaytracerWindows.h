@@ -72,7 +72,7 @@ private:
 
     Raytracer*          TheRaytracer;
     Camera              RaytracerCamera;
-    IHitable*           World;
+    WorldScene*         Scene;
     RenderNodeList      RenderSceneList;
 
     Texture             CPURaytracerTex;

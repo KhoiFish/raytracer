@@ -29,11 +29,11 @@ static bool   sSceneEnabled[MaxScene] =
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static void RaytraceAndPrintProgress(Raytracer& tracer, Camera& cam, IHitable* world)
+static void RaytraceAndPrintProgress(Raytracer& tracer, Camera& cam, WorldScene* scene)
 {
     // Start the trace
     printf("\nRendering frame...\n");
-    tracer.BeginRaytrace(cam, world);
+    tracer.BeginRaytrace(cam, scene);
 
     // Wait for trace to finish
     char buf[256];

@@ -3,6 +3,7 @@
 #include "Core/IHitable.h"
 #include "Core/Camera.h"
 #include "Core/Raytracer.h"
+#include "Core/WorldScene.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -19,8 +20,8 @@ enum SampleScene
 // ----------------------------------------------------------------------------------------------------------------------------
 
 Camera      GetCameraForSample(SampleScene scene, float aspect);
-IHitable*   SampleSceneRandom(const Camera& cam);
-IHitable*   SampleSceneCreateTwoPerlinSpheres();
-IHitable*   SampleSceneSimpleLight();
-IHitable*   SampleSceneCornellBox(bool smoke);
-IHitable*   SampleSceneFinal();
+WorldScene* SampleSceneRandom(const Camera& cam);
+WorldScene* SampleSceneCreateTwoPerlinSpheres();
+WorldScene* SampleSceneSimpleLight();
+WorldScene* SampleSceneCornellBox(bool smoke);
+WorldScene* SampleSceneFinal();

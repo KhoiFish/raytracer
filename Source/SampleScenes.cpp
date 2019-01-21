@@ -105,7 +105,7 @@ Camera GetCameraForSample(SampleScene scene, float aspect)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-IHitable* SampleSceneRandom(const Camera& cam)
+WorldScene* SampleSceneRandom(const Camera& cam)
 {
     float time0, time1;
     cam.GetShutterTime(time0, time1);
@@ -157,12 +157,12 @@ IHitable* SampleSceneRandom(const Camera& cam)
     // Generate BVH tree
     BVHNode* bvhHead = new BVHNode(list, i, time0, time1);
 
-    return bvhHead;
+    return WorldScene::Create(bvhHead);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-IHitable* SampleSceneCreateTwoPerlinSpheres()
+WorldScene* SampleSceneCreateTwoPerlinSpheres()
 {
     BaseTexture* perTex = new NoiseTexture(4.f);
     BaseTexture* imageTex = nullptr;
@@ -176,12 +176,12 @@ IHitable* SampleSceneCreateTwoPerlinSpheres()
     list[0] = new Sphere(Vec3(0, -1000, 0), 1000, new MLambertian(perTex));
     list[1] = new Sphere(Vec3(0, 2, 0), 2, new MLambertian(imageTex));
 
-    return new HitableList(list, 2);
+    return WorldScene::Create(list, 2);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-IHitable* SampleSceneSimpleLight()
+WorldScene* SampleSceneSimpleLight()
 {
     BaseTexture* perlinTex = new NoiseTexture(4);
     IHitable** list = new IHitable*[4];
@@ -190,15 +190,17 @@ IHitable* SampleSceneSimpleLight()
     list[2] = new Sphere(Vec3(0, 7, 0), 2, new MDiffuseLight(new ConstantTexture(Vec3(4, 4, 4))));
     list[3] = new XYZRect(XYZRect::AxisPlane::XY, 3, 5, 1, 3, -2, new MDiffuseLight(new ConstantTexture(Vec3(4, 4, 4))));
 
-    return new HitableList(list, 4);
+    return WorldScene::Create(list, 4);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-IHitable* SampleSceneCornellBox(bool smoke)
+WorldScene* SampleSceneCornellBox(bool smoke)
 {
     IHitable** list = new IHitable*[8];
+    IHitable** lsList = new IHitable*[2];
     int i = 0;
+    int numLs = 0;
 
     Material* red = new MLambertian(new ConstantTexture(Vec3(.65f, .05f, .05f)));
     Material* white = new MLambertian(new ConstantTexture(Vec3(.73f, .73f, .73f)));
@@ -208,7 +210,9 @@ IHitable* SampleSceneCornellBox(bool smoke)
     list[i++] = new FlipNormals(new XYZRect(XYZRect::YZ, 0, 555, 0, 555, 555, green));
     list[i++] = new XYZRect(XYZRect::YZ, 0, 555, 0, 555, 0, red);
 
-    list[i++] = new XYZRect(XYZRect::XZ, 213, 343, 227, 332, 554, light, true);
+    list[i] = new XYZRect(XYZRect::XZ, 213, 343, 227, 332, 554, light, true);
+    lsList[numLs++] = list[i];
+    i++;
 
     list[i++] = new FlipNormals(new XYZRect(XYZRect::XZ, 0, 555, 0, 555, 555, white));
     list[i++] = new XYZRect(XYZRect::XZ, 0, 555, 0, 555, 0, white);
@@ -237,12 +241,12 @@ IHitable* SampleSceneCornellBox(bool smoke)
         list[i++] = box2;
     }
 
-    return new HitableList(list, i);
+    return WorldScene::Create(list, i, lsList, numLs);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-IHitable* SampleSceneFinal()
+WorldScene* SampleSceneFinal()
 {
     const int numBoxes = 20;
     int total = 0;
@@ -327,5 +331,5 @@ IHitable* SampleSceneFinal()
         list[total++] = new HitableTranslate(new HitableRotateY(new BVHNode(boxlist2, ns, 0.0, 1.0), 15), Vec3(-100, 270, 395));
     }
 
-    return new HitableList(list, total);
+    return WorldScene::Create(list, total);
 }

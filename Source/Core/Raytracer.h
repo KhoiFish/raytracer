@@ -13,6 +13,7 @@
 #include "Util.h"
 #include "ThreadEvent.h"
 #include "Pdf.h"
+#include "WorldScene.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -32,7 +33,7 @@ public:
     Raytracer(int width, int height, int numSamples, int maxDepth, int numThreads);
     ~Raytracer();
 
-    void             BeginRaytrace(const Camera& cam, IHitable* world);
+    void             BeginRaytrace(const Camera& cam, WorldScene* scene);
     bool             WaitForTraceToFinish(int timeoutMicroSeconds);
     Stats            GetStats() const;
 
@@ -43,10 +44,9 @@ public:
 
 private:
 
-    static void      threadTraceNextPixel(int id, Raytracer* tracer, const Camera& cam, IHitable* world, IHitable* lightShapes);
-    Vec3             trace(const Ray& r, IHitable *world, IHitable* lightShapes, int depth, const Vec3& clearColor);
+    static void      threadTraceNextPixel(int id, Raytracer* tracer, const Camera& cam, WorldScene* scene);
+    Vec3             trace(const Ray& r, WorldScene* scene, int depth, const Vec3& clearColor);
     void             cleanupRaytrace();
-    IHitable*        extractLightShapesFromWorld(IHitable* world);
 
 private:
 
@@ -60,7 +60,6 @@ private:
     int                   NumRaySamples;
     int                   MaxDepth;
     int                   NumThreads;
-    IHitable*             CurrentWorldLightShapes;
 
     // Thread tracking
     std::atomic<int>      CurrentOutputOffset;

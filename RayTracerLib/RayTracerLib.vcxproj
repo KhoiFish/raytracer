@@ -176,6 +176,7 @@
     <ClInclude Include="..\Source\Core\ThreadEvent.h" />
     <ClInclude Include="..\Source\Core\Util.h" />
     <ClInclude Include="..\Source\Core\Vec3.h" />
+    <ClInclude Include="..\Source\Core\WorldScene.h" />
     <ClInclude Include="..\Source\Core\XYZRect.h" />
     <ClInclude Include="..\Source\StbImage\stb_image.h" />
   </ItemGroup>

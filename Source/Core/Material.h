@@ -3,6 +3,7 @@
 #include "IHitable.h"
 #include "Util.h"
 #include "Texture.h"
+#include "Pdf.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -10,9 +11,30 @@ class Material
 {
 public:
 
-    virtual bool Scatter(const Ray& rayIn, const HitRecord& rec, Vec3& attenuation, Ray& scattered) const = 0;
-    virtual Vec3 Emitted(float u, float v, Vec3& p) const;
-    virtual Vec3 AlbedoValue(float u, float v, const Vec3& p) const;
+    struct ScatterRecord
+    {
+        ScatterRecord() : IsSpecular(false), Attenuation(0, 0, 0), Pdf(nullptr) {}
+        ~ScatterRecord()
+        {
+            // I don't like the asymmetrical allocation/deallocation strategy for pdfs.
+            // But we'll do this for now.
+            if (Pdf)
+            {
+                delete Pdf;
+                Pdf = nullptr;
+            }
+        }
+
+        Ray   SpecularRay;
+        bool  IsSpecular;
+        Vec3  Attenuation;
+        Pdf*  Pdf;
+    };
+
+    virtual bool  Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& scatterRec) const { return false; }
+    virtual float ScatteringPdf(const Ray& rayIn, const HitRecord& rec, Ray& scattered) const { return 1.f; }
+    virtual Vec3  Emitted(const Ray& rayIn, const HitRecord& rec, float u, float v, Vec3& p) const { return Vec3(0, 0, 0); }
+    virtual Vec3  AlbedoValue(float u, float v, const Vec3& p) const { return Vec3(0, 0, 0); }
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -23,8 +45,9 @@ public:
 
     MLambertian(BaseTexture* albedo);
 
-    virtual bool Scatter(const Ray& rayIn, const HitRecord& rec, Vec3& attenuation, Ray& scattered) const;
-    virtual Vec3 AlbedoValue(float u, float v, const Vec3& p) const;
+    virtual bool  Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& scatterRec) const;
+    virtual float ScatteringPdf(const Ray& rayIn, const HitRecord& rec, Ray& scattered) const;
+    virtual Vec3  AlbedoValue(float u, float v, const Vec3& p) const;
 
 private:
 
@@ -39,7 +62,7 @@ public:
 
     MMetal(const Vec3& albedo, float fuzz);
 
-    virtual bool Scatter(const Ray& rayIn, const HitRecord& rec, Vec3& attenuation, Ray& scattered) const;
+    virtual bool Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& scatterRec) const;
     virtual Vec3 AlbedoValue(float u, float v, const Vec3& p) const;
 
 private:
@@ -56,7 +79,7 @@ public:
 
     MDielectric(float ri);
 
-    virtual bool Scatter(const Ray& rayIn, const HitRecord& rec, Vec3& attenuation, Ray& scattered) const;
+    virtual bool Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& scatterRec) const;
 
 private:
     
@@ -71,9 +94,7 @@ public:
 
     MDiffuseLight(BaseTexture* tex);
 
-    virtual bool Scatter(const Ray& rayIn, const HitRecord& rec, Vec3& attenuation, Ray& scattered) const;
-
-    virtual Vec3 Emitted(float u, float v, Vec3& p) const;
+    virtual Vec3 Emitted(const Ray& rayIn, const HitRecord& rec, float u, float v, Vec3& p) const;
 
 private:
 
@@ -88,7 +109,7 @@ public:
 
     MIsotropic(BaseTexture* albedo);
 
-    virtual bool Scatter(const Ray& rayIn, const HitRecord& rec, Vec3& attenuation, Ray& scattered) const;
+    virtual bool Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& scatterRec) const;
     virtual Vec3 AlbedoValue(float u, float v, const Vec3& p) const;
 
 private:

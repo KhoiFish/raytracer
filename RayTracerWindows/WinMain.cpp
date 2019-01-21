@@ -44,7 +44,7 @@ int CALLBACK wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdL
 
     Application::Create(hInstance);
     {
-        std::shared_ptr<RaytracerWindows> demo = std::make_shared<RaytracerWindows>(L"Raytracer", 1280, 720);
+        std::shared_ptr<RaytracerWindows> demo = std::make_shared<RaytracerWindows>(L"Raytracer", 1024, 1024);
         retCode = Application::Get().Run(demo);
     }
     Application::Destroy();

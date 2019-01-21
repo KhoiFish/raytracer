@@ -12,6 +12,7 @@
 #include "Camera.h"
 #include "Util.h"
 #include "ThreadEvent.h"
+#include "Pdf.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -42,9 +43,10 @@ public:
 
 private:
 
-    static void   threadTraceNextPixel(int id, Raytracer* tracer, const Camera& cam, IHitable* world);
-    Vec3          trace(const Ray& r, IHitable *world, int depth, const Vec3& clearColor);
-    void          cleanupRaytrace();
+    static void      threadTraceNextPixel(int id, Raytracer* tracer, const Camera& cam, IHitable* world, IHitable* lightShapes);
+    Vec3             trace(const Ray& r, IHitable *world, IHitable* lightShapes, int depth, const Vec3& clearColor);
+    void             cleanupRaytrace();
+    IHitable*        extractLightShapesFromWorld(IHitable* world);
 
 private:
 
@@ -58,6 +60,7 @@ private:
     int                   NumRaySamples;
     int                   MaxDepth;
     int                   NumThreads;
+    IHitable*             CurrentWorldLightShapes;
 
     // Thread tracking
     std::atomic<int>      CurrentOutputOffset;

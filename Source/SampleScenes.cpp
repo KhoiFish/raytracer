@@ -208,7 +208,7 @@ IHitable* SampleSceneCornellBox(bool smoke)
     list[i++] = new FlipNormals(new XYZRect(XYZRect::YZ, 0, 555, 0, 555, 555, green));
     list[i++] = new XYZRect(XYZRect::YZ, 0, 555, 0, 555, 0, red);
 
-    list[i++] = new XYZRect(XYZRect::XZ, 113, 443, 127, 432, 554, light);
+    list[i++] = new XYZRect(XYZRect::XZ, 213, 343, 227, 332, 554, light, true);
 
     list[i++] = new FlipNormals(new XYZRect(XYZRect::XZ, 0, 555, 0, 555, 555, white));
     list[i++] = new XYZRect(XYZRect::XZ, 0, 555, 0, 555, 0, white);

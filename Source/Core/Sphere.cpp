@@ -1,4 +1,5 @@
 #include "Sphere.h"
+#include "OrthoNormalBasis.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -37,4 +38,36 @@ bool Sphere::BoundingBox(float t0, float t1, AABB& box) const
 {
     box = AABB::ComputerAABBForSphere(Center, Radius);
     return true;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+float Sphere::PdfValue(const Vec3& origin, const Vec3& v) const
+{
+    HitRecord rec;
+
+    if (Hit(Ray(origin, v), 0.001f, FLT_MAX, rec))
+    {
+        float cosThetaMax = sqrt(1 - Radius * Radius / (Center - origin).SquaredLength());
+        float solidAngle = 2 * RT_PI * (1 - cosThetaMax);
+
+        return 1.f / solidAngle;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+Vec3 Sphere::Random(const Vec3& origin) const
+{
+    Vec3  direction = Center - origin;
+    float distanceSquared = direction.SquaredLength();
+
+    OrthoNormalBasis uvw;
+    uvw.BuildFromW(direction);
+
+    return uvw.Local(RandomToSphere(Radius, distanceSquared));
 }

@@ -1,34 +1,35 @@
 #include "Material.h"
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-Vec3 Material::Emitted(float u, float v, Vec3& p) const
-{
-    return Vec3(0, 0, 0);
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-Vec3 Material::AlbedoValue(float u, float v, const Vec3& p) const
-{
-    return Vec3(0, 0, 0);
-}
+#include "OrthoNormalBasis.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
 MLambertian::MLambertian(BaseTexture* albedo) : Albedo(albedo)
 {
-
+    ;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-bool MLambertian::Scatter(const Ray& rayIn, const HitRecord& rec, Vec3& attenuation, Ray& scattered) const
+bool MLambertian::Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& scatterRec) const
 {
-    Vec3 target = rec.P + rec.Normal + RandomInUnitSphere();
-    scattered = Ray(rec.P, target - rec.P, rayIn.Time());
-    attenuation = Albedo->Value(rec.U, rec.V, rec.P);
+    scatterRec.IsSpecular  = false;
+    scatterRec.Attenuation = Albedo->Value(hitRec.U, hitRec.V, hitRec.P);
+    scatterRec.Pdf         = new CosinePdf(hitRec.Normal);
+   
     return true;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+float MLambertian::ScatteringPdf(const Ray& rayIn, const HitRecord& rec, Ray& scattered) const
+{
+    float cosine = Dot(rec.Normal, UnitVector(scattered.Direction()));
+    if (cosine < 0)
+    {
+        cosine = 0;
+    }
+
+    return cosine / RT_PI;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -55,12 +56,15 @@ MMetal::MMetal(const Vec3& albedo, float fuzz) : Albedo(albedo)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-bool MMetal::Scatter(const Ray& rayIn, const HitRecord& rec, Vec3& attenuation, Ray& scattered) const
+bool MMetal::Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& scatterRec) const
 {
-    Vec3 reflected = Reflect(UnitVector(rayIn.Direction()), rec.Normal);
-    scattered = Ray(rec.P, reflected + Fuzz * RandomInUnitSphere(), rayIn.Time());
-    attenuation = Albedo;
-    return (Dot(scattered.Direction(), rec.Normal) > 0);
+    Vec3 reflected = Reflect(UnitVector(rayIn.Direction()), hitRec.Normal);
+    scatterRec.SpecularRay = Ray(hitRec.P, reflected + Fuzz * RandomInUnitSphere());
+    scatterRec.Attenuation = Albedo;
+    scatterRec.IsSpecular  = true;
+    scatterRec.Pdf         = nullptr;
+
+    return true;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -80,27 +84,30 @@ MDielectric::MDielectric(float ri) : RefId(ri)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-bool MDielectric::Scatter(const Ray& rayIn, const HitRecord& rec, Vec3& attenuation, Ray& scattered) const
+bool MDielectric::Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& scatterRec) const
 {
     Vec3 outwardNormal;
-    Vec3 reflected = Reflect(rayIn.Direction(), rec.Normal);
-    attenuation = Vec3(1.0f, 1.0f, 1.0f);
+    Vec3 reflected = Reflect(rayIn.Direction(), hitRec.Normal);
+
+    scatterRec.IsSpecular  = true;
+    scatterRec.Attenuation = Vec3(1.0f, 1.0f, 1.0f);
+    scatterRec.Pdf         = nullptr;
 
     float niOverNt;
     Vec3 refracted;
     float reflectProb;
     float cosine;
-    if (Dot(rayIn.Direction(), rec.Normal) > 0)
+    if (Dot(rayIn.Direction(), hitRec.Normal) > 0)
     {
-        outwardNormal = -rec.Normal;
+        outwardNormal = -hitRec.Normal;
         niOverNt = RefId;
-        cosine = RefId * Dot(rayIn.Direction(), rec.Normal) / rayIn.Direction().Length();
+        cosine = RefId * Dot(rayIn.Direction(), hitRec.Normal) / rayIn.Direction().Length();
     }
     else
     {
-        outwardNormal = rec.Normal;
+        outwardNormal = hitRec.Normal;
         niOverNt = 1.0f / RefId;
-        cosine = -Dot(rayIn.Direction(), rec.Normal) / rayIn.Direction().Length();
+        cosine = -Dot(rayIn.Direction(), hitRec.Normal) / rayIn.Direction().Length();
     }
 
     if (Refract(rayIn.Direction(), outwardNormal, niOverNt, refracted))
@@ -109,17 +116,17 @@ bool MDielectric::Scatter(const Ray& rayIn, const HitRecord& rec, Vec3& attenuat
     }
     else
     {
-        scattered = Ray(rec.P, reflected, rayIn.Time());
+        scatterRec.SpecularRay = Ray(hitRec.P, reflected, rayIn.Time());
         reflectProb = 1.0f;
     }
 
     if (RandomFloat() < reflectProb)
     {
-        scattered = Ray(rec.P, reflected, rayIn.Time());
+        scatterRec.SpecularRay = Ray(hitRec.P, reflected, rayIn.Time());
     }
     else
     {
-        scattered = Ray(rec.P, refracted, rayIn.Time());
+        scatterRec.SpecularRay = Ray(hitRec.P, refracted, rayIn.Time());
     }
 
     return true;
@@ -130,21 +137,21 @@ bool MDielectric::Scatter(const Ray& rayIn, const HitRecord& rec, Vec3& attenuat
 
 MDiffuseLight::MDiffuseLight(BaseTexture* tex) : EmitTex(tex)
 {
-
+    ;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-bool MDiffuseLight::Scatter(const Ray& rayIn, const HitRecord& rec, Vec3& attenuation, Ray& scattered) const
+Vec3 MDiffuseLight::Emitted(const Ray& rayIn, const HitRecord& rec, float u, float v, Vec3& p) const
 {
-    return false;
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-Vec3 MDiffuseLight::Emitted(float u, float v, Vec3& p) const
-{
-    return EmitTex->Value(u, v, p);
+    if (Dot(rec.Normal, rayIn.Direction()) > 0.f)
+    {
+        return EmitTex->Value(u, v, p);
+    }
+    else
+    {
+        return Vec3(0, 0, 0);
+    }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -157,10 +164,12 @@ MIsotropic::MIsotropic(BaseTexture* albedo) : Albedo(albedo)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-bool MIsotropic::Scatter(const Ray& rayIn, const HitRecord& rec, Vec3& attenuation, Ray& scattered) const
+bool MIsotropic::Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& scatterRec) const
 {
-    scattered = Ray(rec.P, RandomInUnitSphere());
-    attenuation = Albedo->Value(rec.U, rec.V, rec.P);
+    scatterRec.SpecularRay = Ray(hitRec.P, RandomInUnitSphere());
+    scatterRec.Attenuation = Albedo->Value(hitRec.U, hitRec.V, hitRec.P);
+    scatterRec.Pdf         = nullptr;
+    scatterRec.IsSpecular  = true;
 
     return true;
 }

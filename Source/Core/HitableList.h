@@ -10,11 +10,13 @@ public:
 
     inline HitableList(IHitable **l, int n) : List(l), ListSize(n) {}
 
-    virtual bool Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const;
-    virtual bool BoundingBox(float t0, float t1, AABB& box) const;
+    virtual bool      Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const;
+    virtual bool      BoundingBox(float t0, float t1, AABB& box) const;
+    virtual float     PdfValue(const Vec3& origin, const Vec3& v) const;
+    virtual Vec3      Random(const Vec3& origin) const;
 
-    inline const IHitable** GetList() const { return (const IHitable**)List; }
-    inline const int        GetListSize() const { return ListSize; }
+    inline IHitable** GetList() const { return List; }
+    inline const int  GetListSize() const { return ListSize; }
 
 private:
 

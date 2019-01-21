@@ -71,3 +71,31 @@ bool XYZRect::BoundingBox(float t0, float t1, AABB& box) const
 
     return true;
 }
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+float XYZRect::PdfValue(const Vec3& origin, const Vec3& v) const
+{
+    HitRecord rec;
+    if (this->Hit(Ray(origin, v), 0.001f, FLT_MAX, rec))
+    {
+        float area = (A1 - A0) * (B1 - B0);
+        float distanceSquared = rec.T * rec.T * v.SquaredLength();
+        float cosine = fabs(Dot(v, rec.Normal) / v.Length());
+
+        return distanceSquared / (cosine * area);
+    }
+    else
+    {
+        return 0.f;
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+Vec3 XYZRect::Random(const Vec3& origin) const
+{
+    Vec3 randomPoint = Vec3(A0 + RandomFloat() * (A1 - A0), K, B0 + RandomFloat() * (B1 - B0));
+
+    return randomPoint - origin;
+}

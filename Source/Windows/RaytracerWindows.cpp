@@ -101,7 +101,7 @@ static const UINT sShaderRegisterParams[NumRootParameters][2] =
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static int    sNumSamplesPerRay   = 5;
+static int    sNumSamplesPerRay   = 500;
 static int    sMaxScatterDepth    = 50;
 static int    sNumThreads         = 8;
 static float  sClearColor[]       = { 0.4f, 0.6f, 0.9f, 1.0f };
@@ -319,8 +319,13 @@ void RaytracerWindows::LoadScene(std::shared_ptr<CommandList> commandList)
 {
     const float aspect = (float)BackbufferWidth / (float)BackbufferHeight;
 
+#if 0
     RaytracerCamera = GetCameraForSample(SceneFinal, aspect);
     World = SampleSceneFinal();
+#else
+    RaytracerCamera = GetCameraForSample(SceneCornell, aspect);
+    World = SampleSceneCornellBox(false);
+#endif
 
     std::vector<DirectX::XMMATRIX> matrixStack;
     GenerateRenderListFromWorld(commandList, World, RenderSceneList, matrixStack);
@@ -336,8 +341,8 @@ void RaytracerWindows::GenerateRenderListFromWorld(std::shared_ptr<CommandList> 
     {
         HitableList* hitList = (HitableList*)currentHead;
 
-        const IHitable** list = hitList->GetList();
-        const int        listSize = hitList->GetListSize();
+        IHitable** list = hitList->GetList();
+        const int  listSize = hitList->GetListSize();
         for (int i = 0; i < listSize; i++)
         {
             GenerateRenderListFromWorld(commandList, list[i], outSceneList, matrixStack);

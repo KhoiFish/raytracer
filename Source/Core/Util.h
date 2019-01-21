@@ -81,6 +81,34 @@ inline Vec3 RandomInUnitDisk()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+inline Vec3 RandomToSphere(float radius, float distanceSquared)
+{
+    float r1  = RandomFloat();
+    float r2  = RandomFloat();
+    float  z  = 1 + r2 * (sqrt(1 - radius * radius / distanceSquared) - 1);
+    float phi = 2 * RT_PI * r1;
+    float x   = cos(phi) * sqrt(1 - z * z);
+    float y   = sin(phi) * sqrt(1 - z * z);
+
+    return Vec3(x, y, z);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+inline Vec3 RandomCosineDirection()
+{
+    float r1  = RandomFloat();
+    float r2  = RandomFloat();
+    float z   = sqrt(1 - r2);
+    float phi = 2 * RT_PI * r1;
+    float x   = cos(phi) * 2 * sqrt(r2);
+    float y   = sin(phi) * 2 * sqrt(r2);
+
+    return Vec3(x, y, z);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 inline float Schlick(float cosine, float refIdx)
 {
     float r0 = (1 - refIdx) / (1 + refIdx);

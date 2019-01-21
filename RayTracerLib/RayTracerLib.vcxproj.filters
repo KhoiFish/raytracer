@@ -87,6 +87,12 @@
     <ClInclude Include="..\Source\Core\Quat.h">
       <Filter>Core\Headers</Filter>
     </ClInclude>
+    <ClInclude Include="..\Source\Core\OrthoNormalBasis.h">
+      <Filter>Core\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Core\pdf.h">
+      <Filter>Core\Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Source\Core\BVHNode.cpp">

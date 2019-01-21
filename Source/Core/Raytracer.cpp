@@ -1,5 +1,8 @@
 #include "Raytracer.h"
+#include "XYZRect.h"
+#include "BVHNode.h"
 #include <cfloat>
+#include <vector>
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -9,6 +12,7 @@ Raytracer::Raytracer(int width, int height, int numSamples, int maxDepth, int nu
     , NumRaySamples(numSamples)
     , MaxDepth(maxDepth)
     , NumThreads(numThreads)
+    , CurrentWorldLightShapes(nullptr)
     , CurrentOutputOffset(0)
     , TotalRaysFired(0)
     , NumThreadsDone(0)
@@ -48,13 +52,20 @@ void Raytracer::BeginRaytrace(const Camera& cam, IHitable* world)
     CurrentOutputOffset = 0;
     NumThreadsDone = 0;
 
+    if (CurrentWorldLightShapes)
+    {
+        delete CurrentWorldLightShapes;
+        CurrentWorldLightShapes = nullptr;
+    }
+    CurrentWorldLightShapes = extractLightShapesFromWorld(world);
+
     // Memset out buffers
     memset(OutputBufferRGBA, 0, sizeof(uint8_t) * OutputWidth * OutputHeight * 4);
 
     // Create the threads and run them
     for (int i = 0; i < NumThreads; i++)
     {
-        ThreadPtrs[i] = new std::thread(threadTraceNextPixel, i, this, cam, world);
+        ThreadPtrs[i] = new std::thread(threadTraceNextPixel, i, this, cam, world, CurrentWorldLightShapes);
     }
 }
 
@@ -109,7 +120,48 @@ void Raytracer::cleanupRaytrace()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void Raytracer::threadTraceNextPixel(int id, Raytracer* tracer, const Camera& cam, IHitable* world)
+IHitable* Raytracer::extractLightShapesFromWorld(IHitable* world)
+{
+    std::vector<IHitable*> lightShapes;
+    if (typeid(*world) == typeid(HitableList))
+    {
+        HitableList* list = (HitableList*)world;
+        for (int i = 0; i < list->GetListSize(); i++)
+        {
+            IHitable* hitable = list->GetList()[i];
+            if (hitable->IsALightShape())
+            {
+                // Get a reference
+                lightShapes.push_back(hitable);
+            }
+        }
+    }
+    else if (typeid(world) == typeid(BVHNode))
+    {
+        // TODO
+    }
+
+    IHitable** newList = new IHitable*[lightShapes.size()];
+    for (int i = 0; i < (int)lightShapes.size(); i++)
+    {
+        newList[i] = lightShapes[i];
+    }
+
+    return new HitableList(newList, (int)lightShapes.size());
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+inline Vec3 DeNaN(const Vec3& c)
+{
+    Vec3 temp = c;
+    if (!(temp[0] == temp[0])) temp[0] = 0;
+    if (!(temp[1] == temp[1])) temp[1] = 0;
+    if (!(temp[2] == temp[2])) temp[2] = 0;
+    return temp;
+}
+
+void Raytracer::threadTraceNextPixel(int id, Raytracer* tracer, const Camera& cam, IHitable* world, IHitable* lightShapes)
 {
     const int numPixels = (tracer->OutputWidth * tracer->OutputHeight);
 
@@ -141,7 +193,7 @@ void Raytracer::threadTraceNextPixel(int id, Raytracer* tracer, const Camera& ca
                 const float v = float(y + RandomFloat()) / float(tracer->OutputHeight);
 
                 Ray r = cam.GetRay(u, v);
-                col += tracer->trace(r, world, 0, cam.GetClearColor());
+                col += DeNaN(tracer->trace(r, world, lightShapes, 0, cam.GetClearColor()));
 
                 // Bail if we're requested to exit
                 if (tracer->ThreadExitRequested.load() == true)
@@ -178,7 +230,7 @@ void Raytracer::threadTraceNextPixel(int id, Raytracer* tracer, const Camera& ca
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-Vec3 Raytracer::trace(const Ray& r, IHitable *world, int depth, const Vec3& clearColor)
+Vec3 Raytracer::trace(const Ray& r, IHitable *world, IHitable* lightShapes, int depth, const Vec3& clearColor)
 {
     // Bail if we're requested to exit
     if (ThreadExitRequested.load() == true)
@@ -189,15 +241,29 @@ Vec3 Raytracer::trace(const Ray& r, IHitable *world, int depth, const Vec3& clea
     // Increment num rays fired
     TotalRaysFired++;
 
-    HitRecord rec;
-    if (world->Hit(r, 0.001f, FLT_MAX, rec))
+    HitRecord hitRec;
+    if (world->Hit(r, 0.001f, FLT_MAX, hitRec))
     {
-        Ray  scattered;
-        Vec3 attenuation;
-        Vec3 emitted = rec.MatPtr->Emitted(rec.U, rec.V, rec.P);
-        if (depth < MaxDepth && rec.MatPtr->Scatter(r, rec, attenuation, scattered))
+        Material::ScatterRecord scatterRec;
+        Vec3 emitted = hitRec.MatPtr->Emitted(r, hitRec, hitRec.U, hitRec.V, hitRec.P);
+        if (depth < MaxDepth && hitRec.MatPtr->Scatter(r, hitRec, scatterRec))
         {
-            return emitted + attenuation * trace(scattered, world, depth + 1, clearColor);
+            if (scatterRec.IsSpecular)
+            {
+                return scatterRec.Attenuation * trace(scatterRec.SpecularRay, world, lightShapes, depth + 1, clearColor);
+            }
+            else
+            {
+                HitablePdf  hitablePdf(lightShapes, hitRec.P);
+                MixturePdf  pdf(&hitablePdf, scatterRec.Pdf);
+                Ray         scattered = Ray(hitRec.P, pdf.Generate(), r.Time());
+                float       pdfValue  = pdf.Value(scattered.Direction());
+
+                return emitted +
+                    scatterRec.Attenuation *
+                    hitRec.MatPtr->ScatteringPdf(r, hitRec, scattered) *
+                    trace(scattered, world, lightShapes, depth + 1, clearColor) / pdfValue;
+            }
         }
         else
         {

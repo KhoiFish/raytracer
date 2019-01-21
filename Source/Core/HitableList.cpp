@@ -1,4 +1,5 @@
 #include "HitableList.h"
+#include "Util.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -57,4 +58,24 @@ bool HitableList::BoundingBox(float t0, float t1, AABB& box) const
 
     box = retBox;
     return true;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+float HitableList::PdfValue(const Vec3& origin, const Vec3& v) const
+{
+    float weight = 1.0f / ListSize;
+    float sum    = 0;
+    for (int i = 0; i < ListSize; i++)
+        sum += weight * List[i]->PdfValue(origin, v);
+
+    return sum;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+Vec3 HitableList::Random(const Vec3& origin) const
+{
+    int index = rand() % ListSize;
+    return List[index]->Random(origin);
 }

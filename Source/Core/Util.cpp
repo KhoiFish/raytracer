@@ -1,4 +1,5 @@
 #include "Util.h"
+#include <windows.h>
 #include <stdlib.h>
 #include <varargs.h>
 
@@ -30,7 +31,7 @@ void RenderDebugPrintf(const char *fmt, ...)
 
     printf(buf);
 
-#if defined(_WINDOWS)
+#if defined(_WINDOWS_)
     OutputDebugStringA(buf);
 #endif
 }

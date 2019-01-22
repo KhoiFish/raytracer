@@ -96,6 +96,12 @@
     <ClInclude Include="..\Source\Core\WorldScene.h">
       <Filter>Core\Headers</Filter>
     </ClInclude>
+    <ClInclude Include="..\Source\Core\Triangle.h">
+      <Filter>Core\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Core\TriMesh.h">
+      <Filter>Core\Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Source\Core\BVHNode.cpp">
@@ -147,6 +153,12 @@
       <Filter>Core\Implementation</Filter>
     </ClCompile>
     <ClCompile Include="..\Source\Core\ImageIO.cpp">
+      <Filter>Core\Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Core\Triangle.cpp">
+      <Filter>Core\Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Core\TriMesh.cpp">
       <Filter>Core\Implementation</Filter>
     </ClCompile>
   </ItemGroup>

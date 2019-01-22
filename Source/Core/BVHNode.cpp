@@ -37,6 +37,10 @@ int BVHNode::boxCompare(const void* a, const void* b, ECompareMode mode)
     {
         return -1;
     }
+    else if (val == 0)
+    {
+        return 0;
+    }
     else
     {
         return 1;

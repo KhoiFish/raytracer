@@ -144,7 +144,7 @@ MDiffuseLight::MDiffuseLight(BaseTexture* tex) : EmitTex(tex)
 
 Vec3 MDiffuseLight::Emitted(const Ray& rayIn, const HitRecord& rec, float u, float v, Vec3& p) const
 {
-    if (Dot(rec.Normal, rayIn.Direction()) > 0.f)
+    if (Dot(rec.Normal, rayIn.Direction()) < 0.f)
     {
         return EmitTex->Value(u, v, p);
     }

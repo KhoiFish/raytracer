@@ -164,6 +164,7 @@
     <ClInclude Include="..\Source\Core\IHitable.h" />
     <ClInclude Include="..\Source\Core\ImageIO.h" />
     <ClInclude Include="..\Source\Core\Material.h" />
+    <ClInclude Include="..\Source\Core\TriMesh.h" />
     <ClInclude Include="..\Source\Core\MovingSphere.h" />
     <ClInclude Include="..\Source\Core\OrthoNormalBasis.h" />
     <ClInclude Include="..\Source\Core\Pdf.h" />
@@ -174,6 +175,7 @@
     <ClInclude Include="..\Source\Core\Sphere.h" />
     <ClInclude Include="..\Source\Core\Texture.h" />
     <ClInclude Include="..\Source\Core\ThreadEvent.h" />
+    <ClInclude Include="..\Source\Core\Triangle.h" />
     <ClInclude Include="..\Source\Core\Util.h" />
     <ClInclude Include="..\Source\Core\Vec3.h" />
     <ClInclude Include="..\Source\Core\WorldScene.h" />
@@ -195,6 +197,8 @@
     <ClCompile Include="..\Source\Core\Raytracer.cpp" />
     <ClCompile Include="..\Source\Core\Sphere.cpp" />
     <ClCompile Include="..\Source\Core\Texture.cpp" />
+    <ClCompile Include="..\Source\Core\Triangle.cpp" />
+    <ClCompile Include="..\Source\Core\TriMesh.cpp" />
     <ClCompile Include="..\Source\Core\Util.cpp" />
     <ClCompile Include="..\Source\Core\XYZRect.cpp" />
     <ClCompile Include="..\Source\StbImage\StbImageImpl.cpp" />

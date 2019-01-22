@@ -24,4 +24,5 @@ WorldScene* SampleSceneRandom(const Camera& cam);
 WorldScene* SampleSceneCreateTwoPerlinSpheres();
 WorldScene* SampleSceneSimpleLight();
 WorldScene* SampleSceneCornellBox(bool smoke);
+WorldScene* SampleSceneMesh();
 WorldScene* SampleSceneFinal();

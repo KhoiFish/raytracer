@@ -14,6 +14,8 @@
 #include "Core/HitableBox.h"
 #include "Core/HitableTransform.h"
 #include "Core/ConstantMedium.h"
+#include "Core/Triangle.h"
+#include "Core/TriMesh.h"
 
 #include "StbImage/stb_image.h"
 
@@ -239,6 +241,41 @@ WorldScene* SampleSceneCornellBox(bool smoke)
     {
         list[i++] = box2;
     }
+
+    return WorldScene::Create(list, i, lsList, numLs);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+WorldScene* SampleSceneMesh()
+{
+    IHitable** list = new IHitable*[8];
+    int i = 0;
+
+    IHitable** lsList = new IHitable*[2];
+    int numLs = 0;
+
+    Material* red   = new MLambertian(new ConstantTexture(Vec3(.65f, .05f, .05f)));
+    Material* white = new MLambertian(new ConstantTexture(Vec3(.73f, .73f, .73f)));
+    Material* green = new MLambertian(new ConstantTexture(Vec3(.12f, .45f, .15f)));
+    Material* light = new MDiffuseLight(new ConstantTexture(Vec3(15, 15, 15)));
+    //Material* glass = new MDielectric(1.5f);
+
+    list[i++] = new FlipNormals(new XYZRect(XYZRect::YZ, 0, 555, 0, 555, 555, green));
+    list[i++] = new XYZRect(XYZRect::YZ, 0, 555, 0, 555, 0, red);
+
+    IHitable* lightShape = new XYZRect(XYZRect::XZ, 213, 343, 227, 332, 554, light, true);
+    list[i++] = new FlipNormals(lightShape);
+    lsList[numLs++] = lightShape;
+
+    list[i++] = new FlipNormals(new XYZRect(XYZRect::XZ, 0, 555, 0, 555, 555, white));
+    list[i++] = new XYZRect(XYZRect::XZ, 0, 555, 0, 555, 0, white);
+    list[i++] = new FlipNormals(new XYZRect(XYZRect::XY, 0, 555, 0, 555, 555, white));
+
+    list[i++] =
+        new HitableTranslate(
+            TriMesh::CreateFromSTLFile("RuntimeData/cube.stl", white),
+            Vec3(200, 200, 100));
 
     return WorldScene::Create(list, i, lsList, numLs);
 }

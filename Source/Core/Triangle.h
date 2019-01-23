@@ -12,6 +12,7 @@ public:
     struct Vertex
     {
         Vec3  Vert;
+        Vec3  Normal;
         Vec3  Color;
         float UV[2];
     };

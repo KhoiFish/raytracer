@@ -223,7 +223,13 @@ Vec3 Raytracer::trace(const Ray& r, WorldScene* scene, int depth, const Vec3& cl
             else
             {
                 HitablePdf  hitablePdf(scene->GetLightShapes(), hitRec.P);
-                MixturePdf  pdf(&hitablePdf, scatterRec.Pdf);
+                MixturePdf  mixPdf(&hitablePdf, scatterRec.Pdf);
+
+                Pdf* pdf = scatterRec.Pdf;
+                if (scene->GetLightShapes() != nullptr)
+                {
+                    pdf = &mixPdf;
+                }
 
                 // PDF values may be zero or close to it, or close to infinity.
                 // We retry and retry in these cases
@@ -232,8 +238,8 @@ Vec3 Raytracer::trace(const Ray& r, WorldScene* scene, int depth, const Vec3& cl
                 int numRetries = 0;
                 do
                 {
-                   scattered = Ray(hitRec.P, pdf.Generate(), r.Time());
-                   pdfValue  = pdf.Value(scattered.Direction());
+                   scattered = Ray(hitRec.P, pdf->Generate(), r.Time());
+                   pdfValue  = pdf->Value(scattered.Direction());
                    numRetries++;
                 } while (pdfValue <= 0.0000001f || pdfValue > 99999999.f);
 

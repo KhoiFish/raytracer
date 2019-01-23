@@ -7,8 +7,7 @@ Triangle::Triangle(const Vertex& v0, const Vertex& v1, const Vertex& v2, Materia
     Vertices[0] = v0;
     Vertices[1] = v1;
     Vertices[2] = v2;
-
-    MatPtr = Mat;
+    MatPtr      = Mat;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -73,13 +72,15 @@ bool Triangle::Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const
     float t = f * Dot(edge2, q);
     if (t > EPSILON)
     {
+        Vec3 normal = (Vertices[0].Normal + Vertices[1].Normal + Vertices[2].Normal) * (1.0f / 3.0f);
+
         // Ray intersection
         rec.U       = u;
         rec.V       = v;
         rec.T       = t;
         rec.MatPtr  = MatPtr;
         rec.P       = r.PointAtParameter(t);
-        rec.Normal  = UnitVector(Cross(edge2, edge1));
+        rec.Normal  = UnitVector(Cross(edge1, edge2));
         return true;
     }
     else

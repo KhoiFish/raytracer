@@ -249,7 +249,7 @@ WorldScene* SampleSceneCornellBox(bool smoke)
 
 WorldScene* SampleSceneMesh()
 {
-    IHitable** list = new IHitable*[8];
+    IHitable** list = new IHitable*[16];
     int i = 0;
 
     IHitable** lsList = new IHitable*[2];
@@ -259,7 +259,7 @@ WorldScene* SampleSceneMesh()
     Material* white = new MLambertian(new ConstantTexture(Vec3(.73f, .73f, .73f)));
     Material* green = new MLambertian(new ConstantTexture(Vec3(.12f, .45f, .15f)));
     Material* light = new MDiffuseLight(new ConstantTexture(Vec3(15, 15, 15)));
-    //Material* glass = new MDielectric(1.5f);
+    Material* glass = new MDielectric(1.5f);
 
     list[i++] = new FlipNormals(new XYZRect(XYZRect::YZ, 0, 555, 0, 555, 555, green));
     list[i++] = new XYZRect(XYZRect::YZ, 0, 555, 0, 555, 0, red);
@@ -271,11 +271,19 @@ WorldScene* SampleSceneMesh()
     list[i++] = new FlipNormals(new XYZRect(XYZRect::XZ, 0, 555, 0, 555, 555, white));
     list[i++] = new XYZRect(XYZRect::XZ, 0, 555, 0, 555, 0, white);
     list[i++] = new FlipNormals(new XYZRect(XYZRect::XY, 0, 555, 0, 555, 555, white));
-
-    list[i++] =
+    
+    IHitable *triMesh =
         new HitableTranslate(
-            TriMesh::CreateFromSTLFile("RuntimeData/cube.stl", white),
-            Vec3(200, 200, 100));
+            new HitableRotateY(
+                TriMesh::CreateFromOBJFile("RuntimeData/sphere.obj", glass, 1.f),
+                45.f
+            ),
+            Vec3(200, 200, 100)
+        );
+
+    lsList[numLs++] = triMesh;
+    list[i++] = triMesh;
+    list[i++] = new ConstantMedium(triMesh, 0.2f, new ConstantTexture(Vec3(0.2f, 0.4f, 0.9f)));
 
     return WorldScene::Create(list, i, lsList, numLs);
 }

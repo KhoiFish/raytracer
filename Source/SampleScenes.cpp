@@ -260,6 +260,7 @@ WorldScene* SampleSceneMesh()
     Material* green = new MLambertian(new ConstantTexture(Vec3(.12f, .45f, .15f)));
     Material* light = new MDiffuseLight(new ConstantTexture(Vec3(15, 15, 15)));
     Material* glass = new MDielectric(1.5f);
+    Material* metal = new MMetal(Vec3(0.8f, 0.8f, 0.9f), 10.0f);
 
     list[i++] = new FlipNormals(new XYZRect(XYZRect::YZ, 0, 555, 0, 555, 555, green));
     list[i++] = new XYZRect(XYZRect::YZ, 0, 555, 0, 555, 0, red);
@@ -275,15 +276,14 @@ WorldScene* SampleSceneMesh()
     IHitable *triMesh =
         new HitableTranslate(
             new HitableRotateY(
-                TriMesh::CreateFromOBJFile("RuntimeData/sphere.obj", glass, 1.f),
-                45.f
+                TriMesh::CreateFromOBJFile("RuntimeData/r8.obj", metal, 20.f),
+                35.f
             ),
-            Vec3(200, 200, 100)
+            Vec3(280, 100, 100)
         );
 
-    lsList[numLs++] = triMesh;
     list[i++] = triMesh;
-    list[i++] = new ConstantMedium(triMesh, 0.2f, new ConstantTexture(Vec3(0.2f, 0.4f, 0.9f)));
+    //lsList[numLs++] = triMesh;
 
     return WorldScene::Create(list, i, lsList, numLs);
 }

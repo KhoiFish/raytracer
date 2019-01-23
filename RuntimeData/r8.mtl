@@ -1,0 +1,14 @@
+# Blender MTL File: 'Audi_R8_Low_Poly.blend'
+# Material Count: 1
+
+newmtl Audi_R8_Black
+Ns 9.803922
+Ka 0.588235 0.588235 0.588235
+Kd 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd C:\Users\Khoi Nguyen\Downloads\R8\Textures\Audi_R8_Texture_(Black).png
+map_Ka C:\\Users\\Khoi Nguyen\\Downloads\\R8\\Textures\\Audi_R8_Texture_(Black).png

@@ -18,6 +18,19 @@ struct STLTriangle
 };
 #pragma pack(pop)
 
+struct FaceVertex
+{
+    int VertIndex;
+    int TexCoordIndex;
+    int NormIndex;
+};
+
+struct Face
+{
+    std::vector<FaceVertex> Verts;
+};
+
+
 // ----------------------------------------------------------------------------------------------------------------------------
 
 TriMesh* TriMesh::CreateFromSTLFile(const char* filePath, Material* material, float scale /*= 1.0f*/)
@@ -93,6 +106,41 @@ static inline std::vector<std::string> getTokens(std::string sourceStr, std::str
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+static inline Triangle* MakeNewTriangle(int v0, int v1, int v2, std::vector<Vec3> vertList, std::vector<Vec3> vertNormalList, const Face& face, Material* material)
+{
+    Triangle* newTri0 = new Triangle(
+        Triangle::Vertex(
+            {
+                vertList[face.Verts[v0].VertIndex],
+                vertNormalList[face.Verts[v0].NormIndex],
+                Vec3(0, 0, 0),
+                { 0, 0 }
+            }
+        ),
+        Triangle::Vertex(
+            {
+                vertList[face.Verts[v1].VertIndex],
+                vertNormalList[face.Verts[v1].NormIndex],
+                Vec3(0, 0, 0),
+                { 0, 0 }
+            }
+        ),
+        Triangle::Vertex(
+            {
+                vertList[face.Verts[v2].VertIndex],
+                vertNormalList[face.Verts[v2].NormIndex],
+                Vec3(0, 0, 0),
+                { 0, 0 }
+            }
+        ),
+        material
+    );
+
+    return newTri0;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 TriMesh* TriMesh::CreateFromOBJFile(const char* filePath, Material* material, float scale /*= 1.0f*/)
 {
     const int LINE_SIZE = 4096;
@@ -107,14 +155,14 @@ TriMesh* TriMesh::CreateFromOBJFile(const char* filePath, Material* material, fl
         Vertex,
         TextureCoord,
         VertexNormal,
-        Face
+        FaceMode
     };
 
     if (inputFile.is_open())
     {
-        std::vector<Vec3> vertList;
-        std::vector<Vec3> vertNormalList;
-        std::vector<Triangle*> triList;
+        std::vector<Vec3>       vertList;
+        std::vector<Vec3>       vertNormalList;
+        std::vector<Face>       faceList;
         int vertCount = 0;
         int texCoordCount = 0;
         while (!inputFile.eof())
@@ -140,17 +188,11 @@ TriMesh* TriMesh::CreateFromOBJFile(const char* filePath, Material* material, fl
             }
             else if (lineBuf[0] == 'f')
             {
-                readMode = Face;
+                readMode = FaceMode;
             }
 
             switch (readMode)
             {
-                case Object:
-                {
-                    vertList.clear();
-                }
-                break;
-
                 case Vertex:
                 case VertexNormal:
                 {
@@ -173,16 +215,9 @@ TriMesh* TriMesh::CreateFromOBJFile(const char* filePath, Material* material, fl
                 }
                 break;
 
-                case Face:
+                case FaceMode:
                 {
-                    struct FaceVertex
-                    {
-                        int VertIndex;
-                        int TexCoordIndex;
-                        int NormIndex;
-                    };
-
-                    std::vector<FaceVertex> faceVertices;
+                    Face face;
                     std::string sourceString = &lineBuf[2];
                     std::vector<std::string> faceTokens = getTokens(sourceString, " ");
                     for (int i = 0; i < (int)faceTokens.size(); i++)
@@ -190,46 +225,29 @@ TriMesh* TriMesh::CreateFromOBJFile(const char* filePath, Material* material, fl
                         std::vector<std::string> faceCompTokens = getTokens(faceTokens[i], "/");
 
                         FaceVertex fc;
-                        fc.VertIndex     = (faceCompTokens.size() > 0) ? atoi(faceCompTokens[0].c_str()) : 0;
-                        fc.TexCoordIndex = (faceCompTokens.size() > 1) ? atoi(faceCompTokens[1].c_str()) : 0;
-                        fc.NormIndex     = (faceCompTokens.size() > 2) ? atoi(faceCompTokens[2].c_str()) : 0;
+                        fc.VertIndex     = (faceCompTokens.size() > 0) ? atoi(faceCompTokens[0].c_str()) - 1 : 0;
+                        fc.TexCoordIndex = (faceCompTokens.size() > 1) ? atoi(faceCompTokens[1].c_str()) - 1 : 0;
+                        fc.NormIndex     = (faceCompTokens.size() > 2) ? atoi(faceCompTokens[2].c_str()) - 1 : 0;
 
-                        faceVertices.push_back(fc);
+                        //DEBUG_PRINTF("%d %d %d\n", fc.VertIndex, fc.TexCoordIndex, fc.NormIndex);
+
+                        face.Verts.push_back(fc);
                     }
-                    assert(faceVertices.size() == 3);
-
-                    // Make tri
-                    Triangle* newTri0 = new Triangle(
-                        Triangle::Vertex(
-                            {
-                                vertList[faceVertices[0].VertIndex],
-                                vertNormalList[faceVertices[0].NormIndex],
-                                Vec3(0, 0, 0),
-                                { 0, 0 }
-                            }
-                        ),
-                        Triangle::Vertex(
-                            {
-                                vertList[faceVertices[1].VertIndex],
-                                vertNormalList[faceVertices[1].NormIndex],
-                                Vec3(0, 0, 0),
-                                { 0, 0 }
-                            }
-                        ),
-                        Triangle::Vertex(
-                            {
-                                vertList[faceVertices[2].VertIndex],
-                                vertNormalList[faceVertices[2].NormIndex],
-                                Vec3(0, 0, 0),
-                                { 0, 0 }
-                            }
-                        ),
-                        material
-                    );
-
-                    triList.push_back(newTri0);
+                    faceList.push_back(face);
                 }
                 break;
+            }
+        }
+
+
+        std::vector<Triangle*> triList;
+        for (int i = 0; i < (int)faceList.size(); i++)
+        {
+            const Face& face = faceList[i];
+            triList.push_back(MakeNewTriangle(0, 1, 2, vertList, vertNormalList, face, material));
+            if (face.Verts.size() == 4)
+            {
+                triList.push_back(MakeNewTriangle(1, 2, 3, vertList, vertNormalList, face, material));
             }
         }
 

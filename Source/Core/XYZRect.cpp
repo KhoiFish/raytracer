@@ -4,31 +4,55 @@
 
 bool XYZRect::Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const
 {
-    float t, a, b;
-    Vec3 normal;
+    Vec3  normal, planeP;
+    float aParams[2], bParams[2];
     switch (AxisMode)
     {
-    case XY:
-        t = (K - r.Origin().Z()) / r.Direction().Z();
-        a = r.Origin().X() + t * r.Direction().X();
-        b = r.Origin().Y() + t * r.Direction().Y();
-        normal = Vec3(0, 0, 1);
+        case XY:
+        {
+            normal     = Vec3(0, 0, 1);
+            planeP     = Vec3(A0, B0, K);
+            aParams[0] = r.Origin().X();
+            aParams[1] = r.Direction().X();
+            bParams[0] = r.Origin().Y();
+            bParams[1] = r.Direction().Y();
+        }
         break;
 
-    case XZ:
-        t = (K - r.Origin().Y()) / r.Direction().Y();
-        a = r.Origin().X() + t * r.Direction().X();
-        b = r.Origin().Z() + t * r.Direction().Z();
-        normal = Vec3(0, 1, 0);
-        break;
+        case XZ:
+        {
+            normal     = Vec3(0, 1, 0);
+            planeP     = Vec3(A0, K, B0);
+            aParams[0] = r.Origin().X();
+            aParams[1] = r.Direction().X();
+            bParams[0] = r.Origin().Z();
+            bParams[1] = r.Direction().Z();
+            
+            break;
+        }
 
-    case YZ:
-        t = (K - r.Origin().X()) / r.Direction().X();
-        a = r.Origin().Y() + t * r.Direction().Y();
-        b = r.Origin().Z() + t * r.Direction().Z();
-        normal = Vec3(1, 0, 0);
-        break;
+        case YZ:
+        {
+            normal     = Vec3(1, 0, 0);
+            planeP     = Vec3(K, A0, B0);
+            aParams[0] = r.Origin().Y();
+            aParams[1] = r.Direction().Y();
+            bParams[0] = r.Origin().Z();
+            bParams[1] = r.Direction().Z();
+            
+            break;
+        }
     }
+
+    const float denom = Dot(normal, r.Direction());
+    if (fabs(denom) < 0.00001f)
+    {
+        return false;
+    }
+
+    const float t = Dot(planeP - r.Origin(), normal) / denom;
+    const float a = aParams[0] + t * aParams[1];
+    const float b = bParams[0] + t * bParams[1];
 
     if (t < tMin || t > tMax)
     {
@@ -40,12 +64,12 @@ bool XYZRect::Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const
         return false;
     }
 
-    rec.U = (a - A0) / (A1 - A0);
-    rec.V = (b - B0) / (B1 - B0);
-    rec.T = t;
-    rec.MatPtr = Mat;
-    rec.P = r.PointAtParameter(t);
-    rec.Normal = normal;
+    rec.U       = (a - A0) / (A1 - A0);
+    rec.V       = (b - B0) / (B1 - B0);
+    rec.T       = t;
+    rec.P       = r.PointAtParameter(t);
+    rec.MatPtr  = Mat;
+    rec.Normal  = normal;
 
     return true;
 }

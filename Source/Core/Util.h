@@ -1,5 +1,7 @@
 #pragma once
 #include "Vec3.h"
+#include <cfloat>
+#include <cassert>
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -9,7 +11,24 @@ void RenderDebugPrintf(const char *fmt, ...);
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-#define RT_PI 3.14159265359f
+#if 1//_DEBUG
+    #define SANITY_CHECK_FLOAT(f)   __SanityCheckFloat_DontCallDirectly__(f)
+#else
+    #define SANITY_CHECK_FLOAT(f)
+#endif
+
+inline void __SanityCheckFloat_DontCallDirectly__(float f)
+{
+    if (isnan(f) || isinf(f))
+    {
+        DEBUG_PRINTF("Got NaN or inf: %f", f);
+        assert(false);
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+#define RT_PI 3.14159265358979f
 
 inline float DegreesToRadians(float degrees)
 {
@@ -43,6 +62,13 @@ template<typename T>
 constexpr const T& Clamp(const T& val, const T& min, const T& max)
 {
     return val < min ? min : val > max ? max : val;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+inline float CompareFloatEqual(float a, float b, float relTol = 0.0000001f, float absTol = 0.0000001f)
+{
+    return (fabs(a - b) <= GetMax<float>(absTol, relTol * GetMax<float>(fabs(a), fabs(b))));
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -169,12 +195,62 @@ inline float PerlinInterp(Vec3 c[2][2][2], float u, float v, float w)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+inline float atan2Fast(float y, float x)
+{
+    //http://pubs.opengroup.org/onlinepubs/009695399/functions/atan2.html
+    //Volkan SALMA
+
+    const float ONEQTR_PI = RT_PI / 4.0f;
+    const float THRQTR_PI = 3.0f * RT_PI / 4.0f;
+    float r, angle;
+    float abs_y = fabs(y) + 1e-10f;      // kludge to prevent 0/0 condition
+    if (x < 0.0f)
+    {
+        r = (x + abs_y) / (abs_y - x);
+        angle = THRQTR_PI;
+    }
+    else
+    {
+        r = (x - abs_y) / (x + abs_y);
+        angle = ONEQTR_PI;
+    }
+
+    angle += (0.1963f * r * r - 0.9817f) * r;
+    if (y < 0.0f)
+    {
+        return(-angle);     // negate if in quad III or IV
+    }
+    else
+    {
+        return(angle);
+    }
+}
+
+inline float asinFast(float x)
+{
+    float negate = float(x < 0);
+    x = abs(x);
+    float ret = -0.0187293f;
+    ret *= x;
+    ret += 0.0742610f;
+    ret *= x;
+    ret -= 0.2121144f;
+    ret *= x;
+    ret += 1.5707288f;
+    ret = 3.14159265358979f*0.5f - sqrt(1.0f - x)*ret;
+    return ret - 2 * negate * ret;
+}
+
 inline void GetSphereUV(const Vec3& p, float& u, float& v)
 {
-    float phi   = atan2(p.Z(), p.X());
-    float theta = asin(p.Y());
-    u = 1 - (phi + RT_PI) / (2 * RT_PI);
-    v = (theta + RT_PI / 2) / RT_PI;
+    const float oneOverPi    = 1.f / (RT_PI);
+    const float oneOverTwoPi = 1.f / (2 * RT_PI);
+
+    const float phi   = atan2Fast(p.Z(), p.X());
+    const float theta = asinFast(p.Y());
+
+    u = 1.f - (phi + RT_PI) * oneOverTwoPi;
+    v = (theta + RT_PI / 2) * oneOverPi;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

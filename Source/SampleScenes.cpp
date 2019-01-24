@@ -211,21 +211,20 @@ WorldScene* SampleSceneCornellBox(bool smoke)
     Material* light = new MDiffuseLight(new ConstantTexture(Vec3(15, 15, 15)));
     Material* glass = new MDielectric(1.5f);
 
-
     list[i++] = new FlipNormals(new XYZRect(XYZRect::YZ, 0, 555, 0, 555, 555, green));
     list[i++] = new XYZRect(XYZRect::YZ, 0, 555, 0, 555, 0, red);
 
-    list[i] = new XYZRect(XYZRect::XZ, 213, 343, 227, 332, 554, light, true);
-    lsList[numLs++] = list[i];
-    i++;
+    IHitable* lightShape = new XYZRect(XYZRect::XZ, 213, 343, 227, 332, 554, light, true);
+    list[i++] = new FlipNormals(lightShape);
+    lsList[numLs++] = lightShape;
 
     list[i++] = new FlipNormals(new XYZRect(XYZRect::XZ, 0, 555, 0, 555, 555, white));
     list[i++] = new XYZRect(XYZRect::XZ, 0, 555, 0, 555, 0, white);
     list[i++] = new FlipNormals(new XYZRect(XYZRect::XY, 0, 555, 0, 555, 555, white));
 
-    list[i] = new Sphere(Vec3(190, 90, 190), 90, glass, true);
-    lsList[numLs++] = list[i];
-    i++;
+    IHitable* glassSphere = new Sphere(Vec3(190, 90, 190), 90, glass, true);
+    list[i++] = glassSphere;
+    lsList[numLs++] = glassSphere;
 
     IHitable* box2 = new HitableTranslate(
         new HitableRotateY(
@@ -246,7 +245,7 @@ WorldScene* SampleSceneCornellBox(bool smoke)
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
-
+#if 0
 WorldScene* SampleSceneMesh()
 {
     IHitable** list = new IHitable*[16];
@@ -276,7 +275,7 @@ WorldScene* SampleSceneMesh()
     IHitable *triMesh =
         new HitableTranslate(
             new HitableRotateY(
-                TriMesh::CreateFromOBJFile("RuntimeData/r8.obj", metal, 20.f),
+                TriMesh::CreateFromOBJFile("RuntimeData/r8.obj", white, 20.f),
                 35.f
             ),
             Vec3(280, 100, 100)
@@ -287,6 +286,56 @@ WorldScene* SampleSceneMesh()
 
     return WorldScene::Create(list, i, lsList, numLs);
 }
+#else
+
+WorldScene* SampleSceneMesh()
+{
+    const int numBoxes = 5;
+    int total = 0;
+
+    IHitable** list = new IHitable*[30];
+    IHitable** boxlist = new IHitable*[10000];
+    IHitable** boxlist2 = new IHitable*[10000];
+    Material*  white = new MLambertian(new ConstantTexture(Vec3(0.73f, 0.73f, 0.73f)));
+    Material*  ground = new MLambertian(new ConstantTexture(Vec3(0.48f, 0.83f, 0.53f)));
+
+    IHitable** lsList = new IHitable*[2];
+    int numLs = 0;
+
+    // Create random hitable boxes, in BVH tree
+    list[total++] = new HitableBox(Vec3(-1000, -100, -1000), Vec3(1000, 100, 1000), ground);
+
+    // Create light
+    {
+        Material *lightMat = new MDiffuseLight(new ConstantTexture(Vec3(7, 7, 7)));
+        IHitable *lightShape = new FlipNormals(new XYZRect(XYZRect::XZ, 123, 423, 147, 412, 554, lightMat, true));
+        list[total++] = lightShape;
+        lsList[numLs++] = lightShape;
+    }
+
+    // Volumes
+    {
+        IHitable *boundary =
+            new HitableTranslate(
+                new HitableRotateY(
+                    TriMesh::CreateFromOBJFile("RuntimeData/r8.obj", new MDielectric(1.5f), 20.f),
+                    35.f
+                ),
+                Vec3(130, 150, 145)
+            );
+        list[total++] = boundary;
+        list[total++] = new ConstantMedium(boundary, 0.2f, new ConstantTexture(Vec3(0.2f, 0.4f, 0.9f)));
+
+
+        //boundary = new Sphere(Vec3(0, 0, 0), 5000, new MDielectric(1.5f));
+        //list[total++] = new ConstantMedium(boundary, 0.0001f, new ConstantTexture(Vec3(1.0f, 1.0f, 1.0f)));
+    }
+
+    return WorldScene::Create(list, total, lsList, numLs);
+}
+
+
+#endif
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -327,10 +376,10 @@ WorldScene* SampleSceneFinal()
 
     // Create light
     {
-        Material *light = new MDiffuseLight(new ConstantTexture(Vec3(7, 7, 7)));
-        list[total] = new XYZRect(XYZRect::XZ, 123, 423, 147, 412, 554, light, true);
-        lsList[numLs++] = list[total];
-        total++;
+        Material* lightMaterial = new MDiffuseLight(new ConstantTexture(Vec3(7, 7, 7)));
+        IHitable* lightShape = new XYZRect(XYZRect::XZ, 123, 423, 147, 412, 554, lightMaterial, true);
+        list[total++] = new FlipNormals(lightShape);
+        lsList[numLs++] = lightShape;
     }
 
     // Moving sphere
@@ -341,9 +390,9 @@ WorldScene* SampleSceneFinal()
 
     // Dielectric and metal spheres
     {
-        list[total] = new Sphere(Vec3(260, 150, 45), 50, new MDielectric(1.5f));
-        lsList[numLs++] = list[total];
-        total++;
+        IHitable* newDielectricSphere = new Sphere(Vec3(260, 150, 45), 50, new MDielectric(1.5f));
+        list[total++]   = newDielectricSphere;
+        //lsList[numLs++] = list[total];
 
         list[total++] = new Sphere(Vec3(0, 150, 145), 50, new MMetal(Vec3(0.8f, 0.8f, 0.9f), 10.0f));
     }

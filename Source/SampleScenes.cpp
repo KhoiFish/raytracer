@@ -349,7 +349,6 @@ WorldScene* SampleSceneFinal()
     IHitable** boxlist2 = new IHitable*[10000];
     Material*  white = new MLambertian(new ConstantTexture(Vec3(0.73f, 0.73f, 0.73f)));
     Material*  ground = new MLambertian(new ConstantTexture(Vec3(0.48f, 0.83f, 0.53f)));
-
     IHitable** lsList = new IHitable*[2];
     int numLs = 0;
 
@@ -392,7 +391,7 @@ WorldScene* SampleSceneFinal()
     {
         IHitable* newDielectricSphere = new Sphere(Vec3(260, 150, 45), 50, new MDielectric(1.5f));
         list[total++]   = newDielectricSphere;
-        //lsList[numLs++] = list[total];
+        lsList[numLs++] = newDielectricSphere;
 
         list[total++] = new Sphere(Vec3(0, 150, 145), 50, new MMetal(Vec3(0.8f, 0.8f, 0.9f), 10.0f));
     }
@@ -402,7 +401,6 @@ WorldScene* SampleSceneFinal()
         IHitable *boundary = new Sphere(Vec3(360, 150, 145), 70, new MDielectric(1.5f));
         list[total++] = boundary;
         list[total++] = new ConstantMedium(boundary, 0.2f, new ConstantTexture(Vec3(0.2f, 0.4f, 0.9f)));
-
 
         boundary = new Sphere(Vec3(0, 0, 0), 5000, new MDielectric(1.5f));
         list[total++] = new ConstantMedium(boundary, 0.0001f, new ConstantTexture(Vec3(1.0f, 1.0f, 1.0f)));

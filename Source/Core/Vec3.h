@@ -72,7 +72,7 @@ public:
         return sqrLength;
     }
 
-    inline void SanityCheck()
+    inline void SanityCheck() const
     {
         SANITY_CHECK_FLOAT(e[0]);
         SANITY_CHECK_FLOAT(e[1]);

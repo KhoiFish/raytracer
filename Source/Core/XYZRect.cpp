@@ -27,9 +27,8 @@ bool XYZRect::Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const
             aParams[1] = r.Direction().X();
             bParams[0] = r.Origin().Z();
             bParams[1] = r.Direction().Z();
-            
-            break;
         }
+        break;
 
         case YZ:
         {
@@ -39,9 +38,8 @@ bool XYZRect::Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const
             aParams[1] = r.Direction().Y();
             bParams[0] = r.Origin().Z();
             bParams[1] = r.Direction().Z();
-            
-            break;
         }
+        break;
     }
 
     const float denom = Dot(normal, r.Direction());
@@ -53,6 +51,10 @@ bool XYZRect::Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const
     const float t = Dot(planeP - r.Origin(), normal) / denom;
     const float a = aParams[0] + t * aParams[1];
     const float b = bParams[0] + t * bParams[1];
+
+    SANITY_CHECK_FLOAT(t);
+    SANITY_CHECK_FLOAT(a);
+    SANITY_CHECK_FLOAT(b);
 
     if (t < tMin || t > tMax)
     {
@@ -103,11 +105,13 @@ float XYZRect::PdfValue(const Vec3& origin, const Vec3& v) const
     HitRecord rec;
     if (this->Hit(Ray(origin, v), 0.001f, FLT_MAX, rec))
     {
-        float area = (A1 - A0) * (B1 - B0);
+        float area            = (A1 - A0) * (B1 - B0);
         float distanceSquared = rec.T * rec.T * v.SquaredLength();
-        float cosine = fabs(Dot(v, rec.Normal) / v.Length());
+        float cosine          = fabs(Dot(v, rec.Normal) / v.Length());
+        float ret             = distanceSquared / (cosine * area);
 
-        return distanceSquared / (cosine * area);
+        SANITY_CHECK_FLOAT(ret);
+        return ret;
     }
     else
     {
@@ -119,7 +123,31 @@ float XYZRect::PdfValue(const Vec3& origin, const Vec3& v) const
 
 Vec3 XYZRect::Random(const Vec3& origin) const
 {
-    Vec3 randomPoint = Vec3(A0 + RandomFloat() * (A1 - A0), K, B0 + RandomFloat() * (B1 - B0));
+    const float a = A0 + RandomFloat() * (A1 - A0);
+    const float b = B0 + RandomFloat() * (B1 - B0);
+    const float c = K;
+
+    Vec3 randomPoint;
+    switch (AxisMode)
+    {
+        case XY:
+        {
+            randomPoint = Vec3(a, b, c);
+        }
+        break;
+
+        case XZ:
+        {
+            randomPoint = Vec3(a, c, b);
+        }
+        break;
+
+        case YZ:
+        {
+            randomPoint = Vec3(c, a, b);
+        }
+        break;
+    }
 
     return randomPoint - origin;
 }

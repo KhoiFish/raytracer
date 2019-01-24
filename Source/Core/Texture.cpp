@@ -1,4 +1,5 @@
 #include "Texture.h"
+#include "../StbImage/stb_image.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -31,6 +32,37 @@ Vec3 NoiseTexture::Value(float u, float v, const Vec3& p) const
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+ImageTexture::ImageTexture(const unsigned char* pixels, bool hasAlpha, int width, int height) : Width(width), Height(height)
+{
+    createFromPixelData(pixels, hasAlpha, width, height);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+ImageTexture::ImageTexture(const char* filePath)
+{
+    int comp;
+    unsigned char* pixelData = stbi_load(filePath, &Width, &Height, &comp, STBI_rgb_alpha);
+    if (pixelData != nullptr)
+    {
+        createFromPixelData(pixelData, true, Width, Height);
+        free(pixelData);
+        pixelData = nullptr;
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+ImageTexture::~ImageTexture()
+{
+    if (ImageData != nullptr)
+    {
+        delete [] ImageData;
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 Vec3 ImageTexture::Value(float u, float v, const Vec3& p) const
 {
     int i = int((u)* Width);
@@ -42,10 +74,34 @@ Vec3 ImageTexture::Value(float u, float v, const Vec3& p) const
     if (i > Width - 1)  i = Width - 1;
     if (j > Height - 1) j = Height - 1;
 
-    int offset = 3 * i + 3 * Width * j;
-    float r = int(Data[offset + 0]) / 255.f;
-    float g = int(Data[offset + 1]) / 255.f;
-    float b = int(Data[offset + 2]) / 255.f;
+    const int offset = (i) + (Width * j);
 
-    return Vec3(r, g, b);
+    return ImageData[offset];
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void ImageTexture::createFromPixelData(const unsigned char* pixels, bool hasAlpha, int width, int height)
+{
+    ImageData = new Vec3[width * height];
+
+    const int bpp = hasAlpha ? 4 : 3;
+    for (int y = 0; y < height; y++)
+    {
+        for (int x = 0; x < width; x++)
+        {
+            const int   srcOffset = (bpp * x) + (bpp * Width * y);
+            const int   dstOffset = (x)+(Width * y);
+            const float kRemap = 1.f / 255.f;
+
+            const float r = int(pixels[srcOffset + 0]) * kRemap;
+            const float g = int(pixels[srcOffset + 1]) * kRemap;
+            const float b = int(pixels[srcOffset + 2]) * kRemap;
+
+            // Has alpha?
+            const float a = hasAlpha ? (int(pixels[srcOffset + 3]) * kRemap) : 1.f;
+
+            ImageData[dstOffset] = Vec3(r, g, b, a);
+        }
+    }
 }

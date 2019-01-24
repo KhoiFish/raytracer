@@ -66,13 +66,18 @@ class ImageTexture : public BaseTexture
 {
 public:
 
-    inline ImageTexture (unsigned char* pixels, int width, int height)
-        : Data(pixels), Width(width), Height(height) {}
+    ImageTexture (const unsigned char* pixels, bool hasAlpha, int width, int height);
+    ImageTexture(const char* filePath);
+    ~ImageTexture();
 
     virtual Vec3 Value(float u, float v, const Vec3& p) const;
 
 private:
 
-    unsigned char*  Data;
+    void createFromPixelData(const unsigned char* pixels, bool hasAlpha, int width, int height);
+
+private:
+
+    Vec3*           ImageData;
     int             Width, Height;
 };

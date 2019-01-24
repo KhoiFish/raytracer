@@ -169,9 +169,7 @@ WorldScene* SampleSceneCreateTwoPerlinSpheres()
     BaseTexture* perTex = new NoiseTexture(4.f);
     BaseTexture* imageTex = nullptr;
     {
-        int width, height, numChannels;
-        unsigned char* texData = stbi_load("RuntimeData/guitar.jpg", &width, &height, &numChannels, 0);
-        imageTex = new ImageTexture(texData, width, height);
+        imageTex = new ImageTexture("RuntimeData/guitar.jpg");
     }
 
     IHitable **list = new IHitable*[2];
@@ -318,9 +316,7 @@ WorldScene* SampleSceneMesh()
         IHitable *boundary =
             new HitableTranslate(
                 new HitableRotateY(
-                    TriMesh::CreateFromOBJFile("RuntimeData/r8.obj", new MDielectric(1.5f), 20.f),
-                    35.f
-                ),
+                    TriMesh::CreateFromOBJFile("RuntimeData/r8.obj"), 35.f),
                 Vec3(130, 150, 145)
             );
         list[total++] = boundary;
@@ -408,9 +404,7 @@ WorldScene* SampleSceneFinal()
 
     // Image texture sphere
     {
-        int nx, ny, nn;
-        unsigned char *texData = stbi_load("RuntimeData/guitar.jpg", &nx, &ny, &nn, 0);
-        Material *emat = new MLambertian(new ImageTexture(texData, nx, ny));
+        Material *emat = new MLambertian(new ImageTexture("RuntimeData/guitar.jpg"));
         list[total++] = new Sphere(Vec3(400, 200, 400), 100, emat);
     }
 

@@ -12,19 +12,19 @@
 
 #define  OUTPUT_IMAGE_DIR  "OutputImages/"
 
-static int    sOutputWidth      = 512;
-static int    sOutputHeight     = 512;
+static int    sOutputWidth      = 256;
+static int    sOutputHeight     = 256;
 static float  sAspect           = float(sOutputWidth) / float(sOutputHeight);
-static int    sNumSamplesPerRay = 100;
+static int    sNumSamplesPerRay = 500;
 static int    sMaxScatterDepth  = 50;
-static int    sNumThreads       = 8;
+static int    sNumThreads       = 7;
 
 static bool   sSceneEnabled[MaxScene] =
 {
-    true,  // Random
-    true,  // Cornell
-    true,  // Cornell smoke
-    true,  // Final
+    false,  // Random
+    false,  // Cornell
+    false,  // Cornell smoke
+    true,   // Final
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -43,7 +43,7 @@ static void RaytraceAndPrintProgress(Raytracer& tracer, Camera& cam, WorldScene*
         Raytracer::Stats stats = tracer.GetStats();
         float percentage = float(stats.NumPixelsTraced) / float(stats.TotalNumPixels);
 
-        snprintf(buf, 256, "#rays:%lld #pixels:%d", stats.TotalRaysFired, stats.NumPixelsTraced);
+        snprintf(buf, 256, "#rays:%lld #pixels:%d #pdfQueryRetries:%d", stats.TotalRaysFired, stats.NumPixelsTraced, stats.NumPdfQueryRetries);
         PrintProgress(buf, percentage);
     }
 

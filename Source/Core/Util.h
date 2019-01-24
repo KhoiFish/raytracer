@@ -1,6 +1,8 @@
 #pragma once
 #include "Vec3.h"
 #include "Systems.h"
+#include <vector>
+#include <string>
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -248,4 +250,20 @@ inline void GetRGBA8888(Vec3 col, bool gammaCorrect, int& ir, int& ig, int& ib, 
     ir = (ir > 255) ? 255 : ir;
     ig = (ig > 255) ? 255 : ig;
     ib = (ib > 255) ? 255 : ib;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+inline std::vector<std::string> GetStringTokens(std::string sourceStr, std::string delim)
+{
+    std::vector<std::string> tokenList;
+    size_t last = 0, next = 0;
+    while ((next = sourceStr.find(delim, last)) != std::string::npos)
+    {
+        tokenList.push_back(sourceStr.substr(last, next - last + 1));
+        last = next + delim.length();
+    }
+    tokenList.push_back(sourceStr.substr(last, next - last + 1));
+
+    return tokenList;
 }

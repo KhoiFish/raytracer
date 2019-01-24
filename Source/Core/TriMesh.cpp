@@ -25,6 +25,11 @@ struct FaceVertex
     int NormIndex;
 };
 
+struct TexCoord
+{
+    float UV[2];
+};
+
 struct Face
 {
     std::vector<FaceVertex> Verts;
@@ -90,23 +95,7 @@ TriMesh* TriMesh::CreateFromSTLFile(const char* filePath, Material* material, fl
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static inline std::vector<std::string> getTokens(std::string sourceStr, std::string delim)
-{
-    std::vector<std::string> tokenList;
-    size_t last = 0, next = 0;
-    while ((next = sourceStr.find(delim, last)) != std::string::npos)
-    {
-        tokenList.push_back(sourceStr.substr(last, next - last + 1));
-        last = next + delim.length();
-    }
-    tokenList.push_back(sourceStr.substr(last, next - last + 1));
-    
-    return tokenList;
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-static inline Triangle* MakeNewTriangle(int v0, int v1, int v2, std::vector<Vec3> vertList, std::vector<Vec3> vertNormalList, const Face& face, Material* material)
+static inline Triangle* MakeNewTriangle(int v0, int v1, int v2, std::vector<Vec3> vertList, std::vector<Vec3> vertNormalList, std::vector<TexCoord> texCoordList, const Face& face, Material* material)
 {
     Triangle* newTri0 = new Triangle(
         Triangle::Vertex(
@@ -114,7 +103,10 @@ static inline Triangle* MakeNewTriangle(int v0, int v1, int v2, std::vector<Vec3
                 vertList[face.Verts[v0].VertIndex],
                 vertNormalList[face.Verts[v0].NormIndex],
                 Vec3(0, 0, 0),
-                { 0, 0 }
+                {
+                    texCoordList[face.Verts[v0].TexCoordIndex].UV[0],
+                    texCoordList[face.Verts[v0].TexCoordIndex].UV[1]
+                }
             }
         ),
         Triangle::Vertex(
@@ -122,7 +114,10 @@ static inline Triangle* MakeNewTriangle(int v0, int v1, int v2, std::vector<Vec3
                 vertList[face.Verts[v1].VertIndex],
                 vertNormalList[face.Verts[v1].NormIndex],
                 Vec3(0, 0, 0),
-                { 0, 0 }
+                {
+                    texCoordList[face.Verts[v1].TexCoordIndex].UV[0],
+                    texCoordList[face.Verts[v1].TexCoordIndex].UV[1]
+                }
             }
         ),
         Triangle::Vertex(
@@ -130,7 +125,10 @@ static inline Triangle* MakeNewTriangle(int v0, int v1, int v2, std::vector<Vec3
                 vertList[face.Verts[v2].VertIndex],
                 vertNormalList[face.Verts[v2].NormIndex],
                 Vec3(0, 0, 0),
-                { 0, 0 }
+                {
+                    texCoordList[face.Verts[v2].TexCoordIndex].UV[0],
+                    texCoordList[face.Verts[v2].TexCoordIndex].UV[1]
+                }
             }
         ),
         material
@@ -141,7 +139,7 @@ static inline Triangle* MakeNewTriangle(int v0, int v1, int v2, std::vector<Vec3
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-TriMesh* TriMesh::CreateFromOBJFile(const char* filePath, Material* material, float scale /*= 1.0f*/)
+TriMesh* TriMesh::CreateFromOBJFile(const char* filePath, float scale /*= 1.0f*/)
 {
     const int LINE_SIZE = 4096;
     char lineBuf[LINE_SIZE];
@@ -155,13 +153,19 @@ TriMesh* TriMesh::CreateFromOBJFile(const char* filePath, Material* material, fl
         Vertex,
         TextureCoord,
         VertexNormal,
-        FaceMode
+        FaceMode,
+        MaterialLib,
     };
 
     if (inputFile.is_open())
     {
+        ret = new TriMesh();
+
+        const char* matLibKeyword = "mtllib";
+
         std::vector<Vec3>       vertList;
         std::vector<Vec3>       vertNormalList;
+        std::vector<TexCoord>   texCoordList;
         std::vector<Face>       faceList;
         int vertCount = 0;
         int texCoordCount = 0;
@@ -190,6 +194,10 @@ TriMesh* TriMesh::CreateFromOBJFile(const char* filePath, Material* material, fl
             {
                 readMode = FaceMode;
             }
+            else if (strstr(lineBuf, matLibKeyword) == lineBuf)
+            {
+                readMode = MaterialLib;
+            }
 
             switch (readMode)
             {
@@ -197,7 +205,7 @@ TriMesh* TriMesh::CreateFromOBJFile(const char* filePath, Material* material, fl
                 case VertexNormal:
                 {
                     std::string sourceString = &lineBuf[2];
-                    std::vector<std::string> tokens = getTokens(sourceString, " ");
+                    std::vector<std::string> tokens = GetStringTokens(sourceString, " ");
 
                     Vec3 vert(
                          (float)atof(tokens[0].c_str()),
@@ -215,14 +223,33 @@ TriMesh* TriMesh::CreateFromOBJFile(const char* filePath, Material* material, fl
                 }
                 break;
 
+                case TextureCoord:
+                {
+                    std::string sourceString = &lineBuf[3];
+                    std::vector<std::string> tokens = GetStringTokens(sourceString, " ");
+
+                    RTL_ASSERT(tokens.size() == 2);
+
+                    TexCoord texCoord =
+                    {
+                        {
+                            (float)atof(tokens[0].c_str()),
+                            (float)atof(tokens[1].c_str())
+                        }
+                    };
+                    
+                    texCoordList.push_back(texCoord);
+                }
+                break;
+
                 case FaceMode:
                 {
                     Face face;
                     std::string sourceString = &lineBuf[2];
-                    std::vector<std::string> faceTokens = getTokens(sourceString, " ");
+                    std::vector<std::string> faceTokens = GetStringTokens(sourceString, " ");
                     for (int i = 0; i < (int)faceTokens.size(); i++)
                     {
-                        std::vector<std::string> faceCompTokens = getTokens(faceTokens[i], "/");
+                        std::vector<std::string> faceCompTokens = GetStringTokens(faceTokens[i], "/");
 
                         FaceVertex fc;
                         fc.VertIndex     = (faceCompTokens.size() > 0) ? atoi(faceCompTokens[0].c_str()) - 1 : 0;
@@ -236,6 +263,17 @@ TriMesh* TriMesh::CreateFromOBJFile(const char* filePath, Material* material, fl
                     faceList.push_back(face);
                 }
                 break;
+
+                case MaterialLib:
+                {
+                    const int keyStrLen = (int)strlen(matLibKeyword);
+                    std::string sourceString = &lineBuf[keyStrLen];
+                    std::vector<std::string> tokens = GetStringTokens(sourceString, " ");
+
+                    RTL_ASSERT(tokens.size() == 2);
+                    ret->Mat = new MWavefrontObj(tokens[1].c_str());
+                }
+                break;
             }
         }
 
@@ -244,14 +282,13 @@ TriMesh* TriMesh::CreateFromOBJFile(const char* filePath, Material* material, fl
         for (int i = 0; i < (int)faceList.size(); i++)
         {
             const Face& face = faceList[i];
-            triList.push_back(MakeNewTriangle(0, 1, 2, vertList, vertNormalList, face, material));
+            triList.push_back(MakeNewTriangle(0, 1, 2, vertList, vertNormalList, texCoordList, face, ret->Mat));
             if (face.Verts.size() == 4)
             {
-                triList.push_back(MakeNewTriangle(1, 2, 3, vertList, vertNormalList, face, material));
+                triList.push_back(MakeNewTriangle(1, 2, 3, vertList, vertNormalList, texCoordList, face, ret->Mat));
             }
         }
 
-        ret = new TriMesh();
         ret->CreateFromArray(triList);
     }
 

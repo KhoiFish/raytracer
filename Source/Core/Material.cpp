@@ -1,5 +1,7 @@
 #include "Material.h"
 #include "OrthoNormalBasis.h"
+#include <iostream>
+#include <fstream>
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -105,41 +107,41 @@ bool MDielectric::Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterReco
 
     float niOverNt;
     Vec3 refracted;
-    float reflectProb;
-    float cosine;
-    if (Dot(rayIn.Direction(), hitRec.Normal) > 0)
-    {
-        outwardNormal = -hitRec.Normal;
-        niOverNt = RefId;
-        cosine = RefId * Dot(rayIn.Direction(), hitRec.Normal) / rayIn.Direction().Length();
-    }
-    else
-    {
-        outwardNormal = hitRec.Normal;
-        niOverNt = 1.0f / RefId;
-        cosine = -Dot(rayIn.Direction(), hitRec.Normal) / rayIn.Direction().Length();
-    }
+float reflectProb;
+float cosine;
+if (Dot(rayIn.Direction(), hitRec.Normal) > 0)
+{
+    outwardNormal = -hitRec.Normal;
+    niOverNt = RefId;
+    cosine = RefId * Dot(rayIn.Direction(), hitRec.Normal) / rayIn.Direction().Length();
+}
+else
+{
+    outwardNormal = hitRec.Normal;
+    niOverNt = 1.0f / RefId;
+    cosine = -Dot(rayIn.Direction(), hitRec.Normal) / rayIn.Direction().Length();
+}
 
-    if (Refract(rayIn.Direction(), outwardNormal, niOverNt, refracted))
-    {
-        reflectProb = Schlick(cosine, RefId);
-    }
-    else
-    {
-        scatterRec.SpecularRay = Ray(hitRec.P, reflected, rayIn.Time());
-        reflectProb = 1.0f;
-    }
+if (Refract(rayIn.Direction(), outwardNormal, niOverNt, refracted))
+{
+    reflectProb = Schlick(cosine, RefId);
+}
+else
+{
+    scatterRec.SpecularRay = Ray(hitRec.P, reflected, rayIn.Time());
+    reflectProb = 1.0f;
+}
 
-    if (RandomFloat() < reflectProb)
-    {
-        scatterRec.SpecularRay = Ray(hitRec.P, reflected, rayIn.Time());
-    }
-    else
-    {
-        scatterRec.SpecularRay = Ray(hitRec.P, refracted, rayIn.Time());
-    }
+if (RandomFloat() < reflectProb)
+{
+    scatterRec.SpecularRay = Ray(hitRec.P, reflected, rayIn.Time());
+}
+else
+{
+    scatterRec.SpecularRay = Ray(hitRec.P, refracted, rayIn.Time());
+}
 
-    return true;
+return true;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -178,8 +180,8 @@ bool MIsotropic::Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecor
 {
     scatterRec.SpecularRay = Ray(hitRec.P, RandomInUnitSphere());
     scatterRec.Attenuation = Albedo->Value(hitRec.U, hitRec.V, hitRec.P);
-    scatterRec.Pdf         = nullptr;
-    scatterRec.IsSpecular  = true;
+    scatterRec.Pdf = nullptr;
+    scatterRec.IsSpecular = true;
 
     return true;
 }
@@ -189,4 +191,67 @@ bool MIsotropic::Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecor
 Vec3 MIsotropic::AlbedoValue(float u, float v, const Vec3& p) const
 {
     return Albedo->Value(u, v, p);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------------------------------
+
+MWavefrontObj::MWavefrontObj(const char* materialFilePath)
+{
+    std::ifstream inputFile(materialFilePath);
+    if (inputFile.is_open())
+    {
+        std::string strLine;
+        while (!inputFile.eof())
+        {
+            std::getline(inputFile, strLine);
+
+            if ((strLine.find("map_Kd")) == 0)
+            {
+                std::string textureFilename = strLine.substr(strlen("map_Kd") + 1);
+                DiffuseMap = new ImageTexture(textureFilename.c_str());
+            }
+        }
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+bool MWavefrontObj::Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& scatterRec) const
+{
+    scatterRec.IsSpecular  = false;
+    scatterRec.Attenuation = DiffuseMap->Value(hitRec.U, hitRec.V, hitRec.P);
+    scatterRec.Pdf         = new CosinePdf(hitRec.Normal);
+
+    return true;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+float MWavefrontObj::ScatteringPdf(const Ray& rayIn, const HitRecord& rec, Ray& scattered) const
+{
+    float cosine = Dot(rec.Normal, UnitVector(scattered.Direction()));
+
+    float ret;
+    if (cosine < 0)
+    {
+        ret = cosine = 0;
+    }
+    else
+    {
+        // HACK. Sometimes pdfs come back nearly zero.
+        // Clamp the value so we get some contribution from the pdf.
+        // This gets rid of "rogue" pixels that are brightly colored.
+        ret = cosine / RT_PI;
+        ret = GetMax(ret, 0.05f);
+    }
+
+    return ret;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+Vec3 MWavefrontObj::AlbedoValue(float u, float v, const Vec3& p) const
+{
+    return DiffuseMap->Value(u, v, p);
 }

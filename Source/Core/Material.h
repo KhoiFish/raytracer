@@ -4,6 +4,7 @@
 #include "Util.h"
 #include "Texture.h"
 #include "Pdf.h"
+#include <vector>
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -115,4 +116,21 @@ public:
 private:
 
     BaseTexture* Albedo;
+};
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+class MWavefrontObj : public Material
+{
+public:
+
+    MWavefrontObj(const char* materialFilePath);
+
+    virtual bool  Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& scatterRec) const;
+    virtual float ScatteringPdf(const Ray& rayIn, const HitRecord& rec, Ray& scattered) const;
+    virtual Vec3  AlbedoValue(float u, float v, const Vec3& p) const;
+
+private:
+
+    ImageTexture* DiffuseMap;
 };

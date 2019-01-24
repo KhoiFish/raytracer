@@ -24,12 +24,22 @@ bool MLambertian::Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterReco
 float MLambertian::ScatteringPdf(const Ray& rayIn, const HitRecord& rec, Ray& scattered) const
 {
     float cosine = Dot(rec.Normal, UnitVector(scattered.Direction()));
+
+    float ret;
     if (cosine < 0)
     {
-        cosine = 0;
+        ret = cosine = 0;
+    }
+    else
+    {
+        // HACK. Sometimes pdfs come back nearly zero.
+        // Clamp the value so we get some contribution from the pdf.
+        // This gets rid of "rogue" pixels that are brightly colored.
+        ret = cosine / RT_PI;
+        ret = GetMax(ret, 0.05f);
     }
 
-    return cosine / RT_PI;
+    return ret;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

@@ -30,7 +30,14 @@ public:
         float cosine = Dot(UnitVector(direction), UVW.W());
         if (cosine > 0)
         {
-            return (cosine / RT_PI);
+            float ret = cosine / RT_PI;
+
+            // HACK. Sometimes pdfs come back zero.
+            // Clamp the value so we get some contribution from the pdf.
+            // This gets rid of "rogue" pixels that are brightly colored.
+            ret = GetMax(ret, 0.05f);
+
+            return ret;
         }
         else
         {

@@ -20,7 +20,7 @@ void RenderDebugPrintf(const char *fmt, ...);
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-#if 1 // _DEBUG
+#if _DEBUG
     #define SANITY_CHECK_FLOAT(f)       RTL_ASSERT(!isnan(f) && !isinf(f))
     #define ENABLE_VEC3_SANITY_CHECK
 #else

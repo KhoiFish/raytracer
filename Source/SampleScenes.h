@@ -12,6 +12,7 @@ enum SampleScene
     SceneRandom = 0,
     SceneCornell,
     SceneCornellSmoke,
+    SceneMesh,
     SceneFinal,
 
     MaxScene

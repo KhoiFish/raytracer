@@ -66,6 +66,7 @@ Camera GetCameraForSample(SampleScene scene, float aspect)
         break;
 
         case SceneFinal:
+        case SceneMesh:
         {
             // Camera options
             const Vec3   lookFrom = Vec3(478, 278, -600);
@@ -169,7 +170,7 @@ WorldScene* SampleSceneCreateTwoPerlinSpheres()
     BaseTexture* perTex = new NoiseTexture(4.f);
     BaseTexture* imageTex = nullptr;
     {
-        imageTex = new ImageTexture("RuntimeData/guitar.jpg");
+        imageTex = new ImageTexture("guitar.jpg");
     }
 
     IHitable **list = new IHitable*[2];
@@ -243,59 +244,17 @@ WorldScene* SampleSceneCornellBox(bool smoke)
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
-#if 0
-WorldScene* SampleSceneMesh()
-{
-    IHitable** list = new IHitable*[16];
-    int i = 0;
-
-    IHitable** lsList = new IHitable*[2];
-    int numLs = 0;
-
-    Material* red   = new MLambertian(new ConstantTexture(Vec3(.65f, .05f, .05f)));
-    Material* white = new MLambertian(new ConstantTexture(Vec3(.73f, .73f, .73f)));
-    Material* green = new MLambertian(new ConstantTexture(Vec3(.12f, .45f, .15f)));
-    Material* light = new MDiffuseLight(new ConstantTexture(Vec3(15, 15, 15)));
-    Material* glass = new MDielectric(1.5f);
-    Material* metal = new MMetal(Vec3(0.8f, 0.8f, 0.9f), 10.0f);
-
-    list[i++] = new FlipNormals(new XYZRect(XYZRect::YZ, 0, 555, 0, 555, 555, green));
-    list[i++] = new XYZRect(XYZRect::YZ, 0, 555, 0, 555, 0, red);
-
-    IHitable* lightShape = new XYZRect(XYZRect::XZ, 213, 343, 227, 332, 554, light, true);
-    list[i++] = new FlipNormals(lightShape);
-    lsList[numLs++] = lightShape;
-
-    list[i++] = new FlipNormals(new XYZRect(XYZRect::XZ, 0, 555, 0, 555, 555, white));
-    list[i++] = new XYZRect(XYZRect::XZ, 0, 555, 0, 555, 0, white);
-    list[i++] = new FlipNormals(new XYZRect(XYZRect::XY, 0, 555, 0, 555, 555, white));
-    
-    IHitable *triMesh =
-        new HitableTranslate(
-            new HitableRotateY(
-                TriMesh::CreateFromOBJFile("RuntimeData/r8.obj", white, 20.f),
-                35.f
-            ),
-            Vec3(280, 100, 100)
-        );
-
-    list[i++] = triMesh;
-    //lsList[numLs++] = triMesh;
-
-    return WorldScene::Create(list, i, lsList, numLs);
-}
-#else
 
 WorldScene* SampleSceneMesh()
 {
     const int numBoxes = 5;
     int total = 0;
 
-    IHitable** list = new IHitable*[30];
-    IHitable** boxlist = new IHitable*[10000];
+    IHitable** list     = new IHitable*[30];
+    IHitable** boxlist  = new IHitable*[10000];
     IHitable** boxlist2 = new IHitable*[10000];
-    Material*  white = new MLambertian(new ConstantTexture(Vec3(0.73f, 0.73f, 0.73f)));
-    Material*  ground = new MLambertian(new ConstantTexture(Vec3(0.48f, 0.83f, 0.53f)));
+    Material*  white    = new MLambertian(new ConstantTexture(Vec3(0.73f, 0.73f, 0.73f)));
+    Material*  ground   = new MLambertian(new ConstantTexture(Vec3(0.48f, 0.83f, 0.53f)));
 
     IHitable** lsList = new IHitable*[2];
     int numLs = 0;
@@ -305,33 +264,45 @@ WorldScene* SampleSceneMesh()
 
     // Create light
     {
-        Material *lightMat = new MDiffuseLight(new ConstantTexture(Vec3(7, 7, 7)));
-        IHitable *lightShape = new FlipNormals(new XYZRect(XYZRect::XZ, 123, 423, 147, 412, 554, lightMat, true));
-        list[total++] = lightShape;
-        lsList[numLs++] = lightShape;
+        Material *lightMat   = new MDiffuseLight(new ConstantTexture(Vec3(12, 12, 12)));
+        IHitable *lightShape = new XYZRect(XYZRect::XZ, 123, 423, 147, 412, 554, lightMat, true);
+        list[total++]        = new FlipNormals(lightShape);;
+        lsList[numLs++]      = lightShape;
+    }
+
+    // Mesh
+    {
+        IHitable *meshHitable =
+            new HitableTranslate(
+                new HitableRotateY(
+                    TriMesh::CreateFromOBJFile("r8.obj", 25.f), 20.f),
+                Vec3(250, 105, 145)
+            );
+        list[total++] = meshHitable;
     }
 
     // Volumes
     {
-        IHitable *boundary =
-            new HitableTranslate(
-                new HitableRotateY(
-                    TriMesh::CreateFromOBJFile("RuntimeData/r8.obj"), 35.f),
-                Vec3(130, 150, 145)
-            );
+        IHitable *boundary = new Sphere(Vec3(360, 150, 145), 70, new MDielectric(1.5f));
         list[total++] = boundary;
         list[total++] = new ConstantMedium(boundary, 0.2f, new ConstantTexture(Vec3(0.2f, 0.4f, 0.9f)));
 
+        boundary = new Sphere(Vec3(0, 0, 0), 5000, new MDielectric(1.5f));
+        list[total++] = new ConstantMedium(boundary, 0.0001f, new ConstantTexture(Vec3(1.0f, 1.0f, 1.0f)));
+    }
 
-        //boundary = new Sphere(Vec3(0, 0, 0), 5000, new MDielectric(1.5f));
-        //list[total++] = new ConstantMedium(boundary, 0.0001f, new ConstantTexture(Vec3(1.0f, 1.0f, 1.0f)));
+    // Translated, rotated spheres in BVH tree
+    {
+        int ns = 1000;
+        for (int j = 0; j < ns; j++)
+        {
+            boxlist2[j] = new Sphere(Vec3(165 * RandomFloat(), 165 * RandomFloat(), 165 * RandomFloat()), 10, white);
+        }
+        list[total++] = new HitableTranslate(new HitableRotateY(new BVHNode(boxlist2, ns, 0.0, 1.0), 15), Vec3(-100, 270, 395));
     }
 
     return WorldScene::Create(list, total, lsList, numLs);
 }
-
-
-#endif
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -404,7 +375,7 @@ WorldScene* SampleSceneFinal()
 
     // Image texture sphere
     {
-        Material *emat = new MLambertian(new ImageTexture("RuntimeData/guitar.jpg"));
+        Material *emat = new MLambertian(new ImageTexture("guitar.jpg"));
         list[total++] = new Sphere(Vec3(400, 200, 400), 100, emat);
     }
 

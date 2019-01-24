@@ -1,30 +1,6 @@
 #pragma once
 #include "Vec3.h"
-#include <cfloat>
-#include <cassert>
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-#define DEBUG_PRINTF(fmt, ...) RenderDebugPrintf(fmt, ##__VA_ARGS__)
-
-void RenderDebugPrintf(const char *fmt, ...);
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-#if 1//_DEBUG
-    #define SANITY_CHECK_FLOAT(f)   __SanityCheckFloat_DontCallDirectly__(f)
-#else
-    #define SANITY_CHECK_FLOAT(f)
-#endif
-
-inline void __SanityCheckFloat_DontCallDirectly__(float f)
-{
-    if (isnan(f) || isinf(f))
-    {
-        DEBUG_PRINTF("Got NaN or inf: %f", f);
-        assert(false);
-    }
-}
+#include "Systems.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 

@@ -31,7 +31,18 @@ void RenderDebugPrintf(const char *fmt, ...)
 
     printf(buf);
 
-#if defined(_WINDOWS_)
-    OutputDebugStringA(buf);
-#endif
+    #if defined(PLATFORM_WINDOWS)
+        OutputDebugStringA(buf);
+    #endif
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void _RtlAssert(const char* message, const char* file, int line)
+{
+    DEBUG_PRINTF("Assert!\n %s --- %s:%d", message, file, line);
+
+    #if defined(PLATFORM_WINDOWS)
+        DebugBreak();
+    #endif
 }

@@ -102,6 +102,9 @@
     <ClInclude Include="..\Source\Core\TriMesh.h">
       <Filter>Core\Headers</Filter>
     </ClInclude>
+    <ClInclude Include="..\Source\Core\Systems.h">
+      <Filter>Core\Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Source\Core\BVHNode.cpp">

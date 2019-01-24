@@ -10,6 +10,7 @@
 #include "Core/XYZRect.h"
 #include "Core/Material.h"
 #include "Core/Quat.h"
+#include "Core/TriMesh.h"
 #include "SampleScenes.h"
 
 #include <Application.h>
@@ -103,9 +104,9 @@ static const UINT sShaderRegisterParams[NumRootParameters][2] =
 
 static int    overrideWidth       = 512;
 static int    overrideHeight      = 512;
-static int    sNumSamplesPerRay   = 50;
+static int    sNumSamplesPerRay   = 100;
 static int    sMaxScatterDepth    = 50;
-static int    sNumThreads         = 8;
+static int    sNumThreads         = 7;
 static float  sClearColor[]       = { 0.4f, 0.6f, 0.9f, 1.0f };
 
 static const RenderMaterial MaterialWhite =
@@ -320,17 +321,17 @@ void RaytracerWindows::LoadScene(std::shared_ptr<CommandList> commandList)
 {
     const float aspect = (float)BackbufferWidth / (float)BackbufferHeight;
 
-#if 1
+#if 0
     RaytracerCamera = GetCameraForSample(SceneFinal, aspect);
     Scene = SampleSceneFinal();
-#elif 1
+#elif 0
     RaytracerCamera = GetCameraForSample(SceneCornell, aspect);
     Scene = SampleSceneCornellBox(false);
 #elif 0
     RaytracerCamera = GetCameraForSample(SceneRandom, aspect);
     Scene = SampleSceneRandom(RaytracerCamera);
 #else
-    RaytracerCamera = GetCameraForSample(SceneFinal, aspect);
+    RaytracerCamera = GetCameraForSample(SceneMesh, aspect);
     Scene = SampleSceneMesh();
 #endif
 
@@ -442,6 +443,41 @@ void RaytracerWindows::GenerateRenderListFromWorld(std::shared_ptr<CommandList> 
         newNode->Material    = MaterialWhite;
         outSceneList.push_back(newNode);
     }
+    else if (tid == typeid(TriMesh))
+    {
+        TriMesh*         triMesh   = (TriMesh*)currentHead;
+        IHitable**       triArray  = nullptr;
+        int              numTris   = 0;
+        VertexCollection vertices;
+        IndexCollection  indices;
+        
+        // Walk through all the triangles
+        triMesh->GetTriArray(triArray, numTris);
+        for (int t = 0; t < numTris; t++)
+        {
+            const Triangle* tri = (const Triangle*)triArray[t];
+
+            const Triangle::Vertex* triVertices = tri->GetVertices();
+            for (int v = 0; v < 3; v++)
+            {
+                XMVECTOR position = ConvertFromVec3(triVertices[v].Vert);
+                XMVECTOR normal   = ConvertFromVec3(triVertices[v].Normal);
+                XMVECTOR texCoord = XMVectorSet(triVertices[v].UV[0], triVertices[v].UV[1], 0, 0);
+
+                vertices.push_back(VertexPositionNormalTexture(position, normal, texCoord));
+                indices.push_back(uint16_t(vertices.size() - 1));
+            }
+        }
+
+        XMMATRIX         translation = XMMatrixIdentity();
+        XMMATRIX         newMatrix   = ComputeFinalMatrix(matrixStack, translation);
+        RenderSceneNode* newNode     = new RenderSceneNode();
+
+        newNode->MeshData    = Mesh::CreateFromCollection(*commandList, vertices, indices);
+        newNode->WorldMatrix = newMatrix;
+        newNode->Material    = MaterialWhite;
+        outSceneList.push_back(newNode);
+    }
     else if (tid == typeid(XYZRect))
     {
         ; // TODO
@@ -468,7 +504,7 @@ bool RaytracerWindows::LoadContent()
     // Load scene
     // -------------------------------------------------------------------
     LoadScene(commandList);
-    commandList->LoadTextureFromFile(PreviewTex, L"RuntimeData\\checker.jpg");    
+    commandList->LoadTextureFromFile(PreviewTex, L"checker.jpg");    
     
 
     // -------------------------------------------------------------------
@@ -512,8 +548,8 @@ bool RaytracerWindows::LoadContent()
     {
         // Load shaders
         ComPtr<ID3DBlob> vertexShaderBlob, pixelShaderBlob;
-        ThrowIfFailed(D3DReadFileToBlob(L"RuntimeData\\FullscreenQuad_VS.cso", &vertexShaderBlob));
-        ThrowIfFailed(D3DReadFileToBlob(L"RuntimeData\\FullscreenQuad_PS.cso", &pixelShaderBlob));
+        ThrowIfFailed(D3DReadFileToBlob(L"FullscreenQuad_VS.cso", &vertexShaderBlob));
+        ThrowIfFailed(D3DReadFileToBlob(L"FullscreenQuad_PS.cso", &pixelShaderBlob));
 
         D3D12_RT_FORMAT_ARRAY rtvFormats = {};
         rtvFormats.NumRenderTargets = 1;
@@ -540,8 +576,8 @@ bool RaytracerWindows::LoadContent()
     {
         // Load shaders
         ComPtr<ID3DBlob> vertexShaderBlob, pixelShaderBlob;
-        ThrowIfFailed(D3DReadFileToBlob(L"RuntimeData\\Preview_VS.cso", &vertexShaderBlob));
-        ThrowIfFailed(D3DReadFileToBlob(L"RuntimeData\\Preview_PS.cso", &pixelShaderBlob));
+        ThrowIfFailed(D3DReadFileToBlob(L"Preview_VS.cso", &vertexShaderBlob));
+        ThrowIfFailed(D3DReadFileToBlob(L"Preview_PS.cso", &pixelShaderBlob));
 
         D3D12_RT_FORMAT_ARRAY rtvFormats = {};
         rtvFormats.NumRenderTargets = 1;

@@ -18,24 +18,6 @@ struct STLTriangle
 };
 #pragma pack(pop)
 
-struct FaceVertex
-{
-    int VertIndex;
-    int TexCoordIndex;
-    int NormIndex;
-};
-
-struct TexCoord
-{
-    float UV[2];
-};
-
-struct Face
-{
-    std::vector<FaceVertex> Verts;
-};
-
-
 // ----------------------------------------------------------------------------------------------------------------------------
 
 TriMesh* TriMesh::CreateFromSTLFile(const char* filePath, Material* material, float scale /*= 1.0f*/)
@@ -87,7 +69,7 @@ TriMesh* TriMesh::CreateFromSTLFile(const char* filePath, Material* material, fl
             triList.push_back(new Triangle(v0, v1, v2, material));
         }
 
-        ret->CreateFromArray(triList);
+        ret->createFromArray(triList);
     }
 
     return ret;
@@ -95,7 +77,10 @@ TriMesh* TriMesh::CreateFromSTLFile(const char* filePath, Material* material, fl
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static inline Triangle* MakeNewTriangle(int v0, int v1, int v2, std::vector<Vec3> vertList, std::vector<Vec3> vertNormalList, std::vector<TexCoord> texCoordList, const Face& face, Material* material)
+Triangle* TriMesh::makeNewTriangle(
+    int v0, int v1, int v2,
+    const std::vector<Vec3>& vertList, const std::vector<Vec3>& vertNormalList, const std::vector<TexCoord>& vexCoordList,
+    const Face& face, Material* material)
 {
     Triangle* newTri0 = new Triangle(
         Triangle::Vertex(
@@ -104,8 +89,8 @@ static inline Triangle* MakeNewTriangle(int v0, int v1, int v2, std::vector<Vec3
                 vertNormalList[face.Verts[v0].NormIndex],
                 Vec3(0, 0, 0),
                 {
-                    texCoordList[face.Verts[v0].TexCoordIndex].UV[0],
-                    texCoordList[face.Verts[v0].TexCoordIndex].UV[1]
+                    vexCoordList[face.Verts[v0].TexCoordIndex].UV[0],
+                    vexCoordList[face.Verts[v0].TexCoordIndex].UV[1]
                 }
             }
         ),
@@ -115,8 +100,8 @@ static inline Triangle* MakeNewTriangle(int v0, int v1, int v2, std::vector<Vec3
                 vertNormalList[face.Verts[v1].NormIndex],
                 Vec3(0, 0, 0),
                 {
-                    texCoordList[face.Verts[v1].TexCoordIndex].UV[0],
-                    texCoordList[face.Verts[v1].TexCoordIndex].UV[1]
+                    vexCoordList[face.Verts[v1].TexCoordIndex].UV[0],
+                    vexCoordList[face.Verts[v1].TexCoordIndex].UV[1]
                 }
             }
         ),
@@ -126,8 +111,8 @@ static inline Triangle* MakeNewTriangle(int v0, int v1, int v2, std::vector<Vec3
                 vertNormalList[face.Verts[v2].NormIndex],
                 Vec3(0, 0, 0),
                 {
-                    texCoordList[face.Verts[v2].TexCoordIndex].UV[0],
-                    texCoordList[face.Verts[v2].TexCoordIndex].UV[1]
+                    vexCoordList[face.Verts[v2].TexCoordIndex].UV[0],
+                    vexCoordList[face.Verts[v2].TexCoordIndex].UV[1]
                 }
             }
         ),
@@ -161,12 +146,12 @@ TriMesh* TriMesh::CreateFromOBJFile(const char* filePath, float scale /*= 1.0f*/
     {
         ret = new TriMesh();
 
-        const char* matLibKeyword = "mtllib";
-
         std::vector<Vec3>       vertList;
         std::vector<Vec3>       vertNormalList;
         std::vector<TexCoord>   texCoordList;
         std::vector<Face>       faceList;
+
+        const char* matLibKeyword = "mtllib";
         int vertCount = 0;
         int texCoordCount = 0;
         while (!inputFile.eof())
@@ -256,8 +241,6 @@ TriMesh* TriMesh::CreateFromOBJFile(const char* filePath, float scale /*= 1.0f*/
                         fc.TexCoordIndex = (faceCompTokens.size() > 1) ? atoi(faceCompTokens[1].c_str()) - 1 : 0;
                         fc.NormIndex     = (faceCompTokens.size() > 2) ? atoi(faceCompTokens[2].c_str()) - 1 : 0;
 
-                        //DEBUG_PRINTF("%d %d %d\n", fc.VertIndex, fc.TexCoordIndex, fc.NormIndex);
-
                         face.Verts.push_back(fc);
                     }
                     faceList.push_back(face);
@@ -282,14 +265,14 @@ TriMesh* TriMesh::CreateFromOBJFile(const char* filePath, float scale /*= 1.0f*/
         for (int i = 0; i < (int)faceList.size(); i++)
         {
             const Face& face = faceList[i];
-            triList.push_back(MakeNewTriangle(0, 1, 2, vertList, vertNormalList, texCoordList, face, ret->Mat));
+            triList.push_back(ret->makeNewTriangle(0, 1, 2, vertList, vertNormalList, texCoordList, face, ret->Mat));
             if (face.Verts.size() == 4)
             {
-                triList.push_back(MakeNewTriangle(1, 2, 3, vertList, vertNormalList, texCoordList, face, ret->Mat));
+                triList.push_back(ret->makeNewTriangle(1, 2, 3, vertList, vertNormalList, texCoordList, face, ret->Mat));
             }
         }
 
-        ret->CreateFromArray(triList);
+        ret->createFromArray(triList);
     }
 
     return ret;
@@ -311,7 +294,7 @@ bool TriMesh::Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void TriMesh::CreateFromArray(std::vector<Triangle*> triArray)
+void TriMesh::createFromArray(std::vector<Triangle*> triArray)
 {
     // Convert to regular array
     TriArray = new IHitable*[triArray.size()];

@@ -1,6 +1,5 @@
 #include <DX12LibPCH.h>
 #include <Mesh.h>
-
 #include <Application.h>
 
 
@@ -436,6 +435,14 @@ std::unique_ptr<Mesh> Mesh::CreatePlane(CommandList& commandList, float width, f
     return mesh;
 }
 
+std::unique_ptr<Mesh> Mesh::CreateFromCollection(CommandList& commandList, VertexCollection& vertices, IndexCollection& indices, bool rhcoords /*= false*/)
+{
+    std::unique_ptr<Mesh> mesh(new Mesh());
+
+    mesh->Initialize(commandList, vertices, indices, rhcoords);
+
+    return mesh;
+}
 
 // Helper for flipping winding of geometric primitives for LH vs. RH coords
 static void ReverseWinding(IndexCollection& indices, VertexCollection& vertices)

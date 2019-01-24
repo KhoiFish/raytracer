@@ -24,6 +24,8 @@ public:
     virtual bool BoundingBox(float t0, float t1, AABB& box) const;
     virtual bool Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const;
 
+    const Vertex* GetVertices() const { return Vertices; }
+
 private:
 
     Vertex      Vertices[3];

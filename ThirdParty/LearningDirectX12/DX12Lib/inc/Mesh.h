@@ -41,6 +41,8 @@
 #include <memory> // For std::unique_ptr
 #include <vector>
 
+class TriMesh;
+
  // Vertex struct holding position, normal vector, and texture mapping information.
 struct VertexPositionNormalTexture
 {
@@ -83,6 +85,7 @@ public:
     static std::unique_ptr<Mesh> CreateCone(CommandList& commandList, float diameter = 1, float height = 1, size_t tessellation = 32, bool rhcoords = false);
     static std::unique_ptr<Mesh> CreateTorus(CommandList& commandList, float diameter = 1, float thickness = 0.333f, size_t tessellation = 32, bool rhcoords = false);
     static std::unique_ptr<Mesh> CreatePlane(CommandList& commandList, float width = 1, float height = 1, bool rhcoords = false);
+    static std::unique_ptr<Mesh> CreateFromCollection(CommandList& commandList, VertexCollection& vertices, IndexCollection& indices, bool rhcoords = false);
 
 protected:
 

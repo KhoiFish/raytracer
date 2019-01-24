@@ -101,7 +101,9 @@ static const UINT sShaderRegisterParams[NumRootParameters][2] =
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static int    sNumSamplesPerRay   = 100;
+static int    overrideWidth       = 512;
+static int    overrideHeight      = 512;
+static int    sNumSamplesPerRay   = 50;
 static int    sMaxScatterDepth    = 50;
 static int    sNumThreads         = 8;
 static float  sClearColor[]       = { 0.4f, 0.6f, 0.9f, 1.0f };
@@ -208,13 +210,13 @@ static void UpdateCameras(float forwardAmount, float strafeAmount, float upDownA
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-RaytracerWindows::RaytracerWindows(const std::wstring& name, int width, int height, bool vSync)
-    : super(name, width, height, vSync)
+RaytracerWindows::RaytracerWindows(const std::wstring& name, bool vSync)
+    : super(name, overrideWidth, overrideHeight, vSync)
     , RenderMode(ModePreview)
     , TheRaytracer(nullptr)
     , Scene(nullptr)
     , ScissorRect(CD3DX12_RECT(0, 0, LONG_MAX, LONG_MAX))
-    , Viewport(CD3DX12_VIEWPORT(0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height)))
+    , Viewport(CD3DX12_VIEWPORT(0.0f, 0.0f, static_cast<float>(overrideWidth), static_cast<float>(overrideHeight)))
     , Forward(0)
     , Backward(0)
     , Left(0)
@@ -228,7 +230,6 @@ RaytracerWindows::RaytracerWindows(const std::wstring& name, int width, int heig
     , BackbufferWidth(0)
     , BackbufferHeight(0)
 {
-
     XMVECTOR cameraPos    = XMVectorSet(0, 0, 10, 1);
     XMVECTOR cameraTarget = XMVectorSet(0, 0, 0, 1);
     XMVECTOR cameraUp     = XMVectorSet(0, 1, 0, 0);
@@ -319,17 +320,17 @@ void RaytracerWindows::LoadScene(std::shared_ptr<CommandList> commandList)
 {
     const float aspect = (float)BackbufferWidth / (float)BackbufferHeight;
 
-#if 0
+#if 1
     RaytracerCamera = GetCameraForSample(SceneFinal, aspect);
     Scene = SampleSceneFinal();
-#elif 0
+#elif 1
     RaytracerCamera = GetCameraForSample(SceneCornell, aspect);
     Scene = SampleSceneCornellBox(false);
 #elif 0
     RaytracerCamera = GetCameraForSample(SceneRandom, aspect);
     Scene = SampleSceneRandom(RaytracerCamera);
 #else
-    RaytracerCamera = GetCameraForSample(SceneCornell, aspect);
+    RaytracerCamera = GetCameraForSample(SceneFinal, aspect);
     Scene = SampleSceneMesh();
 #endif
 

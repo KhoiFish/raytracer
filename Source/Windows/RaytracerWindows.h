@@ -26,7 +26,7 @@ class RaytracerWindows : public Game
 {
 public:
 
-    RaytracerWindows(const std::wstring& name, int width, int height, bool vSync = false);
+    RaytracerWindows(const std::wstring& name, bool vSync = false);
     virtual ~RaytracerWindows();
 
     virtual bool LoadContent() override;

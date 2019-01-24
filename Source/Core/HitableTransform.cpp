@@ -37,8 +37,8 @@ HitableRotateY::HitableRotateY(IHitable* obj, float angleDeg) : HitObject(obj), 
     CosTheta = cos(radians);
     HasBox = HitObject->BoundingBox(0, 1, Bbox);
 
-    Vec3 min(FLT_MAX, FLT_MAX, FLT_MAX);
-    Vec3 max(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+    Vec3 minV(FLT_MAX, FLT_MAX, FLT_MAX);
+    Vec3 maxV(-FLT_MAX, -FLT_MAX, -FLT_MAX);
     for (int i = 0; i < 2; i++)
     {
         for (int j = 0; j < 2; j++)
@@ -54,19 +54,19 @@ HitableRotateY::HitableRotateY(IHitable* obj, float angleDeg) : HitObject(obj), 
                 Vec3 tester(newX, y, newZ);
                 for (int c = 0; c < 3; c++)
                 {
-                    if (tester[c] > max[c])
+                    if (tester[c] > maxV[c])
                     {
-                        max[c] = tester[c];
+                        maxV[c] = tester[c];
                     }
-                    if (tester[c] < min[c])
+                    if (tester[c] < minV[c])
                     {
-                        min[c] = tester[c];
+                        minV[c] = tester[c];
                     }
                 }
             }
         }
     }
-    Bbox = AABB(min, max);
+    Bbox = AABB(minV, maxV);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

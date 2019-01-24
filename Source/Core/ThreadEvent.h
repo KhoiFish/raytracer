@@ -43,10 +43,7 @@ public:
                     std::bind(&ThreadEvent::Triggered, this)
                 );
 
-                if (timedOut)
-                {
-                    return Triggered;
-                }
+                return Triggered;
             }
             else
             {

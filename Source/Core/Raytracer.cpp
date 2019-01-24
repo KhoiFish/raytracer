@@ -67,6 +67,7 @@ void Raytracer::BeginRaytrace(const Camera& cam, WorldScene* scene)
     TotalRaysFired = 0;
     CurrentOutputOffset = 0;
     NumThreadsDone = 0;
+    NumPdfQueryRetries = 0;
 
     // Memset out buffers
     memset(OutputBufferRGBA, 0, sizeof(uint8_t) * OutputWidth * OutputHeight * 4);
@@ -95,9 +96,10 @@ bool Raytracer::WaitForTraceToFinish(int timeoutMicroSeconds)
 Raytracer::Stats Raytracer::GetStats() const
 {
     Stats stats;
-    stats.TotalRaysFired  = TotalRaysFired.load();
-    stats.NumPixelsTraced = CurrentOutputOffset.load();
-    stats.TotalNumPixels  = (OutputWidth * OutputHeight);
+    stats.TotalRaysFired     = TotalRaysFired.load();
+    stats.NumPixelsTraced    = CurrentOutputOffset.load();
+    stats.TotalNumPixels     = (OutputWidth * OutputHeight);
+    stats.NumPdfQueryRetries = NumPdfQueryRetries.load();
 
     return stats;
 }
@@ -222,36 +224,46 @@ Vec3 Raytracer::trace(const Ray& r, WorldScene* scene, int depth, const Vec3& cl
             }
             else
             {
+                // Prepare the pdf query
                 HitablePdf  hitablePdf(scene->GetLightShapes(), hitRec.P);
                 MixturePdf  mixPdf(&hitablePdf, scatterRec.Pdf);
-
-                Pdf* pdf = scatterRec.Pdf;
+                Pdf*        pdf = scatterRec.Pdf;
                 if (scene->GetLightShapes() != nullptr)
                 {
                     pdf = &mixPdf;
                 }
 
                 // PDF values may be zero or close to it, or close to infinity.
-                // We retry and retry in these cases
+                // We retry in these cases
                 Ray   scattered;
                 float pdfValue;
-                int numRetries = 0;
+                int   numPdfQueries = 0;
                 do
                 {
                    scattered = Ray(hitRec.P, pdf->Generate(), r.Time());
                    pdfValue  = pdf->Value(scattered.Direction());
-                   numRetries++;
-                } while (pdfValue <= 0.0000001f || pdfValue > 99999999.f);
+                   numPdfQueries++;
+                } while (pdfValue <= 0.0000001f);
 
-                if ((numRetries > 1))
+                if (numPdfQueries > 1)
                 {
-                    DEBUG_PRINTF("Num-retries:%d pdf:%f\n", numRetries, pdfValue);
+                    NumPdfQueryRetries += (numPdfQueries - 1);
                 }
                 
-                return emitted +
-                    scatterRec.Attenuation *
-                    hitRec.MatPtr->ScatteringPdf(r, hitRec, scattered) *
-                    trace(scattered, scene, depth + 1, clearColor) / pdfValue;
+                // Compute the aggregate color
+                const float scatterPdf = hitRec.MatPtr->ScatteringPdf(r, hitRec, scattered);
+                const Vec3  tracedVec  = trace(scattered, scene, depth + 1, clearColor);
+                const Vec3  ret        = emitted + (scatterRec.Attenuation * scatterPdf * tracedVec / pdfValue);
+
+                // When enabled, this will test for valid floats
+                VEC3_SANITY_CHECK(emitted);
+                VEC3_SANITY_CHECK(scatterRec.Attenuation);
+                SANITY_CHECK_FLOAT(scatterPdf);
+                VEC3_SANITY_CHECK(tracedVec);
+                SANITY_CHECK_FLOAT(pdfValue);
+                VEC3_SANITY_CHECK(ret);
+
+                return ret;
             }
         }
         else

@@ -26,6 +26,7 @@ public:
         int64_t  TotalRaysFired;
         int      NumPixelsTraced;
         int      TotalNumPixels;
+        int      NumPdfQueryRetries;
     };
 
 public:
@@ -65,6 +66,7 @@ private:
     std::atomic<int>      CurrentOutputOffset;
     std::atomic<int64_t>  TotalRaysFired;
     std::atomic<int>      NumThreadsDone;
+    std::atomic<int>      NumPdfQueryRetries;
     std::atomic<bool>     ThreadExitRequested;
     std::thread**         ThreadPtrs;
     ThreadEvent           RaytraceEvent;

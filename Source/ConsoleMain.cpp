@@ -12,19 +12,20 @@
 
 #define  OUTPUT_IMAGE_DIR  "OutputImages/"
 
-static int    sOutputWidth      = 256;
-static int    sOutputHeight     = 256;
+static int    sOutputWidth      = 512;
+static int    sOutputHeight     = 512;
 static float  sAspect           = float(sOutputWidth) / float(sOutputHeight);
-static int    sNumSamplesPerRay = 500;
+static int    sNumSamplesPerRay = 100;
 static int    sMaxScatterDepth  = 50;
-static int    sNumThreads       = 7;
+static int    sNumThreads       = 8;
 
 static bool   sSceneEnabled[MaxScene] =
 {
     false,  // Random
     false,  // Cornell
     false,  // Cornell smoke
-    true,   // Final
+    true,   // SceneMesh
+    false,  // Final
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -82,6 +83,15 @@ int main()
         RaytraceAndPrintProgress(tracer, cam, SampleSceneCornellBox(true));
         ImageIO::WriteToPPMFile(tracer.GetOutputBuffer(), tracer.GetOutputWidth(), tracer.GetOutputHeight(),
             OUTPUT_IMAGE_DIR "cornell_smoke.ppm");
+    }
+
+    // Final
+    if (sSceneEnabled[SceneMesh])
+    {
+        Camera cam = GetCameraForSample(SceneMesh, sAspect);
+        RaytraceAndPrintProgress(tracer, cam, SampleSceneMesh());
+        ImageIO::WriteToPPMFile(tracer.GetOutputBuffer(), tracer.GetOutputWidth(), tracer.GetOutputHeight(),
+            OUTPUT_IMAGE_DIR "mesh.ppm");
     }
 
     // Final

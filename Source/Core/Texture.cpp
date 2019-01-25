@@ -39,7 +39,7 @@ ImageTexture::ImageTexture(const unsigned char* pixels, bool hasAlpha, int width
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-ImageTexture::ImageTexture(const char* filePath)
+ImageTexture::ImageTexture(const char* filePath) : Filename(filePath)
 {
     int comp;
     unsigned char* pixelData = stbi_load(filePath, &Width, &Height, &comp, STBI_rgb_alpha);
@@ -58,6 +58,13 @@ ImageTexture::~ImageTexture()
     if (ImageData != nullptr)
     {
         delete [] ImageData;
+        ImageData = nullptr;
+    }
+    
+    if (ImageRgba != nullptr)
+    {
+        delete ImageRgba;
+        ImageRgba = nullptr;
     }
 }
 
@@ -84,6 +91,7 @@ Vec3 ImageTexture::Value(float u, float v, const Vec3& p) const
 void ImageTexture::createFromPixelData(const unsigned char* pixels, bool hasAlpha, int width, int height)
 {
     ImageData = new Vec3[width * height];
+    ImageRgba = new uint8_t[width * height * 4];
 
     const int bpp = hasAlpha ? 4 : 3;
     for (int y = 0; y < height; y++)
@@ -92,7 +100,7 @@ void ImageTexture::createFromPixelData(const unsigned char* pixels, bool hasAlph
         {
             const int   srcOffset = (bpp * x) + (bpp * Width * y);
             const int   dstOffset = (x)+(Width * y);
-            const float kRemap = 1.f / 255.f;
+            const float kRemap    = 1.f / 255.f;
 
             const float r = int(pixels[srcOffset + 0]) * kRemap;
             const float g = int(pixels[srcOffset + 1]) * kRemap;
@@ -101,6 +109,18 @@ void ImageTexture::createFromPixelData(const unsigned char* pixels, bool hasAlph
             // Has alpha?
             const float a = hasAlpha ? (int(pixels[srcOffset + 3]) * kRemap) : 1.f;
 
+            ImageRgba[srcOffset + 0] = pixels[srcOffset + 0];
+            ImageRgba[srcOffset + 1] = pixels[srcOffset + 1];
+            ImageRgba[srcOffset + 2] = pixels[srcOffset + 2];
+            if (hasAlpha)
+            {
+                ImageRgba[srcOffset + 3] = pixels[srcOffset + 3];
+            }
+            else
+            {
+                ImageRgba[srcOffset + 3] = 255;
+            }
+                
             ImageData[dstOffset] = Vec3(r, g, b, a);
         }
     }

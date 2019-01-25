@@ -130,6 +130,8 @@ public:
     virtual float ScatteringPdf(const Ray& rayIn, const HitRecord& rec, Ray& scattered) const;
     virtual Vec3  AlbedoValue(float u, float v, const Vec3& p) const;
 
+    const ImageTexture* GetDiffuseMap() const { return DiffuseMap; }
+
 private:
 
     ImageTexture* DiffuseMap;

@@ -43,6 +43,8 @@ public:
         numTris = NumTriangles;
     }
 
+    const MWavefrontObj* GetMaterial() const { return Mat; }
+
 private:
 
     TriMesh() : TriArray(nullptr), NumTriangles(0), BVHHead(NULL) {}
@@ -55,7 +57,7 @@ private:
 
 private:
 
-    Material*               Mat;
+    MWavefrontObj*          Mat;
     IHitable**              TriArray;
     int                     NumTriangles;
     BVHNode*                BVHHead;

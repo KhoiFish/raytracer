@@ -81,6 +81,7 @@ struct RenderSceneNode
     std::shared_ptr<Mesh>   MeshData;
     XMMATRIX                WorldMatrix;
     RenderMaterial          Material;
+    Texture*                DiffuseTexture;
 };
 
 enum RootParameters
@@ -419,9 +420,10 @@ void RaytracerWindows::GenerateRenderListFromWorld(std::shared_ptr<CommandList> 
             128.0f
         };
 
-        newNode->MeshData    = Mesh::CreateSphere(*commandList, radius * 2.f);
-        newNode->WorldMatrix = newMatrix;
-        newNode->Material    = newMaterial;
+        newNode->MeshData       = Mesh::CreateSphere(*commandList, radius * 2.f);
+        newNode->WorldMatrix    = newMatrix;
+        newNode->Material       = newMaterial;
+        newNode->DiffuseTexture = &PreviewTex;
         outSceneList.push_back(newNode);
     }
     else if (tid == typeid(HitableBox))
@@ -438,9 +440,10 @@ void RaytracerWindows::GenerateRenderListFromWorld(std::shared_ptr<CommandList> 
         XMFLOAT3         sideLengths = XMFLOAT3(fabs(diff.X()), fabs(diff.Y()), fabs(diff.Z()));
         RenderSceneNode* newNode     = new RenderSceneNode();
 
-        newNode->MeshData    = Mesh::CreateCube(*commandList, sideLengths);
-        newNode->WorldMatrix = newMatrix;
-        newNode->Material    = MaterialWhite;
+        newNode->MeshData       = Mesh::CreateCube(*commandList, sideLengths);
+        newNode->WorldMatrix    = newMatrix;
+        newNode->Material       = MaterialWhite;
+        newNode->DiffuseTexture = &PreviewTex;
         outSceneList.push_back(newNode);
     }
     else if (tid == typeid(TriMesh))
@@ -460,9 +463,12 @@ void RaytracerWindows::GenerateRenderListFromWorld(std::shared_ptr<CommandList> 
             const Triangle::Vertex* triVertices = tri->GetVertices();
             for (int v = 0; v < 3; v++)
             {
+                float s = 1.f - triVertices[v].UV[0];
+                float t = 1.f - triVertices[v].UV[1];
+
                 XMVECTOR position = ConvertFromVec3(triVertices[v].Vert);
                 XMVECTOR normal   = ConvertFromVec3(triVertices[v].Normal);
-                XMVECTOR texCoord = XMVectorSet(triVertices[v].UV[0], triVertices[v].UV[1], 0, 0);
+                XMVECTOR texCoord = XMVectorSet(s, t, 0, 0);
 
                 vertices.push_back(VertexPositionNormalTexture(position, normal, texCoord));
                 indices.push_back(uint16_t(vertices.size() - 1));
@@ -472,10 +478,16 @@ void RaytracerWindows::GenerateRenderListFromWorld(std::shared_ptr<CommandList> 
         XMMATRIX         translation = XMMatrixIdentity();
         XMMATRIX         newMatrix   = ComputeFinalMatrix(matrixStack, translation);
         RenderSceneNode* newNode     = new RenderSceneNode();
+        std::string      fileName    = triMesh->GetMaterial()->GetDiffuseMap()->GetSourceFilename().c_str();
+        std::wstring     widestr     = std::wstring(fileName.begin(), fileName.end());
+        Texture*         newTexture  = new Texture();
 
-        newNode->MeshData    = Mesh::CreateFromCollection(*commandList, vertices, indices);
-        newNode->WorldMatrix = newMatrix;
-        newNode->Material    = MaterialWhite;
+        commandList->LoadTextureFromFile(*newTexture, widestr.c_str());
+
+        newNode->MeshData       = Mesh::CreateFromCollection(*commandList, vertices, indices);
+        newNode->WorldMatrix    = newMatrix;
+        newNode->Material       = MaterialWhite;
+        newNode->DiffuseTexture = newTexture;
         outSceneList.push_back(newNode);
     }
     else if (tid == typeid(XYZRect))
@@ -741,7 +753,7 @@ void RaytracerWindows::OnRender(RenderEventArgs& e)
             commandList->SetPipelineState(PreviewPipelineState);
             commandList->SetGraphicsDynamicConstantBuffer(RootParameters::MatricesCB, matrices);
             commandList->SetGraphicsDynamicConstantBuffer(RootParameters::MaterialCB, RenderSceneList[i]->Material);
-            commandList->SetShaderResourceView(RootParameters::TextureDiffuse, 0, PreviewTex, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+            commandList->SetShaderResourceView(RootParameters::TextureDiffuse, 0, *RenderSceneList[i]->DiffuseTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
             RenderSceneList[i]->MeshData->Draw(*commandList);
         }

@@ -2,6 +2,7 @@
 
 #include "Vec3.h"
 #include "Perlin.h"
+#include <string>
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -70,7 +71,11 @@ public:
     ImageTexture(const char* filePath);
     ~ImageTexture();
 
-    virtual Vec3 Value(float u, float v, const Vec3& p) const;
+    virtual Vec3   Value(float u, float v, const Vec3& p) const;
+
+    std::string    GetSourceFilename() const { return Filename; }
+    const Vec3*    GetImageFP() const        { return ImageData; }
+    const uint8_t* GetImageRgba8888() const  { return ImageRgba; }
 
 private:
 
@@ -78,6 +83,8 @@ private:
 
 private:
 
+    std::string     Filename;
     Vec3*           ImageData;
+    uint8_t*        ImageRgba;
     int             Width, Height;
 };

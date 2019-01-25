@@ -79,7 +79,7 @@ TriMesh* TriMesh::CreateFromSTLFile(const char* filePath, Material* material, fl
 
 Triangle* TriMesh::makeNewTriangle(
     int v0, int v1, int v2,
-    const std::vector<Vec3>& vertList, const std::vector<Vec3>& vertNormalList, const std::vector<TexCoord>& vexCoordList,
+    const std::vector<Vec3>& vertList, const std::vector<Vec3>& vertNormalList, const std::vector<TexCoord>& texCoordList,
     const Face& face, Material* material)
 {
     Triangle* newTri0 = new Triangle(
@@ -89,8 +89,8 @@ Triangle* TriMesh::makeNewTriangle(
                 vertNormalList[face.Verts[v0].NormIndex],
                 Vec3(0, 0, 0),
                 {
-                    vexCoordList[face.Verts[v0].TexCoordIndex].UV[0],
-                    vexCoordList[face.Verts[v0].TexCoordIndex].UV[1]
+                    texCoordList[face.Verts[v0].TexCoordIndex].UV[0],
+                    texCoordList[face.Verts[v0].TexCoordIndex].UV[1]
                 }
             }
         ),
@@ -100,8 +100,8 @@ Triangle* TriMesh::makeNewTriangle(
                 vertNormalList[face.Verts[v1].NormIndex],
                 Vec3(0, 0, 0),
                 {
-                    vexCoordList[face.Verts[v1].TexCoordIndex].UV[0],
-                    vexCoordList[face.Verts[v1].TexCoordIndex].UV[1]
+                    texCoordList[face.Verts[v1].TexCoordIndex].UV[0],
+                    texCoordList[face.Verts[v1].TexCoordIndex].UV[1]
                 }
             }
         ),
@@ -111,8 +111,8 @@ Triangle* TriMesh::makeNewTriangle(
                 vertNormalList[face.Verts[v2].NormIndex],
                 Vec3(0, 0, 0),
                 {
-                    vexCoordList[face.Verts[v2].TexCoordIndex].UV[0],
-                    vexCoordList[face.Verts[v2].TexCoordIndex].UV[1]
+                    texCoordList[face.Verts[v2].TexCoordIndex].UV[0],
+                    texCoordList[face.Verts[v2].TexCoordIndex].UV[1]
                 }
             }
         ),

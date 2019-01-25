@@ -93,7 +93,7 @@ Camera GetCameraForSample(SampleScene scene, float aspect)
             const Vec3   lookAt   = Vec3(169.718414, 415.406555, 814.965271);
             const Vec3   upVec = Vec3(0, 1, 0);
             const float  vertFov = 40.f;
-            const float  aperture = 0.6f;
+            const float  aperture = 0.0f;
             const float  distToFocus = 90.f;
             const float  shutterTime0 = 0.f;
             const float  shutterTime1 = 1.f;

@@ -15,9 +15,9 @@
 static int    sOutputWidth      = 512;
 static int    sOutputHeight     = 512;
 static float  sAspect           = float(sOutputWidth) / float(sOutputHeight);
-static int    sNumSamplesPerRay = 100;
+static int    sNumSamplesPerRay = 500;
 static int    sMaxScatterDepth  = 50;
-static int    sNumThreads       = 8;
+static int    sNumThreads       = 6;
 
 static bool   sSceneEnabled[MaxScene] =
 {
@@ -30,6 +30,17 @@ static bool   sSceneEnabled[MaxScene] =
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+static inline void progressHelper(char buf[256], Raytracer& tracer)
+{
+    Raytracer::Stats stats = tracer.GetStats();
+    float percentage = float(stats.NumPixelsTraced) / float(stats.TotalNumPixels);
+    int   numMinutes = stats.TotalTimeInSeconds / 60;
+    int   numSeconds = stats.TotalTimeInSeconds % 60;
+
+    snprintf(buf, 256, "#time:%dm:%2ds  #rays:%lld  #pixels:%d  #pdfQueryRetries:%d ", numMinutes, numSeconds, stats.TotalRaysFired, stats.NumPixelsTraced, stats.NumPdfQueryRetries);
+    PrintProgress(buf, percentage);
+}
+
 static void RaytraceAndPrintProgress(Raytracer& tracer, Camera& cam, WorldScene* scene)
 {
     // Start the trace
@@ -40,13 +51,9 @@ static void RaytraceAndPrintProgress(Raytracer& tracer, Camera& cam, WorldScene*
     char buf[256];
     while (!tracer.WaitForTraceToFinish(1000 * 500))
     {
-        // Get stats
-        Raytracer::Stats stats = tracer.GetStats();
-        float percentage = float(stats.NumPixelsTraced) / float(stats.TotalNumPixels);
-
-        snprintf(buf, 256, "#rays:%lld #pixels:%d #pdfQueryRetries:%d", stats.TotalRaysFired, stats.NumPixelsTraced, stats.NumPdfQueryRetries);
-        PrintProgress(buf, percentage);
+        progressHelper(buf, tracer);
     }
+    progressHelper(buf, tracer);
 
     printf("\nRendering done!");
 }

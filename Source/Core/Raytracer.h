@@ -21,12 +21,15 @@ class Raytracer
 {
 public:
 
+    typedef std::chrono::time_point<std::chrono::system_clock> StdTime;
+
     struct Stats
     {
-        int64_t  TotalRaysFired;
-        int      NumPixelsTraced;
-        int      TotalNumPixels;
-        int      NumPdfQueryRetries;
+        int64_t     TotalRaysFired;
+        int         NumPixelsTraced;
+        int         TotalNumPixels;
+        int         NumPdfQueryRetries;
+        int         TotalTimeInSeconds;
     };
 
 public:
@@ -68,6 +71,8 @@ private:
     std::atomic<int>      NumThreadsDone;
     std::atomic<int>      NumPdfQueryRetries;
     std::atomic<bool>     ThreadExitRequested;
+    std::atomic<StdTime>  StartTime;
+    std::atomic<StdTime>  EndTime;
     std::thread**         ThreadPtrs;
     ThreadEvent           RaytraceEvent;
     bool                  IsRaytracing;

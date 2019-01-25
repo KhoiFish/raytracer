@@ -68,6 +68,7 @@ void Raytracer::BeginRaytrace(const Camera& cam, WorldScene* scene)
     CurrentOutputOffset = 0;
     NumThreadsDone = 0;
     NumPdfQueryRetries = 0;
+    StartTime = std::chrono::system_clock::now();
 
     // Memset out buffers
     memset(OutputBufferRGBA, 0, sizeof(uint8_t) * OutputWidth * OutputHeight * 4);
@@ -100,7 +101,10 @@ Raytracer::Stats Raytracer::GetStats() const
     stats.NumPixelsTraced    = CurrentOutputOffset.load();
     stats.TotalNumPixels     = (OutputWidth * OutputHeight);
     stats.NumPdfQueryRetries = NumPdfQueryRetries.load();
-
+    
+    StdTime endTime = IsRaytracing ? std::chrono::system_clock::now() : EndTime.load();
+    stats.TotalTimeInSeconds = (int)std::chrono::duration<double>(endTime - StartTime.load()).count();
+    
     return stats;
 }
 
@@ -194,6 +198,7 @@ void Raytracer::threadTraceNextPixel(int id, Raytracer* tracer, const Camera& ca
     if (tracer->NumThreadsDone.load() >= tracer->NumThreads)
     {
         // Last thread, signal trace is done
+        tracer->EndTime = std::chrono::system_clock::now();
         tracer->RaytraceEvent.Signal();
     }
 }

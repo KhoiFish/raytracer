@@ -66,7 +66,6 @@ Camera GetCameraForSample(SampleScene scene, float aspect)
         break;
 
         case SceneFinal:
-        case SceneMesh:
         {
             // Camera options
             const Vec3   lookFrom = Vec3(478, 278, -600);
@@ -80,6 +79,27 @@ Camera GetCameraForSample(SampleScene scene, float aspect)
             const Vec3   clearColor(0, 0, 0);
 
             return Camera (
+                lookFrom, lookAt, upVec,
+                vertFov, aspect, aperture, distToFocus,
+                shutterTime0, shutterTime1, clearColor);
+        }
+        break;
+
+    //lookFrom:(446.230499, 422.304993, -499.689911)  lookAt : (445.983887, 422.121155, -498.738403)  up : (0.000000, 1.000000, 0.000000)  vertFov : 40.000000  aspect : 1.000000  aperture : 0.000000  focusDist : 10.000000
+        case SceneMesh:
+        {
+            // Camera options
+            const Vec3   lookFrom = Vec3(169.487518, 415.648987, 815.907593);
+            const Vec3   lookAt   = Vec3(169.718414, 415.406555, 814.965271);
+            const Vec3   upVec = Vec3(0, 1, 0);
+            const float  vertFov = 40.f;
+            const float  aperture = 0.6f;
+            const float  distToFocus = 90.f;
+            const float  shutterTime0 = 0.f;
+            const float  shutterTime1 = 1.f;
+            const Vec3   clearColor(0, 0, 0);
+
+            return Camera(
                 lookFrom, lookAt, upVec,
                 vertFov, aspect, aperture, distToFocus,
                 shutterTime0, shutterTime1, clearColor);
@@ -260,7 +280,7 @@ WorldScene* SampleSceneMesh()
     int numLs = 0;
 
     // Create random hitable boxes, in BVH tree
-    list[total++] = new HitableBox(Vec3(-1000, -100, -1000), Vec3(1000, 100, 1000), ground);
+    list[total++] = new HitableBox(Vec3(-2000, -100, -2000), Vec3(2000, 100, 2000), ground);
 
     // Create light
     {
@@ -281,9 +301,16 @@ WorldScene* SampleSceneMesh()
         list[total++] = meshHitable;
     }
 
+    // Dielectric and metal spheres
+    {
+        IHitable* newDielectricSphere = new Sphere(Vec3(300, 200, -200), 100, new MDielectric(1.5f));
+        list[total++] = newDielectricSphere;
+        lsList[numLs++] = newDielectricSphere;
+    }
+
     // Volumes
     {
-        IHitable *boundary = new Sphere(Vec3(360, 150, 145), 70, new MDielectric(1.5f));
+        IHitable *boundary = new Sphere(Vec3(500, 200, 100), 125, new MDielectric(1.5f));
         list[total++] = boundary;
         list[total++] = new ConstantMedium(boundary, 0.2f, new ConstantTexture(Vec3(0.2f, 0.4f, 0.9f)));
 
@@ -291,6 +318,7 @@ WorldScene* SampleSceneMesh()
         list[total++] = new ConstantMedium(boundary, 0.0001f, new ConstantTexture(Vec3(1.0f, 1.0f, 1.0f)));
     }
 
+#if 0
     // Translated, rotated spheres in BVH tree
     {
         int ns = 1000;
@@ -300,6 +328,7 @@ WorldScene* SampleSceneMesh()
         }
         list[total++] = new HitableTranslate(new HitableRotateY(new BVHNode(boxlist2, ns, 0.0, 1.0), 15), Vec3(-100, 270, 395));
     }
+#endif
 
     return WorldScene::Create(list, total, lsList, numLs);
 }

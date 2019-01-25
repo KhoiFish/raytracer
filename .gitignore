@@ -4,3 +4,9 @@ Release/
 *.ppm
 *.aps
 RuntimeData/*.cso
+RuntimeData/*.exe
+RuntimeData/*.ilk
+RuntimeData/*.pdb
+RuntimeData/*.iobj
+RuntimeData/*.ipdb
+RuntimeData/*.ini

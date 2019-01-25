@@ -241,9 +241,18 @@ TriMesh* TriMesh::CreateFromOBJFile(const char* filePath, float scale /*= 1.0f*/
                         fc.TexCoordIndex = (faceCompTokens.size() > 1) ? atoi(faceCompTokens[1].c_str()) - 1 : 0;
                         fc.NormIndex     = (faceCompTokens.size() > 2) ? atoi(faceCompTokens[2].c_str()) - 1 : 0;
 
+                        if (fc.VertIndex < 0 || fc.TexCoordIndex < 0 || fc.NormIndex < 0)
+                        {
+                            continue;
+                        }
+
                         face.Verts.push_back(fc);
                     }
-                    faceList.push_back(face);
+
+                    if (face.Verts.size() == 3)
+                    {
+                        faceList.push_back(face);
+                    }
                 }
                 break;
 

@@ -104,11 +104,11 @@ static const UINT sShaderRegisterParams[NumRootParameters][2] =
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static int    overrideWidth       = 512;
-static int    overrideHeight      = 512;
-static int    sNumSamplesPerRay   = 100;
-static int    sMaxScatterDepth    = 50;
-static int    sNumThreads         = 7;
+static int    overrideWidth       = 256;
+static int    overrideHeight      = 256;
+static int    sNumSamplesPerRay   = 1000;
+static int    sMaxScatterDepth    = 10;
+static int    sNumThreads         = 8;
 static float  sClearColor[]       = { 0.4f, 0.6f, 0.9f, 1.0f };
 
 static const RenderMaterial MaterialWhite =
@@ -192,6 +192,17 @@ static inline Vec3 ConvertFromXMVector(const XMVECTOR& vec)
 
 static void UpdateCameras(float forwardAmount, float strafeAmount, float upDownAmount, int mouseDx, int mouseDy, Camera& raytracerCamera, CameraDX12& renderCamera)
 {
+    // Has mouse moved?
+    static int lastMouseDx = mouseDx;
+    static int lastMouseDy = mouseDy;
+    bool mouseMoved = false;
+    if (mouseDx != lastMouseDx || mouseDy != lastMouseDy)
+    {
+        mouseMoved = true;
+        lastMouseDx = mouseDx;
+        lastMouseDy = mouseDy;
+    }
+
     // Get ray tracer camera params
     Vec3   lookFrom, lookAt, up;
     float  vertFov, aspect, aperture, focusDist, t0, t1;
@@ -225,6 +236,17 @@ static void UpdateCameras(float forwardAmount, float strafeAmount, float upDownA
     XMVECTOR cameraUp     = ConvertFromVec3(up);
     renderCamera.set_LookAt(cameraPos, cameraTarget, cameraUp);
     renderCamera.set_Projection(vertFov, aspect, 0.1f, 10000.0f);
+
+    // Print out camera changes
+    if (mouseMoved)
+    {
+        DEBUG_PRINTF("lookFrom:(%f, %f, %f)  lookAt:(%f, %f, %f)  up:(%f, %f, %f)  vertFov:%f  aspect:%f  aperture:%f  focusDist:%f\n",
+            lookFrom[0], lookFrom[1], lookFrom[2],
+            lookAt[0], lookAt[1], lookAt[2],
+            up[0], up[1], up[2],
+            vertFov, aspect, aperture, focusDist
+        );
+    }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

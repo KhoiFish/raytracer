@@ -151,3 +151,41 @@ Vec3 XYZRect::Random(const Vec3& origin) const
 
     return randomPoint - origin;
 }
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void XYZRect::GetPlaneData(Vec3 outPoints[4], Vec3& normal)
+{
+    switch (AxisMode)
+    {
+        case XY:
+        {
+            normal       = Vec3(0, 0, 1);
+            outPoints[0] = Vec3(A0, B0, K);
+            outPoints[1] = Vec3(A1, B0, K);
+            outPoints[2] = Vec3(A1, B1, K);
+            outPoints[3] = Vec3(A0, B1, K);
+        }
+        break;
+
+        case XZ:
+        {
+            normal       = Vec3(0, 1, 0);
+            outPoints[0] = Vec3(A0, K, B0);
+            outPoints[1] = Vec3(A1, K, B0);
+            outPoints[2] = Vec3(A1, K, B1);
+            outPoints[3] = Vec3(A0, K, B1);
+        }
+        break;
+
+        case YZ:
+        {
+            normal       = Vec3(1, 0, 0);
+            outPoints[0] = Vec3(K, A0, B0);
+            outPoints[1] = Vec3(K, A1, B0);
+            outPoints[2] = Vec3(K, A1, B1);
+            outPoints[3] = Vec3(K, A0, B1);
+        }
+        break;
+    }
+}

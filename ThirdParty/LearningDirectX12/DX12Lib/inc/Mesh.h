@@ -85,6 +85,7 @@ public:
     static std::unique_ptr<Mesh> CreateCone(CommandList& commandList, float diameter = 1, float height = 1, size_t tessellation = 32, bool rhcoords = false);
     static std::unique_ptr<Mesh> CreateTorus(CommandList& commandList, float diameter = 1, float thickness = 0.333f, size_t tessellation = 32, bool rhcoords = false);
     static std::unique_ptr<Mesh> CreatePlane(CommandList& commandList, float width = 1, float height = 1, bool rhcoords = false);
+    static std::unique_ptr<Mesh> CreatePlaneFromPoints(CommandList& commandList, const DirectX::XMFLOAT3 points[4], const DirectX::XMFLOAT3& normal, bool rhcoords = false);
     static std::unique_ptr<Mesh> CreateFromCollection(CommandList& commandList, VertexCollection& vertices, IndexCollection& indices, bool rhcoords = false);
 
 protected:

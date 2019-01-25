@@ -435,6 +435,29 @@ std::unique_ptr<Mesh> Mesh::CreatePlane(CommandList& commandList, float width, f
     return mesh;
 }
 
+
+std::unique_ptr<Mesh> Mesh::CreatePlaneFromPoints(CommandList& commandList, const DirectX::XMFLOAT3 points[4], const DirectX::XMFLOAT3& normal, bool rhcoords /*= false*/)
+{
+    VertexCollection vertices =
+    {
+       { points[0], normal, XMFLOAT2(0.0f, 0.0f) },
+       { points[1], normal, XMFLOAT2(1.0f, 0.0f) },
+       { points[2], normal, XMFLOAT2(1.0f, 1.0f) },
+       { points[3], normal, XMFLOAT2(0.0f, 1.0f) }
+    };
+
+    IndexCollection indices =
+    {
+        0, 3, 1, 1, 3, 2
+    };
+
+    std::unique_ptr<Mesh> mesh(new Mesh());
+
+    mesh->Initialize(commandList, vertices, indices, rhcoords);
+
+    return mesh;
+}
+
 std::unique_ptr<Mesh> Mesh::CreateFromCollection(CommandList& commandList, VertexCollection& vertices, IndexCollection& indices, bool rhcoords /*= false*/)
 {
     std::unique_ptr<Mesh> mesh(new Mesh());

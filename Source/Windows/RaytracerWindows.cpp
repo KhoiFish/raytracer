@@ -73,6 +73,7 @@ struct PipelineStateStream
     CD3DX12_PIPELINE_STATE_STREAM_DEPTH_STENCIL_FORMAT      DSVFormat;
     CD3DX12_PIPELINE_STATE_STREAM_RENDER_TARGET_FORMATS     RTVFormats;
     CD3DX12_PIPELINE_STATE_STREAM_SAMPLE_DESC               SampleDesc;
+    CD3DX12_PIPELINE_STATE_STREAM_RASTERIZER                Rasterizer;
 };
 
 struct RenderSceneNode
@@ -146,6 +147,22 @@ static void XM_CALLCONV ComputeMatrices(FXMMATRIX model, CXMMATRIX view, CXMMATR
     mat.ModelViewMatrix                 = model * view;
     mat.InverseTransposeModelViewMatrix = XMMatrixTranspose(XMMatrixInverse(nullptr, mat.ModelViewMatrix));
     mat.ModelViewProjectionMatrix       = model * viewProjection;
+}
+
+static bool FlipFromNormalStack(Vec3& normal, const std::vector<bool>& flipNormalStack)
+{
+    bool flipped = false;
+    for (int i = 0; i < (int)flipNormalStack.size(); i++)
+    {
+        flipped = !flipped;
+    }
+
+    if (flipped)
+    {
+        normal = normal * -1.f;
+    }
+
+    return flipped;
 }
 
 static inline XMMATRIX ComputeFinalMatrix(std::vector<DirectX::XMMATRIX>& matrixStack, XMMATRIX innerMatrix)
@@ -337,12 +354,14 @@ void RaytracerWindows::LoadScene(std::shared_ptr<CommandList> commandList)
 #endif
 
     std::vector<DirectX::XMMATRIX> matrixStack;
-    GenerateRenderListFromWorld(commandList, Scene->GetWorld(), RenderSceneList, matrixStack);
+    std::vector<bool> flipNormalStack;
+    GenerateRenderListFromWorld(commandList, Scene->GetWorld(), RenderSceneList, matrixStack, flipNormalStack);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RaytracerWindows::GenerateRenderListFromWorld(std::shared_ptr<CommandList> commandList, const IHitable* currentHead, std::vector<RenderSceneNode*>& outSceneList, std::vector<DirectX::XMMATRIX>& matrixStack)
+void RaytracerWindows::GenerateRenderListFromWorld(std::shared_ptr<CommandList> commandList, const IHitable* currentHead, 
+    std::vector<RenderSceneNode*>& outSceneList, std::vector<DirectX::XMMATRIX>& matrixStack, std::vector<bool>& flipNormalStack)
 {
     const std::type_info& tid = typeid(*currentHead);
 
@@ -354,17 +373,17 @@ void RaytracerWindows::GenerateRenderListFromWorld(std::shared_ptr<CommandList> 
         const int  listSize = hitList->GetListSize();
         for (int i = 0; i < listSize; i++)
         {
-            GenerateRenderListFromWorld(commandList, list[i], outSceneList, matrixStack);
+            GenerateRenderListFromWorld(commandList, list[i], outSceneList, matrixStack, flipNormalStack);
         }
     }
     else if (tid == typeid(BVHNode))
     {
         BVHNode* bvhNode = (BVHNode*)currentHead;
 
-        GenerateRenderListFromWorld(commandList, bvhNode->GetLeft(), outSceneList, matrixStack);
+        GenerateRenderListFromWorld(commandList, bvhNode->GetLeft(), outSceneList, matrixStack, flipNormalStack);
         if (bvhNode->GetLeft() != bvhNode->GetRight())
         {
-            GenerateRenderListFromWorld(commandList, bvhNode->GetRight(), outSceneList, matrixStack);
+            GenerateRenderListFromWorld(commandList, bvhNode->GetRight(), outSceneList, matrixStack, flipNormalStack);
         }
     }
     else if (tid == typeid(HitableTranslate))
@@ -374,7 +393,7 @@ void RaytracerWindows::GenerateRenderListFromWorld(std::shared_ptr<CommandList> 
         XMMATRIX          translation      = XMMatrixTranslation(offset.X(), offset.Y(), -offset.Z());
 
         matrixStack.push_back(translation);
-        GenerateRenderListFromWorld(commandList, translateHitable->GetHitObject(), outSceneList, matrixStack);
+        GenerateRenderListFromWorld(commandList, translateHitable->GetHitObject(), outSceneList, matrixStack, flipNormalStack);
         matrixStack.pop_back();
     }
     else if (tid == typeid(HitableRotateY))
@@ -383,8 +402,15 @@ void RaytracerWindows::GenerateRenderListFromWorld(std::shared_ptr<CommandList> 
         XMMATRIX          rotation       = XMMatrixRotationY(XMConvertToRadians(-rotateYHitable->GetAngleDegrees()));
 
         matrixStack.push_back(rotation);
-        GenerateRenderListFromWorld(commandList, rotateYHitable->GetHitObject(), outSceneList, matrixStack);
+        GenerateRenderListFromWorld(commandList, rotateYHitable->GetHitObject(), outSceneList, matrixStack, flipNormalStack);
         matrixStack.pop_back();
+    }
+    else if (tid == typeid(FlipNormals))
+    {
+        FlipNormals* flipNormals = (FlipNormals*)currentHead;
+        flipNormalStack.push_back(true);
+        GenerateRenderListFromWorld(commandList, flipNormals->GetHitObject(), outSceneList, matrixStack, flipNormalStack);
+        flipNormalStack.pop_back();
     }
     else if (tid == typeid(Sphere) || tid == typeid(MovingSphere))
     {
@@ -492,7 +518,30 @@ void RaytracerWindows::GenerateRenderListFromWorld(std::shared_ptr<CommandList> 
     }
     else if (tid == typeid(XYZRect))
     {
-        ; // TODO
+        XYZRect*  xyzRect = (XYZRect*)currentHead;
+        Vec3      planePoints[4];
+        Vec3      normal;
+        XMFLOAT3  xmPlanePoints[4];
+        XMFLOAT3  xmNormal;
+        xyzRect->GetPlaneData(planePoints, normal);
+        bool normalFlipped = FlipFromNormalStack(normal, flipNormalStack);
+        for (int i = 0; i < 4; i++)
+        {
+            int dst = normalFlipped ? i : (4 - i - 1);
+            xmPlanePoints[dst] = XMFLOAT3(planePoints[i].X(), planePoints[i].Y(), -planePoints[i].Z());
+        }
+        xmNormal = XMFLOAT3(normal.X(), normal.Y(), -normal.Z());
+        
+
+        XMMATRIX         translation = XMMatrixIdentity();
+        XMMATRIX         newMatrix   = ComputeFinalMatrix(matrixStack, translation);
+        RenderSceneNode* newNode     = new RenderSceneNode();
+
+        newNode->MeshData       = Mesh::CreatePlaneFromPoints(*commandList, xmPlanePoints, xmNormal);
+        newNode->WorldMatrix    = newMatrix;
+        newNode->Material       = MaterialWhite;
+        newNode->DiffuseTexture = &PreviewTex;
+        outSceneList.push_back(newNode);
     }
 }
 
@@ -595,6 +644,12 @@ bool RaytracerWindows::LoadContent()
         rtvFormats.NumRenderTargets = 1;
         rtvFormats.RTFormats[0]     = backBufferFormat;
 
+        // Set rasterizer state
+        CD3DX12_RASTERIZER_DESC rasterState;
+        ZeroMemory(&rasterState, sizeof(CD3DX12_RASTERIZER_DESC));
+        rasterState.FillMode = D3D12_FILL_MODE_SOLID;
+        rasterState.CullMode = D3D12_CULL_MODE_NONE;
+
         PipelineStateStream pipelineStateStream;
         pipelineStateStream.RootSignature         = RootSignature.GetRootSignature().Get();
         pipelineStateStream.InputLayout           = { VertexPositionNormalTexture::InputElements, VertexPositionNormalTexture::InputElementCount };
@@ -604,6 +659,7 @@ bool RaytracerWindows::LoadContent()
         pipelineStateStream.DSVFormat             = depthBufferFormat;
         pipelineStateStream.RTVFormats            = rtvFormats;
         pipelineStateStream.SampleDesc            = sampleDesc;
+        pipelineStateStream.Rasterizer            = rasterState;
 
         D3D12_PIPELINE_STATE_STREAM_DESC pipelineStateStreamDesc = { sizeof(PipelineStateStream), &pipelineStateStream };
         ThrowIfFailed(device->CreatePipelineState(&pipelineStateStreamDesc, IID_PPV_ARGS(&PreviewPipelineState)));
@@ -651,7 +707,6 @@ bool RaytracerWindows::LoadContent()
         RenderTarget.AttachTexture(AttachmentPoint::Color0, colorTexture);
         RenderTarget.AttachTexture(AttachmentPoint::DepthStencil, depthTexture);
     }
-
 
     // -------------------------------------------------------------------
     // Execute the command queue and wait for it to finish

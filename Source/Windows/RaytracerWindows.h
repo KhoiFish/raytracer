@@ -52,6 +52,8 @@ private:
     void GenerateRenderListFromWorld(std::shared_ptr<CommandList> commandList, const IHitable* currentHead, 
         std::vector<RenderSceneNode*>& outSceneList, std::vector<DirectX::XMMATRIX>& matrixStack, std::vector<bool>& flipNormalStack);
 
+    static void OnRaytraceComplete(Raytracer* tracer, bool actuallyFinished);
+
 private:
 
     enum RenderingMode

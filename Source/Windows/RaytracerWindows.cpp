@@ -106,8 +106,8 @@ static const UINT sShaderRegisterParams[NumRootParameters][2] =
 
 static int    overrideWidth       = 256;
 static int    overrideHeight      = 256;
-static int    sNumSamplesPerRay   = 1000;
-static int    sMaxScatterDepth    = 10;
+static int    sNumSamplesPerRay   = 50;
+static int    sMaxScatterDepth    = 25;
 static int    sNumThreads         = 8;
 static float  sClearColor[]       = { 0.4f, 0.6f, 0.9f, 1.0f };
 
@@ -286,6 +286,16 @@ RaytracerWindows::~RaytracerWindows()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+void RaytracerWindows::OnRaytraceComplete(Raytracer* tracer, bool actuallyFinished)
+{
+    if (actuallyFinished)
+    {
+        WriteImageAndLog(tracer, "RaytracerWindows");
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 void RaytracerWindows::OnResizeRaytracer()
 {
     // Is this the first time running?
@@ -340,7 +350,7 @@ void RaytracerWindows::Raytrace(bool enable)
         }
 
         RenderMode = ModeRaytracer;
-        TheRaytracer->BeginRaytrace(RaytracerCamera, Scene);
+        TheRaytracer->BeginRaytrace(RaytracerCamera, Scene, OnRaytraceComplete);
     }
     else
     {
@@ -611,8 +621,19 @@ bool RaytracerWindows::LoadContent()
         CD3DX12_DESCRIPTOR_RANGE1 texDescRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, sShaderRegisterParams[RootParameters::TextureDiffuse][0]);
 
         CD3DX12_ROOT_PARAMETER1 rootParameters[RootParameters::NumRootParameters];
-        rootParameters[RootParameters::MatricesCB].InitAsConstantBufferView(sShaderRegisterParams[RootParameters::MatricesCB][0], sShaderRegisterParams[RootParameters::MatricesCB][1], D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_VERTEX);
-        rootParameters[RootParameters::MaterialCB].InitAsConstantBufferView(sShaderRegisterParams[RootParameters::MaterialCB][0], sShaderRegisterParams[RootParameters::MaterialCB][1], D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_PIXEL);
+
+        rootParameters[RootParameters::MatricesCB].InitAsConstantBufferView(
+            sShaderRegisterParams[RootParameters::MatricesCB][0], 
+            sShaderRegisterParams[RootParameters::MatricesCB][1], 
+            D3D12_ROOT_DESCRIPTOR_FLAG_NONE, 
+            D3D12_SHADER_VISIBILITY_VERTEX);
+
+        rootParameters[RootParameters::MaterialCB].InitAsConstantBufferView(
+            sShaderRegisterParams[RootParameters::MaterialCB][0], 
+            sShaderRegisterParams[RootParameters::MaterialCB][1], 
+            D3D12_ROOT_DESCRIPTOR_FLAG_NONE, 
+            D3D12_SHADER_VISIBILITY_PIXEL);
+
         rootParameters[RootParameters::TextureDiffuse].InitAsDescriptorTable(1, &texDescRange, D3D12_SHADER_VISIBILITY_PIXEL);
 
         CD3DX12_STATIC_SAMPLER_DESC linearRepeatSampler(0, D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR);

@@ -58,7 +58,7 @@ Raytracer::~Raytracer()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void Raytracer::BeginRaytrace(const Camera& cam, WorldScene* scene)
+void Raytracer::BeginRaytrace(const Camera& cam, WorldScene* scene, OnTraceComplete onComplete)
 {
     // Clean up last trace, if any
     cleanupRaytrace();
@@ -68,6 +68,7 @@ void Raytracer::BeginRaytrace(const Camera& cam, WorldScene* scene)
     CurrentOutputOffset = 0;
     NumThreadsDone = 0;
     NumPdfQueryRetries = 0;
+    OnComplete = onComplete;
     StartTime = std::chrono::system_clock::now();
 
     // Memset out buffers
@@ -197,8 +198,14 @@ void Raytracer::threadTraceNextPixel(int id, Raytracer* tracer, const Camera& ca
     tracer->NumThreadsDone++;
     if (tracer->NumThreadsDone.load() >= tracer->NumThreads)
     {
-        // Last thread, signal trace is done
         tracer->EndTime = std::chrono::system_clock::now();
+        if (tracer->OnComplete != nullptr)
+        {
+            bool actuallyFinished = tracer->CurrentOutputOffset.load() == numPixels;
+            tracer->OnComplete(tracer, actuallyFinished);
+        }
+
+        // Last thread, signal trace is done
         tracer->RaytraceEvent.Signal();
     }
 }

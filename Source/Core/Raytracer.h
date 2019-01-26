@@ -22,6 +22,7 @@ class Raytracer
 public:
 
     typedef std::chrono::time_point<std::chrono::system_clock> StdTime;
+    typedef void(*OnTraceComplete)(Raytracer* tracer, bool actuallyFinished);
 
     struct Stats
     {
@@ -37,7 +38,7 @@ public:
     Raytracer(int width, int height, int numSamples, int maxDepth, int numThreads);
     ~Raytracer();
 
-    void             BeginRaytrace(const Camera& cam, WorldScene* scene);
+    void             BeginRaytrace(const Camera& cam, WorldScene* scene, OnTraceComplete onComplete = nullptr);
     bool             WaitForTraceToFinish(int timeoutMicroSeconds);
     Stats            GetStats() const;
 
@@ -76,4 +77,5 @@ private:
     std::thread**         ThreadPtrs;
     ThreadEvent           RaytraceEvent;
     bool                  IsRaytracing;
+    OnTraceComplete       OnComplete;
 };

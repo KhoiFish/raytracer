@@ -29,7 +29,7 @@ void ImageIO::WriteToPPMFile(const Vec3* buffer, int width, int height, const ch
         // Print progress
         if ((i % width) == 0)
         {
-            PrintProgress("", float(i) / float(numPixels));
+            PrintCompletion("", float(i) / float(numPixels));
         }
     }
 

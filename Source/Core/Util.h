@@ -6,7 +6,21 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-#define RT_PI 3.14159265358979f
+class Raytracer;
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+#define RT_PI                3.14159265358979f
+#define RT_OUTPUT_IMAGE_DIR  "OutputImages/"
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void          PrintCompletion(const char* otherInfo, double percentage);
+const char*   ProgressPrint(Raytracer* tracer);
+std::string   GetTimeAndDateString();
+void          WriteImageAndLog(Raytracer* raytracer, std::string name);
+
+// ----------------------------------------------------------------------------------------------------------------------------
 
 inline float DegreesToRadians(float degrees)
 {
@@ -17,11 +31,6 @@ inline float RadiansToDegrees(float radians)
 {
     return (radians * 180.f / RT_PI);
 }
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-void          PrintProgress(const char* otherInfo, double percentage);
-std::string   GetTimeAndDateString();
 
 // ----------------------------------------------------------------------------------------------------------------------------
 

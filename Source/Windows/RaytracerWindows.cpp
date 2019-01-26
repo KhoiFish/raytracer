@@ -104,11 +104,11 @@ static const UINT sShaderRegisterParams[NumRootParameters][2] =
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static int    overrideWidth       = 256;
-static int    overrideHeight      = 256;
-static int    sNumSamplesPerRay   = 50;
-static int    sMaxScatterDepth    = 25;
-static int    sNumThreads         = 8;
+static int    overrideWidth       = 1024;
+static int    overrideHeight      = 1024;
+static int    sNumSamplesPerRay   = 5;
+static int    sMaxScatterDepth    = 5;
+static int    sNumThreads         = 7;
 static float  sClearColor[]       = { 0.4f, 0.6f, 0.9f, 1.0f };
 
 static const RenderMaterial MaterialWhite =
@@ -1065,13 +1065,14 @@ void RaytracerWindows::OnMouseButtonPressed(MouseButtonEventArgs& e)
 {
     super::OnMouseButtonPressed(e);
 
-    switch (e.State)
+    if (e.LeftButton)
     {
-        case KeyCode::LButton:
-        {
-            NextRenderMode();
-        }
-        break;
+        NextRenderMode();
+    }
+
+    if (e.RightButton)
+    {
+        RenderMode = ModePreview;
     }
 }
 

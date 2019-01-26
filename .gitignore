@@ -3,6 +3,7 @@ Debug/
 Release/
 *.ppm
 *.aps
+*.log
 RuntimeData/*.cso
 RuntimeData/*.exe
 RuntimeData/*.ilk

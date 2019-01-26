@@ -20,7 +20,8 @@ inline float RadiansToDegrees(float radians)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void PrintProgress(const char* otherInfo, double percentage);
+void          PrintProgress(const char* otherInfo, double percentage);
+std::string   GetTimeAndDateString();
 
 // ----------------------------------------------------------------------------------------------------------------------------
 

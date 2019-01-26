@@ -2,6 +2,11 @@
 #include <windows.h>
 #include <stdlib.h>
 #include <varargs.h>
+#include <chrono>
+#include <ctime>
+#include <sstream>
+#include <iomanip>
+#include <string>
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -16,6 +21,21 @@ void PrintProgress(const char* otherInfo, double percentage)
 
     printf("\r%s %3d%% [%.*s%*s]", otherInfo, val, lpad, PBSTR, rpad, "");
     fflush(stdout);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+std::string GetTimeAndDateString()
+{
+    auto n = std::chrono::system_clock::now();
+    auto in_time_t = std::chrono::system_clock::to_time_t(n);
+    std::tm timeBuf;
+    localtime_s(&timeBuf, &in_time_t);
+
+    std::stringstream ss;
+    ss << std::put_time(&timeBuf, "%Y-%m-%d-%H.%M.%S");
+
+    return ss.str();
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

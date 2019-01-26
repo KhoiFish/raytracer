@@ -192,18 +192,18 @@ TriMesh* TriMesh::CreateFromOBJFile(const char* filePath, float scale /*= 1.0f*/
                     std::string sourceString = &lineBuf[2];
                     std::vector<std::string> tokens = GetStringTokens(sourceString, " ");
 
-                    Vec3 vert(
+                    Vec3 point(
                          (float)atof(tokens[0].c_str()),
                          (float)atof(tokens[1].c_str()),
                          (float)atof(tokens[2].c_str()));
 
                     if (readMode == Vertex)
                     {
-                        vertList.push_back(vert * scale);
+                        vertList.push_back(point * scale);
                     }
                     else
                     {
-                        vertNormalList.push_back(vert);
+                        vertNormalList.push_back(UnitVector(point));
                     }
                 }
                 break;

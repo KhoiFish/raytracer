@@ -89,8 +89,8 @@ Camera GetCameraForSample(SampleScene scene, float aspect)
         case SceneMesh:
         {
             // Camera options
-            const Vec3   lookFrom = Vec3(169.487518, 415.648987, 815.907593);
-            const Vec3   lookAt   = Vec3(169.718414, 415.406555, 814.965271);
+            const Vec3   lookFrom = Vec3(169.487518f, 415.648987f, 815.907593f);
+            const Vec3   lookAt   = Vec3(169.718414f, 415.406555f, 814.965271f);
             const Vec3   upVec = Vec3(0, 1, 0);
             const float  vertFov = 40.f;
             const float  aperture = 0.0f;

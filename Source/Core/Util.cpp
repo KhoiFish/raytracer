@@ -67,7 +67,7 @@ std::string GetTimeAndDateString()
 void WriteImageAndLog(Raytracer* raytracer, std::string name)
 {
     std::string baseFilename = std::string(RT_OUTPUT_IMAGE_DIR) + name + std::string(".") + std::string(GetTimeAndDateString());
-    ImageIO::WriteToPPMFile(raytracer->GetOutputBuffer(), raytracer->GetOutputWidth(), raytracer->GetOutputHeight(), (baseFilename + std::string(".ppm")).c_str());
+    ImageIO::WriteToPNGFile(raytracer->GetOutputBuffer(), raytracer->GetOutputWidth(), raytracer->GetOutputHeight(), (baseFilename + std::string(".png")).c_str());
 
     std::ofstream out((baseFilename + std::string(".log")).c_str());
     if (out.is_open())

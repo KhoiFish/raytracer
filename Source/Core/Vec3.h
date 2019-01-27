@@ -303,10 +303,9 @@ inline Vec3& Vec3::operator/=(const Vec3& v)
 
 inline Vec3& Vec3::operator*=(const float t)
 {
-    float k = 1.0f / t;
-    X() *= k;
-    Y() *= k;
-    Z() *= k;
+    X() *= t;
+    Y() *= t;
+    Z() *= t;
 
     VEC3_SANITY_CHECK((*this));
 

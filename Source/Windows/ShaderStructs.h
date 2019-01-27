@@ -63,7 +63,9 @@ struct SpotLight
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+#pragma pack(push, 16)
 struct GlobalLightData
 {
     int NumSpotLights;
 };
+#pragma pack(pop)

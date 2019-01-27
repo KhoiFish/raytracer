@@ -6,7 +6,6 @@ struct VertexInput
     uint Id : SV_VERTEXID;
 };
 
-// ----------------------------------------------------------------------------------------------------------------------------
 struct VertexShaderOutput
 {
     float2 TexCoord : TEXCOORD;

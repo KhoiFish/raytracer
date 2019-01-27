@@ -72,5 +72,11 @@
     <FxCompile Include="..\Source\Windows\Shaders\Preview_VS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="..\Source\Windows\Shaders\ShaderStructs.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Source\Windows\Shaders\Lighting.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

@@ -1,13 +1,6 @@
+#include "ShaderStructs.hlsl"
 
 // ----------------------------------------------------------------------------------------------------------------------------
-
-struct Mat
-{
-    matrix ModelMatrix;
-    matrix ModelViewMatrix;
-    matrix InverseTransposeModelViewMatrix;
-    matrix ModelViewProjectionMatrix;
-};
 
 struct VertexPositionNormalTexture
 {

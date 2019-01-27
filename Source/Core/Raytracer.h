@@ -27,8 +27,8 @@ public:
     struct Stats
     {
         int64_t     TotalRaysFired;
-        int         NumPixelsTraced;
-        int         TotalNumPixels;
+        int         NumPixelSamples;
+        int         TotalNumPixelSamples;
         int         NumPdfQueryRetries;
         int         TotalTimeInSeconds;
     };
@@ -67,7 +67,7 @@ private:
     int                   NumThreads;
 
     // Thread tracking
-    std::atomic<int>      CurrentOutputOffset;
+    std::atomic<int>      CurrentPixelSampleOffset;
     std::atomic<int64_t>  TotalRaysFired;
     std::atomic<int>      NumThreadsDone;
     std::atomic<int>      NumPdfQueryRetries;

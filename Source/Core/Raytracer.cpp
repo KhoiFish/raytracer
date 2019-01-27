@@ -29,7 +29,7 @@ Raytracer::Raytracer(int width, int height, int numSamples, int maxDepth, int nu
     , NumRaySamples(numSamples)
     , MaxDepth(maxDepth)
     , NumThreads(numThreads)
-    , CurrentOutputOffset(0)
+    , CurrentPixelSampleOffset(0)
     , TotalRaysFired(0)
     , NumThreadsDone(0)
     , ThreadExitRequested(false)
@@ -65,14 +65,19 @@ void Raytracer::BeginRaytrace(const Camera& cam, WorldScene* scene, OnTraceCompl
 
     IsRaytracing = true;
     TotalRaysFired = 0;
-    CurrentOutputOffset = 0;
+    CurrentPixelSampleOffset = 0;
     NumThreadsDone = 0;
     NumPdfQueryRetries = 0;
     OnComplete = onComplete;
     StartTime = std::chrono::system_clock::now();
 
-    // Memset out buffers
-    memset(OutputBufferRGBA, 0, sizeof(uint8_t) * OutputWidth * OutputHeight * 4);
+    // Clear out buffers
+    const int area = OutputWidth * OutputHeight;
+    memset(OutputBufferRGBA, 0, sizeof(uint8_t) * area * 4);
+    for (int i = 0; i < area; i++)
+    {
+        OutputBuffer[i] = Vec3(0, 0, 0);
+    }
 
     // Create the threads and run them
     for (int i = 0; i < NumThreads; i++)
@@ -98,10 +103,10 @@ bool Raytracer::WaitForTraceToFinish(int timeoutMicroSeconds)
 Raytracer::Stats Raytracer::GetStats() const
 {
     Stats stats;
-    stats.TotalRaysFired     = TotalRaysFired.load();
-    stats.NumPixelsTraced    = CurrentOutputOffset.load();
-    stats.TotalNumPixels     = (OutputWidth * OutputHeight);
-    stats.NumPdfQueryRetries = NumPdfQueryRetries.load();
+    stats.TotalRaysFired        = TotalRaysFired.load();
+    stats.NumPixelSamples       = CurrentPixelSampleOffset.load();
+    stats.TotalNumPixelSamples  = (OutputWidth * OutputHeight) * NumRaySamples;
+    stats.NumPdfQueryRetries    = NumPdfQueryRetries.load();
     
     StdTime endTime = IsRaytracing ? std::chrono::system_clock::now() : EndTime.load();
     stats.TotalTimeInSeconds = (int)std::chrono::duration<double>(endTime - StartTime.load()).count();
@@ -138,54 +143,50 @@ void Raytracer::cleanupRaytrace()
 
 void Raytracer::threadTraceNextPixel(int id, Raytracer* tracer, const Camera& cam, WorldScene* scene)
 {
-    const int numPixels = (tracer->OutputWidth * tracer->OutputHeight);
+    const int numPixels         = tracer->OutputWidth * tracer->OutputHeight;
+    const int totalPixelSamples = numPixels * tracer->NumRaySamples;
 
-    int offset = tracer->CurrentOutputOffset.load();
-    while (offset < numPixels && (tracer->ThreadExitRequested.load() == false))
+    int pixelSampleOffset = tracer->CurrentPixelSampleOffset.load();
+    while ((tracer->ThreadExitRequested.load() == false) && pixelSampleOffset < totalPixelSamples)
     {
         // Find the next offset to the pixel to trace
-        while (offset < numPixels)
+        while (pixelSampleOffset < totalPixelSamples)
         {
-            if (tracer->CurrentOutputOffset.compare_exchange_strong(offset, offset + 1))
+            // Try and get the next pixel offset
+            if (tracer->CurrentPixelSampleOffset.compare_exchange_strong(pixelSampleOffset, pixelSampleOffset + 1))
             {
                 break;
             }
-            offset = tracer->CurrentOutputOffset.load();
+            pixelSampleOffset = tracer->CurrentPixelSampleOffset.load();
         }
 
         // Do we have an pixel to trace?
-        if (offset < numPixels)
+        if (pixelSampleOffset < totalPixelSamples)
         {
-            // Get the offsets
-            const int x = offset % tracer->OutputWidth;
-            const int y = tracer->OutputHeight - (offset / tracer->OutputWidth);
+            // Get the effective output offset
+            const int outputOffset = (pixelSampleOffset % numPixels);
 
-            // Send random rays to pixel, i.e. multi-sample
-            Vec3 col(0.f, 0.f, 0.f);
-            for (int s = 0; s < tracer->NumRaySamples; s++)
+            // Get a random ray to the pixel
+            const int   x = outputOffset % tracer->OutputWidth;
+            const int   y = tracer->OutputHeight - (outputOffset / tracer->OutputWidth);
+            const float u = float(x + RandomFloat()) / float(tracer->OutputWidth);
+            const float v = float(y + RandomFloat()) / float(tracer->OutputHeight);
+            const Ray   r = cam.GetRay(u, v);
+
+            // Trace
+            const Vec3 outColor = DeNaN(tracer->trace(r, scene, 0, cam.GetClearColor()));
+
+            // Accumulate color to output buffer
+            tracer->OutputBuffer[outputOffset] += outColor;
+
+            // Write RGBA (for previewing)
             {
-                const float u = float(x + RandomFloat()) / float(tracer->OutputWidth);
-                const float v = float(y + RandomFloat()) / float(tracer->OutputHeight);
+                const int   numSamples = (pixelSampleOffset / numPixels) + 1;
+                Vec3        curCol     = tracer->OutputBuffer[outputOffset] * (1.f / float(numSamples));
 
-                Ray r = cam.GetRay(u, v);
-                col += DeNaN(tracer->trace(r, scene, 0, cam.GetClearColor()));
-
-                // Bail if we're requested to exit
-                if (tracer->ThreadExitRequested.load() == true)
-                {
-                    break;
-                }
-            }
-            col /= float(tracer->NumRaySamples);
-
-            // Write color to output buffer
-            tracer->OutputBuffer[offset] = col;
-
-            // Write RGBA
-            {
-                int rgbaOffset = offset * 4;
+                int rgbaOffset = outputOffset * 4;
                 int ir, ig, ib, ia;
-                GetRGBA8888(col, false, ir, ig, ib, ia);
+                GetRGBA8888(curCol, false, ir, ig, ib, ia);
 
                 tracer->OutputBufferRGBA[rgbaOffset + 0] = (uint8_t)ir;
                 tracer->OutputBufferRGBA[rgbaOffset + 1] = (uint8_t)ig;
@@ -195,13 +196,24 @@ void Raytracer::threadTraceNextPixel(int id, Raytracer* tracer, const Camera& ca
         }
     }
 
+    // This thread is done
     tracer->NumThreadsDone++;
+
+    // Are we the last thread?
     if (tracer->NumThreadsDone.load() >= tracer->NumThreads)
     {
+        // The last man out normalizes the output buffer
+        const float scale = 1.f / float(tracer->NumRaySamples);
+        for (int i = 0; i < numPixels; i++)
+        {
+            tracer->OutputBuffer[i] *= scale;
+        }
+
+        // Mark timestamp and call completion callback
         tracer->EndTime = std::chrono::system_clock::now();
         if (tracer->OnComplete != nullptr)
         {
-            bool actuallyFinished = tracer->CurrentOutputOffset.load() == numPixels;
+            bool actuallyFinished = tracer->CurrentPixelSampleOffset.load() == totalPixelSamples;
             tracer->OnComplete(tracer, actuallyFinished);
         }
 

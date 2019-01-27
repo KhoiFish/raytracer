@@ -12,6 +12,7 @@
 #include "Core/Quat.h"
 #include "Core/TriMesh.h"
 #include "SampleScenes.h"
+#include "ShaderStructs.h"
 
 #include <Application.h>
 #include <CommandQueue.h>
@@ -37,32 +38,6 @@ struct RenderMatrices
     XMMATRIX ModelViewProjectionMatrix;
 };
 
-#pragma pack(push, 16) 
-struct RenderMaterial
-{
-    RenderMaterial(
-        DirectX::XMFLOAT4 emissive = { 0.0f, 0.0f, 0.0f, 1.0f },
-        DirectX::XMFLOAT4 ambient  = { 0.1f, 0.1f, 0.1f, 1.0f },
-        DirectX::XMFLOAT4 diffuse  = { 1.0f, 1.0f, 1.0f, 1.0f },
-        DirectX::XMFLOAT4 specular = { 1.0f, 1.0f, 1.0f, 1.0f },
-        float specularPower = 128.0f
-    )
-        : Emissive(emissive)
-        , Ambient(ambient)
-        , Diffuse(diffuse)
-        , Specular(specular)
-        , SpecularPower(specularPower) {}
-
-    DirectX::XMFLOAT4   Emissive;
-    DirectX::XMFLOAT4   Ambient;
-    DirectX::XMFLOAT4   Diffuse;
-    DirectX::XMFLOAT4   Specular;
-
-    float               SpecularPower;
-    uint32_t            Padding[3];
-};
-#pragma pack(pop)
-
 struct PipelineStateStream
 {
     CD3DX12_PIPELINE_STATE_STREAM_ROOT_SIGNATURE            RootSignature;
@@ -87,19 +62,23 @@ struct RenderSceneNode
 
 enum RootParameters
 {
-    MatricesCB,         // ConstantBuffer<Mat> MatCB
-    MaterialCB,         // ConstantBuffer<Material> MaterialCB : register( b0, space1 );
-    TextureDiffuse,     // Texture2D DiffuseTexture
+    MatricesCB,
+    MaterialCB,
+    GlobalLightDataCB,
+    TextureDiffuse,
+    SpotLights,
+
     NumRootParameters
 };
-
 
 // [register, space]
 static const UINT sShaderRegisterParams[NumRootParameters][2] =
 {
     { 0, 0 }, // MatricesCB
     { 0, 1 }, // MaterialCB
-    { 0, 0 }  // TextureDiffuse
+    { 1, 0 }, // GlobalLightDataCB
+    { 0, 0 }, // TextureDiffuse
+    { 1, 0 }, // SpotLights
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -113,10 +92,10 @@ static float  sClearColor[]       = { 0.4f, 0.6f, 0.9f, 1.0f };
 
 static const RenderMaterial MaterialWhite =
 {
-    { 0.0f, 0.0f, 0.0f, 1.0f },
-    { 0.1f, 0.1f, 0.1f, 1.0f },
-    { 1.0f, 1.0f, 1.0f, 1.0f },
-    { 1.0f, 1.0f, 1.0f, 1.0f },
+    { 0.00f, 0.00f, 0.00f, 1.00f },
+    { 0.01f, 0.01f, 0.01f, 1.00f },
+    { 1.00f, 1.00f, 1.00f, 1.00f },
+    { 1.00f, 1.00f, 1.00f, 1.00f },
     128.0f
 };
 
@@ -574,6 +553,36 @@ void RaytracerWindows::GenerateRenderListFromWorld(std::shared_ptr<CommandList> 
         newNode->Material       = MaterialWhite;
         newNode->DiffuseTexture = &PreviewTex;
         outSceneList.push_back(newNode);
+        
+        // These can be light shapes too
+        if (xyzRect->IsALightShape())
+        {
+            if (xyzRect->GetAxisPlane() == XYZRect::AxisPlane::XZ)
+            {
+                float xValues[2], yValue, zValues[2];
+                xyzRect->GetParams(
+                    xValues[0], xValues[1],
+                    zValues[0], zValues[1],
+                    yValue);
+
+                Vec3 pos(
+                    (xValues[0] + xValues[1]) * 0.5f,
+                    yValue,
+                    (zValues[0] + zValues[1]) * 0.5f);
+
+                Vec3 dir = Vec3(pos[0], 0, pos[2]) - pos;
+                dir.MakeUnitVector();
+
+                SpotLight light;
+                light.PositionWS           = DirectX::XMFLOAT4(pos[0], pos[1], -pos[2], 1.f);
+                light.DirectionWS          = DirectX::XMFLOAT4(dir[0], dir[1], -dir[2], 1.f);
+                light.SpotAngle            = RT_PI / 2.5f;
+                light.ConstantAttenuation  = 1.f;
+                light.LinearAttenuation    = 0.0001f;
+                light.QuadraticAttenuation = 0.f;
+                SpotLightsList.push_back(light);
+            }
+        }
     }
 }
 
@@ -633,6 +642,17 @@ bool RaytracerWindows::LoadContent()
             sShaderRegisterParams[RootParameters::MaterialCB][1], 
             D3D12_ROOT_DESCRIPTOR_FLAG_NONE, 
             D3D12_SHADER_VISIBILITY_PIXEL);
+
+        rootParameters[RootParameters::GlobalLightDataCB].InitAsConstants(
+            sizeof(GlobalLightData) / 4, 
+            sShaderRegisterParams[RootParameters::GlobalLightDataCB][0],
+            sShaderRegisterParams[RootParameters::GlobalLightDataCB][1],
+            D3D12_SHADER_VISIBILITY_PIXEL);
+
+        rootParameters[RootParameters::SpotLights].InitAsShaderResourceView(
+            sShaderRegisterParams[RootParameters::SpotLights][0],
+            sShaderRegisterParams[RootParameters::SpotLights][1],
+            D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_PIXEL);
 
         rootParameters[RootParameters::TextureDiffuse].InitAsDescriptorTable(1, &texDescRange, D3D12_SHADER_VISIBILITY_PIXEL);
 
@@ -751,6 +771,7 @@ bool RaytracerWindows::LoadContent()
         RenderTarget.AttachTexture(AttachmentPoint::DepthStencil, depthTexture);
     }
 
+
     // -------------------------------------------------------------------
     // Execute the command queue and wait for it to finish
     // -------------------------------------------------------------------
@@ -805,6 +826,21 @@ void RaytracerWindows::OnUpdate(UpdateEventArgs& e)
     UpdateCameras(forwardAmount, strafeAmount, upDownAmount, MouseDx, MouseDy, RaytracerCamera, RenderCamera);
     MouseDx = 0;
     MouseDy = 0;
+
+    // Update viewspace positions of lights
+    XMMATRIX viewMatrix = RenderCamera.get_ViewMatrix();
+    for (int i = 0; i < (int)SpotLightsList.size(); i++)
+    {
+        SpotLight& light = SpotLightsList[i];
+
+        XMVECTOR positionWS = XMLoadFloat4(&light.PositionWS);
+        XMVECTOR positionVS = XMVector3TransformCoord(positionWS, viewMatrix);
+        XMStoreFloat4(&light.PositionVS, positionVS);
+
+        XMVECTOR directionWS = XMLoadFloat4(&light.DirectionWS);
+        XMVECTOR directionVS = XMVector3Normalize(XMVector3TransformNormal(directionWS, viewMatrix));
+        XMStoreFloat4(&light.DirectionVS, directionVS);
+    }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -840,6 +876,12 @@ void RaytracerWindows::OnRender(RenderEventArgs& e)
     // -------------------------------------------------------------------
     if (RenderMode == ModePreview)
     {
+        // Upload lights
+        GlobalLightData globalLightData;
+        globalLightData.NumSpotLights   = int(SpotLightsList.size());
+        commandList->SetGraphics32BitConstants(RootParameters::GlobalLightDataCB, globalLightData);
+        commandList->SetGraphicsDynamicStructuredBuffer(RootParameters::SpotLights, SpotLightsList);
+
         for (int i = 0; i < RenderSceneList.size(); i++)
         {
             XMMATRIX worldMatrix            = RenderSceneList[i]->WorldMatrix;

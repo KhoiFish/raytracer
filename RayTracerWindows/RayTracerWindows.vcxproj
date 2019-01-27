@@ -160,6 +160,7 @@
     <ClInclude Include="..\Source\SampleScenes.h" />
     <ClInclude Include="..\Source\Windows\CameraDX12.h" />
     <ClInclude Include="..\Source\Windows\RaytracerWindows.h" />
+    <ClInclude Include="..\Source\Windows\ShaderStructs.h" />
     <ClInclude Include="Resource.h" />
   </ItemGroup>
   <ItemGroup>

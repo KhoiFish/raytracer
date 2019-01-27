@@ -14,6 +14,8 @@
 #include <Texture.h>
 #include <VertexBuffer.h>
 
+#include "ShaderStructs.h"
+
 #include <stack>
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -71,36 +73,38 @@ private:
 
 private:
 
-    RenderingMode       RenderMode;
+    RenderingMode            RenderMode;
 
-    Raytracer*          TheRaytracer;
-    Camera              RaytracerCamera;
-    WorldScene*         Scene;
-    RenderNodeList      RenderSceneList;
+    Raytracer*               TheRaytracer;
+    Camera                   RaytracerCamera;
+    WorldScene*              Scene;
+    RenderNodeList           RenderSceneList;
 
-    Texture             CPURaytracerTex;
-    Texture             PreviewTex;
-    RenderTarget        RenderTarget;
-    RootSignature       RootSignature;
-    DX12PipeState       FullscreenPipelineState;
-    DX12PipeState       PreviewPipelineState;
+    Texture                  CPURaytracerTex;
+    Texture                  PreviewTex;
+    RenderTarget             RenderTarget;
+    RootSignature            RootSignature;
+    DX12PipeState            FullscreenPipelineState;
+    DX12PipeState            PreviewPipelineState;
 
-    D3D12_VIEWPORT      Viewport;
-    D3D12_RECT          ScissorRect;
-    CameraDX12          RenderCamera;
+    D3D12_VIEWPORT           Viewport;
+    D3D12_RECT               ScissorRect;
+    CameraDX12               RenderCamera;
 
-    float               Forward;
-    float               Backward;
-    float               Left;
-    float               Right;
-    float               Up;
-    float               Down;
-    int                 MouseDx;
-    int                 MouseDy;
+    std::vector<SpotLight>   SpotLightsList;
 
-    bool                AllowFullscreenToggle;
-    bool                ShiftKeyPressed;
+    float                    Forward;
+    float                    Backward;
+    float                    Left;
+    float                    Right;
+    float                    Up;
+    float                    Down;
+    int                      MouseDx;
+    int                      MouseDy;
 
-    int                 BackbufferWidth;
-    int                 BackbufferHeight;
+    bool                     AllowFullscreenToggle;
+    bool                     ShiftKeyPressed;
+
+    int                      BackbufferWidth;
+    int                      BackbufferHeight;
 };

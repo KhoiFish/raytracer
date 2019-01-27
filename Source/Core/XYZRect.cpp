@@ -189,3 +189,14 @@ void XYZRect::GetPlaneData(Vec3 outPoints[4], Vec3& normal)
         break;
     }
 }
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void XYZRect::GetParams(float& a0, float& a1, float& b0, float& b1, float& k) const
+{
+    a0 = A0;
+    a1 = A1;
+    b0 = B0;
+    b1 = B1;
+    k  = K;
+}

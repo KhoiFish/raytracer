@@ -1,3 +1,6 @@
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 struct Mat
 {
     matrix ModelMatrix;
@@ -5,8 +8,6 @@ struct Mat
     matrix InverseTransposeModelViewMatrix;
     matrix ModelViewProjectionMatrix;
 };
-
-ConstantBuffer<Mat> MatCB : register(b0);
 
 struct VertexPositionNormalTexture
 {
@@ -17,11 +18,17 @@ struct VertexPositionNormalTexture
 
 struct VertexShaderOutput
 {
-    float4 PositionVS : POSITION;
-    float3 NormalVS   : NORMAL;
+    float4 PositionVS : POSITION0;
+    float3 NormalVS   : NORMAL0;
     float2 TexCoord   : TEXCOORD;
     float4 Position   : SV_Position;
 };
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+ConstantBuffer<Mat> MatCB : register(b0);
+
+// ----------------------------------------------------------------------------------------------------------------------------
 
 VertexShaderOutput main(VertexPositionNormalTexture IN)
 {

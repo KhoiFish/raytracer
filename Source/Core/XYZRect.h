@@ -30,7 +30,9 @@ public:
     virtual float PdfValue(const Vec3& origin, const Vec3& v) const;
     virtual Vec3  Random(const Vec3& origin) const;
 
-    void GetPlaneData(Vec3 outPoints[4], Vec3& normal);
+    void          GetPlaneData(Vec3 outPoints[4], Vec3& normal);
+    void          GetParams(float& a0, float& a1, float& b0, float& b1, float& k) const;
+    AxisPlane     GetAxisPlane() const { return AxisMode; }
 
 private:
 

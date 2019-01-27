@@ -1,12 +1,9 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-struct VertexPositionNormalTexture
+struct VertexInput
 {
-    float3 Position : POSITION;
-    float3 Normal   : NORMAL;
-    float2 TexCoord : TEXCOORD;
-    uint   Id       : SV_VERTEXID;
+    uint Id : SV_VERTEXID;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -18,7 +15,7 @@ struct VertexShaderOutput
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-VertexShaderOutput main(VertexPositionNormalTexture IN)
+VertexShaderOutput main(VertexInput IN)
 {
     VertexShaderOutput OUT;
 

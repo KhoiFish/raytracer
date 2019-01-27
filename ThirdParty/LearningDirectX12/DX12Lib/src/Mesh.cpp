@@ -82,13 +82,13 @@ std::unique_ptr<Mesh> Mesh::CreateSphere(CommandList& commandList, float diamete
             size_t nextI = i + 1;
             size_t nextJ = (j + 1) % stride;
 
-            indices.push_back(static_cast<uint16_t>( i * stride + j ));
-            indices.push_back(static_cast<uint16_t>(nextI * stride + j));
-            indices.push_back(static_cast<uint16_t>(i * stride + nextJ));
+            indices.push_back(static_cast<uint32_t>( i * stride + j ));
+            indices.push_back(static_cast<uint32_t>(nextI * stride + j));
+            indices.push_back(static_cast<uint32_t>(i * stride + nextJ));
 
-            indices.push_back(static_cast<uint16_t>(i * stride + nextJ));
-            indices.push_back(static_cast<uint16_t>(nextI * stride + j));
-            indices.push_back(static_cast<uint16_t>(nextI * stride + nextJ));
+            indices.push_back(static_cast<uint32_t>(i * stride + nextJ));
+            indices.push_back(static_cast<uint32_t>(nextI * stride + j));
+            indices.push_back(static_cast<uint32_t>(nextI * stride + nextJ));
         }
     }
 
@@ -141,13 +141,13 @@ std::unique_ptr<Mesh> Mesh::CreateCube(CommandList& commandList, float size, boo
 
         // Six indices (two triangles) per face.
         size_t vbase = vertices.size();
-        indices.push_back(static_cast<uint16_t>(vbase + 0));
-        indices.push_back(static_cast<uint16_t>(vbase + 1));
-        indices.push_back(static_cast<uint16_t>(vbase + 2));
+        indices.push_back(static_cast<uint32_t>(vbase + 0));
+        indices.push_back(static_cast<uint32_t>(vbase + 1));
+        indices.push_back(static_cast<uint32_t>(vbase + 2));
 
-        indices.push_back(static_cast<uint16_t>(vbase + 0));
-        indices.push_back(static_cast<uint16_t>(vbase + 2));
-        indices.push_back(static_cast<uint16_t>(vbase + 3));
+        indices.push_back(static_cast<uint32_t>(vbase + 0));
+        indices.push_back(static_cast<uint32_t>(vbase + 2));
+        indices.push_back(static_cast<uint32_t>(vbase + 3));
 
         // Four vertices per face.
         vertices.push_back(VertexPositionNormalTexture((normal - side1 - side2) * size, normal, textureCoordinates[0]));
@@ -210,13 +210,13 @@ std::unique_ptr<Mesh> Mesh::CreateCube(CommandList& commandList, const DirectX::
 
         // Six indices (two triangles) per face.
         size_t vbase = vertices.size();
-        indices.push_back(static_cast<uint16_t>(vbase + 0));
-        indices.push_back(static_cast<uint16_t>(vbase + 1));
-        indices.push_back(static_cast<uint16_t>(vbase + 2));
+        indices.push_back(static_cast<uint32_t>(vbase + 0));
+        indices.push_back(static_cast<uint32_t>(vbase + 1));
+        indices.push_back(static_cast<uint32_t>(vbase + 2));
 
-        indices.push_back(static_cast<uint16_t>(vbase + 0));
-        indices.push_back(static_cast<uint16_t>(vbase + 2));
-        indices.push_back(static_cast<uint16_t>(vbase + 3));
+        indices.push_back(static_cast<uint32_t>(vbase + 0));
+        indices.push_back(static_cast<uint32_t>(vbase + 2));
+        indices.push_back(static_cast<uint32_t>(vbase + 3));
 
         // Four vertices per face.
         vertices.push_back(VertexPositionNormalTexture((normal - side1 - side2) * halfLengths, normal, textureCoordinates[0]));
@@ -271,9 +271,9 @@ static void CreateCylinderCap(VertexCollection& vertices, IndexCollection& indic
         }
 
         size_t vbase = vertices.size();
-        indices.push_back(static_cast<uint16_t>(vbase));
-        indices.push_back(static_cast<uint16_t>(vbase + i1));
-        indices.push_back(static_cast<uint16_t>(vbase + i2));
+        indices.push_back(static_cast<uint32_t>(vbase));
+        indices.push_back(static_cast<uint32_t>(vbase + i1));
+        indices.push_back(static_cast<uint32_t>(vbase + i2));
     }
 
     // Which end of the cylinder is this?
@@ -334,9 +334,9 @@ std::unique_ptr<Mesh> Mesh::CreateCone(CommandList& commandList, float diameter,
         vertices.push_back(VertexPositionNormalTexture(topOffset, normal, g_XMZero));
         vertices.push_back(VertexPositionNormalTexture(pt, normal, textureCoordinate + g_XMIdentityR1));
 
-        indices.push_back(static_cast<uint16_t>(i * 2));
-        indices.push_back(static_cast<uint16_t>((i * 2 + 3) % (stride * 2)));
-        indices.push_back(static_cast<uint16_t>((i * 2 + 1) % (stride * 2)));
+        indices.push_back(static_cast<uint32_t>(i * 2));
+        indices.push_back(static_cast<uint32_t>((i * 2 + 3) % (stride * 2)));
+        indices.push_back(static_cast<uint32_t>((i * 2 + 1) % (stride * 2)));
     }
 
     // Create flat triangle fan caps to seal the bottom.
@@ -395,13 +395,13 @@ std::unique_ptr<Mesh> Mesh::CreateTorus(CommandList& commandList, float diameter
             size_t nextI = (i + 1) % stride;
             size_t nextJ = (j + 1) % stride;
 
-            indices.push_back(static_cast<uint16_t>(i * stride + j));
-            indices.push_back(static_cast<uint16_t>(i * stride + nextJ));
-            indices.push_back(static_cast<uint16_t>(nextI * stride + j));
+            indices.push_back(static_cast<uint32_t>(i * stride + j));
+            indices.push_back(static_cast<uint32_t>(i * stride + nextJ));
+            indices.push_back(static_cast<uint32_t>(nextI * stride + j));
 
-            indices.push_back(static_cast<uint16_t>(i * stride + nextJ));
-            indices.push_back(static_cast<uint16_t>(nextI * stride + nextJ));
-            indices.push_back(static_cast<uint16_t>(nextI * stride + j));
+            indices.push_back(static_cast<uint32_t>(i * stride + nextJ));
+            indices.push_back(static_cast<uint32_t>(nextI * stride + nextJ));
+            indices.push_back(static_cast<uint32_t>(nextI * stride + j));
         }
     }
 

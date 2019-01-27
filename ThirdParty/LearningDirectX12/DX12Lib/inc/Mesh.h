@@ -71,7 +71,7 @@ struct VertexPositionNormalTexture
 };
 
 using VertexCollection = std::vector<VertexPositionNormalTexture>;
-using IndexCollection = std::vector<uint16_t>;
+using IndexCollection = std::vector<uint32_t>;
 
 class Mesh
 {

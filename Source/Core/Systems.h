@@ -10,13 +10,9 @@ void RenderDebugPrintf(const char *fmt, ...);
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-#if _DEBUG
-    #define RTL_ASSERT(expression)  assert(expression)
-#else
-    // Enable asserts in release builds
-    void _RtlAssert(const char* message, const char* file, int line);
-    #define RTL_ASSERT(expression)  (void)((!!(expression)) || (_RtlAssert(#expression, __FILE__, (int)__LINE__), 0))
-#endif
+// Enable asserts in release builds
+void _RtlAssert(const char* message, const char* file, int line);
+#define RTL_ASSERT(expression)  (void)((!!(expression)) || (_RtlAssert(#expression, __FILE__, (int)__LINE__), 0))
 
 // ----------------------------------------------------------------------------------------------------------------------------
 

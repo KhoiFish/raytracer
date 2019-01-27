@@ -1,7 +1,7 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-struct Mat
+struct RenderMatrices
 {
     matrix ModelMatrix;
     matrix ModelViewMatrix;
@@ -11,7 +11,7 @@ struct Mat
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-struct Material
+struct RenderMaterial
 {
     float4 Emissive;
     float4 Ambient;

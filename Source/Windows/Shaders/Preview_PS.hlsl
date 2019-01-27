@@ -13,7 +13,7 @@ struct PixelShaderInput
 // ----------------------------------------------------------------------------------------------------------------------------
 
 SamplerState                      LinearRepeatSampler    : register(s0);
-ConstantBuffer<Material>          MaterialCB             : register(b0, space1);
+ConstantBuffer<RenderMaterial>    MaterialCB             : register(b0, space1);
 ConstantBuffer<GlobalLightData>   GlobalLightDataCB      : register(b1);
 Texture2D                         DiffuseTexture         : register(t0);
 StructuredBuffer<SpotLight>       SpotLights             : register(t1);

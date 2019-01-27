@@ -19,7 +19,7 @@ struct VertexShaderOutput
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-ConstantBuffer<Mat> MatCB : register(b0);
+ConstantBuffer<RenderMatrices> MatricesCB : register(b0);
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -27,9 +27,9 @@ VertexShaderOutput main(VertexPositionNormalTexture IN)
 {
     VertexShaderOutput OUT;
 
-    OUT.Position   = mul(MatCB.ModelViewProjectionMatrix, float4(IN.Position, 1.0f));
-    OUT.PositionVS = mul(MatCB.ModelViewMatrix, float4(IN.Position, 1.0f));
-    OUT.NormalVS   = mul((float3x3)MatCB.InverseTransposeModelViewMatrix, IN.Normal);
+    OUT.Position   = mul(MatricesCB.ModelViewProjectionMatrix, float4(IN.Position, 1.0f));
+    OUT.PositionVS = mul(MatricesCB.ModelViewMatrix, float4(IN.Position, 1.0f));
+    OUT.NormalVS   = mul((float3x3)MatricesCB.InverseTransposeModelViewMatrix, IN.Normal);
     OUT.TexCoord   = IN.TexCoord;
 
     return OUT;

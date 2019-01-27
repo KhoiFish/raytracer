@@ -189,7 +189,8 @@ TriMesh* TriMesh::CreateFromOBJFile(const char* filePath, float scale /*= 1.0f*/
                 case Vertex:
                 case VertexNormal:
                 {
-                    std::string sourceString = &lineBuf[2];
+                    const int lineBufOffset = (readMode == Vertex) ? 2 : 3;
+                    std::string sourceString = &lineBuf[lineBufOffset];
                     std::vector<std::string> tokens = GetStringTokens(sourceString, " ");
 
                     Vec3 point(

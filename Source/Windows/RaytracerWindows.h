@@ -74,6 +74,7 @@ private:
 private:
 
     RenderingMode            RenderMode;
+    bool                     WireframeViewEnabled;
 
     Raytracer*               TheRaytracer;
     Camera                   RaytracerCamera;
@@ -87,6 +88,7 @@ private:
     RootSignature            RootSignature;
     DX12PipeState            FullscreenPipelineState;
     DX12PipeState            PreviewPipelineState;
+    DX12PipeState            WireframePreviewPipelineState;
 
     D3D12_VIEWPORT           Viewport;
     D3D12_RECT               ScissorRect;

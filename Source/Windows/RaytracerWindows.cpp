@@ -77,10 +77,10 @@ static const UINT sShaderRegisterParams[NumRootParameters][2] =
 
 static int    overrideWidth       = 1024;
 static int    overrideHeight      = 1024;
-static int    sNumSamplesPerRay   = 5;
+static int    sNumSamplesPerRay   = 500;
 static int    sMaxScatterDepth    = 5;
-static int    sNumThreads         = 7;
-static float  sClearColor[]       = { 0.0f, 0.0f, 0.0f, 1.0f };
+static int    sNumThreads         = 6;
+static float  sClearColor[]       = { 0.2f, 0.2f, 0.2f, 1.0f };
 
 static const RenderMaterial MaterialWhite =
 {
@@ -225,6 +225,7 @@ static void UpdateCameras(float forwardAmount, float strafeAmount, float upDownA
 RaytracerWindows::RaytracerWindows(const std::wstring& name, bool vSync)
     : super(name, overrideWidth, overrideHeight, vSync)
     , RenderMode(ModePreview)
+    , WireframeViewEnabled(false)
     , TheRaytracer(nullptr)
     , Scene(nullptr)
     , ScissorRect(CD3DX12_RECT(0, 0, LONG_MAX, LONG_MAX))
@@ -728,12 +729,6 @@ bool RaytracerWindows::LoadContent()
         rtvFormats.NumRenderTargets = 1;
         rtvFormats.RTFormats[0]     = backBufferFormat;
 
-        // Set rasterizer state
-        CD3DX12_RASTERIZER_DESC rasterState;
-        ZeroMemory(&rasterState, sizeof(CD3DX12_RASTERIZER_DESC));
-        rasterState.FillMode = D3D12_FILL_MODE_SOLID;
-        rasterState.CullMode = D3D12_CULL_MODE_NONE;
-
         PipelineStateStream pipelineStateStream;
         pipelineStateStream.RootSignature         = RootSignature.GetRootSignature().Get();
         pipelineStateStream.InputLayout           = { VertexPositionNormalTexture::InputElements, VertexPositionNormalTexture::InputElementCount };
@@ -743,10 +738,32 @@ bool RaytracerWindows::LoadContent()
         pipelineStateStream.DSVFormat             = depthBufferFormat;
         pipelineStateStream.RTVFormats            = rtvFormats;
         pipelineStateStream.SampleDesc            = sampleDesc;
-        pipelineStateStream.Rasterizer            = rasterState;
 
-        D3D12_PIPELINE_STATE_STREAM_DESC pipelineStateStreamDesc = { sizeof(PipelineStateStream), &pipelineStateStream };
-        ThrowIfFailed(device->CreatePipelineState(&pipelineStateStreamDesc, IID_PPV_ARGS(&PreviewPipelineState)));
+        // Preview
+        {
+            // Set rasterizer state
+            CD3DX12_RASTERIZER_DESC rasterState;
+            ZeroMemory(&rasterState, sizeof(CD3DX12_RASTERIZER_DESC));
+            rasterState.FillMode = D3D12_FILL_MODE_SOLID;
+            rasterState.CullMode = D3D12_CULL_MODE_NONE;
+            pipelineStateStream.Rasterizer = rasterState;
+
+            D3D12_PIPELINE_STATE_STREAM_DESC pipelineStateStreamDesc = { sizeof(PipelineStateStream), &pipelineStateStream };
+            ThrowIfFailed(device->CreatePipelineState(&pipelineStateStreamDesc, IID_PPV_ARGS(&PreviewPipelineState)));
+        }
+
+        // Wireframe preview 
+        {
+            // Set rasterizer state
+            CD3DX12_RASTERIZER_DESC rasterState;
+            ZeroMemory(&rasterState, sizeof(CD3DX12_RASTERIZER_DESC));
+            rasterState.FillMode = D3D12_FILL_MODE_WIREFRAME;
+            rasterState.CullMode = D3D12_CULL_MODE_NONE;
+            pipelineStateStream.Rasterizer = rasterState;
+
+            D3D12_PIPELINE_STATE_STREAM_DESC pipelineStateStreamDesc = { sizeof(PipelineStateStream), &pipelineStateStream };
+            ThrowIfFailed(device->CreatePipelineState(&pipelineStateStreamDesc, IID_PPV_ARGS(&WireframePreviewPipelineState)));
+        }
     }
 
 
@@ -911,7 +928,7 @@ void RaytracerWindows::OnRender(RenderEventArgs& e)
 
             RenderMatrices matrices;
             ComputeMatrices(worldMatrix, viewMatrix, viewProjectionMatrix, matrices);
-            commandList->SetPipelineState(PreviewPipelineState);
+            commandList->SetPipelineState(WireframeViewEnabled ? WireframePreviewPipelineState : PreviewPipelineState);
             commandList->SetGraphicsDynamicConstantBuffer(RootParameters::MatricesCB, matrices);
             commandList->SetGraphicsDynamicConstantBuffer(RootParameters::MaterialCB, RenderSceneList[i]->Material);
             commandList->SetShaderResourceView(RootParameters::TextureDiffuse, 0, *RenderSceneList[i]->DiffuseTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
@@ -993,6 +1010,12 @@ void RaytracerWindows::OnKeyPressed(KeyEventArgs& e)
             case KeyCode::R:
             {
                 ;
+            }
+            break;
+
+            case KeyCode::F:
+            {
+                WireframeViewEnabled = !WireframeViewEnabled;
             }
             break;
 

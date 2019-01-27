@@ -72,6 +72,14 @@ public:
         return sqrLength;
     }
 
+    inline void Clamp(float minVal, float maxVal)
+    {
+        for (int i = 0; i < 3; i++)
+        {
+            e[i] = e[i] < minVal ? minVal : e[i] > maxVal ? maxVal : e[i];
+        }
+    }
+
     inline void SanityCheck() const
     {
         SANITY_CHECK_FLOAT(e[0]);

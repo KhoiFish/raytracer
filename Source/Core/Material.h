@@ -96,6 +96,7 @@ public:
     MDiffuseLight(BaseTexture* tex);
 
     virtual Vec3 Emitted(const Ray& rayIn, const HitRecord& rec, float u, float v, Vec3& p) const;
+    virtual Vec3 AlbedoValue(float u, float v, const Vec3& p) const;
 
 private:
 

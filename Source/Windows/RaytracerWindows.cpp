@@ -546,14 +546,30 @@ void RaytracerWindows::GenerateRenderListFromWorld(std::shared_ptr<CommandList> 
         }
         xmNormal = XMFLOAT3(normal.X(), normal.Y(), -normal.Z());
         
-
+        const Material*  material    = xyzRect->GetMaterial();
         XMMATRIX         translation = XMMatrixIdentity();
         XMMATRIX         newMatrix   = ComputeFinalMatrix(matrixStack, translation);
         RenderSceneNode* newNode     = new RenderSceneNode();
 
+        // Clamp colors for lights, since they can overblow the color buffer
+        Vec3 color = material->AlbedoValue(0.5f, 0.5f, Vec3(0, 0, 0));
+        color.Clamp(0.f, 1.f);
+
+        // Light shapes should not get lit, and always show up fully shaded
+        Vec3 em = xyzRect->IsALightShape() ? Vec3(1.f, 1.f, 1.f, 1.f) : Vec3(0.0f, 0.0f, 0.0f, 1.0f);
+
+        const RenderMaterial newMaterial =
+        {
+            { em.X(), em.Y(), em.Z(), 1.0f },
+            { 0.0f, 0.0f, 0.0f, 1.0f },
+            { color.X(), color.Y(), color.Z(), 1.0f },
+            { 0.0f, 0.0f, 0.0f, 1.0f },
+            128.0f
+        };
+
         newNode->MeshData       = Mesh::CreatePlaneFromPoints(*commandList, xmPlanePoints, xmNormal);
         newNode->WorldMatrix    = newMatrix;
-        newNode->Material       = MaterialWhite;
+        newNode->Material       = newMaterial;
         newNode->DiffuseTexture = &WhiteTex;
         outSceneList.push_back(newNode);
         
@@ -583,6 +599,7 @@ void RaytracerWindows::GenerateRenderListFromWorld(std::shared_ptr<CommandList> 
                 light.ConstantAttenuation  = 1.f;
                 light.LinearAttenuation    = 0.00f;
                 light.QuadraticAttenuation = 0.f;
+                light.Color                = DirectX::XMFLOAT4(color[0], color[1], color[2], 1.f);
                 SpotLightsList.push_back(light);
             }
         }

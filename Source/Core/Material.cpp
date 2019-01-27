@@ -166,6 +166,11 @@ Vec3 MDiffuseLight::Emitted(const Ray& rayIn, const HitRecord& rec, float u, flo
     }
 }
 
+Vec3 MDiffuseLight::AlbedoValue(float u, float v, const Vec3& p) const
+{
+    return EmitTex->Value(u, v, p);
+}
+
 // ----------------------------------------------------------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------------------------------
 

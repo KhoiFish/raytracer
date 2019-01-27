@@ -30,14 +30,6 @@ using namespace Microsoft::WRL;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-struct RenderMatrices
-{
-    XMMATRIX ModelMatrix;
-    XMMATRIX ModelViewMatrix;
-    XMMATRIX InverseTransposeModelViewMatrix;
-    XMMATRIX ModelViewProjectionMatrix;
-};
-
 struct PipelineStateStream
 {
     CD3DX12_PIPELINE_STATE_STREAM_ROOT_SIGNATURE            RootSignature;

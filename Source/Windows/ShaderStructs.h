@@ -9,6 +9,18 @@
 // ----------------------------------------------------------------------------------------------------------------------------
 
 #pragma pack(push, 16)
+struct RenderMatrices
+{
+    DirectX::XMMATRIX ModelMatrix;
+    DirectX::XMMATRIX ModelViewMatrix;
+    DirectX::XMMATRIX InverseTransposeModelViewMatrix;
+    DirectX::XMMATRIX ModelViewProjectionMatrix;
+};
+#pragma pack(pop)
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+#pragma pack(push, 16)
 struct RenderMaterial
 {
     RenderMaterial(

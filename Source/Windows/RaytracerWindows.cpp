@@ -88,12 +88,12 @@ static int    overrideHeight      = 1024;
 static int    sNumSamplesPerRay   = 5;
 static int    sMaxScatterDepth    = 5;
 static int    sNumThreads         = 7;
-static float  sClearColor[]       = { 0.4f, 0.6f, 0.9f, 1.0f };
+static float  sClearColor[]       = { 0.0f, 0.0f, 0.0f, 1.0f };
 
 static const RenderMaterial MaterialWhite =
 {
     { 0.00f, 0.00f, 0.00f, 1.00f },
-    { 0.01f, 0.01f, 0.01f, 1.00f },
+    { 0.001f, 0.001f, 0.001f, 1.00f },
     { 1.00f, 1.00f, 1.00f, 1.00f },
     { 1.00f, 1.00f, 1.00f, 1.00f },
     128.0f
@@ -460,7 +460,7 @@ void RaytracerWindows::GenerateRenderListFromWorld(std::shared_ptr<CommandList> 
         newNode->MeshData       = Mesh::CreateSphere(*commandList, radius * 2.f);
         newNode->WorldMatrix    = newMatrix;
         newNode->Material       = newMaterial;
-        newNode->DiffuseTexture = &PreviewTex;
+        newNode->DiffuseTexture = &WhiteTex;
         outSceneList.push_back(newNode);
     }
     else if (tid == typeid(HitableBox))
@@ -476,11 +476,22 @@ void RaytracerWindows::GenerateRenderListFromWorld(std::shared_ptr<CommandList> 
         XMMATRIX         newMatrix   = ComputeFinalMatrix(matrixStack, translation);
         XMFLOAT3         sideLengths = XMFLOAT3(fabs(diff.X()), fabs(diff.Y()), fabs(diff.Z()));
         RenderSceneNode* newNode     = new RenderSceneNode();
+        const Material*  material    = box->GetMaterial();
+
+        Vec3 color = material->AlbedoValue(0.5f, 0.5f, Vec3(0, 0, 0));
+        const RenderMaterial newMaterial =
+        {
+            { 0.0f, 0.0f, 0.0f, 1.0f },
+            { 0.0f, 0.0f, 0.0f, 1.0f },
+            { color.X(), color.Y(), color.Z(), 1.0f },
+            { 0.0f, 0.0f, 0.0f, 1.0f },
+            128.0f
+        };
 
         newNode->MeshData       = Mesh::CreateCube(*commandList, sideLengths);
         newNode->WorldMatrix    = newMatrix;
-        newNode->Material       = MaterialWhite;
-        newNode->DiffuseTexture = &PreviewTex;
+        newNode->Material       = newMaterial;
+        newNode->DiffuseTexture = &WhiteTex;
         outSceneList.push_back(newNode);
     }
     else if (tid == typeid(TriMesh))
@@ -551,7 +562,7 @@ void RaytracerWindows::GenerateRenderListFromWorld(std::shared_ptr<CommandList> 
         newNode->MeshData       = Mesh::CreatePlaneFromPoints(*commandList, xmPlanePoints, xmNormal);
         newNode->WorldMatrix    = newMatrix;
         newNode->Material       = MaterialWhite;
-        newNode->DiffuseTexture = &PreviewTex;
+        newNode->DiffuseTexture = &WhiteTex;
         outSceneList.push_back(newNode);
         
         // These can be light shapes too
@@ -578,7 +589,7 @@ void RaytracerWindows::GenerateRenderListFromWorld(std::shared_ptr<CommandList> 
                 light.DirectionWS          = DirectX::XMFLOAT4(dir[0], dir[1], -dir[2], 1.f);
                 light.SpotAngle            = RT_PI / 2.5f;
                 light.ConstantAttenuation  = 1.f;
-                light.LinearAttenuation    = 0.0001f;
+                light.LinearAttenuation    = 0.00f;
                 light.QuadraticAttenuation = 0.f;
                 SpotLightsList.push_back(light);
             }
@@ -606,7 +617,8 @@ bool RaytracerWindows::LoadContent()
     // Load scene
     // -------------------------------------------------------------------
     LoadScene(commandList);
-    commandList->LoadTextureFromFile(PreviewTex, L"checker.jpg");    
+    commandList->LoadTextureFromFile(PreviewTex, L"checker.jpg");
+    commandList->LoadTextureFromFile(WhiteTex, L"white.png");
     
 
     // -------------------------------------------------------------------

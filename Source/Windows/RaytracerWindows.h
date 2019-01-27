@@ -82,6 +82,7 @@ private:
 
     Texture                  CPURaytracerTex;
     Texture                  PreviewTex;
+    Texture                  WhiteTex;
     RenderTarget             RenderTarget;
     RootSignature            RootSignature;
     DX12PipeState            FullscreenPipelineState;

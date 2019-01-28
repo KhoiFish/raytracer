@@ -154,13 +154,18 @@ static inline XMMATRIX ComputeFinalMatrix(std::vector<DirectX::XMMATRIX>& matrix
     return final;
 }
 
-static inline XMVECTOR ConvertFromVec3(const Vec3& vec)
+static inline XMVECTOR ConvertToXMVector(const Vec3& vec)
 {
     // Negate Z
     return XMVectorSet(vec.X(), vec.Y(), -vec.Z(), vec.W());
 }
 
-static inline Vec3 ConvertFromXMVector(const XMVECTOR& vec)
+static inline XMFLOAT4 ConvertToXMFloat4(const Vec3& vec, bool negateZ = true)
+{
+    return DirectX::XMFLOAT4(vec[0], vec[1], negateZ ? -vec[2] : vec[2], 1.f);
+}
+
+static inline Vec3 ConvertToVec3(const XMVECTOR& vec)
 {
     // Negate Z
     XMFLOAT4 v4;
@@ -209,9 +214,9 @@ static void UpdateCameras(float forwardAmount, float strafeAmount, float upDownA
     raytracerCamera.Setup(lookFrom, lookAt, up, vertFov, aspect, aperture, focusDist, t0, t1, clearColor);
 
     // Set the render camera
-    XMVECTOR cameraPos    = ConvertFromVec3(lookFrom);
-    XMVECTOR cameraTarget = ConvertFromVec3(lookAt);
-    XMVECTOR cameraUp     = ConvertFromVec3(up);
+    XMVECTOR cameraPos    = ConvertToXMVector(lookFrom);
+    XMVECTOR cameraTarget = ConvertToXMVector(lookAt);
+    XMVECTOR cameraUp     = ConvertToXMVector(up);
     renderCamera.set_LookAt(cameraPos, cameraTarget, cameraUp);
     renderCamera.set_Projection(vertFov, aspect, 0.1f, 10000.0f);
 
@@ -516,8 +521,8 @@ void RaytracerWindows::GenerateRenderListFromWorld(std::shared_ptr<CommandList> 
                 float s = 1.f - triVertices[v].UV[0];
                 float t = 1.f - triVertices[v].UV[1];
 
-                XMVECTOR position = ConvertFromVec3(triVertices[v].Vert);
-                XMVECTOR normal   = ConvertFromVec3(triVertices[v].Normal);
+                XMVECTOR position = ConvertToXMVector(triVertices[v].Vert);
+                XMVECTOR normal   = ConvertToXMVector(triVertices[v].Normal);
                 XMVECTOR texCoord = XMVectorSet(s, t, 0, 0);
 
                 vertices.push_back(VertexPositionNormalTexture(position, normal, texCoord));
@@ -610,16 +615,16 @@ void RaytracerWindows::GenerateRenderListFromWorld(std::shared_ptr<CommandList> 
                 Vec3  smapPos  = pos - (dir * smapDist);
 
                 SpotLight light;
-                light.PositionWS           = DirectX::XMFLOAT4(pos[0], pos[1], -pos[2], 1.f);
-                light.DirectionWS          = DirectX::XMFLOAT4(dir[0], dir[1], -dir[2], 1.f);
-                light.LookAtWS             = DirectX::XMFLOAT4(lookAt[0], lookAt[1], -lookAt[2], 1.f);
-                light.UpWS                 = DirectX::XMFLOAT4(upDir[0], upDir[1], -upDir[2], 1.f);
-                light.SmapWS               = DirectX::XMFLOAT4(smapPos[0], smapPos[1], -smapPos[2], 1.f);
+                light.PositionWS           = ConvertToXMFloat4(pos);
+                light.DirectionWS          = ConvertToXMFloat4(dir);
+                light.LookAtWS             = ConvertToXMFloat4(lookAt);
+                light.UpWS                 = ConvertToXMFloat4(upDir);
+                light.SmapWS               = ConvertToXMFloat4(smapPos);
                 light.SpotAngle            = RT_PI / 2.5f;
                 light.ConstantAttenuation  = 1.f;
                 light.LinearAttenuation    = 0.00f;
                 light.QuadraticAttenuation = 0.f;
-                light.Color                = DirectX::XMFLOAT4(color[0], color[1], color[2], 1.f);
+                light.Color                = ConvertToXMFloat4(color, false);
                 light.ShadowmapId          = InitShadowmap(ShadowmapWidth, ShadowmapHeight);
 
                 SpotLightsList.push_back(light);

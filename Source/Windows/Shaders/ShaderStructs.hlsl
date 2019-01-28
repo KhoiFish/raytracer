@@ -5,6 +5,8 @@ struct RenderMatrices
 {
     matrix ModelMatrix;
     matrix ModelViewMatrix;
+    matrix ViewMatrix;
+    matrix ProjectionMatrix;
     matrix InverseTransposeModelViewMatrix;
     matrix ModelViewProjectionMatrix;
 };
@@ -28,16 +30,32 @@ struct SpotLight
     float4 PositionVS;
     float4 DirectionWS;
     float4 DirectionVS;
+    float4 LookAtWS;
+    float4 UpWS;
+    float4 SmapWS;
     float4 Color;
     float  SpotAngle;
     float  ConstantAttenuation;
     float  LinearAttenuation;
     float  QuadraticAttenuation;
+    int    ShadowmapId;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-struct GlobalLightData
+struct DirLight
 {
-    int NumSpotLights;
+    float4 DirectionWS;
+    float4 DirectionVS;
+    float4 Color;
+    int    ShadowmapId;
+};
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+struct GlobalData
+{
+    int   NumSpotLights;
+    int   NumDirLights;
+    float ShadowmapDepth;
 };

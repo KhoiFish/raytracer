@@ -45,7 +45,7 @@ struct PipelineStateStream
 
 struct RenderSceneNode
 {
-    IHitable*               Hitable;
+    const IHitable*         Hitable;
     std::shared_ptr<Mesh>   MeshData;
     XMMATRIX                WorldMatrix;
     RenderMaterial          Material;
@@ -56,9 +56,10 @@ enum RootParameters
 {
     MatricesCB,
     MaterialCB,
-    GlobalLightDataCB,
+    GlobalDataCB,
     TextureDiffuse,
     SpotLights,
+    DirLights,
 
     NumRootParameters
 };
@@ -71,6 +72,7 @@ static const UINT sShaderRegisterParams[NumRootParameters][2] =
     { 1, 0 }, // GlobalLightDataCB
     { 0, 0 }, // TextureDiffuse
     { 1, 0 }, // SpotLights
+    { 2, 0 }, // DirLights
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -90,6 +92,9 @@ static const RenderMaterial MaterialWhite =
     { 1.00f, 1.00f, 1.00f, 1.00f },
     128.0f
 };
+
+static const float sShadowmapNear = 0.1f;
+static const float sShadowmapFar  = 1000.f;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -112,12 +117,14 @@ static XMMATRIX XM_CALLCONV LookAtMatrix(FXMVECTOR Position, FXMVECTOR Direction
     return M;
 }
 
-static void XM_CALLCONV ComputeMatrices(FXMMATRIX model, CXMMATRIX view, CXMMATRIX viewProjection, RenderMatrices& mat)
+static void XM_CALLCONV ComputeMatrices(FXMMATRIX model, CXMMATRIX view, CXMMATRIX projection, RenderMatrices& mat)
 {
     mat.ModelMatrix                     = model;
+    mat.ViewMatrix                      = view;
+    mat.ProjectionMatrix                = projection;
     mat.ModelViewMatrix                 = model * view;
     mat.InverseTransposeModelViewMatrix = XMMatrixTranspose(XMMatrixInverse(nullptr, mat.ModelViewMatrix));
-    mat.ModelViewProjectionMatrix       = model * viewProjection;
+    mat.ModelViewProjectionMatrix       = model * view * projection;
 }
 
 static bool FlipFromNormalStack(Vec3& normal, const std::vector<bool>& flipNormalStack)
@@ -454,6 +461,7 @@ void RaytracerWindows::GenerateRenderListFromWorld(std::shared_ptr<CommandList> 
         newNode->WorldMatrix    = newMatrix;
         newNode->Material       = newMaterial;
         newNode->DiffuseTexture = &WhiteTex;
+        newNode->Hitable        = currentHead;
         outSceneList.push_back(newNode);
     }
     else if (tid == typeid(HitableBox))
@@ -485,6 +493,7 @@ void RaytracerWindows::GenerateRenderListFromWorld(std::shared_ptr<CommandList> 
         newNode->WorldMatrix    = newMatrix;
         newNode->Material       = newMaterial;
         newNode->DiffuseTexture = &WhiteTex;
+        newNode->Hitable        = currentHead;
         outSceneList.push_back(newNode);
     }
     else if (tid == typeid(TriMesh))
@@ -529,6 +538,7 @@ void RaytracerWindows::GenerateRenderListFromWorld(std::shared_ptr<CommandList> 
         newNode->WorldMatrix    = newMatrix;
         newNode->Material       = MaterialWhite;
         newNode->DiffuseTexture = newTexture;
+        newNode->Hitable        = currentHead;
         outSceneList.push_back(newNode);
     }
     else if (tid == typeid(XYZRect))
@@ -572,6 +582,7 @@ void RaytracerWindows::GenerateRenderListFromWorld(std::shared_ptr<CommandList> 
         newNode->WorldMatrix    = newMatrix;
         newNode->Material       = newMaterial;
         newNode->DiffuseTexture = &WhiteTex;
+        newNode->Hitable        = currentHead;
         outSceneList.push_back(newNode);
         
         // These can be light shapes too
@@ -589,18 +600,28 @@ void RaytracerWindows::GenerateRenderListFromWorld(std::shared_ptr<CommandList> 
                     (xValues[0] + xValues[1]) * 0.5f,
                     yValue,
                     (zValues[0] + zValues[1]) * 0.5f);
+                
+                Vec3  upDir   = Vec3(1.f, 0.f, 1.f);
+                Vec3  lookAt  = Vec3(pos[0], -yValue, pos[2]);
+                Vec3  dir     = UnitVector(lookAt - pos);
 
-                Vec3 dir = Vec3(pos[0], 0, pos[2]) - pos;
-                dir.MakeUnitVector();
+                // Pullback the camera for shadowmap rendering
+                float smapDist = sShadowmapFar - fabs(yValue);
+                Vec3  smapPos  = pos - (dir * smapDist);
 
                 SpotLight light;
                 light.PositionWS           = DirectX::XMFLOAT4(pos[0], pos[1], -pos[2], 1.f);
                 light.DirectionWS          = DirectX::XMFLOAT4(dir[0], dir[1], -dir[2], 1.f);
+                light.LookAtWS             = DirectX::XMFLOAT4(lookAt[0], lookAt[1], -lookAt[2], 1.f);
+                light.UpWS                 = DirectX::XMFLOAT4(upDir[0], upDir[1], -upDir[2], 1.f);
+                light.SmapWS               = DirectX::XMFLOAT4(smapPos[0], smapPos[1], -smapPos[2], 1.f);
                 light.SpotAngle            = RT_PI / 2.5f;
                 light.ConstantAttenuation  = 1.f;
                 light.LinearAttenuation    = 0.00f;
                 light.QuadraticAttenuation = 0.f;
                 light.Color                = DirectX::XMFLOAT4(color[0], color[1], color[2], 1.f);
+                light.ShadowmapId          = InitShadowmap(ShadowmapWidth, ShadowmapHeight);
+
                 SpotLightsList.push_back(light);
             }
         }
@@ -615,21 +636,16 @@ bool RaytracerWindows::LoadContent()
     auto commandQueue = Application::Get().GetCommandQueue(D3D12_COMMAND_LIST_TYPE_COPY);
     auto commandList  = commandQueue->GetCommandList();
 
-    // sRGB formats provide free gamma correction!
-    const DXGI_FORMAT backBufferFormat  = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-    const DXGI_FORMAT depthBufferFormat = DXGI_FORMAT_D32_FLOAT;
+    // Set backbuffer, depth and sample formats.
+    BackBufferFormat  = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+    DepthBufferFormat = DXGI_FORMAT_D32_FLOAT;
+    ShadowmapFormat   = DXGI_FORMAT_R32_FLOAT;
+    SampleDesc        = Application::Get().GetMultisampleQualityLevels(BackBufferFormat, D3D12_MAX_MULTISAMPLE_SAMPLE_COUNT);
 
-    // Check the best multi-sample quality level that can be used for the given back buffer format
-    const DXGI_SAMPLE_DESC sampleDesc = Application::Get().GetMultisampleQualityLevels(backBufferFormat, D3D12_MAX_MULTISAMPLE_SAMPLE_COUNT);
+    // Shadowmap width and height default to backbuffer width and height
+    ShadowmapWidth  = BackbufferWidth;
+    ShadowmapHeight = BackbufferHeight;
 
-
-    // -------------------------------------------------------------------
-    // Load scene
-    // -------------------------------------------------------------------
-    LoadScene(commandList);
-    commandList->LoadTextureFromFile(PreviewTex, L"checker.jpg");
-    commandList->LoadTextureFromFile(WhiteTex, L"white.png");
-    
 
     // -------------------------------------------------------------------
     // Create a root signature
@@ -665,15 +681,20 @@ bool RaytracerWindows::LoadContent()
             D3D12_ROOT_DESCRIPTOR_FLAG_NONE, 
             D3D12_SHADER_VISIBILITY_PIXEL);
 
-        rootParameters[RootParameters::GlobalLightDataCB].InitAsConstants(
-            sizeof(GlobalLightData) / 4, 
-            sShaderRegisterParams[RootParameters::GlobalLightDataCB][0],
-            sShaderRegisterParams[RootParameters::GlobalLightDataCB][1],
+        rootParameters[RootParameters::GlobalDataCB].InitAsConstants(
+            sizeof(GlobalData) / 4, 
+            sShaderRegisterParams[RootParameters::GlobalDataCB][0],
+            sShaderRegisterParams[RootParameters::GlobalDataCB][1],
             D3D12_SHADER_VISIBILITY_PIXEL);
 
         rootParameters[RootParameters::SpotLights].InitAsShaderResourceView(
             sShaderRegisterParams[RootParameters::SpotLights][0],
             sShaderRegisterParams[RootParameters::SpotLights][1],
+            D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_PIXEL);
+
+        rootParameters[RootParameters::DirLights].InitAsShaderResourceView(
+            sShaderRegisterParams[RootParameters::DirLights][0],
+            sShaderRegisterParams[RootParameters::DirLights][1],
             D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_PIXEL);
 
         rootParameters[RootParameters::TextureDiffuse].InitAsDescriptorTable(1, &texDescRange, D3D12_SHADER_VISIBILITY_PIXEL);
@@ -699,7 +720,7 @@ bool RaytracerWindows::LoadContent()
 
         D3D12_RT_FORMAT_ARRAY rtvFormats = {};
         rtvFormats.NumRenderTargets = 1;
-        rtvFormats.RTFormats[0]     = backBufferFormat;
+        rtvFormats.RTFormats[0]     = BackBufferFormat;
 
         PipelineStateStream pipelineStateStream;
         pipelineStateStream.RootSignature         = RootSignature.GetRootSignature().Get();
@@ -707,9 +728,9 @@ bool RaytracerWindows::LoadContent()
         pipelineStateStream.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
         pipelineStateStream.VS                    = CD3DX12_SHADER_BYTECODE(vertexShaderBlob.Get());
         pipelineStateStream.PS                    = CD3DX12_SHADER_BYTECODE(pixelShaderBlob.Get());
-        pipelineStateStream.DSVFormat             = depthBufferFormat;
+        pipelineStateStream.DSVFormat             = DepthBufferFormat;
         pipelineStateStream.RTVFormats            = rtvFormats;
-        pipelineStateStream.SampleDesc            = sampleDesc;
+        pipelineStateStream.SampleDesc            = SampleDesc;
 
         D3D12_PIPELINE_STATE_STREAM_DESC pipelineStateStreamDesc = { sizeof(PipelineStateStream), &pipelineStateStream };
         ThrowIfFailed(device->CreatePipelineState(&pipelineStateStreamDesc, IID_PPV_ARGS(&FullscreenPipelineState)));
@@ -727,7 +748,7 @@ bool RaytracerWindows::LoadContent()
 
         D3D12_RT_FORMAT_ARRAY rtvFormats = {};
         rtvFormats.NumRenderTargets = 1;
-        rtvFormats.RTFormats[0]     = backBufferFormat;
+        rtvFormats.RTFormats[0]     = BackBufferFormat;
 
         PipelineStateStream pipelineStateStream;
         pipelineStateStream.RootSignature         = RootSignature.GetRootSignature().Get();
@@ -735,9 +756,9 @@ bool RaytracerWindows::LoadContent()
         pipelineStateStream.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
         pipelineStateStream.VS                    = CD3DX12_SHADER_BYTECODE(vertexShaderBlob.Get());
         pipelineStateStream.PS                    = CD3DX12_SHADER_BYTECODE(pixelShaderBlob.Get());
-        pipelineStateStream.DSVFormat             = depthBufferFormat;
+        pipelineStateStream.DSVFormat             = DepthBufferFormat;
         pipelineStateStream.RTVFormats            = rtvFormats;
-        pipelineStateStream.SampleDesc            = sampleDesc;
+        pipelineStateStream.SampleDesc            = SampleDesc;
 
         // Preview
         {
@@ -768,15 +789,50 @@ bool RaytracerWindows::LoadContent()
 
 
     // -------------------------------------------------------------------
+    // Setup the pipeline state for shadowmap rendering
+    // -------------------------------------------------------------------
+    {
+        // Load shaders
+        ComPtr<ID3DBlob> vertexShaderBlob, pixelShaderBlob;
+        ThrowIfFailed(D3DReadFileToBlob(L"Shadowmap_VS.cso", &vertexShaderBlob));
+        ThrowIfFailed(D3DReadFileToBlob(L"Shadowmap_PS.cso", &pixelShaderBlob));
+
+        D3D12_RT_FORMAT_ARRAY rtvFormats = {};
+        rtvFormats.NumRenderTargets = 1;
+        rtvFormats.RTFormats[0] = ShadowmapFormat;
+
+        PipelineStateStream pipelineStateStream;
+        pipelineStateStream.RootSignature         = RootSignature.GetRootSignature().Get();
+        pipelineStateStream.InputLayout           = { VertexPositionNormalTexture::InputElements, VertexPositionNormalTexture::InputElementCount };
+        pipelineStateStream.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+        pipelineStateStream.VS                    = CD3DX12_SHADER_BYTECODE(vertexShaderBlob.Get());
+        pipelineStateStream.PS                    = CD3DX12_SHADER_BYTECODE(pixelShaderBlob.Get());
+        pipelineStateStream.DSVFormat             = DepthBufferFormat;
+        pipelineStateStream.RTVFormats            = rtvFormats;
+        pipelineStateStream.SampleDesc            = SampleDesc;
+
+        // Set rasterizer state
+        CD3DX12_RASTERIZER_DESC rasterState;
+        ZeroMemory(&rasterState, sizeof(CD3DX12_RASTERIZER_DESC));
+        rasterState.FillMode = D3D12_FILL_MODE_SOLID;
+        rasterState.CullMode = D3D12_CULL_MODE_NONE;
+        pipelineStateStream.Rasterizer = rasterState;
+
+        D3D12_PIPELINE_STATE_STREAM_DESC pipelineStateStreamDesc = { sizeof(PipelineStateStream), &pipelineStateStream };
+        ThrowIfFailed(device->CreatePipelineState(&pipelineStateStreamDesc, IID_PPV_ARGS(&ShadowmapPipelineState)));
+    }
+
+
+    // -------------------------------------------------------------------
     // Create a single color buffer and depth buffer
     // -------------------------------------------------------------------
     {
         Texture colorTexture;
         {
-            auto colorDesc = CD3DX12_RESOURCE_DESC::Tex2D(backBufferFormat,
+            auto colorDesc = CD3DX12_RESOURCE_DESC::Tex2D(BackBufferFormat,
                 BackbufferWidth, BackbufferHeight,
                 1, 1,
-                sampleDesc.Count, sampleDesc.Quality,
+                SampleDesc.Count, SampleDesc.Quality,
                 D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 
             D3D12_CLEAR_VALUE colorClearValue;
@@ -791,10 +847,10 @@ bool RaytracerWindows::LoadContent()
 
         Texture depthTexture;
         {
-            auto depthDesc = CD3DX12_RESOURCE_DESC::Tex2D(depthBufferFormat,
+            auto depthDesc = CD3DX12_RESOURCE_DESC::Tex2D(DepthBufferFormat,
                 BackbufferWidth, BackbufferHeight,
                 1, 1,
-                sampleDesc.Count, sampleDesc.Quality,
+                SampleDesc.Count, SampleDesc.Quality,
                 D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
 
             D3D12_CLEAR_VALUE depthClearValue;
@@ -805,10 +861,18 @@ bool RaytracerWindows::LoadContent()
         }
 
         // Attach the textures to the render target
-        RenderTarget.AttachTexture(AttachmentPoint::Color0, colorTexture);
-        RenderTarget.AttachTexture(AttachmentPoint::DepthStencil, depthTexture);
+        DisplayRenderTarget.AttachTexture(AttachmentPoint::Color0, colorTexture);
+        DisplayRenderTarget.AttachTexture(AttachmentPoint::DepthStencil, depthTexture);
     }
 
+
+    // -------------------------------------------------------------------
+    // Load scene
+    // -------------------------------------------------------------------
+    LoadScene(commandList);
+    commandList->LoadTextureFromFile(PreviewTex, L"checker.jpg");
+    commandList->LoadTextureFromFile(WhiteTex, L"white.png");
+    
 
     // -------------------------------------------------------------------
     // Execute the command queue and wait for it to finish
@@ -843,7 +907,7 @@ void RaytracerWindows::OnResize(ResizeEventArgs& e)
 
         Viewport = CD3DX12_VIEWPORT(0.0f, 0.0f, static_cast<float>(BackbufferWidth), static_cast<float>(BackbufferHeight));
 
-        RenderTarget.Resize(BackbufferWidth, BackbufferHeight);
+        DisplayRenderTarget.Resize(BackbufferWidth, BackbufferHeight);
 
         OnResizeRaytracer();
     }
@@ -879,6 +943,125 @@ void RaytracerWindows::OnUpdate(UpdateEventArgs& e)
         XMVECTOR directionVS = XMVector3Normalize(XMVector3TransformNormal(directionWS, viewMatrix));
         XMStoreFloat4(&light.DirectionVS, directionVS);
     }
+
+    for (int i = 0; i < (int)DirLightsList.size(); i++)
+    {
+        DirLight& light = DirLightsList[i];
+
+        XMVECTOR directionWS = XMLoadFloat4(&light.DirectionWS);
+        XMVECTOR directionVS = XMVector3Normalize(XMVector3TransformNormal(directionWS, viewMatrix));
+        XMStoreFloat4(&light.DirectionVS, directionVS);
+    }
+}
+// ----------------------------------------------------------------------------------------------------------------------------
+
+int RaytracerWindows::InitShadowmap(int width, int height)
+{
+    // Create shadow map
+    Texture shadowmapTexture;
+    {
+        auto shadowmapDesc = CD3DX12_RESOURCE_DESC::Tex2D(ShadowmapFormat,
+            width, height,
+            1, 1,
+            SampleDesc.Count, SampleDesc.Quality,
+            D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
+
+        D3D12_CLEAR_VALUE colorClearValue;
+        colorClearValue.Format = shadowmapDesc.Format;
+        for (int i = 0; i < 4; i++)
+        {
+            colorClearValue.Color[i] = sClearColor[i];
+        }
+
+        shadowmapTexture = Texture(shadowmapDesc, &colorClearValue, TextureUsage::RenderTarget, L"Shadowmap Rendertarget");
+    }
+
+    Texture depthTexture;
+    {
+        auto depthDesc = CD3DX12_RESOURCE_DESC::Tex2D(DepthBufferFormat,
+            width, height,
+            1, 1,
+            SampleDesc.Count, SampleDesc.Quality,
+            D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
+
+        D3D12_CLEAR_VALUE depthClearValue;
+        depthClearValue.Format = depthDesc.Format;
+        depthClearValue.DepthStencil = { 1.0f, 0 };
+
+        depthTexture = Texture(depthDesc, &depthClearValue, TextureUsage::Depth, L"Shadowmap Depth Render Target");
+    }
+
+    RenderTarget* shadowmapRT = new RenderTarget();
+    shadowmapRT->AttachTexture(AttachmentPoint::Color0, shadowmapTexture);
+    shadowmapRT->AttachTexture(AttachmentPoint::DepthStencil, depthTexture);
+    ShadowmapRTList.push_back(shadowmapRT);
+
+    return int(ShadowmapRTList.size() - 1);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void RaytracerWindows::RenderShadowmaps(std::shared_ptr<CommandList>& commandList)
+{
+    float           clearColor[] = { 0.f, 0.f, 0.f, 0.f };
+    D3D12_VIEWPORT  viewport(CD3DX12_VIEWPORT(0.0f, 0.0f, float(ShadowmapWidth), float(ShadowmapHeight)));
+    D3D12_RECT      scissorRect(CD3DX12_RECT(0, 0, ShadowmapWidth, ShadowmapHeight));
+
+    for (int i = 0; i < SpotLightsList.size(); i++)
+    {
+        SpotLight&      light    = SpotLightsList[i];
+        RenderTarget*   shadowRT = ShadowmapRTList[light.ShadowmapId];
+
+        // Setup rendering to the shadowmap RT
+        commandList->ClearTexture(shadowRT->GetTexture(AttachmentPoint::Color0), clearColor);
+        commandList->ClearDepthStencilTexture(shadowRT->GetTexture(AttachmentPoint::DepthStencil), D3D12_CLEAR_FLAG_DEPTH);
+        commandList->SetGraphicsRootSignature(RootSignature);
+        commandList->SetViewport(viewport);
+        commandList->SetScissorRect(scissorRect);
+        commandList->SetRenderTarget(*shadowRT);
+        commandList->SetPipelineState(ShadowmapPipelineState);
+
+        // Setup light matrices
+        float    fovY        = RT_PI / 2.0f;
+        float    aspect      = 1.0f;
+        XMVECTOR lookFrom    = XMLoadFloat4(&light.SmapWS);
+        XMVECTOR lookAt      = XMLoadFloat4(&light.LookAtWS);
+        XMVECTOR up          = XMLoadFloat4(&light.UpWS);
+        XMMATRIX viewMatrix  = XMMatrixLookAtLH(lookFrom, lookAt, up);
+        XMMATRIX projMatrix  = XMMatrixPerspectiveFovLH(fovY, aspect, sShadowmapNear, sShadowmapFar);
+
+        GlobalData globalData;
+        globalData.NumSpotLights  = 0;
+        globalData.NumDirLights   = 0;
+        globalData.ShadowmapDepth = sShadowmapFar;
+        commandList->SetGraphics32BitConstants(RootParameters::GlobalDataCB, globalData);
+
+        // Render the objects
+        RenderPreviewObjects(commandList, viewMatrix, projMatrix, true);
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void RaytracerWindows::RenderPreviewObjects(std::shared_ptr<CommandList>& commandList, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix, bool shadowmapRender)
+{
+    for (int i = 0; i < RenderSceneList.size(); i++)
+    {
+        // Don't render light shapes
+        if (shadowmapRender && RenderSceneList[i]->Hitable->IsALightShape())
+        {
+            continue;
+        }
+
+        RenderMatrices matrices;
+        ComputeMatrices(RenderSceneList[i]->WorldMatrix, viewMatrix, projectionMatrix, matrices);
+
+        commandList->SetGraphicsDynamicConstantBuffer(RootParameters::MatricesCB, matrices);
+        commandList->SetGraphicsDynamicConstantBuffer(RootParameters::MaterialCB, RenderSceneList[i]->Material);
+        commandList->SetShaderResourceView(RootParameters::TextureDiffuse, 0, *RenderSceneList[i]->DiffuseTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+
+        RenderSceneList[i]->MeshData->Draw(*commandList);
+    }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -890,13 +1073,18 @@ void RaytracerWindows::OnRender(RenderEventArgs& e)
     auto commandQueue = Application::Get().GetCommandQueue(D3D12_COMMAND_LIST_TYPE_DIRECT);
     auto commandList  = commandQueue->GetCommandList();
 
+    // -------------------------------------------------------------------
+    // Render shadowmaps first
+    // -------------------------------------------------------------------
+    RenderShadowmaps(commandList);
+
 
     // -------------------------------------------------------------------
     // Clear the render targets
     // -------------------------------------------------------------------
     {
-        commandList->ClearTexture(RenderTarget.GetTexture(AttachmentPoint::Color0), sClearColor);
-        commandList->ClearDepthStencilTexture(RenderTarget.GetTexture(AttachmentPoint::DepthStencil), D3D12_CLEAR_FLAG_DEPTH);
+        commandList->ClearTexture(DisplayRenderTarget.GetTexture(AttachmentPoint::Color0), sClearColor);
+        commandList->ClearDepthStencilTexture(DisplayRenderTarget.GetTexture(AttachmentPoint::DepthStencil), D3D12_CLEAR_FLAG_DEPTH);
     }
 
 
@@ -906,7 +1094,7 @@ void RaytracerWindows::OnRender(RenderEventArgs& e)
     commandList->SetGraphicsRootSignature(RootSignature);
     commandList->SetViewport(Viewport);
     commandList->SetScissorRect(ScissorRect);
-    commandList->SetRenderTarget(RenderTarget);
+    commandList->SetRenderTarget(DisplayRenderTarget);
 
 
     // -------------------------------------------------------------------
@@ -915,26 +1103,18 @@ void RaytracerWindows::OnRender(RenderEventArgs& e)
     if (RenderMode == ModePreview)
     {
         // Upload lights
-        GlobalLightData globalLightData;
-        globalLightData.NumSpotLights   = int(SpotLightsList.size());
-        commandList->SetGraphics32BitConstants(RootParameters::GlobalLightDataCB, globalLightData);
+        GlobalData globalData;
+        globalData.NumSpotLights = int(SpotLightsList.size());
+        globalData.NumDirLights  = int(DirLightsList.size());
+        commandList->SetGraphics32BitConstants(RootParameters::GlobalDataCB, globalData);
         commandList->SetGraphicsDynamicStructuredBuffer(RootParameters::SpotLights, SpotLightsList);
+        commandList->SetGraphicsDynamicStructuredBuffer(RootParameters::DirLights, DirLightsList);
 
-        for (int i = 0; i < RenderSceneList.size(); i++)
-        {
-            XMMATRIX worldMatrix            = RenderSceneList[i]->WorldMatrix;
-            XMMATRIX viewMatrix             = RenderCamera.get_ViewMatrix();
-            XMMATRIX viewProjectionMatrix   = viewMatrix * RenderCamera.get_ProjectionMatrix();
+        // Preview rendering pipeline state
+        commandList->SetPipelineState(WireframeViewEnabled ? WireframePreviewPipelineState : PreviewPipelineState);
 
-            RenderMatrices matrices;
-            ComputeMatrices(worldMatrix, viewMatrix, viewProjectionMatrix, matrices);
-            commandList->SetPipelineState(WireframeViewEnabled ? WireframePreviewPipelineState : PreviewPipelineState);
-            commandList->SetGraphicsDynamicConstantBuffer(RootParameters::MatricesCB, matrices);
-            commandList->SetGraphicsDynamicConstantBuffer(RootParameters::MaterialCB, RenderSceneList[i]->Material);
-            commandList->SetShaderResourceView(RootParameters::TextureDiffuse, 0, *RenderSceneList[i]->DiffuseTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-
-            RenderSceneList[i]->MeshData->Draw(*commandList);
-        }
+        // Render objects
+        RenderPreviewObjects(commandList, RenderCamera.get_ViewMatrix(), RenderCamera.get_ProjectionMatrix(), false);
     }
 
 
@@ -969,7 +1149,7 @@ void RaytracerWindows::OnRender(RenderEventArgs& e)
     // -------------------------------------------------------------------
     // Present
     // -------------------------------------------------------------------
-    m_pWindow->Present(RenderTarget.GetTexture(AttachmentPoint::Color0));
+    m_pWindow->Present(DisplayRenderTarget.GetTexture(AttachmentPoint::Color0));
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

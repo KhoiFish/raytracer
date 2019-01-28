@@ -78,5 +78,11 @@
     <FxCompile Include="..\Source\Windows\Shaders\Lighting.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="..\Source\Windows\Shaders\Shadowmap_PS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Source\Windows\Shaders\Shadowmap_VS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

@@ -14,9 +14,10 @@ struct PixelShaderInput
 
 SamplerState                      LinearRepeatSampler    : register(s0);
 ConstantBuffer<RenderMaterial>    MaterialCB             : register(b0, space1);
-ConstantBuffer<GlobalLightData>   GlobalLightDataCB      : register(b1);
+ConstantBuffer<GlobalData>        GlobalDataCB           : register(b1);
 Texture2D                         DiffuseTexture         : register(t0);
 StructuredBuffer<SpotLight>       SpotLights             : register(t1);
+StructuredBuffer<DirLight>        DirLights              : register(t2);
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -25,7 +26,8 @@ float4 main(PixelShaderInput IN) : SV_Target
     // Get the lighting result
     float4 lightingColor = computeLighting(
         IN.PositionVS.xyz, IN.NormalVS.xyz, 
-        SpotLights, GlobalLightDataCB.NumSpotLights, 
+        SpotLights, GlobalDataCB.NumSpotLights,
+        DirLights, GlobalDataCB.NumDirLights,
         MaterialCB.Emissive, MaterialCB.Ambient, MaterialCB.Diffuse, MaterialCB.Specular, MaterialCB.SpecularPower);
 
     // Compute the final color

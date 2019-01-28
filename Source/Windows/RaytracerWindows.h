@@ -47,6 +47,10 @@ protected:
 
 private:
 
+    int  InitShadowmap(int width, int height);
+    void RenderShadowmaps(std::shared_ptr<CommandList>& commandList);
+    void RenderPreviewObjects(std::shared_ptr<CommandList>& commandList, const DirectX::XMMATRIX& viewMatrix, const DirectX::XMMATRIX& projectionMatrix, bool shadowmapRender);
+
     void OnResizeRaytracer();
     void Raytrace(bool enable);
     void NextRenderMode();
@@ -73,41 +77,52 @@ private:
 
 private:
 
-    RenderingMode            RenderMode;
-    bool                     WireframeViewEnabled;
+    RenderingMode              RenderMode;
+    bool                       WireframeViewEnabled;
 
-    Raytracer*               TheRaytracer;
-    Camera                   RaytracerCamera;
-    WorldScene*              Scene;
-    RenderNodeList           RenderSceneList;
+    Raytracer*                 TheRaytracer;
+    Camera                     RaytracerCamera;
+    WorldScene*                Scene;
+    RenderNodeList             RenderSceneList;
 
-    Texture                  CPURaytracerTex;
-    Texture                  PreviewTex;
-    Texture                  WhiteTex;
-    RenderTarget             RenderTarget;
-    RootSignature            RootSignature;
-    DX12PipeState            FullscreenPipelineState;
-    DX12PipeState            PreviewPipelineState;
-    DX12PipeState            WireframePreviewPipelineState;
+    Texture                    CPURaytracerTex;
+    Texture                    PreviewTex;
+    Texture                    WhiteTex;
 
-    D3D12_VIEWPORT           Viewport;
-    D3D12_RECT               ScissorRect;
-    CameraDX12               RenderCamera;
+    DXGI_FORMAT                BackBufferFormat;
+    DXGI_FORMAT                DepthBufferFormat;
+    DXGI_FORMAT                ShadowmapFormat;
+    DXGI_SAMPLE_DESC           SampleDesc;
+    RenderTarget               DisplayRenderTarget;
+    RootSignature              RootSignature;
 
-    std::vector<SpotLight>   SpotLightsList;
+    DX12PipeState              FullscreenPipelineState;
+    DX12PipeState              PreviewPipelineState;
+    DX12PipeState              WireframePreviewPipelineState;
+    DX12PipeState              ShadowmapPipelineState;
 
-    float                    Forward;
-    float                    Backward;
-    float                    Left;
-    float                    Right;
-    float                    Up;
-    float                    Down;
-    int                      MouseDx;
-    int                      MouseDy;
+    D3D12_VIEWPORT             Viewport;
+    D3D12_RECT                 ScissorRect;
+    CameraDX12                 RenderCamera;
 
-    bool                     AllowFullscreenToggle;
-    bool                     ShiftKeyPressed;
+    std::vector<SpotLight>     SpotLightsList;
+    std::vector<DirLight>      DirLightsList;
 
-    int                      BackbufferWidth;
-    int                      BackbufferHeight;
+    int                        ShadowmapWidth, ShadowmapHeight;
+    std::vector<RenderTarget*> ShadowmapRTList;
+
+    float                      Forward;
+    float                      Backward;
+    float                      Left;
+    float                      Right;
+    float                      Up;
+    float                      Down;
+    int                        MouseDx;
+    int                        MouseDy;
+
+    bool                       AllowFullscreenToggle;
+    bool                       ShiftKeyPressed;
+
+    int                        BackbufferWidth;
+    int                        BackbufferHeight;
 };

@@ -12,6 +12,8 @@
 struct RenderMatrices
 {
     DirectX::XMMATRIX ModelMatrix;
+    DirectX::XMMATRIX ViewMatrix;
+    DirectX::XMMATRIX ProjectionMatrix;
     DirectX::XMMATRIX ModelViewMatrix;
     DirectX::XMMATRIX InverseTransposeModelViewMatrix;
     DirectX::XMMATRIX ModelViewProjectionMatrix;
@@ -53,19 +55,37 @@ struct SpotLight
     DirectX::XMFLOAT4    PositionVS;
     DirectX::XMFLOAT4    DirectionWS;
     DirectX::XMFLOAT4    DirectionVS;
+    DirectX::XMFLOAT4    LookAtWS;
+    DirectX::XMFLOAT4    UpWS;
+    DirectX::XMFLOAT4    SmapWS;
     DirectX::XMFLOAT4    Color;
     float                SpotAngle;
     float                ConstantAttenuation;
     float                LinearAttenuation;
     float                QuadraticAttenuation;
+    int                  ShadowmapId;
 };
 #pragma pack(pop)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
 #pragma pack(push, 16)
-struct GlobalLightData
+struct DirLight
 {
-    int NumSpotLights;
+    DirectX::XMFLOAT4    DirectionWS;
+    DirectX::XMFLOAT4    DirectionVS;
+    DirectX::XMFLOAT4    Color;
+    int                  ShadowmapId;
+};
+#pragma pack(pop)
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+#pragma pack(push, 16)
+struct GlobalData
+{
+    int   NumSpotLights;
+    int   NumDirLights;
+    float ShadowmapDepth;
 };
 #pragma pack(pop)

@@ -3,12 +3,13 @@
 
 struct RenderMatrices
 {
-    matrix ModelMatrix;
-    matrix ModelViewMatrix;
-    matrix ViewMatrix;
-    matrix ProjectionMatrix;
-    matrix InverseTransposeModelViewMatrix;
-    matrix ModelViewProjectionMatrix;
+    float4x4 ModelMatrix;
+    float4x4 ViewMatrix;
+    float4x4 ProjectionMatrix;
+    float4x4 ModelViewMatrix;
+    float4x4 InverseTransposeModelViewMatrix;
+    float4x4 ModelViewProjectionMatrix;
+    float4x4 ShadowViewProj;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------

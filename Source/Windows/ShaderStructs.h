@@ -11,12 +11,13 @@
 #pragma pack(push, 16)
 struct RenderMatrices
 {
-    DirectX::XMMATRIX ModelMatrix;
-    DirectX::XMMATRIX ViewMatrix;
-    DirectX::XMMATRIX ProjectionMatrix;
-    DirectX::XMMATRIX ModelViewMatrix;
-    DirectX::XMMATRIX InverseTransposeModelViewMatrix;
-    DirectX::XMMATRIX ModelViewProjectionMatrix;
+    DirectX::XMFLOAT4X4 ModelMatrix;
+    DirectX::XMFLOAT4X4 ViewMatrix;
+    DirectX::XMFLOAT4X4 ProjectionMatrix;
+    DirectX::XMFLOAT4X4 ModelViewMatrix;
+    DirectX::XMFLOAT4X4 InverseTransposeModelViewMatrix;
+    DirectX::XMFLOAT4X4 ModelViewProjectionMatrix;
+    DirectX::XMFLOAT4X4 ShadowViewProj;
 };
 #pragma pack(pop)
 

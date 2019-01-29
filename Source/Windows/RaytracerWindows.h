@@ -93,6 +93,7 @@ private:
     DXGI_FORMAT                DepthBufferFormat;
     DXGI_FORMAT                ShadowmapFormat;
     DXGI_SAMPLE_DESC           SampleDesc;
+    DXGI_SAMPLE_DESC           ShadowmapSampleDesc;
     RenderTarget               DisplayRenderTarget;
     RootSignature              RootSignature;
 
@@ -110,6 +111,7 @@ private:
 
     int                        ShadowmapWidth, ShadowmapHeight;
     std::vector<RenderTarget*> ShadowmapRTList;
+    DirectX::XMMATRIX*         shadowViewProj;
 
     float                      Forward;
     float                      Backward;

@@ -15,7 +15,7 @@ ConstantBuffer<GlobalData> GlobalDataCB : register(b1);
 
 float4 main(PixelShaderInput IN) : SV_Target
 {
-    float depthValue = IN.DepthPosition.z / GlobalDataCB.ShadowmapDepth;
+    float depthValue = IN.DepthPosition.z / IN.DepthPosition.w;
 
-    return float4(depthValue, 0.f, 0.f, 1.f);
+    return float4(depthValue, depthValue, depthValue, 1.f);
 }

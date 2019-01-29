@@ -58,6 +58,7 @@ enum RootParameters
     MaterialCB,
     GlobalDataCB,
     TextureDiffuse,
+    TextureShadowmap,
     SpotLights,
     DirLights,
 
@@ -71,8 +72,9 @@ static const UINT sShaderRegisterParams[NumRootParameters][2] =
     { 0, 1 }, // MaterialCB
     { 1, 0 }, // GlobalLightDataCB
     { 0, 0 }, // TextureDiffuse
-    { 1, 0 }, // SpotLights
-    { 2, 0 }, // DirLights
+    { 1, 0 }, // TextureShadowmap
+    { 0, 1 }, // SpotLights
+    { 1, 1 }, // DirLights
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -119,12 +121,12 @@ static XMMATRIX XM_CALLCONV LookAtMatrix(FXMVECTOR Position, FXMVECTOR Direction
 
 static void XM_CALLCONV ComputeMatrices(FXMMATRIX model, CXMMATRIX view, CXMMATRIX projection, RenderMatrices& mat)
 {
-    mat.ModelMatrix                     = model;
-    mat.ViewMatrix                      = view;
-    mat.ProjectionMatrix                = projection;
-    mat.ModelViewMatrix                 = model * view;
-    mat.InverseTransposeModelViewMatrix = XMMatrixTranspose(XMMatrixInverse(nullptr, mat.ModelViewMatrix));
-    mat.ModelViewProjectionMatrix       = model * view * projection;
+    XMStoreFloat4x4(&mat.ModelMatrix, XMMatrixTranspose(model));
+    XMStoreFloat4x4(&mat.ViewMatrix, XMMatrixTranspose(view));
+    XMStoreFloat4x4(&mat.ProjectionMatrix, XMMatrixTranspose(projection));
+    XMStoreFloat4x4(&mat.ModelViewMatrix, XMMatrixTranspose(model * view));
+    XMStoreFloat4x4(&mat.InverseTransposeModelViewMatrix, XMMatrixTranspose(XMMatrixTranspose(XMMatrixInverse(nullptr, model * view))));
+    XMStoreFloat4x4(&mat.ModelViewProjectionMatrix, XMMatrixTranspose(model * view * projection));
 }
 
 static bool FlipFromNormalStack(Vec3& normal, const std::vector<bool>& flipNormalStack)
@@ -259,6 +261,8 @@ RaytracerWindows::RaytracerWindows(const std::wstring& name, bool vSync)
     XMVECTOR cameraTarget = XMVectorSet(0, 0, 0, 1);
     XMVECTOR cameraUp     = XMVectorSet(0, 1, 0, 0);
     RenderCamera.set_LookAt(cameraPos, cameraTarget, cameraUp);
+
+    shadowViewProj = new XMMATRIX;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -644,8 +648,12 @@ bool RaytracerWindows::LoadContent()
     // Set backbuffer, depth and sample formats.
     BackBufferFormat  = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
     DepthBufferFormat = DXGI_FORMAT_D32_FLOAT;
-    ShadowmapFormat   = DXGI_FORMAT_R32_FLOAT;
+    ShadowmapFormat   = DXGI_FORMAT_R32G32B32A32_FLOAT;
     SampleDesc        = Application::Get().GetMultisampleQualityLevels(BackBufferFormat, D3D12_MAX_MULTISAMPLE_SAMPLE_COUNT);
+
+    // No multisampling for shadowmap
+    ShadowmapSampleDesc.Count   = 1;
+    ShadowmapSampleDesc.Quality = 0;
 
     // Shadowmap width and height default to backbuffer width and height
     ShadowmapWidth  = BackbufferWidth;
@@ -670,8 +678,6 @@ bool RaytracerWindows::LoadContent()
             D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
             D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
 
-        CD3DX12_DESCRIPTOR_RANGE1 texDescRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, sShaderRegisterParams[RootParameters::TextureDiffuse][0]);
-
         CD3DX12_ROOT_PARAMETER1 rootParameters[RootParameters::NumRootParameters];
 
         rootParameters[RootParameters::MatricesCB].InitAsConstantBufferView(
@@ -692,6 +698,12 @@ bool RaytracerWindows::LoadContent()
             sShaderRegisterParams[RootParameters::GlobalDataCB][1],
             D3D12_SHADER_VISIBILITY_PIXEL);
 
+        CD3DX12_DESCRIPTOR_RANGE1 diffuseTexDescRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, sShaderRegisterParams[RootParameters::TextureDiffuse][0]);
+        rootParameters[RootParameters::TextureDiffuse].InitAsDescriptorTable(1, &diffuseTexDescRange, D3D12_SHADER_VISIBILITY_PIXEL);
+
+        CD3DX12_DESCRIPTOR_RANGE1 shadowTexDescRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, sShaderRegisterParams[RootParameters::TextureShadowmap][0]);
+        rootParameters[RootParameters::TextureShadowmap].InitAsDescriptorTable(1, &shadowTexDescRange, D3D12_SHADER_VISIBILITY_PIXEL);
+
         rootParameters[RootParameters::SpotLights].InitAsShaderResourceView(
             sShaderRegisterParams[RootParameters::SpotLights][0],
             sShaderRegisterParams[RootParameters::SpotLights][1],
@@ -702,13 +714,17 @@ bool RaytracerWindows::LoadContent()
             sShaderRegisterParams[RootParameters::DirLights][1],
             D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_PIXEL);
 
-        rootParameters[RootParameters::TextureDiffuse].InitAsDescriptorTable(1, &texDescRange, D3D12_SHADER_VISIBILITY_PIXEL);
-
-        CD3DX12_STATIC_SAMPLER_DESC linearRepeatSampler(0, D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR);
-        CD3DX12_STATIC_SAMPLER_DESC anisotropicSampler(0, D3D12_FILTER_ANISOTROPIC);
+        
+        CD3DX12_STATIC_SAMPLER_DESC samplers[] =
+        {
+            CD3DX12_STATIC_SAMPLER_DESC(0, D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR),
+            CD3DX12_STATIC_SAMPLER_DESC(1, D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_CLAMP, D3D12_TEXTURE_ADDRESS_MODE_CLAMP),
+            CD3DX12_STATIC_SAMPLER_DESC(2, D3D12_FILTER_ANISOTROPIC)
+        };
+        const int numSamplers = sizeof(samplers) / sizeof(CD3DX12_STATIC_SAMPLER_DESC);
 
         CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDescription;
-        rootSignatureDescription.Init_1_1(RootParameters::NumRootParameters, rootParameters, 1, &linearRepeatSampler, rootSignatureFlags);
+        rootSignatureDescription.Init_1_1(RootParameters::NumRootParameters, rootParameters, numSamplers, samplers, rootSignatureFlags);
 
         RootSignature.SetRootSignatureDesc(rootSignatureDescription.Desc_1_1, featureData.HighestVersion);
     }
@@ -814,7 +830,7 @@ bool RaytracerWindows::LoadContent()
         pipelineStateStream.PS                    = CD3DX12_SHADER_BYTECODE(pixelShaderBlob.Get());
         pipelineStateStream.DSVFormat             = DepthBufferFormat;
         pipelineStateStream.RTVFormats            = rtvFormats;
-        pipelineStateStream.SampleDesc            = SampleDesc;
+        pipelineStateStream.SampleDesc            = ShadowmapSampleDesc;
 
         // Set rasterizer state
         CD3DX12_RASTERIZER_DESC rasterState;
@@ -965,10 +981,11 @@ int RaytracerWindows::InitShadowmap(int width, int height)
     // Create shadow map
     Texture shadowmapTexture;
     {
-        auto shadowmapDesc = CD3DX12_RESOURCE_DESC::Tex2D(ShadowmapFormat,
+        auto shadowmapDesc = CD3DX12_RESOURCE_DESC::Tex2D(
+            ShadowmapFormat,
             width, height,
             1, 1,
-            SampleDesc.Count, SampleDesc.Quality,
+            ShadowmapSampleDesc.Count, ShadowmapSampleDesc.Quality,
             D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 
         D3D12_CLEAR_VALUE colorClearValue;
@@ -983,10 +1000,11 @@ int RaytracerWindows::InitShadowmap(int width, int height)
 
     Texture depthTexture;
     {
-        auto depthDesc = CD3DX12_RESOURCE_DESC::Tex2D(DepthBufferFormat,
+        auto depthDesc = CD3DX12_RESOURCE_DESC::Tex2D(
+            DepthBufferFormat,
             width, height,
             1, 1,
-            SampleDesc.Count, SampleDesc.Quality,
+            ShadowmapSampleDesc.Count, ShadowmapSampleDesc.Quality,
             D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
 
         D3D12_CLEAR_VALUE depthClearValue;
@@ -1009,7 +1027,7 @@ int RaytracerWindows::InitShadowmap(int width, int height)
 void RaytracerWindows::RenderShadowmaps(std::shared_ptr<CommandList>& commandList)
 {
     float           clearColor[] = { 0.f, 0.f, 0.f, 0.f };
-    D3D12_VIEWPORT  viewport(CD3DX12_VIEWPORT(0.0f, 0.0f, float(ShadowmapWidth), float(ShadowmapHeight)));
+    D3D12_VIEWPORT  viewport(CD3DX12_VIEWPORT(0.0f, 0.0f, float(ShadowmapWidth), float(ShadowmapHeight), 0.f, 1.f));
     D3D12_RECT      scissorRect(CD3DX12_RECT(0, 0, ShadowmapWidth, ShadowmapHeight));
 
     for (int i = 0; i < SpotLightsList.size(); i++)
@@ -1033,7 +1051,11 @@ void RaytracerWindows::RenderShadowmaps(std::shared_ptr<CommandList>& commandLis
         XMVECTOR lookAt      = XMLoadFloat4(&light.LookAtWS);
         XMVECTOR up          = XMLoadFloat4(&light.UpWS);
         XMMATRIX viewMatrix  = XMMatrixLookAtLH(lookFrom, lookAt, up);
-        XMMATRIX projMatrix  = XMMatrixPerspectiveFovLH(fovY, aspect, sShadowmapNear, sShadowmapFar);
+        //XMMATRIX projMatrix  = XMMatrixPerspectiveFovLH(fovY, aspect, sShadowmapNear, sShadowmapFar);
+        XMMATRIX projMatrix = XMMatrixOrthographicLH((float)ShadowmapWidth, (float)ShadowmapHeight, sShadowmapNear, sShadowmapFar);
+
+        // Cache the shadow mvp
+        *shadowViewProj = viewMatrix * projMatrix;
 
         GlobalData globalData;
         globalData.NumSpotLights  = 0;
@@ -1061,9 +1083,32 @@ void RaytracerWindows::RenderPreviewObjects(std::shared_ptr<CommandList>& comman
         RenderMatrices matrices;
         ComputeMatrices(RenderSceneList[i]->WorldMatrix, viewMatrix, projectionMatrix, matrices);
 
+        // Prepare shadowmap transform
+        if (!shadowmapRender)
+        {
+            // Matrix to transform from [-1,1]->[0,1]
+            XMMATRIX t(
+                0.5f, 0.0f, 0.0f, 0.0f,
+                0.0f,-0.5f, 0.0f, 0.0f,
+                0.0f, 0.0f, 1.0f, 0.0f,
+                0.5f, 0.5f, 0.0f, 1.0f);
+
+            XMStoreFloat4x4(&matrices.ShadowViewProj, XMMatrixTranspose((*shadowViewProj) * t));
+        }
+
         commandList->SetGraphicsDynamicConstantBuffer(RootParameters::MatricesCB, matrices);
         commandList->SetGraphicsDynamicConstantBuffer(RootParameters::MaterialCB, RenderSceneList[i]->Material);
         commandList->SetShaderResourceView(RootParameters::TextureDiffuse, 0, *RenderSceneList[i]->DiffuseTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+
+        if (shadowmapRender)
+        {
+            commandList->SetShaderResourceView(RootParameters::TextureShadowmap, 0, WhiteTex, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+        }
+        else
+        {
+            commandList->SetShaderResourceView(RootParameters::TextureShadowmap, 0, ShadowmapRTList[0]->GetTexture(Color0), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+        }
+        
 
         RenderSceneList[i]->MeshData->Draw(*commandList);
     }

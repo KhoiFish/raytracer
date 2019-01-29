@@ -7,17 +7,20 @@ struct PixelShaderInput
 {
     float4 PositionVS : POSITION0;
     float3 NormalVS   : NORMAL0;
-    float2 TexCoord   : TEXCOORD;
+    float2 TexCoord   : TEXCOORD0;
+    float4 SMCoord    : TEXCOORD1;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
 SamplerState                      LinearRepeatSampler    : register(s0);
+SamplerState                      LinearClampSampler     : register(s1);
 ConstantBuffer<RenderMaterial>    MaterialCB             : register(b0, space1);
 ConstantBuffer<GlobalData>        GlobalDataCB           : register(b1);
 Texture2D                         DiffuseTexture         : register(t0);
-StructuredBuffer<SpotLight>       SpotLights             : register(t1);
-StructuredBuffer<DirLight>        DirLights              : register(t2);
+Texture2D                         ShadowmapTexture       : register(t1);
+StructuredBuffer<SpotLight>       SpotLights             : register(t0, space1);
+StructuredBuffer<DirLight>        DirLights              : register(t1, space1);
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -30,9 +33,21 @@ float4 main(PixelShaderInput IN) : SV_Target
         DirLights, GlobalDataCB.NumDirLights,
         MaterialCB.Emissive, MaterialCB.Ambient, MaterialCB.Diffuse, MaterialCB.Specular, MaterialCB.SpecularPower);
 
+    // See if we're in shadow
+    float  bias         = 0.005f;
+    float  visibility   = 1.0f;
+    float3 shadowCoord  = IN.SMCoord.xyz / IN.SMCoord.w;
+    float  curDepth     = shadowCoord.z - bias;
+    float  sampledDepth = ShadowmapTexture.Sample(LinearClampSampler, shadowCoord.xy).z;
+    if (sampledDepth < curDepth)
+    {
+        visibility = 0.1f;
+    }
+
     // Compute the final color
     float4 texColor   = DiffuseTexture.Sample(LinearRepeatSampler, IN.TexCoord);
-    float4 finalColor = lightingColor * texColor;
+    float4 finalColor = lightingColor * texColor * visibility;
+
 
     return finalColor;
 }

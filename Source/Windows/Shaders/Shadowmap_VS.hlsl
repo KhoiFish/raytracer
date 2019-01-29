@@ -25,7 +25,7 @@ VertexShaderOutput main(VertexPositionNormalTexture IN)
 {
     VertexShaderOutput OUT;
 
-    OUT.Position      = mul(MatricesCB.ModelViewProjectionMatrix, float4(IN.Position, 1.0f));
+    OUT.Position      = mul(float4(IN.Position, 1.0f), MatricesCB.ModelViewProjectionMatrix);
     OUT.DepthPosition = OUT.Position;
 
     return OUT;

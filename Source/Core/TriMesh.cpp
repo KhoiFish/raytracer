@@ -86,33 +86,33 @@ Triangle* TriMesh::makeNewTriangle(
         Triangle::Vertex(
             {
                 vertList[face.Verts[v0].VertIndex],
-                vertNormalList[face.Verts[v0].NormIndex],
+                face.Verts[v0].NormIndex >= 0 ? vertNormalList[face.Verts[v0].NormIndex] : Vec3(0, 0, 0),
                 Vec3(0, 0, 0),
                 {
-                    texCoordList[face.Verts[v0].TexCoordIndex].UV[0],
-                    texCoordList[face.Verts[v0].TexCoordIndex].UV[1]
+                    face.Verts[v0].TexCoordIndex >= 0 ? texCoordList[face.Verts[v0].TexCoordIndex].UV[0] : 0.f,
+                    face.Verts[v0].TexCoordIndex >= 0 ? texCoordList[face.Verts[v0].TexCoordIndex].UV[1] : 0.f,
                 }
             }
         ),
         Triangle::Vertex(
             {
                 vertList[face.Verts[v1].VertIndex],
-                vertNormalList[face.Verts[v1].NormIndex],
+                face.Verts[v1].NormIndex >= 0 ? vertNormalList[face.Verts[v1].NormIndex] : Vec3(0, 0, 0),
                 Vec3(0, 0, 0),
                 {
-                    texCoordList[face.Verts[v1].TexCoordIndex].UV[0],
-                    texCoordList[face.Verts[v1].TexCoordIndex].UV[1]
+                    face.Verts[v1].TexCoordIndex >= 0 ? texCoordList[face.Verts[v1].TexCoordIndex].UV[0] : 0.f,
+                    face.Verts[v1].TexCoordIndex >= 0 ? texCoordList[face.Verts[v1].TexCoordIndex].UV[1] : 0.f,
                 }
             }
         ),
         Triangle::Vertex(
             {
                 vertList[face.Verts[v2].VertIndex],
-                vertNormalList[face.Verts[v2].NormIndex],
+                face.Verts[v2].NormIndex >= 0 ? vertNormalList[face.Verts[v2].NormIndex] : Vec3(0, 0, 0),
                 Vec3(0, 0, 0),
                 {
-                    texCoordList[face.Verts[v2].TexCoordIndex].UV[0],
-                    texCoordList[face.Verts[v2].TexCoordIndex].UV[1]
+                    face.Verts[v2].TexCoordIndex >= 0 ? texCoordList[face.Verts[v2].TexCoordIndex].UV[0] : 0.f,
+                    face.Verts[v2].TexCoordIndex >= 0 ? texCoordList[face.Verts[v2].TexCoordIndex].UV[1] : 0.f,
                 }
             }
         ),
@@ -214,7 +214,7 @@ TriMesh* TriMesh::CreateFromOBJFile(const char* filePath, float scale /*= 1.0f*/
                     std::string sourceString = &lineBuf[3];
                     std::vector<std::string> tokens = GetStringTokens(sourceString, " ");
 
-                    RTL_ASSERT(tokens.size() == 2);
+                    RTL_ASSERT(tokens.size() >= 2);
 
                     TexCoord texCoord =
                     {
@@ -236,21 +236,20 @@ TriMesh* TriMesh::CreateFromOBJFile(const char* filePath, float scale /*= 1.0f*/
                     for (int i = 0; i < (int)faceTokens.size(); i++)
                     {
                         std::vector<std::string> faceCompTokens = GetStringTokens(faceTokens[i], "/");
+                        if (faceCompTokens.size() < 3)
+                        {
+                            continue;
+                        }
 
                         FaceVertex fc;
                         fc.VertIndex     = (faceCompTokens.size() > 0) ? atoi(faceCompTokens[0].c_str()) - 1 : 0;
                         fc.TexCoordIndex = (faceCompTokens.size() > 1) ? atoi(faceCompTokens[1].c_str()) - 1 : 0;
                         fc.NormIndex     = (faceCompTokens.size() > 2) ? atoi(faceCompTokens[2].c_str()) - 1 : 0;
 
-                        if (fc.VertIndex < 0 || fc.TexCoordIndex < 0 || fc.NormIndex < 0)
-                        {
-                            continue;
-                        }
-
                         face.Verts.push_back(fc);
                     }
 
-                    if (face.Verts.size() == 3)
+                    if (face.Verts.size() >= 3)
                     {
                         faceList.push_back(face);
                     }

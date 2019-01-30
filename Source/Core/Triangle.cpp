@@ -70,7 +70,7 @@ bool Triangle::Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const
 
     // At this stage we can compute t to find out where the intersection point is on the line
     float t = f * Dot(edge2, q);
-    if (t > EPSILON)
+    if (t > EPSILON && t > tMin && t < tMax)
     {
         Vec3 tempUV[3] =
         {

@@ -104,3 +104,19 @@ void _RtlAssert(const char* message, const char* file, int line)
         DebugBreak();
     #endif
 }
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+std::vector<std::string> GetStringTokens(std::string sourceStr, std::string delim)
+{
+    std::vector<std::string> tokenList;
+    size_t last = 0, next = 0;
+    while ((next = sourceStr.find(delim, last)) != std::string::npos)
+    {
+        tokenList.push_back(sourceStr.substr(last, next - last));
+        last = next + delim.length();
+    }
+    tokenList.push_back(sourceStr.substr(last, next - last));
+
+    return tokenList;
+}

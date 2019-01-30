@@ -15,10 +15,11 @@ class Raytracer;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void          PrintCompletion(const char* otherInfo, double percentage);
-const char*   ProgressPrint(Raytracer* tracer);
-std::string   GetTimeAndDateString();
-void          WriteImageAndLog(Raytracer* raytracer, std::string name);
+void                        PrintCompletion(const char* otherInfo, double percentage);
+const char*                 ProgressPrint(Raytracer* tracer);
+std::string                 GetTimeAndDateString();
+void                        WriteImageAndLog(Raytracer* raytracer, std::string name);
+std::vector<std::string>    GetStringTokens(std::string sourceStr, std::string delim);
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -262,18 +263,3 @@ inline void GetRGBA8888(Vec3 col, bool gammaCorrect, int& ir, int& ig, int& ib, 
     ib = (ib > 255) ? 255 : ib;
 }
 
-// ----------------------------------------------------------------------------------------------------------------------------
-
-inline std::vector<std::string> GetStringTokens(std::string sourceStr, std::string delim)
-{
-    std::vector<std::string> tokenList;
-    size_t last = 0, next = 0;
-    while ((next = sourceStr.find(delim, last)) != std::string::npos)
-    {
-        tokenList.push_back(sourceStr.substr(last, next - last + 1));
-        last = next + delim.length();
-    }
-    tokenList.push_back(sourceStr.substr(last, next - last + 1));
-
-    return tokenList;
-}

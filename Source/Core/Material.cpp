@@ -201,7 +201,7 @@ Vec3 MIsotropic::AlbedoValue(float u, float v, const Vec3& p) const
 // ----------------------------------------------------------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------------------------------
 
-MWavefrontObj::MWavefrontObj(const char* materialFilePath)
+MWavefrontObj::MWavefrontObj(const char* materialFilePath) : DiffuseMap(nullptr)
 {
     std::ifstream inputFile(materialFilePath);
     if (inputFile.is_open())
@@ -216,6 +216,11 @@ MWavefrontObj::MWavefrontObj(const char* materialFilePath)
                 std::string textureFilename = strLine.substr(strlen("map_Kd") + 1);
                 DiffuseMap = new ImageTexture(textureFilename.c_str());
             }
+        }
+
+        if (DiffuseMap == nullptr)
+        {
+            DiffuseMap = new ImageTexture("white.png");
         }
     }
 }

@@ -145,6 +145,10 @@ void Raytracer::threadTraceNextPixel(int id, Raytracer* tracer, const Camera& ca
 {
     const int numPixels         = tracer->OutputWidth * tracer->OutputHeight;
     const int totalPixelSamples = numPixels * tracer->NumRaySamples;
+    const int tileLength        = 32;
+    const int tileArea          = tileLength * tileLength;
+    const int numXTiles         = tracer->OutputWidth  / tileLength;
+    const int numYTiles         = tracer->OutputHeight / tileLength;
 
     int pixelSampleOffset = tracer->CurrentPixelSampleOffset.load();
     while ((tracer->ThreadExitRequested.load() == false) && pixelSampleOffset < totalPixelSamples)
@@ -163,14 +167,21 @@ void Raytracer::threadTraceNextPixel(int id, Raytracer* tracer, const Camera& ca
         // Do we have an pixel to trace?
         if (pixelSampleOffset < totalPixelSamples)
         {
-            // Get the effective output offset
-            const int outputOffset = (pixelSampleOffset % numPixels);
+            // Figure out which tile we are on
+            const int curOffset    = (pixelSampleOffset % numPixels);
+            const int tileId       = curOffset / tileArea;
+            const int tileOffset   = curOffset % tileArea;
+            const int tileX        = (tileId % numXTiles);
+            const int tileY        = (tileId / numXTiles);
+
+            // Compute effective offsets to the buffer
+            const int x            = (tileX * tileLength) + (tileOffset % tileLength);
+            const int y            = (tileY * tileLength) + (tileOffset / tileLength);
+            const int outputOffset = (y * tracer->OutputWidth) + x;
 
             // Get a random ray to the pixel
-            const int   x = outputOffset % tracer->OutputWidth;
-            const int   y = tracer->OutputHeight - (outputOffset / tracer->OutputWidth);
-            const float u = float(x + RandomFloat()) / float(tracer->OutputWidth);
-            const float v = float(y + RandomFloat()) / float(tracer->OutputHeight);
+            const float u = 0.f + float(x + RandomFloat()) / float(tracer->OutputWidth);
+            const float v = 1.f - float(y + RandomFloat()) / float(tracer->OutputHeight);
             const Ray   r = cam.GetRay(u, v);
 
             // Trace

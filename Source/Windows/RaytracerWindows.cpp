@@ -537,11 +537,15 @@ void RaytracerWindows::GenerateRenderListFromWorld(std::shared_ptr<CommandList> 
         XMMATRIX         translation = XMMatrixIdentity();
         XMMATRIX         newMatrix   = ComputeFinalMatrix(matrixStack, translation);
         RenderSceneNode* newNode     = new RenderSceneNode();
-        std::string      fileName    = triMesh->GetMaterial()->GetDiffuseMap()->GetSourceFilename().c_str();
-        std::wstring     widestr     = std::wstring(fileName.begin(), fileName.end());
-        Texture*         newTexture  = new Texture();
 
-        commandList->LoadTextureFromFile(*newTexture, widestr.c_str());
+        Texture* newTexture = &WhiteTex;
+        if (typeid(*triMesh->GetMaterial()) == typeid(MWavefrontObj))
+        {
+            std::string  fileName = ((MWavefrontObj*)triMesh->GetMaterial())->GetDiffuseMap()->GetSourceFilename().c_str();
+            std::wstring widestr = std::wstring(fileName.begin(), fileName.end());
+            newTexture = new Texture();
+            commandList->LoadTextureFromFile(*newTexture, widestr.c_str());
+        }
 
         newNode->MeshData       = Mesh::CreateFromCollection(*commandList, vertices, indices);
         newNode->WorldMatrix    = newMatrix;

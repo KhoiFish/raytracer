@@ -43,7 +43,7 @@ public:
         numTris = NumTriangles;
     }
 
-    const MWavefrontObj* GetMaterial() const { return Mat; }
+    const Material* GetMaterial() const { return Mat; }
 
 private:
 
@@ -57,8 +57,8 @@ private:
 
 private:
 
-    MWavefrontObj*          Mat;
-    IHitable**              TriArray;
-    int                     NumTriangles;
-    BVHNode*                BVHHead;
+    Material*          Mat;
+    IHitable**         TriArray;
+    int                NumTriangles;
+    BVHNode*           BVHHead;
 };

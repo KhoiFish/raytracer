@@ -59,6 +59,13 @@ void Camera::SetAspect(float aspect)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+void Camera::SetFocusDistanceToLookAt()
+{
+    FocusDist = (LookAt - LookFrom).Length();
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 void Camera::UpdateInternalSettings()
 {
     const float theta      = VertFov * RT_PI / 180.f;

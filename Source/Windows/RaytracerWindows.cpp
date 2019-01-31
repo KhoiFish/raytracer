@@ -79,8 +79,8 @@ static const UINT sShaderRegisterParams[NumRootParameters][2] =
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static int    overrideWidth       = 1024;
-static int    overrideHeight      = 1024;
+static int    overrideWidth       = 1280;
+static int    overrideHeight      = 720;
 static int    sNumSamplesPerRay   = 500;
 static int    sMaxScatterDepth    = 5;
 static int    sNumThreads         = 6;
@@ -214,6 +214,7 @@ static void UpdateCameras(float forwardAmount, float strafeAmount, float upDownA
 
     // Update raytracer camera
     raytracerCamera.Setup(lookFrom, lookAt, up, vertFov, aspect, aperture, focusDist, t0, t1, clearColor);
+    raytracerCamera.SetFocusDistanceToLookAt();
 
     // Set the render camera
     XMVECTOR cameraPos    = ConvertToXMVector(lookFrom);
@@ -374,6 +375,7 @@ void RaytracerWindows::LoadScene(std::shared_ptr<CommandList> commandList)
 #endif
 
     Scene->GetCamera().SetAspect((float)BackbufferWidth / (float)BackbufferHeight);
+    Scene->GetCamera().SetFocusDistanceToLookAt();
 
     std::vector<DirectX::XMMATRIX> matrixStack;
     std::vector<bool> flipNormalStack;

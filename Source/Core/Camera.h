@@ -19,6 +19,7 @@ public:
         float t0, float t1, Vec3 backgroundColor);
 
     void SetAspect(float aspect);
+    void SetFocusDistanceToLookAt();
 
     inline Ray GetRay(float s, float t) const
     {

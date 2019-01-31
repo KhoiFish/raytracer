@@ -10,7 +10,7 @@ Camera::Camera()
     , Aspect(0)
     , Aperture(0)
     , FocusDist(0)
-    , ClearColor(0, 0, 0)
+    , BackgroundColor(0, 0, 0)
     , Origin(0, 0, 0)
     , LowerLeftCorner(0, 0, 0)
     , Horizontal(0, 0, 0)
@@ -26,14 +26,14 @@ Camera::Camera()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-Camera::Camera(Vec3 lookFrom, Vec3 lookAt, Vec3 vup, float vertFov, float aspect, float aperture, float focusDist, float t0, float t1, Vec3 clearColor)
+Camera::Camera(Vec3 lookFrom, Vec3 lookAt, Vec3 vup, float vertFov, float aspect, float aperture, float focusDist, float t0, float t1, Vec3 backgroundColor)
 {
-    Setup(lookFrom, lookAt, vup, vertFov, aspect, aperture, focusDist, t0, t1, clearColor);
+    Setup(lookFrom, lookAt, vup, vertFov, aspect, aperture, focusDist, t0, t1, backgroundColor);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void Camera::Setup(Vec3 lookFrom, Vec3 lookAt, Vec3 vup, float vertFov, float aspect, float aperture, float focusDist, float t0, float t1, Vec3 clearColor)
+void Camera::Setup(Vec3 lookFrom, Vec3 lookAt, Vec3 vup, float vertFov, float aspect, float aperture, float focusDist, float t0, float t1, Vec3 backgroundColor)
 {
     LookFrom         = lookFrom;
     LookAt           = lookAt;
@@ -44,7 +44,7 @@ void Camera::Setup(Vec3 lookFrom, Vec3 lookAt, Vec3 vup, float vertFov, float as
     FocusDist        = focusDist;
     Time0            = t0;
     Time1            = t1;
-    ClearColor       = clearColor;
+    BackgroundColor  = backgroundColor;
 
     UpdateInternalSettings();
 }

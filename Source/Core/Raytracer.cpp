@@ -67,7 +67,7 @@ void Raytracer::BeginRaytrace(WorldScene* scene, OnTraceComplete onComplete)
     // Create the threads and run them
     for (int i = 0; i < NumThreads; i++)
     {
-        ThreadPtrs[i] = new std::thread(threadTraceNextPixel, i, this, scene->GetCamera(), scene);
+        ThreadPtrs[i] = new std::thread(threadTraceNextPixel, i, this, scene);
     }
 }
 
@@ -126,7 +126,7 @@ void Raytracer::cleanupRaytrace()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void Raytracer::threadTraceNextPixel(int id, Raytracer* tracer, const Camera& cam, WorldScene* scene)
+void Raytracer::threadTraceNextPixel(int id, Raytracer* tracer, WorldScene* scene)
 {
     const int     numPixels         = tracer->OutputWidth * tracer->OutputHeight;
     const int64_t totalPixelSamples = int64_t(numPixels) * int64_t(tracer->NumRaySamples);
@@ -182,10 +182,10 @@ void Raytracer::threadTraceNextPixel(int id, Raytracer* tracer, const Camera& ca
             // Get a random ray to the pixel
             const float u = 0.f + float(x + RandomFloat()) / float(tracer->OutputWidth);
             const float v = 1.f - float(y + RandomFloat()) / float(tracer->OutputHeight);
-            const Ray   r = cam.GetRay(u, v);
+            const Ray   r = scene->GetCamera().GetRay(u, v);
 
             // Trace
-            const Vec3 outColor = tracer->trace(r, scene, 0, cam.GetClearColor());
+            const Vec3 outColor = tracer->trace(scene, r, 0);
 
             // Accumulate color to output buffer
             tracer->OutputBuffer[outIdx] += outColor;
@@ -235,12 +235,12 @@ void Raytracer::threadTraceNextPixel(int id, Raytracer* tracer, const Camera& ca
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-Vec3 Raytracer::trace(const Ray& r, WorldScene* scene, int depth, const Vec3& backgroundColor)
+Vec3 Raytracer::trace(WorldScene* scene, const Ray& r, int depth)
 {
     // Bail if we're requested to exit
     if (ThreadExitRequested.load() == true)
     {
-        return backgroundColor;
+        return scene->GetCamera().GetBackgroundColor();
     }
 
     // Increment num rays fired
@@ -259,7 +259,7 @@ Vec3 Raytracer::trace(const Ray& r, WorldScene* scene, int depth, const Vec3& ba
         {
             if (scatterRec.IsSpecular)
             {
-                return scatterRec.Attenuation * trace(scatterRec.SpecularRay, scene, depth + 1, backgroundColor);
+                return scatterRec.Attenuation * trace(scene, scatterRec.SpecularRay, depth + 1);
             }
             else
             {
@@ -296,7 +296,7 @@ Vec3 Raytracer::trace(const Ray& r, WorldScene* scene, int depth, const Vec3& ba
                 }
 
                 // Compute the aggregate color
-                const Vec3 color = trace(scattered, scene, depth + 1, backgroundColor);
+                const Vec3 color = trace(scene, scattered, depth + 1);
                 const Vec3 ret   = emitted + (scatterRec.Attenuation * scatterPdf * color / pdfValue);
 
                 VEC3_SANITY_CHECK(ret);
@@ -309,5 +309,5 @@ Vec3 Raytracer::trace(const Ray& r, WorldScene* scene, int depth, const Vec3& ba
     }
     
     // No hits, return background color
-    return backgroundColor;
+    return scene->GetCamera().GetBackgroundColor();
 }

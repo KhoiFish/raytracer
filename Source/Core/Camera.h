@@ -12,11 +12,11 @@ public:
     Camera();
     Camera(Vec3 lookFrom, Vec3 lookAt, Vec3 vup,
         float vertFov, float aspect, float aperture, float focusDist,
-        float t0, float t1, Vec3 clearColor);
+        float t0, float t1, Vec3 backgroundColor);
 
     void Setup(Vec3 lookFrom, Vec3 lookAt, Vec3 vup,
         float vertFov, float aspect, float aperture, float focusDist,
-        float t0, float t1, Vec3 clearColor);
+        float t0, float t1, Vec3 backgroundColor);
 
     void SetAspect(float aspect);
 
@@ -35,9 +35,9 @@ public:
         time1 = Time1;
     }
 
-    inline Vec3 GetClearColor() const
+    inline Vec3 GetBackgroundColor() const
     {
-        return ClearColor;
+        return BackgroundColor;
     }
 
     inline void GetCameraParams(
@@ -54,7 +54,7 @@ public:
         focusDist = FocusDist;
         t0 = Time0;
         t1 = Time1;
-        clearColor = ClearColor;
+        clearColor = BackgroundColor;
     }
 
 private:
@@ -70,7 +70,7 @@ private:
     float  Aspect;
     float  Aperture;
     float  FocusDist;
-    Vec3   ClearColor;
+    Vec3   BackgroundColor;
 
     Vec3   Origin;
     Vec3   LowerLeftCorner;

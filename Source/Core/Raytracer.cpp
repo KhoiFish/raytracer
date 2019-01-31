@@ -150,6 +150,7 @@ void Raytracer::threadTraceNextPixel(int id, Raytracer* tracer, const Camera& ca
     const int     tileArea          = tileLength * tileLength;
     const int     numXTiles         = tracer->OutputWidth  / tileLength;
     const int     numYTiles         = tracer->OutputHeight / tileLength;
+    const bool    tileEnabled       = (tracer->OutputWidth == tracer->OutputHeight) && ((tracer->OutputWidth % tileLength) == 0);
 
     // Thread starts here
     int64_t pixelSampleOffset = tracer->CurrentPixelSampleOffset.load();
@@ -169,17 +170,30 @@ void Raytracer::threadTraceNextPixel(int id, Raytracer* tracer, const Camera& ca
         // Do we have an pixel to trace?
         if (pixelSampleOffset < totalPixelSamples)
         {
-            // Figure out which tile we are on
-            const int curOffset    = (pixelSampleOffset % numPixels);
-            const int tileId       = curOffset / tileArea;
-            const int tileOffset   = curOffset % tileArea;
-            const int tileX        = (tileId % numXTiles);
-            const int tileY        = (tileId / numXTiles);
+            const int curOffset = pixelSampleOffset % numPixels;
 
             // Compute effective offsets to the buffer
-            const int x            = (tileX * tileLength) + (tileOffset % tileLength);
-            const int y            = (tileY * tileLength) + (tileOffset / tileLength);
-            const int outputOffset = (y * tracer->OutputWidth) + x;
+            int x, y, outIdx;
+            if (tileEnabled)
+            {
+                // Figure out which tile we are on
+                const int tileId     = curOffset / tileArea;
+                const int tileOffset = curOffset % tileArea;
+                const int tileX      = tileId % numXTiles;
+                const int tileY      = tileId / numXTiles;
+
+                // Compute offsets
+                x      = (tileX * tileLength) + (tileOffset % tileLength);
+                y      = (tileY * tileLength) + (tileOffset / tileLength);
+                outIdx = (y * tracer->OutputWidth) + x;
+            }
+            else
+            {
+                // Trace via scan-lines
+                x      = curOffset % tracer->OutputWidth;
+                y      = curOffset / tracer->OutputWidth;
+                outIdx = curOffset;
+            }
 
             // Get a random ray to the pixel
             const float u = 0.f + float(x + RandomFloat()) / float(tracer->OutputWidth);
@@ -190,14 +204,14 @@ void Raytracer::threadTraceNextPixel(int id, Raytracer* tracer, const Camera& ca
             const Vec3 outColor = DeNaN(tracer->trace(r, scene, 0, cam.GetClearColor()));
 
             // Accumulate color to output buffer
-            tracer->OutputBuffer[outputOffset] += outColor;
+            tracer->OutputBuffer[outIdx] += outColor;
 
             // Write RGBA (for previewing)
             {
                 const int64_t numSamples = (pixelSampleOffset / int64_t(numPixels)) + 1;
-                Vec3          curCol     = tracer->OutputBuffer[outputOffset] * float(1.0 / double(numSamples));
+                Vec3          curCol     = tracer->OutputBuffer[outIdx] * float(1.0 / double(numSamples));
 
-                int rgbaOffset = outputOffset * 4;
+                int rgbaOffset = outIdx * 4;
                 int ir, ig, ib, ia;
                 GetRGBA8888(curCol, false, ir, ig, ib, ia);
 

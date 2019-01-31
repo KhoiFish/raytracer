@@ -41,7 +41,7 @@ float4 main(PixelShaderInput IN) : SV_Target
     float  sampledDepth = ShadowmapTexture.Sample(LinearClampSampler, shadowCoord.xy).z;
     if (sampledDepth < curDepth)
     {
-        visibility = 0.1f;
+        visibility = 0.3f;
     }
 
     // Compute the final color

@@ -283,6 +283,14 @@ static WorldScene* sampleSceneMesh()
                 Vec3(-60, 105, 145)
             );
         list[total++] = totoro;
+
+        IHitable *luigi =
+            new HitableTranslate(
+                new HitableRotateY(
+                    TriMesh::CreateFromOBJFile("luigi.obj", 2.f), 180.f),
+                Vec3(-320, 105, -100)
+            );
+        list[total++] = luigi;
     }
 
     // Dielectric and metal spheres

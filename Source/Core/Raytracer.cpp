@@ -7,22 +7,6 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static inline Vec3 DeNaN(const Vec3& c)
-{
-    Vec3 temp = c;
-    for (int i = 0; i < 3; i++)
-    {
-        if (isnan(temp[i]))
-        {
-            temp[i] = 0;
-        }
-    }
-
-    return temp;
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
 Raytracer::Raytracer(int width, int height, int numSamples, int maxDepth, int numThreads, bool pdfEnabled) 
     : OutputWidth(width)
     , OutputHeight(height)
@@ -103,14 +87,14 @@ bool Raytracer::WaitForTraceToFinish(int timeoutMicroSeconds)
 
 Raytracer::Stats Raytracer::GetStats() const
 {
+    const StdTime endTime = IsRaytracing ? std::chrono::system_clock::now() : EndTime.load();
+
     Stats stats;
-    stats.TotalRaysFired        = TotalRaysFired.load();
-    stats.NumPixelSamples       = CurrentPixelSampleOffset.load();
-    stats.TotalNumPixelSamples  = (OutputWidth * OutputHeight) * NumRaySamples;
-    stats.NumPdfQueryRetries    = NumPdfQueryRetries.load();
-    
-    StdTime endTime = IsRaytracing ? std::chrono::system_clock::now() : EndTime.load();
-    stats.TotalTimeInSeconds = (int)std::chrono::duration<double>(endTime - StartTime.load()).count();
+    stats.TotalRaysFired       = TotalRaysFired.load();
+    stats.NumPixelSamples      = CurrentPixelSampleOffset.load();
+    stats.TotalNumPixelSamples = (OutputWidth * OutputHeight) * NumRaySamples;
+    stats.NumPdfQueryRetries   = NumPdfQueryRetries.load();
+    stats.TotalTimeInSeconds   = (int)std::chrono::duration<double>(endTime - StartTime.load()).count();
     
     return stats;
 }
@@ -167,7 +151,7 @@ void Raytracer::threadTraceNextPixel(int id, Raytracer* tracer, const Camera& ca
             pixelSampleOffset = tracer->CurrentPixelSampleOffset.load();
         }
 
-        // Do we have an pixel to trace?
+        // Do we have a pixel to trace?
         if (pixelSampleOffset < totalPixelSamples)
         {
             const int curOffset = pixelSampleOffset % numPixels;
@@ -201,7 +185,7 @@ void Raytracer::threadTraceNextPixel(int id, Raytracer* tracer, const Camera& ca
             const Ray   r = cam.GetRay(u, v);
 
             // Trace
-            const Vec3 outColor = DeNaN(tracer->trace(r, scene, 0, cam.GetClearColor()));
+            const Vec3 outColor = tracer->trace(r, scene, 0, cam.GetClearColor());
 
             // Accumulate color to output buffer
             tracer->OutputBuffer[outIdx] += outColor;
@@ -251,27 +235,31 @@ void Raytracer::threadTraceNextPixel(int id, Raytracer* tracer, const Camera& ca
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-Vec3 Raytracer::trace(const Ray& r, WorldScene* scene, int depth, const Vec3& clearColor)
+Vec3 Raytracer::trace(const Ray& r, WorldScene* scene, int depth, const Vec3& backgroundColor)
 {
     // Bail if we're requested to exit
     if (ThreadExitRequested.load() == true)
     {
-        return clearColor;
+        return backgroundColor;
     }
 
     // Increment num rays fired
     TotalRaysFired++;
 
+    // Let's do the path trace
     HitRecord hitRec;
     if (scene->GetWorld()->Hit(r, 0.001f, FLT_MAX, hitRec))
     {
+        // We got a hit, get the emitted color
+        const Vec3 emitted = hitRec.MatPtr->Emitted(r, hitRec, hitRec.U, hitRec.V, hitRec.P);
+
+        // Test for ray scatter
         Material::ScatterRecord scatterRec;
-        Vec3 emitted = hitRec.MatPtr->Emitted(r, hitRec, hitRec.U, hitRec.V, hitRec.P);
         if (depth < MaxDepth && hitRec.MatPtr->Scatter(r, hitRec, scatterRec))
         {
             if (scatterRec.IsSpecular)
             {
-                return scatterRec.Attenuation * trace(scatterRec.SpecularRay, scene, depth + 1, clearColor);
+                return scatterRec.Attenuation * trace(scatterRec.SpecularRay, scene, depth + 1, backgroundColor);
             }
             else
             {
@@ -280,7 +268,6 @@ Vec3 Raytracer::trace(const Ray& r, WorldScene* scene, int depth, const Vec3& cl
                 float pdfValue   = 1.f;
                 if (PdfEnabled)
                 {
-
                     // Prepare the pdf query
                     HitablePdf  hitablePdf(scene->GetLightShapes(), hitRec.P);
                     MixturePdf  mixPdf(&hitablePdf, scatterRec.Pdf);
@@ -305,26 +292,22 @@ Vec3 Raytracer::trace(const Ray& r, WorldScene* scene, int depth, const Vec3& cl
                         NumPdfQueryRetries += (numPdfQueries - 1);
                     }
 
-                    
                     scatterPdf = hitRec.MatPtr->ScatteringPdf(r, hitRec, scattered);
                 }
 
                 // Compute the aggregate color
-                const Vec3 tracedVec  = trace(scattered, scene, depth + 1, clearColor);
-                const Vec3 ret        = emitted + (scatterRec.Attenuation * scatterPdf * tracedVec / pdfValue);
+                const Vec3 color = trace(scattered, scene, depth + 1, backgroundColor);
+                const Vec3 ret   = emitted + (scatterRec.Attenuation * scatterPdf * color / pdfValue);
 
                 VEC3_SANITY_CHECK(ret);
-
                 return ret;
             }
         }
-        else
-        {
-            return emitted;
-        }
+       
+        // No scattering, or reached max depth. Return emitted color
+        return emitted;
     }
-    else
-    {
-        return clearColor;
-    }
+    
+    // No hits, return background color
+    return backgroundColor;
 }

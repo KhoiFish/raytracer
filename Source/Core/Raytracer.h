@@ -50,7 +50,7 @@ public:
 private:
 
     static void      threadTraceNextPixel(int id, Raytracer* tracer, const Camera& cam, WorldScene* scene);
-    Vec3             trace(const Ray& r, WorldScene* scene, int depth, const Vec3& clearColor);
+    Vec3             trace(const Ray& r, WorldScene* scene, int depth, const Vec3& backgroundColor);
     void             cleanupRaytrace();
 
 private:

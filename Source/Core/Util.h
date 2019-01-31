@@ -62,6 +62,22 @@ inline float CompareFloatEqual(float a, float b, float relTol = 0.0000001f, floa
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+inline Vec3 DeNaN(const Vec3& c)
+{
+    Vec3 temp = c;
+    for (int i = 0; i < 3; i++)
+    {
+        if (isnan(temp[i]))
+        {
+            temp[i] = 0;
+        }
+    }
+
+    return temp;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 inline float RandomFloat()
 {
     float num = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);

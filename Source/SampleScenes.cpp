@@ -85,12 +85,12 @@ static Camera getCameraForSample(SampleScene scene)
         }
         break;
 
-        // lookFrom:(-379.800140, 308.401215, -566.393738)  lookAt : (-378.997223, 308.306427, -565.805237)  up : (0.000000, 1.000000, 0.000000)  vertFov : 40.000000  aspect : 1.000000  aperture : 0.000000  focusDist : 90.000000
+        // lookFrom:(-495.333893, 303.848877, -828.657288)  lookAt:(-494.744324, 303.853485, -827.849609)  up:(0.000000, 1.000000, 0.000000)  vertFov:40.000000  aspect:1.777778  aperture:0.000000  focusDist:90.000000
         case SceneMesh:
         {
             // Camera options
-            const Vec3   lookFrom = Vec3(-379.800140f, 308.401215f, -566.393738f);
-            const Vec3   lookAt = Vec3(-378.997223f, 308.306427f, -565.805237f);
+            const Vec3   lookFrom = Vec3(-495.333893f, 303.848877f, -828.657288f);
+            const Vec3   lookAt   = Vec3(-494.744324f, 303.853485f, -827.849609f);
             const Vec3   upVec = Vec3(0, 1, 0);
             const float  vertFov = 40.f;
             const float  aperture = 0.0f;
@@ -244,11 +244,13 @@ static WorldScene* sampleSceneMesh()
     const int numBoxes = 5;
     int total = 0;
 
+    const Vec3 colorSapphire    = Vec3(0.06f, 0.3f, 0.7f);
+    const Vec3 colorAlmostWhite = Vec3(0.9f, 0.9f, 0.9f);
+    const Vec3 colorGreenish    = Vec3(0.2f, 0.9f, 0.4f);
+    const Vec3 colorYellow      = Vec3(1.0f, 1.0f, 0.0f);
+
     IHitable** list     = new IHitable*[30];
-    IHitable** boxlist  = new IHitable*[10000];
-    IHitable** boxlist2 = new IHitable*[10000];
-    Material*  white    = new MLambertian(new ConstantTexture(Vec3(0.73f, 0.73f, 0.73f)));
-    Material*  ground   = new MLambertian(new ConstantTexture(Vec3(0.48f, 0.83f, 0.53f)));
+    Material*  ground   = new MLambertian(new ConstantTexture(colorAlmostWhite));
 
     IHitable** lsList = new IHitable*[2];
     int numLs = 0;
@@ -258,35 +260,43 @@ static WorldScene* sampleSceneMesh()
 
     // Create light
     {
-        Material *lightMat   = new MDiffuseLight(new ConstantTexture(Vec3(20, 20, 20)));
-        IHitable *lightShape = new XYZRect(XYZRect::XZ, 123, 423, 147, 412, 554, lightMat, true);
+        Material *lightMat   = new MDiffuseLight(new ConstantTexture(Vec3(50, 50, 50)));
+        IHitable *lightShape = new XYZRect(XYZRect::XZ, 123, 423, 147, 412, 700, lightMat, true);
         list[total++]        = new FlipNormals(lightShape);;
         lsList[numLs++]      = lightShape;
     }
 
-    // Mesh
+    // Meshes
     {
-        IHitable *meshHitable =
+        IHitable *r8 =
             new HitableTranslate(
                 new HitableRotateY(
                     TriMesh::CreateFromOBJFile("r8.obj", 25.f), 20.f),
-                Vec3(250, 105, 145)
+                Vec3(220, 105, 145)
             );
-        list[total++] = meshHitable;
+        list[total++] = r8;
+
+        IHitable *totoro =
+            new HitableTranslate(
+                new HitableRotateY(
+                    TriMesh::CreateFromOBJFile("totoro.obj", 10.f, new MMetal(colorSapphire, 0.5f)), 180.f),
+                Vec3(-60, 105, 145)
+            );
+        list[total++] = totoro;
     }
 
     // Dielectric and metal spheres
     {
-        IHitable* newDielectricSphere = new Sphere(Vec3(300, 200, -200), 100, new MDielectric(1.5f));
+        IHitable* newDielectricSphere = new Sphere(Vec3(359, 300, -300), 150, new MDielectric(1.5f));
         list[total++] = newDielectricSphere;
         lsList[numLs++] = newDielectricSphere;
     }
 
     // Volumes
     {
-        IHitable *boundary = new Sphere(Vec3(500, 200, 100), 125, new MDielectric(1.5f));
+        IHitable *boundary = new Sphere(Vec3(500, 250, 100), 125, new MDielectric(1.5f));
         list[total++] = boundary;
-        list[total++] = new ConstantMedium(boundary, 0.2f, new ConstantTexture(Vec3(0.2f, 0.4f, 0.9f)));
+        list[total++] = new ConstantMedium(boundary, 0.2f, new ConstantTexture(colorYellow));
 
         boundary = new Sphere(Vec3(0, 0, 0), 5000, new MDielectric(1.5f));
         list[total++] = new ConstantMedium(boundary, 0.0001f, new ConstantTexture(Vec3(1.0f, 1.0f, 1.0f)));

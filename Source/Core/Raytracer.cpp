@@ -134,7 +134,7 @@ void Raytracer::threadTraceNextPixel(int id, Raytracer* tracer, WorldScene* scen
     const int     tileArea          = tileLength * tileLength;
     const int     numXTiles         = tracer->OutputWidth  / tileLength;
     const int     numYTiles         = tracer->OutputHeight / tileLength;
-    const bool    tileEnabled       = (tracer->OutputWidth == tracer->OutputHeight) && ((tracer->OutputWidth % tileLength) == 0);
+    const bool    tileEnabled       = ((tracer->OutputWidth % tileLength) == 0) && ((tracer->OutputHeight % tileLength) == 0);
 
     // Thread starts here
     int64_t pixelSampleOffset = tracer->CurrentPixelSampleOffset.load();

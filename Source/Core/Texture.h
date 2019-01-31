@@ -20,7 +20,7 @@ class ConstantTexture : public BaseTexture
 public:
 
     inline ConstantTexture() {}
-    inline ConstantTexture(Vec3 color) : Color(color) {}
+    inline ConstantTexture(const Vec3& color) : Color(color) {}
 
     virtual Vec3 Value(float u, float v, const Vec3& p) const;
 

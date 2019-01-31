@@ -35,7 +35,7 @@ public:
 
 public:
 
-    Raytracer(int width, int height, int numSamples, int maxDepth, int numThreads);
+    Raytracer(int width, int height, int numSamples, int maxDepth, int numThreads, bool pdfEnabled);
     ~Raytracer();
 
     void             BeginRaytrace(const Camera& cam, WorldScene* scene, OnTraceComplete onComplete = nullptr);
@@ -65,6 +65,7 @@ private:
     int                   NumRaySamples;
     int                   MaxDepth;
     int                   NumThreads;
+    bool                  PdfEnabled;
 
     // Thread tracking
     std::atomic<int>      CurrentPixelSampleOffset;

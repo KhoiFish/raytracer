@@ -14,9 +14,12 @@ MLambertian::MLambertian(BaseTexture* albedo) : Albedo(albedo)
 
 bool MLambertian::Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& scatterRec) const
 {
-    scatterRec.IsSpecular  = false;
-    scatterRec.Attenuation = Albedo->Value(hitRec.U, hitRec.V, hitRec.P);
-    scatterRec.Pdf         = new CosinePdf(hitRec.Normal);
+    Vec3 target = hitRec.P + hitRec.Normal + RandomInUnitSphere();
+
+    scatterRec.IsSpecular       = false;
+    scatterRec.Attenuation      = Albedo->Value(hitRec.U, hitRec.V, hitRec.P);
+    scatterRec.Pdf              = new CosinePdf(hitRec.Normal);
+    scatterRec.ScatteredClassic = Ray(hitRec.P, target - hitRec.P, rayIn.Time());
    
     return true;
 }
@@ -201,7 +204,9 @@ Vec3 MIsotropic::AlbedoValue(float u, float v, const Vec3& p) const
 // ----------------------------------------------------------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------------------------------
 
-MWavefrontObj::MWavefrontObj(const char* materialFilePath) : DiffuseMap(nullptr)
+MWavefrontObj::MWavefrontObj(const char* materialFilePath) 
+    : MLambertian(new ConstantTexture(Vec3(0, 0, 0)))
+    , DiffuseMap(nullptr)
 {
     std::ifstream inputFile(materialFilePath);
     if (inputFile.is_open())
@@ -229,34 +234,10 @@ MWavefrontObj::MWavefrontObj(const char* materialFilePath) : DiffuseMap(nullptr)
 
 bool MWavefrontObj::Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& scatterRec) const
 {
-    scatterRec.IsSpecular  = false;
+    MLambertian::Scatter(rayIn, hitRec, scatterRec);
     scatterRec.Attenuation = DiffuseMap->Value(hitRec.U, hitRec.V, hitRec.P);
-    scatterRec.Pdf         = new CosinePdf(hitRec.Normal);
 
     return true;
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-float MWavefrontObj::ScatteringPdf(const Ray& rayIn, const HitRecord& rec, Ray& scattered) const
-{
-    float cosine = Dot(rec.Normal, UnitVector(scattered.Direction()));
-
-    float ret;
-    if (cosine < 0)
-    {
-        ret = cosine = 0;
-    }
-    else
-    {
-        // HACK. Sometimes pdfs come back nearly zero.
-        // Clamp the value so we get some contribution from the pdf.
-        // This gets rid of "rogue" pixels that are brightly colored.
-        ret = cosine / RT_PI;
-        ret = GetMax(ret, 0.05f);
-    }
-
-    return ret;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

@@ -317,7 +317,7 @@ void RaytracerWindows::OnResizeRaytracer()
     }
     
     // Create the ray tracer
-    TheRaytracer = new Raytracer(BackbufferWidth, BackbufferHeight, sNumSamplesPerRay, sMaxScatterDepth, sNumThreads);
+    TheRaytracer = new Raytracer(BackbufferWidth, BackbufferHeight, sNumSamplesPerRay, sMaxScatterDepth, sNumThreads, true);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

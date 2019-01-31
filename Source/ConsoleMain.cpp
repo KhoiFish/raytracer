@@ -89,7 +89,7 @@ int main(int argc, const char* argv[])
 {
     // Create ray tracer
     parseCommandline(argc, argv);
-    Raytracer tracer(sOutputWidth, sOutputHeight, sNumSamplesPerRay, sMaxScatterDepth, sNumThreads);
+    Raytracer tracer(sOutputWidth, sOutputHeight, sNumSamplesPerRay, sMaxScatterDepth, sNumThreads, true);
 
     // Random scene
     if (sSceneEnabled[SceneRandom])

@@ -23,12 +23,13 @@ static inline Vec3 DeNaN(const Vec3& c)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-Raytracer::Raytracer(int width, int height, int numSamples, int maxDepth, int numThreads)
+Raytracer::Raytracer(int width, int height, int numSamples, int maxDepth, int numThreads, bool pdfEnabled) 
     : OutputWidth(width)
     , OutputHeight(height)
     , NumRaySamples(numSamples)
     , MaxDepth(maxDepth)
     , NumThreads(numThreads)
+    , PdfEnabled(pdfEnabled)
     , CurrentPixelSampleOffset(0)
     , TotalRaysFired(0)
     , NumThreadsDone(0)
@@ -259,43 +260,44 @@ Vec3 Raytracer::trace(const Ray& r, WorldScene* scene, int depth, const Vec3& cl
             }
             else
             {
-                // Prepare the pdf query
-                HitablePdf  hitablePdf(scene->GetLightShapes(), hitRec.P);
-                MixturePdf  mixPdf(&hitablePdf, scatterRec.Pdf);
-                Pdf*        pdf = scatterRec.Pdf;
-                if (scene->GetLightShapes() != nullptr)
+                Ray   scattered  = scatterRec.ScatteredClassic;
+                float scatterPdf = 1.f;
+                float pdfValue   = 1.f;
+                if (PdfEnabled)
                 {
-                    pdf = &mixPdf;
+
+                    // Prepare the pdf query
+                    HitablePdf  hitablePdf(scene->GetLightShapes(), hitRec.P);
+                    MixturePdf  mixPdf(&hitablePdf, scatterRec.Pdf);
+                    Pdf*        pdf = scatterRec.Pdf;
+                    if (scene->GetLightShapes() != nullptr)
+                    {
+                        pdf = &mixPdf;
+                    }
+
+                    // PDF values may be zero or close to it, or close to infinity.
+                    // We retry in these cases
+                    int   numPdfQueries = 0;
+                    do
+                    {
+                        scattered = Ray(hitRec.P, pdf->Generate(), r.Time());
+                        pdfValue = pdf->Value(scattered.Direction());
+                        numPdfQueries++;
+                    } while (pdfValue <= 0.0000001f);
+
+                    if (numPdfQueries > 1)
+                    {
+                        NumPdfQueryRetries += (numPdfQueries - 1);
+                    }
+
+                    
+                    scatterPdf = hitRec.MatPtr->ScatteringPdf(r, hitRec, scattered);
                 }
 
-                // PDF values may be zero or close to it, or close to infinity.
-                // We retry in these cases
-                Ray   scattered;
-                float pdfValue;
-                int   numPdfQueries = 0;
-                do
-                {
-                   scattered = Ray(hitRec.P, pdf->Generate(), r.Time());
-                   pdfValue  = pdf->Value(scattered.Direction());
-                   numPdfQueries++;
-                } while (pdfValue <= 0.0000001f);
-
-                if (numPdfQueries > 1)
-                {
-                    NumPdfQueryRetries += (numPdfQueries - 1);
-                }
-                
                 // Compute the aggregate color
-                const float scatterPdf = hitRec.MatPtr->ScatteringPdf(r, hitRec, scattered);
-                const Vec3  tracedVec  = trace(scattered, scene, depth + 1, clearColor);
-                const Vec3  ret        = emitted + (scatterRec.Attenuation * scatterPdf * tracedVec / pdfValue);
+                const Vec3 tracedVec  = trace(scattered, scene, depth + 1, clearColor);
+                const Vec3 ret        = emitted + (scatterRec.Attenuation * scatterPdf * tracedVec / pdfValue);
 
-                // When enabled, this will test for valid floats
-                VEC3_SANITY_CHECK(emitted);
-                VEC3_SANITY_CHECK(scatterRec.Attenuation);
-                SANITY_CHECK_FLOAT(scatterPdf);
-                VEC3_SANITY_CHECK(tracedVec);
-                SANITY_CHECK_FLOAT(pdfValue);
                 VEC3_SANITY_CHECK(ret);
 
                 return ret;

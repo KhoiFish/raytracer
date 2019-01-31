@@ -29,6 +29,7 @@ public:
         Ray   SpecularRay;
         bool  IsSpecular;
         Vec3  Attenuation;
+        Ray   ScatteredClassic;
         Pdf*  Pdf;
     };
 
@@ -50,7 +51,7 @@ public:
     virtual float ScatteringPdf(const Ray& rayIn, const HitRecord& rec, Ray& scattered) const;
     virtual Vec3  AlbedoValue(float u, float v, const Vec3& p) const;
 
-private:
+protected:
 
     BaseTexture* Albedo;
 };
@@ -121,14 +122,13 @@ private:
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-class MWavefrontObj : public Material
+class MWavefrontObj : public MLambertian
 {
 public:
 
     MWavefrontObj(const char* materialFilePath);
 
     virtual bool  Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& scatterRec) const;
-    virtual float ScatteringPdf(const Ray& rayIn, const HitRecord& rec, Ray& scattered) const;
     virtual Vec3  AlbedoValue(float u, float v, const Vec3& p) const;
 
     const ImageTexture* GetDiffuseMap() const { return DiffuseMap; }

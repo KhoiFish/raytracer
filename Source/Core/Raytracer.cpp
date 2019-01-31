@@ -92,7 +92,7 @@ Raytracer::Stats Raytracer::GetStats() const
     Stats stats;
     stats.TotalRaysFired       = TotalRaysFired.load();
     stats.NumPixelSamples      = CurrentPixelSampleOffset.load();
-    stats.TotalNumPixelSamples = (OutputWidth * OutputHeight) * NumRaySamples;
+    stats.TotalNumPixelSamples = int64_t(OutputWidth * OutputHeight) * int64_t(NumRaySamples);
     stats.NumPdfQueryRetries   = NumPdfQueryRetries.load();
     stats.TotalTimeInSeconds   = (int)std::chrono::duration<double>(endTime - StartTime.load()).count();
     
@@ -184,11 +184,8 @@ void Raytracer::threadTraceNextPixel(int id, Raytracer* tracer, WorldScene* scen
             const float v = 1.f - float(y + RandomFloat()) / float(tracer->OutputHeight);
             const Ray   r = scene->GetCamera().GetRay(u, v);
 
-            // Trace
-            const Vec3 outColor = tracer->trace(scene, r, 0);
-
-            // Accumulate color to output buffer
-            tracer->OutputBuffer[outIdx] += outColor;
+            // Trace and accumulate color to output buffer
+            tracer->OutputBuffer[outIdx] += tracer->trace(scene, r, 0);
 
             // Write RGBA (for previewing)
             {

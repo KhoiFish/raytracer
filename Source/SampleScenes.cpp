@@ -17,8 +17,6 @@
 #include "Core/Triangle.h"
 #include "Core/TriMesh.h"
 
-#include "StbImage/stb_image.h"
-
 // ----------------------------------------------------------------------------------------------------------------------------
 
 static Camera getCameraForSample(SampleScene scene)

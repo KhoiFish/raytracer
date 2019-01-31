@@ -35,9 +35,9 @@ const char* ProgressPrint(Raytracer* tracer)
     static char buf[256];
 
     Raytracer::Stats stats = tracer->GetStats();
-    float percentage = float(stats.NumPixelSamples / stats.TotalNumPixelSamples);
-    int   numMinutes = stats.TotalTimeInSeconds / 60;
-    int   numSeconds = stats.TotalTimeInSeconds % 60;
+    double percentage = double(double(stats.NumPixelSamples) / double(stats.TotalNumPixelSamples));
+    int    numMinutes = stats.TotalTimeInSeconds / 60;
+    int    numSeconds = stats.TotalTimeInSeconds % 60;
 
     snprintf(buf, 256, "#time:%dm:%2ds  #rays:%lld  #pixels:%lld  #pdfQueryRetries:%d ",
         numMinutes, numSeconds, stats.TotalRaysFired, stats.NumPixelSamples, stats.NumPdfQueryRetries);

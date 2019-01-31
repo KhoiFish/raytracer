@@ -21,8 +21,10 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-Camera GetCameraForSample(SampleScene scene, float aspect)
+static Camera getCameraForSample(SampleScene scene)
 {
+    float aspect = 1.f;
+
     switch (scene)
     {
         case SceneRandom:
@@ -128,8 +130,10 @@ Camera GetCameraForSample(SampleScene scene, float aspect)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-WorldScene* SampleSceneRandom(const Camera& cam)
+static WorldScene* sampleSceneRandom()
 {
+    Camera cam = getCameraForSample(SceneRandom);
+
     float time0, time1;
     cam.GetShutterTime(time0, time1);
 
@@ -180,43 +184,12 @@ WorldScene* SampleSceneRandom(const Camera& cam)
     // Generate BVH tree
     BVHNode* bvhHead = new BVHNode(list, i, time0, time1);
 
-    return WorldScene::Create(bvhHead);
+    return WorldScene::Create(cam, bvhHead);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-WorldScene* SampleSceneCreateTwoPerlinSpheres()
-{
-    BaseTexture* perTex = new NoiseTexture(4.f);
-    BaseTexture* imageTex = nullptr;
-    {
-        imageTex = new ImageTexture("guitar.jpg");
-    }
-
-    IHitable **list = new IHitable*[2];
-    list[0] = new Sphere(Vec3(0, -1000, 0), 1000, new MLambertian(perTex));
-    list[1] = new Sphere(Vec3(0, 2, 0), 2, new MLambertian(imageTex));
-
-    return WorldScene::Create(list, 2);
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-WorldScene* SampleSceneSimpleLight()
-{
-    BaseTexture* perlinTex = new NoiseTexture(4);
-    IHitable** list = new IHitable*[4];
-    list[0] = new Sphere(Vec3(0, -1000, 0), 1000, new MLambertian(perlinTex));
-    list[1] = new Sphere(Vec3(0, 2, 0), 2, new MLambertian(perlinTex));
-    list[2] = new Sphere(Vec3(0, 7, 0), 2, new MDiffuseLight(new ConstantTexture(Vec3(4, 4, 4))));
-    list[3] = new XYZRect(XYZRect::AxisPlane::XY, 3, 5, 1, 3, -2, new MDiffuseLight(new ConstantTexture(Vec3(4, 4, 4))));
-
-    return WorldScene::Create(list, 4);
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-WorldScene* SampleSceneCornellBox(bool smoke)
+static WorldScene* sampleSceneCornellBox(bool smoke)
 {
     IHitable** list = new IHitable*[8];
     int i = 0;
@@ -251,21 +224,24 @@ WorldScene* SampleSceneCornellBox(bool smoke)
             15),
         Vec3(265, 0, 295));
 
+    SampleScene sceneType;
     if (smoke)
     {
+        sceneType = SceneCornellSmoke;
         list[i++] = new ConstantMedium(box2, 0.01f, new ConstantTexture(Vec3(0.f, 0.f, 0.f)));
     }
     else
     {
+        sceneType = SceneCornell;
         list[i++] = box2;
     }
 
-    return WorldScene::Create(list, i, lsList, numLs);
+    return WorldScene::Create(getCameraForSample(sceneType), list, i, lsList, numLs);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-WorldScene* SampleSceneMesh()
+static WorldScene* sampleSceneMesh()
 {
     const int numBoxes = 5;
     int total = 0;
@@ -318,12 +294,12 @@ WorldScene* SampleSceneMesh()
         list[total++] = new ConstantMedium(boundary, 0.0001f, new ConstantTexture(Vec3(1.0f, 1.0f, 1.0f)));
     }
 
-    return WorldScene::Create(list, total, lsList, numLs);
+    return WorldScene::Create(getCameraForSample(SceneMesh), list, total, lsList, numLs);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-WorldScene* SampleSceneFinal()
+static WorldScene* sampleSceneFinal()
 {
     const int numBoxes = 20;
     int total = 0;
@@ -412,5 +388,41 @@ WorldScene* SampleSceneFinal()
         list[total++] = new HitableTranslate(new HitableRotateY(new BVHNode(boxlist2, ns, 0.0, 1.0), 15), Vec3(-100, 270, 395));
     }
 
-    return WorldScene::Create(list, total, lsList, numLs);
+    return WorldScene::Create(getCameraForSample(SceneFinal), list, total, lsList, numLs);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+WorldScene* GetSampleScene(SampleScene sceneType)
+{
+    WorldScene* ret = nullptr;
+    switch (sceneType)
+    {
+        case SceneRandom:
+        {
+            ret = sampleSceneRandom();
+        }
+        break;
+
+        case SceneCornell:
+        case SceneCornellSmoke:
+        {
+            ret = sampleSceneCornellBox(sceneType == SceneCornellSmoke);
+        }
+        break;
+
+        case SceneMesh:
+        {
+            ret = sampleSceneMesh();
+        }
+        break;
+
+        case SceneFinal:
+        {
+            ret = sampleSceneFinal();
+        }
+        break;
+    }
+
+    return ret;
 }

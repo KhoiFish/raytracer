@@ -81,7 +81,6 @@ private:
     bool                       WireframeViewEnabled;
 
     Raytracer*                 TheRaytracer;
-    Camera                     RaytracerCamera;
     WorldScene*                Scene;
     RenderNodeList             RenderSceneList;
 

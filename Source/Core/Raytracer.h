@@ -38,7 +38,7 @@ public:
     Raytracer(int width, int height, int numSamples, int maxDepth, int numThreads, bool pdfEnabled);
     ~Raytracer();
 
-    void             BeginRaytrace(const Camera& cam, WorldScene* scene, OnTraceComplete onComplete = nullptr);
+    void             BeginRaytrace(WorldScene* scene, OnTraceComplete onComplete = nullptr);
     bool             WaitForTraceToFinish(int timeoutMicroSeconds);
     Stats            GetStats() const;
 

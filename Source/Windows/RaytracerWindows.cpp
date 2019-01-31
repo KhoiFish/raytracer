@@ -318,6 +318,12 @@ void RaytracerWindows::OnResizeRaytracer()
     
     // Create the ray tracer
     TheRaytracer = new Raytracer(BackbufferWidth, BackbufferHeight, sNumSamplesPerRay, sMaxScatterDepth, sNumThreads, true);
+
+    // Reset the aspect ratio on the scene camera
+    if (Scene != nullptr)
+    {
+        Scene->GetCamera().SetAspect((float)BackbufferWidth / (float)BackbufferHeight);
+    }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -338,7 +344,7 @@ void RaytracerWindows::Raytrace(bool enable)
         }
 
         RenderMode = ModeRaytracer;
-        TheRaytracer->BeginRaytrace(RaytracerCamera, Scene, OnRaytraceComplete);
+        TheRaytracer->BeginRaytrace(Scene, OnRaytraceComplete);
     }
     else
     {
@@ -357,21 +363,17 @@ void RaytracerWindows::NextRenderMode()
 
 void RaytracerWindows::LoadScene(std::shared_ptr<CommandList> commandList)
 {
-    const float aspect = (float)BackbufferWidth / (float)BackbufferHeight;
-
 #if 0
-    RaytracerCamera = GetCameraForSample(SceneFinal, aspect);
-    Scene = SampleSceneFinal();
+    Scene = GetSampleScene(SceneFinal);
 #elif 0
-    RaytracerCamera = GetCameraForSample(SceneCornell, aspect);
-    Scene = SampleSceneCornellBox(false);
+    Scene = GetSampleScene(SceneCornell);
 #elif 0
-    RaytracerCamera = GetCameraForSample(SceneRandom, aspect);
-    Scene = SampleSceneRandom(RaytracerCamera);
+    Scene = GetSampleScene(SceneRandom);
 #else
-    RaytracerCamera = GetCameraForSample(SceneMesh, aspect);
-    Scene = SampleSceneMesh();
+    Scene = GetSampleScene(SceneMesh);
 #endif
+
+    Scene->GetCamera().SetAspect((float)BackbufferWidth / (float)BackbufferHeight);
 
     std::vector<DirectX::XMMATRIX> matrixStack;
     std::vector<bool> flipNormalStack;
@@ -950,7 +952,7 @@ void RaytracerWindows::OnUpdate(UpdateEventArgs& e)
     float strafeAmount   = (Left - Right) * scale;
     float upDownAmount   = (Up - Down) * scale;
 
-    UpdateCameras(forwardAmount, strafeAmount, upDownAmount, MouseDx, MouseDy, RaytracerCamera, RenderCamera);
+    UpdateCameras(forwardAmount, strafeAmount, upDownAmount, MouseDx, MouseDy, Scene->GetCamera(), RenderCamera);
     MouseDx = 0;
     MouseDy = 0;
 

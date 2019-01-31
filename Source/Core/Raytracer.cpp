@@ -43,7 +43,7 @@ Raytracer::~Raytracer()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void Raytracer::BeginRaytrace(const Camera& cam, WorldScene* scene, OnTraceComplete onComplete)
+void Raytracer::BeginRaytrace(WorldScene* scene, OnTraceComplete onComplete)
 {
     // Clean up last trace, if any
     cleanupRaytrace();
@@ -67,7 +67,7 @@ void Raytracer::BeginRaytrace(const Camera& cam, WorldScene* scene, OnTraceCompl
     // Create the threads and run them
     for (int i = 0; i < NumThreads; i++)
     {
-        ThreadPtrs[i] = new std::thread(threadTraceNextPixel, i, this, cam, scene);
+        ThreadPtrs[i] = new std::thread(threadTraceNextPixel, i, this, scene->GetCamera(), scene);
     }
 }
 

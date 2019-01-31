@@ -35,10 +35,6 @@ Camera::Camera(Vec3 lookFrom, Vec3 lookAt, Vec3 vup, float vertFov, float aspect
 
 void Camera::Setup(Vec3 lookFrom, Vec3 lookAt, Vec3 vup, float vertFov, float aspect, float aperture, float focusDist, float t0, float t1, Vec3 clearColor)
 {
-    const float theta      = vertFov * RT_PI / 180.f;
-    const float halfHeight = tan(theta / 2);
-    const float halfWidth  = aspect * halfHeight;
-
     LookFrom         = lookFrom;
     LookAt           = lookAt;
     Up               = vup;
@@ -50,12 +46,31 @@ void Camera::Setup(Vec3 lookFrom, Vec3 lookAt, Vec3 vup, float vertFov, float as
     Time1            = t1;
     ClearColor       = clearColor;
 
-    Origin           = lookFrom;
-    W                = UnitVector(lookFrom - lookAt);
-    U                = UnitVector(Cross(vup, W));
+    UpdateInternalSettings();
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void Camera::SetAspect(float aspect)
+{
+    Aspect = aspect;
+    UpdateInternalSettings();
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void Camera::UpdateInternalSettings()
+{
+    const float theta      = VertFov * RT_PI / 180.f;
+    const float halfHeight = tan(theta / 2);
+    const float halfWidth  = Aspect * halfHeight;
+
+    Origin           = LookFrom;
+    W                = UnitVector(LookFrom - LookAt);
+    U                = UnitVector(Cross(Up, W));
     V                = Cross(W, U);
-    LensRadius       = aperture / 2;
-    LowerLeftCorner  = Origin - halfWidth * focusDist * U - halfHeight * focusDist * V - focusDist * W;
-    Horizontal       = 2 * halfWidth * focusDist * U;
-    Vertical         = 2 * halfHeight * focusDist * V;
+    LensRadius       = Aperture / 2.f;
+    LowerLeftCorner  = Origin - halfWidth * FocusDist * U - halfHeight * FocusDist * V - FocusDist * W;
+    Horizontal       = 2 * halfWidth  * FocusDist * U;
+    Vertical         = 2 * halfHeight * FocusDist * V;
 }

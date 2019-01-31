@@ -18,6 +18,8 @@ public:
         float vertFov, float aspect, float aperture, float focusDist,
         float t0, float t1, Vec3 clearColor);
 
+    void SetAspect(float aspect);
+
     inline Ray GetRay(float s, float t) const
     {
         Vec3  rd     = LensRadius * RandomInUnitDisk();
@@ -54,6 +56,10 @@ public:
         t1 = Time1;
         clearColor = ClearColor;
     }
+
+private:
+
+    void UpdateInternalSettings();
 
 private:
 

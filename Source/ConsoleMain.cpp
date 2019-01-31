@@ -4,29 +4,40 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static int    sOutputWidth      = 1024;
-static int    sOutputHeight     = 1024;
-static float  sAspect           = float(sOutputWidth) / float(sOutputHeight);
-static int    sNumSamplesPerRay = 5000;
-static int    sMaxScatterDepth  = 50;
-static int    sNumThreads       = 16;
-
-static bool   sSceneEnabled[MaxScene] =
+struct SceneConfig
 {
-    true,  // Random
-    true,  // Cornell
-    true,  // Cornell smoke
-    true,  // SceneMesh
-    true,  // Final
+    SampleScene   SceneType;
+    const char*   OutputName;
+    bool          Enabled;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static void raytraceAndPrintProgress(Raytracer& tracer, Camera& cam, WorldScene* scene)
+static int    sOutputWidth      = 512;
+static int    sOutputHeight     = 512;
+static float  sAspect           = float(sOutputWidth) / float(sOutputHeight);
+static int    sNumSamplesPerRay = 500;
+static int    sMaxScatterDepth  = 50;
+static int    sNumThreads       = 4;
+
+static SceneConfig sSceneConfigs[] =
+{
+    { SceneRandom,       "random",   true },
+    { SceneCornell,      "cornell1", true },
+    { SceneCornellSmoke, "cornell2", true },
+    { SceneMesh,         "mesh",     true },
+    { SceneFinal,        "final",    true },
+};
+
+static const int sNumSceneConfigs = sizeof(sSceneConfigs) / sizeof(SceneConfig);
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+static void raytraceAndPrintProgress(Raytracer& tracer, WorldScene* scene)
 {
     // Start the trace
     printf("\nRendering frame...\n");
-    tracer.BeginRaytrace(cam, scene);
+    tracer.BeginRaytrace(scene);
 
     // Wait for trace to finish    
     while (!tracer.WaitForTraceToFinish(1000 * 500))
@@ -69,7 +80,7 @@ static void parseCommandline(int argc, const char* argv[])
             const int sceneNum = atoi(argv[++i]);
             if (sceneNum < MaxScene)
             {
-                sSceneEnabled[sceneNum] = false;
+                sSceneConfigs[sceneNum].Enabled = false;
             }
         }
     }
@@ -91,44 +102,15 @@ int main(int argc, const char* argv[])
     parseCommandline(argc, argv);
     Raytracer tracer(sOutputWidth, sOutputHeight, sNumSamplesPerRay, sMaxScatterDepth, sNumThreads, true);
 
-    // Random scene
-    if (sSceneEnabled[SceneRandom])
+    for (int i = 0; i < sNumSceneConfigs; i++)
     {
-        Camera cam = GetCameraForSample(SceneRandom, sAspect);
-        raytraceAndPrintProgress(tracer, cam, SampleSceneRandom(cam));
-        WriteImageAndLog(&tracer, "random");
-    }
-
-    // Cornell box
-    if (sSceneEnabled[SceneCornell])
-    {
-        Camera cam = GetCameraForSample(SceneCornell, sAspect);
-        raytraceAndPrintProgress(tracer, cam, SampleSceneCornellBox(false));
-        WriteImageAndLog(&tracer, "cornell");
-    }
-
-    // Cornell smoke
-    if (sSceneEnabled[SceneCornellSmoke])
-    {
-        Camera cam = GetCameraForSample(SceneCornellSmoke, sAspect);
-        raytraceAndPrintProgress(tracer, cam, SampleSceneCornellBox(true));
-        WriteImageAndLog(&tracer, "cornell_smoke");
-    }
-
-    // Mesh
-    if (sSceneEnabled[SceneMesh])
-    {
-        Camera cam = GetCameraForSample(SceneMesh, sAspect);
-        raytraceAndPrintProgress(tracer, cam, SampleSceneMesh());   
-        WriteImageAndLog(&tracer, "mesh");
-    }
-
-    // Final
-    if (sSceneEnabled[SceneFinal])
-    {
-        Camera cam = GetCameraForSample(SceneFinal, sAspect);
-        raytraceAndPrintProgress(tracer, cam, SampleSceneFinal());
-        WriteImageAndLog(&tracer, "final");
+        if (sSceneConfigs[i].Enabled)
+        {
+            WorldScene* worldScene = GetSampleScene(sSceneConfigs[i].SceneType);
+            worldScene->GetCamera().SetAspect(sAspect);
+            raytraceAndPrintProgress(tracer, worldScene);
+            WriteImageAndLog(&tracer, sSceneConfigs[i].OutputName);
+        }
     }
 
     // Done

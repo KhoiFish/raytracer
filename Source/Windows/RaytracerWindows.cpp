@@ -659,9 +659,9 @@ bool RaytracerWindows::LoadContent()
     ShadowmapSampleDesc.Count   = 1;
     ShadowmapSampleDesc.Quality = 0;
 
-    // Shadowmap width and height default to backbuffer width and height
-    ShadowmapWidth  = BackbufferWidth;
-    ShadowmapHeight = BackbufferHeight;
+    // Large shadowmap resolution
+    ShadowmapWidth  = 2048;
+    ShadowmapHeight = 2048;
 
 
     // -------------------------------------------------------------------

@@ -85,12 +85,12 @@ Camera GetCameraForSample(SampleScene scene, float aspect)
         }
         break;
 
-    //lookFrom:(446.230499, 422.304993, -499.689911)  lookAt : (445.983887, 422.121155, -498.738403)  up : (0.000000, 1.000000, 0.000000)  vertFov : 40.000000  aspect : 1.000000  aperture : 0.000000  focusDist : 10.000000
+        // lookFrom:(-379.800140, 308.401215, -566.393738)  lookAt : (-378.997223, 308.306427, -565.805237)  up : (0.000000, 1.000000, 0.000000)  vertFov : 40.000000  aspect : 1.000000  aperture : 0.000000  focusDist : 90.000000
         case SceneMesh:
         {
             // Camera options
-            const Vec3   lookFrom = Vec3(169.487518f, 415.648987f, 815.907593f);
-            const Vec3   lookAt   = Vec3(169.718414f, 415.406555f, 814.965271f);
+            const Vec3   lookFrom = Vec3(-379.800140f, 308.401215f, -566.393738f);
+            const Vec3   lookAt = Vec3(-378.997223f, 308.306427f, -565.805237f);
             const Vec3   upVec = Vec3(0, 1, 0);
             const float  vertFov = 40.f;
             const float  aperture = 0.0f;
@@ -284,7 +284,7 @@ WorldScene* SampleSceneMesh()
 
     // Create light
     {
-        Material *lightMat   = new MDiffuseLight(new ConstantTexture(Vec3(12, 12, 12)));
+        Material *lightMat   = new MDiffuseLight(new ConstantTexture(Vec3(20, 20, 20)));
         IHitable *lightShape = new XYZRect(XYZRect::XZ, 123, 423, 147, 412, 554, lightMat, true);
         list[total++]        = new FlipNormals(lightShape);;
         lsList[numLs++]      = lightShape;
@@ -317,18 +317,6 @@ WorldScene* SampleSceneMesh()
         boundary = new Sphere(Vec3(0, 0, 0), 5000, new MDielectric(1.5f));
         list[total++] = new ConstantMedium(boundary, 0.0001f, new ConstantTexture(Vec3(1.0f, 1.0f, 1.0f)));
     }
-
-#if 0
-    // Translated, rotated spheres in BVH tree
-    {
-        int ns = 1000;
-        for (int j = 0; j < ns; j++)
-        {
-            boxlist2[j] = new Sphere(Vec3(165 * RandomFloat(), 165 * RandomFloat(), 165 * RandomFloat()), 10, white);
-        }
-        list[total++] = new HitableTranslate(new HitableRotateY(new BVHNode(boxlist2, ns, 0.0, 1.0), 15), Vec3(-100, 270, 395));
-    }
-#endif
 
     return WorldScene::Create(list, total, lsList, numLs);
 }

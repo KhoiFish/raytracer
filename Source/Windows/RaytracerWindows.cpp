@@ -89,7 +89,7 @@ static float  sClearColor[]       = { 0.2f, 0.2f, 0.2f, 1.0f };
 static const RenderMaterial MaterialWhite =
 {
     { 0.00f, 0.00f, 0.00f, 1.00f },
-    { 0.001f, 0.001f, 0.001f, 1.00f },
+    { .1f, .1f, .1f, .1f },
     { 1.00f, 1.00f, 1.00f, 1.00f },
     { 1.00f, 1.00f, 1.00f, 1.00f },
     128.0f
@@ -534,7 +534,7 @@ void RaytracerWindows::GenerateRenderListFromWorld(std::shared_ptr<CommandList> 
                 XMVECTOR texCoord = XMVectorSet(s, t, 0, 0);
 
                 vertices.push_back(VertexPositionNormalTexture(position, normal, texCoord));
-                indices.push_back(uint16_t(vertices.size() - 1));
+                indices.push_back(uint32_t(vertices.size() - 1));
             }
         }
 
@@ -844,7 +844,7 @@ bool RaytracerWindows::LoadContent()
         CD3DX12_RASTERIZER_DESC rasterState;
         ZeroMemory(&rasterState, sizeof(CD3DX12_RASTERIZER_DESC));
         rasterState.FillMode = D3D12_FILL_MODE_SOLID;
-        rasterState.CullMode = D3D12_CULL_MODE_NONE;
+        rasterState.CullMode = D3D12_CULL_MODE_BACK;
         pipelineStateStream.Rasterizer = rasterState;
 
         D3D12_PIPELINE_STATE_STREAM_DESC pipelineStateStreamDesc = { sizeof(PipelineStateStream), &pipelineStateStream };

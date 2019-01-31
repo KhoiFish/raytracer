@@ -3,6 +3,7 @@ Debug/
 Release/
 *.aps
 *.log
+RaytracerBuild.zip
 RuntimeData/*.cso
 RuntimeData/*.exe
 RuntimeData/*.ilk

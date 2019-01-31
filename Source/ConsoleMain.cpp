@@ -107,8 +107,8 @@ int main(int argc, const char* argv[])
         if (sSceneConfigs[i].Enabled)
         {
             WorldScene* worldScene = GetSampleScene(sSceneConfigs[i].SceneType);
-            worldScene->GetCamera().SetAspect(sAspect);
             worldScene->GetCamera().SetFocusDistanceToLookAt();
+            worldScene->GetCamera().SetAspect(float(sOutputWidth) / float(sOutputHeight));
             raytraceAndPrintProgress(tracer, worldScene);
             WriteImageAndLog(&tracer, sSceneConfigs[i].OutputName);
         }

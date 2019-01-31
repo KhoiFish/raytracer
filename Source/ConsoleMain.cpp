@@ -64,7 +64,7 @@ static void parseCommandline(int argc, const char* argv[])
         {
             sNumThreads = atoi(argv[++i]);
         }
-        else if (strstr(argv[i], "disableScene") != nullptr && (i + 1) < argc)
+        else if (strstr(argv[i], "noscene") != nullptr && (i + 1) < argc)
         {
             const int sceneNum = atoi(argv[++i]);
             if (sceneNum < MaxScene)
@@ -76,7 +76,7 @@ static void parseCommandline(int argc, const char* argv[])
 
     if (argc <= 1)
     {
-        printf("Commandline usage:\n\twidth [num]  height [num]  samples [num]  depth [num]  threads [num]  disableScene [sceneNum]\n");
+        printf("Commandline usage:\n\twidth [num]  height [num]  samples [num]  depth [num]  threads [num]  noscene [sceneNum]\n");
     }
 
     printf("Current tracing parameters:\n\tresolution:%dx%d numSamples:%d scatterDepth:%d numThreads:%d\n",

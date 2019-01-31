@@ -144,14 +144,15 @@ void Raytracer::cleanupRaytrace()
 
 void Raytracer::threadTraceNextPixel(int id, Raytracer* tracer, const Camera& cam, WorldScene* scene)
 {
-    const int numPixels         = tracer->OutputWidth * tracer->OutputHeight;
-    const int totalPixelSamples = numPixels * tracer->NumRaySamples;
-    const int tileLength        = 32;
-    const int tileArea          = tileLength * tileLength;
-    const int numXTiles         = tracer->OutputWidth  / tileLength;
-    const int numYTiles         = tracer->OutputHeight / tileLength;
+    const int     numPixels         = tracer->OutputWidth * tracer->OutputHeight;
+    const int64_t totalPixelSamples = int64_t(numPixels) * int64_t(tracer->NumRaySamples);
+    const int     tileLength        = 32;
+    const int     tileArea          = tileLength * tileLength;
+    const int     numXTiles         = tracer->OutputWidth  / tileLength;
+    const int     numYTiles         = tracer->OutputHeight / tileLength;
 
-    int pixelSampleOffset = tracer->CurrentPixelSampleOffset.load();
+    // Thread starts here
+    int64_t pixelSampleOffset = tracer->CurrentPixelSampleOffset.load();
     while ((tracer->ThreadExitRequested.load() == false) && pixelSampleOffset < totalPixelSamples)
     {
         // Find the next offset to the pixel to trace
@@ -193,8 +194,8 @@ void Raytracer::threadTraceNextPixel(int id, Raytracer* tracer, const Camera& ca
 
             // Write RGBA (for previewing)
             {
-                const int   numSamples = (pixelSampleOffset / numPixels) + 1;
-                Vec3        curCol     = tracer->OutputBuffer[outputOffset] * (1.f / float(numSamples));
+                const int64_t numSamples = (pixelSampleOffset / int64_t(numPixels)) + 1;
+                Vec3          curCol     = tracer->OutputBuffer[outputOffset] * float(1.0 / double(numSamples));
 
                 int rgbaOffset = outputOffset * 4;
                 int ir, ig, ib, ia;

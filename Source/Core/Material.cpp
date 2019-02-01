@@ -57,7 +57,7 @@ Vec3 MLambertian::AlbedoValue(float u, float v, const Vec3& p) const
 // ----------------------------------------------------------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------------------------------
 
-MMetal::MMetal(const Vec3& albedo, float fuzz) : Albedo(albedo)
+MMetal::MMetal(BaseTexture* albedo, float fuzz) : Albedo(albedo)
 {
     if (fuzz < 1)
     {
@@ -75,7 +75,7 @@ bool MMetal::Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& s
 {
     Vec3 reflected = Reflect(UnitVector(rayIn.Direction()), hitRec.Normal);
     scatterRec.SpecularRay = Ray(hitRec.P, reflected + Fuzz * RandomInUnitSphere());
-    scatterRec.Attenuation = Albedo;
+    scatterRec.Attenuation = Albedo->Value(hitRec.U, hitRec.V, hitRec.P);
     scatterRec.IsSpecular  = true;
     scatterRec.Pdf         = nullptr;
 
@@ -86,7 +86,7 @@ bool MMetal::Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& s
 
 Vec3 MMetal::AlbedoValue(float u, float v, const Vec3& p) const
 {
-    return Albedo;
+    return Albedo->Value(u, v, p);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -110,41 +110,41 @@ bool MDielectric::Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterReco
 
     float niOverNt;
     Vec3 refracted;
-float reflectProb;
-float cosine;
-if (Dot(rayIn.Direction(), hitRec.Normal) > 0)
-{
-    outwardNormal = -hitRec.Normal;
-    niOverNt = RefId;
-    cosine = RefId * Dot(rayIn.Direction(), hitRec.Normal) / rayIn.Direction().Length();
-}
-else
-{
-    outwardNormal = hitRec.Normal;
-    niOverNt = 1.0f / RefId;
-    cosine = -Dot(rayIn.Direction(), hitRec.Normal) / rayIn.Direction().Length();
-}
+    float reflectProb;
+    float cosine;
+    if (Dot(rayIn.Direction(), hitRec.Normal) > 0)
+    {
+        outwardNormal = -hitRec.Normal;
+        niOverNt = RefId;
+        cosine = RefId * Dot(rayIn.Direction(), hitRec.Normal) / rayIn.Direction().Length();
+    }
+    else
+    {
+        outwardNormal = hitRec.Normal;
+        niOverNt = 1.0f / RefId;
+        cosine = -Dot(rayIn.Direction(), hitRec.Normal) / rayIn.Direction().Length();
+    }
 
-if (Refract(rayIn.Direction(), outwardNormal, niOverNt, refracted))
-{
-    reflectProb = Schlick(cosine, RefId);
-}
-else
-{
-    scatterRec.SpecularRay = Ray(hitRec.P, reflected, rayIn.Time());
-    reflectProb = 1.0f;
-}
+    if (Refract(rayIn.Direction(), outwardNormal, niOverNt, refracted))
+    {
+        reflectProb = Schlick(cosine, RefId);
+    }
+    else
+    {
+        scatterRec.SpecularRay = Ray(hitRec.P, reflected, rayIn.Time());
+        reflectProb = 1.0f;
+    }
 
-if (RandomFloat() < reflectProb)
-{
-    scatterRec.SpecularRay = Ray(hitRec.P, reflected, rayIn.Time());
-}
-else
-{
-    scatterRec.SpecularRay = Ray(hitRec.P, refracted, rayIn.Time());
-}
+    if (RandomFloat() < reflectProb)
+    {
+        scatterRec.SpecularRay = Ray(hitRec.P, reflected, rayIn.Time());
+    }
+    else
+    {
+        scatterRec.SpecularRay = Ray(hitRec.P, refracted, rayIn.Time());
+    }
 
-return true;
+    return true;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -204,8 +204,10 @@ Vec3 MIsotropic::AlbedoValue(float u, float v, const Vec3& p) const
 // ----------------------------------------------------------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------------------------------
 
-MWavefrontObj::MWavefrontObj(const char* materialFilePath) 
+MWavefrontObj::MWavefrontObj(const char* materialFilePath, bool makeMetal, float fuzz)
     : MLambertian(new ConstantTexture(Vec3(0, 0, 0)))
+    , MakeMetal(makeMetal)
+    , Fuzz(fuzz)
     , DiffuseMap(nullptr)
 {
     std::ifstream inputFile(materialFilePath);
@@ -234,7 +236,18 @@ MWavefrontObj::MWavefrontObj(const char* materialFilePath)
 
 bool MWavefrontObj::Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& scatterRec) const
 {
-    MLambertian::Scatter(rayIn, hitRec, scatterRec);
+    if (MakeMetal)
+    {
+        Vec3 reflected = Reflect(UnitVector(rayIn.Direction()), hitRec.Normal);
+        scatterRec.SpecularRay = Ray(hitRec.P, reflected + Fuzz * RandomInUnitSphere());
+        scatterRec.IsSpecular  = true;
+        scatterRec.Pdf         = nullptr;
+    }
+    else
+    {
+        MLambertian::Scatter(rayIn, hitRec, scatterRec);
+    }
+    
     scatterRec.Attenuation = DiffuseMap->Value(hitRec.U, hitRec.V, hitRec.P);
 
     return true;

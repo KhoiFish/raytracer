@@ -62,14 +62,14 @@ class MMetal : public Material
 {
 public:
 
-    MMetal(const Vec3& albedo, float fuzz);
+    MMetal(BaseTexture* albedo, float fuzz);
 
     virtual bool Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& scatterRec) const;
     virtual Vec3 AlbedoValue(float u, float v, const Vec3& p) const;
 
 private:
 
-    Vec3 Albedo;
+    BaseTexture* Albedo;
     float Fuzz;
 };
 
@@ -126,7 +126,7 @@ class MWavefrontObj : public MLambertian
 {
 public:
 
-    MWavefrontObj(const char* materialFilePath);
+    MWavefrontObj(const char* materialFilePath, bool makeMetal = false, float fuzz = 0.5f);
 
     virtual bool  Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& scatterRec) const;
     virtual Vec3  AlbedoValue(float u, float v, const Vec3& p) const;
@@ -135,5 +135,7 @@ public:
 
 private:
 
+    bool          MakeMetal;
+    float         Fuzz;
     ImageTexture* DiffuseMap;
 };

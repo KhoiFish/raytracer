@@ -33,7 +33,7 @@ public:
 public:
 
     static TriMesh*               CreateFromSTLFile(const char* filePath, Material* material, float scale = 1.0f);
-    static TriMesh*               CreateFromOBJFile(const char* filePath, float scale = 1.0f, Material* matOverride = nullptr);
+    static TriMesh*               CreateFromOBJFile(const char* filePath, float scale = 1.0f, bool makeMetalMaterial = false, Material* matOverride = nullptr);
     virtual bool                  BoundingBox(float t0, float t1, AABB& box) const;
     virtual bool                  Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const;
 

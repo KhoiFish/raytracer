@@ -124,7 +124,7 @@ Triangle* TriMesh::makeNewTriangle(
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-TriMesh* TriMesh::CreateFromOBJFile(const char* filePath, float scale, Material* matOverride)
+TriMesh* TriMesh::CreateFromOBJFile(const char* filePath, float scale, bool makeMetalMaterial, Material* matOverride)
 {
     const int LINE_SIZE = 4096;
     char lineBuf[LINE_SIZE];
@@ -265,7 +265,7 @@ TriMesh* TriMesh::CreateFromOBJFile(const char* filePath, float scale, Material*
                     RTL_ASSERT(tokens.size() == 2);
                     if (matOverride == nullptr)
                     {
-                        ret->Mat = new MWavefrontObj(tokens[1].c_str());
+                        ret->Mat = new MWavefrontObj(tokens[1].c_str(), makeMetalMaterial);
                     }
                 }
                 break;

@@ -165,7 +165,7 @@ static WorldScene* sampleSceneRandom()
                 }
                 else if (chooseMat < .95f)
                 {
-                    list[i++] = new Sphere(center, .2f, new MMetal(Vec3(.5f * (1 + RandomFloat()), .5f * (1 + RandomFloat()), .5f * (1 + RandomFloat())), .5f * RandomFloat()));
+                    list[i++] = new Sphere(center, .2f, new MMetal(new ConstantTexture(Vec3(.5f * (1 + RandomFloat()), .5f * (1 + RandomFloat()), .5f * (1 + RandomFloat()))), .5f * RandomFloat()));
                 }
                 else
                 {
@@ -177,7 +177,7 @@ static WorldScene* sampleSceneRandom()
 
     list[i++] = new Sphere(Vec3(0, 1, 0), 1.f, new MDielectric(1.5f));
     list[i++] = new Sphere(Vec3(-4, 1, 0), 1.f, new MLambertian(new ConstantTexture(Vec3(0.4f, 0.2f, 0.1f))));
-    list[i++] = new Sphere(Vec3(4, 1, 0), 1.f, new MMetal(Vec3(0.7f, 0.6f, 0.5f), 0.f));
+    list[i++] = new Sphere(Vec3(4, 1, 0), 1.f, new MMetal(new ConstantTexture(Vec3(0.7f, 0.6f, 0.5f)), 0.f));
 
     // Generate BVH tree
     BVHNode* bvhHead = new BVHNode(list, i, time0, time1);
@@ -260,7 +260,7 @@ static WorldScene* sampleSceneMesh()
 
     // Create light
     {
-        Material *lightMat   = new MDiffuseLight(new ConstantTexture(Vec3(50, 50, 50)));
+        Material *lightMat   = new MDiffuseLight(new ConstantTexture(Vec3(30, 30, 30)));
         IHitable *lightShape = new XYZRect(XYZRect::XZ, 123, 423, 147, 412, 700, lightMat, true);
         list[total++]        = new FlipNormals(lightShape);;
         lsList[numLs++]      = lightShape;
@@ -271,7 +271,7 @@ static WorldScene* sampleSceneMesh()
         IHitable *r8 =
             new HitableTranslate(
                 new HitableRotateY(
-                    TriMesh::CreateFromOBJFile("r8.obj", 25.f), 20.f),
+                    TriMesh::CreateFromOBJFile("r8.obj", 25.f, true), 20.f),
                 Vec3(220, 105, 145)
             );
         list[total++] = r8;
@@ -279,7 +279,7 @@ static WorldScene* sampleSceneMesh()
         IHitable *totoro =
             new HitableTranslate(
                 new HitableRotateY(
-                    TriMesh::CreateFromOBJFile("totoro.obj", 10.f, new MMetal(colorSapphire, 0.5f)), 180.f),
+                    TriMesh::CreateFromOBJFile("totoro.obj", 10.f, false, new MMetal(new ConstantTexture(colorSapphire), 0.5f)), 180.f),
                 Vec3(-60, 105, 145)
             );
         list[total++] = totoro;
@@ -306,8 +306,8 @@ static WorldScene* sampleSceneMesh()
         list[total++] = boundary;
         list[total++] = new ConstantMedium(boundary, 0.2f, new ConstantTexture(colorYellow));
 
-        boundary = new Sphere(Vec3(0, 0, 0), 5000, new MDielectric(1.5f));
-        list[total++] = new ConstantMedium(boundary, 0.0001f, new ConstantTexture(Vec3(1.0f, 1.0f, 1.0f)));
+        //boundary = new Sphere(Vec3(0, 0, 0), 5000, new MDielectric(1.5f));
+        //list[total++] = new ConstantMedium(boundary, 0.0001f, new ConstantTexture(Vec3(1.0f, 1.0f, 1.0f)));
     }
 
     return WorldScene::Create(getCameraForSample(SceneMesh), list, total, lsList, numLs);
@@ -369,7 +369,7 @@ static WorldScene* sampleSceneFinal()
         list[total++]   = newDielectricSphere;
         lsList[numLs++] = newDielectricSphere;
 
-        list[total++] = new Sphere(Vec3(0, 150, 145), 50, new MMetal(Vec3(0.8f, 0.8f, 0.9f), 10.0f));
+        list[total++] = new Sphere(Vec3(0, 150, 145), 50, new MMetal(new ConstantTexture(Vec3(0.8f, 0.8f, 0.9f)), 10.0f));
     }
 
     // Volumes

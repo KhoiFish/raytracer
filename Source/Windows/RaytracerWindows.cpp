@@ -1222,7 +1222,7 @@ void RaytracerWindows::OnKeyPressed(KeyEventArgs& e)
         {
             case KeyCode::Escape:
             {
-                Application::Get().Quit(0);
+                Raytrace(false);
             }
             break;
 

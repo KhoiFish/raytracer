@@ -57,6 +57,12 @@ private:
         MaxRenderModes
     };
 
+    static constexpr const char* RenderingModeStrings[MaxRenderModes] =
+    {
+        "DirectX 12 Render",
+        "Software Tracing",
+    };
+
     typedef Microsoft::WRL::ComPtr<ID3D12PipelineState> DX12PipeState;
     using super = Game;
 
@@ -73,11 +79,8 @@ private:
     void Raytrace(bool enable);
     void NextRenderMode();
     void LoadScene(std::shared_ptr<CommandList> commandList);
-    void GenerateRenderListFromWorld(std::shared_ptr<CommandList> commandList, const IHitable* currentHead, 
-        std::vector<RenderSceneNode*>& outSceneList, std::vector<DirectX::XMMATRIX>& matrixStack, std::vector<bool>& flipNormalStack);
 
     static void OnRaytraceComplete(Raytracer* tracer, bool actuallyFinished);
-    static std::string GetRenderingModeString(RenderingMode mode);
 
 private:
 

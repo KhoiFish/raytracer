@@ -29,7 +29,10 @@
       <Filter>Shaders</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\Windows\Resource.h">
-      <Filter>Source</Filter>
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Windows\SceneConvert.hpp">
+      <Filter>Source\Render</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

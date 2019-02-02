@@ -5,7 +5,6 @@
 #include <cstdint>
 #include <vector>
 #include <cassert>
-#include <filesystem>
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -19,8 +18,6 @@ struct STLTriangle
     int16_t  AttrByteCount;
 };
 #pragma pack(pop)
-
-namespace fs = std::filesystem;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -270,8 +267,8 @@ TriMesh* TriMesh::CreateFromOBJFile(const char* filePath, float scale, bool make
                     RTL_ASSERT(tokens.size() == 2);
                     if (matOverride == nullptr)
                     {
-                        fs::path matFilePath = fs::u8path(filePath).parent_path().append(tokens[1]);
-                        ret->Mat = new MWavefrontObj(matFilePath.u8string().c_str(), makeMetalMaterial);
+                        std::string matPath = GetAbsolutePath(GetParentDir(filePath) + std::string("/") + tokens[1]);
+                        ret->Mat = new MWavefrontObj(matPath.c_str(), makeMetalMaterial);
                     }
                 }
                 break;

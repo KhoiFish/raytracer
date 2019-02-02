@@ -20,6 +20,8 @@ const char*                 ProgressPrint(Raytracer* tracer);
 std::string                 GetTimeAndDateString();
 void                        WriteImageAndLog(Raytracer* raytracer, std::string name);
 std::vector<std::string>    GetStringTokens(std::string sourceStr, std::string delim);
+std::string                 GetParentDir(std::string filePath);
+std::string                 GetAbsolutePath(std::string relativePath);
 
 // ----------------------------------------------------------------------------------------------------------------------------
 

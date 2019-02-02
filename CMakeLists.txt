@@ -5,7 +5,7 @@ project (RayTracerConsoleUnix)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/BuildOutput)
 
 # Build with C++17 standard and pthread
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++17 -pthread")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++17 -pthread -g")
  
 # Specify the sources to build
 include_directories(Source)

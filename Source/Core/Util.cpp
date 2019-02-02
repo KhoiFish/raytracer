@@ -2,13 +2,8 @@
 #include "Raytracer.h"
 #include "ImageIO.h"
 
-#if defined(PLATFORM_WINDOWS)
-    #include <windows.h>
-#else
-    #define vsprintf_s  vsprintf
-#endif
-
 #include <stdlib.h>
+#include <stdio.h> 
 #include <stdarg.h>
 #include <cstring>
 #include <chrono>
@@ -19,6 +14,15 @@
 #include <iostream>
 #include <fstream>
 #include <inttypes.h>
+
+#if defined(PLATFORM_WINDOWS)
+    #include <windows.h>
+    #include <filesystem>
+    #define STD_FILESYSTEM_SUPPORTED
+#else
+    #define vsprintf_s  vsprintf
+    #include <linux/limits.h>
+#endif
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -112,6 +116,8 @@ void _RtlAssert(const char* message, const char* file, int line)
 
     #if defined(PLATFORM_WINDOWS)
         DebugBreak();
+    #else
+        assert(false);
     #endif
 }
 
@@ -129,4 +135,39 @@ std::vector<std::string> GetStringTokens(std::string sourceStr, std::string deli
     tokenList.push_back(sourceStr.substr(last, next - last));
 
     return tokenList;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+std::string GetParentDir(std::string filePath)
+{
+#if defined(STD_FILESYSTEM_SUPPORTED)
+    return std::filesystem::u8path(filePath.c_str()).parent_path().string();
+#else
+    // Kind of crap that std::filesystem is not supported widely yet (i.e. MacOS/Xcode)
+    // Search from the end until we find a slash
+    int i;
+    for (i = (int)filePath.size() - 1; i >= 0; i--)
+    {
+        if (filePath[i] == '\\' || filePath[i] == '/')
+        {
+            break;
+        }
+    }
+
+    return filePath.substr(0, i);
+#endif
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+std::string GetAbsolutePath(std::string relativePath)
+{
+#if defined(STD_FILESYSTEM_SUPPORTED)
+    return std::filesystem::absolute(std::filesystem::u8path(relativePath.c_str())).string();
+#else
+    char resolvedPath[1024];
+    realpath(relativePath.c_str(), resolvedPath);
+    return std::string(resolvedPath);
+#endif
 }

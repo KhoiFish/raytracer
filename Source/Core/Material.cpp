@@ -3,9 +3,6 @@
 #include <cstring>
 #include <iostream>
 #include <fstream>
-#include <filesystem>
-
-namespace fs = std::filesystem;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -225,15 +222,20 @@ MWavefrontObj::MWavefrontObj(const char* materialFilePath, bool makeMetal, float
             if ((strLine.find("map_Kd")) == 0)
             {
                 std::string textureFilename = strLine.substr(strlen("map_Kd") + 1);
-                fs::path texFilePath = fs::u8path(materialFilePath).parent_path().append(textureFilename);
-                DiffuseMap = new ImageTexture(texFilePath.u8string().c_str());
+                std::string texFilePath = GetAbsolutePath(GetParentDir(materialFilePath) + std::string("/") + textureFilename);
+                DiffuseMap = new ImageTexture(texFilePath.c_str());
             }
         }
 
         if (DiffuseMap == nullptr)
         {
-            DiffuseMap = new ImageTexture("white.png");
+            DEBUG_PRINTF("No diffuse found, trying default\n");
+            DiffuseMap = new ImageTexture(GetAbsolutePath(RUNTIMEDATA_DIR "/white.png").c_str());
         }
+    }
+    else
+    {
+        DEBUG_PRINTF("Could not open material file %s!", materialFilePath);
     }
 }
 

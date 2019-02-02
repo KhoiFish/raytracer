@@ -271,7 +271,7 @@ static WorldScene* sampleSceneMesh()
         IHitable *r8 =
             new HitableTranslate(
                 new HitableRotateY(
-                    TriMesh::CreateFromOBJFile(RUNTIMEDATA_DIR "/r8.obj", 25.f, true), 20.f),
+                    TriMesh::CreateFromOBJFile(GetAbsolutePath(RUNTIMEDATA_DIR "/r8.obj").c_str(), 25.f, true), 20.f),
                 Vec3(220, 105, 145)
             );
         list[total++] = r8;
@@ -279,7 +279,7 @@ static WorldScene* sampleSceneMesh()
         IHitable *totoro =
             new HitableTranslate(
                 new HitableRotateY(
-                    TriMesh::CreateFromOBJFile(RUNTIMEDATA_DIR "/totoro.obj", 10.f, false, new MMetal(new ConstantTexture(colorSapphire), 0.5f)), 180.f),
+                    TriMesh::CreateFromOBJFile(GetAbsolutePath(RUNTIMEDATA_DIR "/totoro.obj").c_str(), 10.f, false, new MMetal(new ConstantTexture(colorSapphire), 0.5f)), 180.f),
                 Vec3(-60, 105, 145)
             );
         list[total++] = totoro;
@@ -287,7 +287,7 @@ static WorldScene* sampleSceneMesh()
         IHitable *luigi =
             new HitableTranslate(
                 new HitableRotateY(
-                    TriMesh::CreateFromOBJFile(RUNTIMEDATA_DIR "/luigi.obj", 2.f), 180.f),
+                    TriMesh::CreateFromOBJFile(GetAbsolutePath(RUNTIMEDATA_DIR "/luigi.obj").c_str(), 2.f), 180.f),
                 Vec3(-320, 105, -100)
             );
         list[total++] = luigi;
@@ -384,7 +384,7 @@ static WorldScene* sampleSceneFinal()
 
     // Image texture sphere
     {
-        Material *emat = new MLambertian(new ImageTexture(RUNTIMEDATA_DIR "/guitar.jpg"));
+        Material *emat = new MLambertian(new ImageTexture(GetAbsolutePath(RUNTIMEDATA_DIR "/guitar.jpg").c_str()));
         list[total++] = new Sphere(Vec3(400, 200, 400), 100, emat);
     }
 

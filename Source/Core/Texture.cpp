@@ -49,6 +49,10 @@ ImageTexture::ImageTexture(const char* filePath) : Filename(filePath)
         free(pixelData);
         pixelData = nullptr;
     }
+    else
+    {
+        DEBUG_PRINTF("%s\n", stbi_failure_reason());
+    }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

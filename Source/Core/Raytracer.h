@@ -42,10 +42,11 @@ public:
     bool             WaitForTraceToFinish(int timeoutMicroSeconds);
     Stats            GetStats() const;
 
-    inline Vec3*     GetOutputBuffer() const { return OutputBuffer; }
+    inline Vec3*     GetOutputBuffer() const     { return OutputBuffer; }
     inline uint8_t*  GetOutputBufferRGBA() const { return OutputBufferRGBA; }
-    inline int       GetOutputWidth() const { return OutputWidth; }
-    inline int       GetOutputHeight() const { return OutputHeight; }
+    inline int       GetOutputWidth() const      { return OutputWidth; }
+    inline int       GetOutputHeight() const     { return OutputHeight; }
+    inline bool      IsTracing() const           { return IsRaytracing; }
 
 private:
 

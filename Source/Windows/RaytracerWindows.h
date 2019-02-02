@@ -41,24 +41,10 @@ protected:
     virtual void OnKeyPressed(KeyEventArgs& e) override;
     virtual void OnKeyReleased(KeyEventArgs& e) override;
     virtual void OnMouseButtonPressed(MouseButtonEventArgs& e) override;
+    virtual void OnMouseButtonReleased(MouseButtonEventArgs& e) override;
     virtual void OnMouseMoved(MouseMotionEventArgs& e) override;
     virtual void OnMouseWheel(MouseWheelEventArgs& e) override;
     virtual void OnResize(ResizeEventArgs& e) override;
-
-private:
-
-    int  InitShadowmap(int width, int height);
-    void RenderShadowmaps(std::shared_ptr<CommandList>& commandList);
-    void RenderPreviewObjects(std::shared_ptr<CommandList>& commandList, const DirectX::XMMATRIX& viewMatrix, const DirectX::XMMATRIX& projectionMatrix, bool shadowmapRender);
-
-    void OnResizeRaytracer();
-    void Raytrace(bool enable);
-    void NextRenderMode();
-    void LoadScene(std::shared_ptr<CommandList> commandList);
-    void GenerateRenderListFromWorld(std::shared_ptr<CommandList> commandList, const IHitable* currentHead, 
-        std::vector<RenderSceneNode*>& outSceneList, std::vector<DirectX::XMMATRIX>& matrixStack, std::vector<bool>& flipNormalStack);
-
-    static void OnRaytraceComplete(Raytracer* tracer, bool actuallyFinished);
 
 private:
 
@@ -74,6 +60,23 @@ private:
     using super = Game;
 
     typedef std::vector<RenderSceneNode*> RenderNodeList;
+
+private:
+
+    int  InitShadowmap(int width, int height);
+    void RenderShadowmaps(std::shared_ptr<CommandList>& commandList);
+    void RenderPreviewObjects(std::shared_ptr<CommandList>& commandList, const DirectX::XMMATRIX& viewMatrix, const DirectX::XMMATRIX& projectionMatrix, bool shadowmapRender);
+    
+    void OnGUI();
+    void OnResizeRaytracer();
+    void Raytrace(bool enable);
+    void NextRenderMode();
+    void LoadScene(std::shared_ptr<CommandList> commandList);
+    void GenerateRenderListFromWorld(std::shared_ptr<CommandList> commandList, const IHitable* currentHead, 
+        std::vector<RenderSceneNode*>& outSceneList, std::vector<DirectX::XMMATRIX>& matrixStack, std::vector<bool>& flipNormalStack);
+
+    static void OnRaytraceComplete(Raytracer* tracer, bool actuallyFinished);
+    static std::string GetRenderingModeString(RenderingMode mode);
 
 private:
 
@@ -123,6 +126,7 @@ private:
 
     bool                       AllowFullscreenToggle;
     bool                       ShiftKeyPressed;
+    bool                       ShowHelperWindow;
 
     int                        BackbufferWidth;
     int                        BackbufferHeight;

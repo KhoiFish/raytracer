@@ -16,7 +16,7 @@ class Raytracer;
 // ----------------------------------------------------------------------------------------------------------------------------
 
 void                        PrintCompletion(const char* otherInfo, double percentage);
-const char*                 ProgressPrint(Raytracer* tracer);
+const char*                 ProgressPrint(Raytracer* tracer, bool enablePercentBar = true);
 std::string                 GetTimeAndDateString();
 void                        WriteImageAndLog(Raytracer* raytracer, std::string name);
 std::vector<std::string>    GetStringTokens(std::string sourceStr, std::string delim);

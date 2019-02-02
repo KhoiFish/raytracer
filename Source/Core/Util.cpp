@@ -31,29 +31,38 @@ void PrintCompletion(const char* otherInfo, double percentage)
     static const char* PBSTR = "||||||||||||||||||||";
     const int PBWIDTH = (int)strlen(PBSTR);
 
-    int val = (int)(percentage * 100);
     int lpad = (int)(percentage * PBWIDTH);
     int rpad = PBWIDTH - lpad;
 
-    printf("\r%s %3d%% [%.*s%*s]", otherInfo, val, lpad, PBSTR, rpad, "");
+    printf("\r%s [%.*s%*s]", otherInfo, lpad, PBSTR, rpad, "");
+    
     fflush(stdout);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-const char* ProgressPrint(Raytracer* tracer)
+const char* ProgressPrint(Raytracer* tracer, bool enablePercentBar)
 {
     static char buf[256];
 
     Raytracer::Stats stats = tracer->GetStats();
     double percentage = double(double(stats.NumPixelSamples) / double(stats.TotalNumPixelSamples));
+    int    percentInt = (int)(percentage * 100);
     int    numMinutes = stats.TotalTimeInSeconds / 60;
     int    numSeconds = stats.TotalTimeInSeconds % 60;
 
-    snprintf(buf, 256, "#time:%dm:%2ds  #rays:%" PRId64 "  #pixels:%" PRId64 "  #pdfQueryRetries:%d ",
-        numMinutes, numSeconds, stats.TotalRaysFired, stats.NumPixelSamples, stats.NumPdfQueryRetries);
+    snprintf(buf, 256, "#done:%3d%% #time:%dm:%2ds  #rays:%" PRId64 "  #pixels:%" PRId64 "  #pdfQueryRetries:%d",
+        percentInt, numMinutes, numSeconds, stats.TotalRaysFired, stats.NumPixelSamples, stats.NumPdfQueryRetries);
 
-    PrintCompletion(buf, percentage);
+    if (enablePercentBar)
+    {
+        PrintCompletion(buf, percentage);
+    }
+    else
+    {
+        printf("\r%s", buf);
+        fflush(stdout);
+    }
 
     return buf;
 }

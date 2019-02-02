@@ -82,8 +82,8 @@ static const UINT sShaderRegisterParams[NumRootParameters][2] =
 static int    overrideWidth       = 1280;
 static int    overrideHeight      = 720;
 static int    sNumSamplesPerRay   = 500;
-static int    sMaxScatterDepth    = 5;
-static int    sNumThreads         = 6;
+static int    sMaxScatterDepth    = 50;
+static int    sNumThreads         = 4;
 static float  sClearColor[]       = { 0.2f, 0.2f, 0.2f, 1.0f };
 
 static const RenderMaterial MaterialWhite =
@@ -255,6 +255,7 @@ RaytracerWindows::RaytracerWindows(const std::wstring& name, bool vSync)
     , MouseDy(0)
     , AllowFullscreenToggle(true)
     , ShiftKeyPressed(false)
+    , ShowHelperWindow(true)
     , BackbufferWidth(0)
     , BackbufferHeight(0)
 {
@@ -271,6 +272,19 @@ RaytracerWindows::RaytracerWindows(const std::wstring& name, bool vSync)
 RaytracerWindows::~RaytracerWindows()
 {
     
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+std::string RaytracerWindows::GetRenderingModeString(RaytracerWindows::RenderingMode mode)
+{
+    static const std::string strings[MaxRenderModes] =
+    {
+        "DirectX 12 Render",
+        "Software Tracing",
+    };
+
+    return strings[mode];
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -1118,6 +1132,83 @@ void RaytracerWindows::RenderPreviewObjects(std::shared_ptr<CommandList>& comman
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+void RaytracerWindows::OnGUI()
+{
+    if (!ShowHelperWindow)
+        return;
+
+    ImGui::SetNextWindowPos(ImVec2(770, 10), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(500, 400), ImGuiCond_FirstUseEver);
+
+    ImGuiWindowFlags window_flags = 0;
+    if (!ImGui::Begin("Raytracer", &ShowHelperWindow, window_flags))
+    {
+        ImGui::End();
+        return;
+    }
+
+    ImGui::Text("----- Help -----");
+    ImGui::Text("Translate camera: Press keys WASD strafe, QE up and down");
+    ImGui::Text("Pan camera: Right mouse button (press and hold)");
+    ImGui::Text("Start/stop trace: Space bar/escape key");
+    ImGui::Text("Cycle render modes: R key");
+    ImGui::Text("Toggle wireframe: F key");
+    ImGui::Text("");
+
+    ImGui::Text("----- Status -----");
+    ImGui::Text("Render Mode: %s", GetRenderingModeString(RenderMode).c_str());
+
+    if (TheRaytracer != nullptr && TheRaytracer->IsTracing())
+    {
+        ImGui::Text("%s", ProgressPrint(TheRaytracer, false));
+
+        ImGui::Text("");
+        if (ImGui::Button("Stop Trace", ImVec2(100, 50)))
+        {
+            Raytrace(false);
+        }
+    }
+    else
+    {
+        bool rayTracerDirty = false;
+        ImGui::Text("");
+        ImGui::Text("----- Raytracing Options -----");
+
+        if (ImGui::SliderInt("Num Samples", &sNumSamplesPerRay, 1, 50000))
+        {
+            rayTracerDirty = true;
+        }
+
+        if (ImGui::SliderInt("Scatter Depth", &sMaxScatterDepth, 1, 100))
+        {
+            rayTracerDirty = true;
+        }
+
+        if (ImGui::SliderInt("Num Threads", &sNumThreads, 1, 32))
+        {
+            rayTracerDirty = true;
+        }
+
+        // If any options changed, recreate the raytracer
+        if (rayTracerDirty)
+        {
+            OnResizeRaytracer();
+        }
+
+        // Should we start tracing?
+        ImGui::Text("");
+        if (ImGui::Button("Begin Trace", ImVec2(100, 50)))
+        {
+            Raytrace(true);
+        }
+    }
+    
+
+    ImGui::End();
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 void RaytracerWindows::OnRender(RenderEventArgs& e)
 {
     super::OnRender(e);
@@ -1192,6 +1283,10 @@ void RaytracerWindows::OnRender(RenderEventArgs& e)
         commandList->Draw(3);
     }
 
+    // -------------------------------------------------------------------
+    // Render GUI
+    // -------------------------------------------------------------------
+    OnGUI();
 
     // -------------------------------------------------------------------
     // Execute the command list
@@ -1242,7 +1337,7 @@ void RaytracerWindows::OnKeyPressed(KeyEventArgs& e)
 
             case KeyCode::R:
             {
-                ;
+                NextRenderMode();
             }
             break;
 
@@ -1301,6 +1396,7 @@ void RaytracerWindows::OnKeyPressed(KeyEventArgs& e)
             case KeyCode::Space:
             {
                 Raytrace(true);
+                ShowHelperWindow = true;
             }
             break;
 
@@ -1384,14 +1480,22 @@ void RaytracerWindows::OnMouseButtonPressed(MouseButtonEventArgs& e)
 {
     super::OnMouseButtonPressed(e);
 
-    if (e.LeftButton)
-    {
-        NextRenderMode();
-    }
-
     if (e.RightButton)
     {
         RenderMode = ModePreview;
+        ShowHelperWindow = false;
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void RaytracerWindows::OnMouseButtonReleased(MouseButtonEventArgs& e)
+{
+    super::OnMouseButtonReleased(e);
+
+    if (e.Button == MouseButtonEventArgs::Right)
+    {
+        ShowHelperWindow = true;
     }
 }
 
@@ -1410,7 +1514,6 @@ void RaytracerWindows::OnMouseMoved(MouseMotionEventArgs& e)
             MouseDx = e.RelX;
             MouseDy = e.RelY;
             Raytrace(false);
-
         }
     }
 }

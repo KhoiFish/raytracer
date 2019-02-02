@@ -2,6 +2,9 @@
 #include "OrthoNormalBasis.h"
 #include <iostream>
 #include <fstream>
+#include <filesystem>
+
+namespace fs = std::filesystem;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -221,7 +224,8 @@ MWavefrontObj::MWavefrontObj(const char* materialFilePath, bool makeMetal, float
             if ((strLine.find("map_Kd")) == 0)
             {
                 std::string textureFilename = strLine.substr(strlen("map_Kd") + 1);
-                DiffuseMap = new ImageTexture(textureFilename.c_str());
+                fs::path texFilePath = fs::u8path(materialFilePath).parent_path().append(textureFilename);
+                DiffuseMap = new ImageTexture(texFilePath.u8string().c_str());
             }
         }
 

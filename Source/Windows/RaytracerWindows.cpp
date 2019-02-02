@@ -744,8 +744,8 @@ bool RaytracerWindows::LoadContent()
     {
         // Load shaders
         ComPtr<ID3DBlob> vertexShaderBlob, pixelShaderBlob;
-        ThrowIfFailed(D3DReadFileToBlob(L"FullscreenQuad_VS.cso", &vertexShaderBlob));
-        ThrowIfFailed(D3DReadFileToBlob(L"FullscreenQuad_PS.cso", &pixelShaderBlob));
+        ThrowIfFailed(D3DReadFileToBlob(SHADERBUILD_DIR L"\\FullscreenQuad_VS.cso", &vertexShaderBlob));
+        ThrowIfFailed(D3DReadFileToBlob(SHADERBUILD_DIR L"\\FullscreenQuad_PS.cso", &pixelShaderBlob));
 
         D3D12_RT_FORMAT_ARRAY rtvFormats = {};
         rtvFormats.NumRenderTargets = 1;
@@ -772,8 +772,8 @@ bool RaytracerWindows::LoadContent()
     {
         // Load shaders
         ComPtr<ID3DBlob> vertexShaderBlob, pixelShaderBlob;
-        ThrowIfFailed(D3DReadFileToBlob(L"Preview_VS.cso", &vertexShaderBlob));
-        ThrowIfFailed(D3DReadFileToBlob(L"Preview_PS.cso", &pixelShaderBlob));
+        ThrowIfFailed(D3DReadFileToBlob(SHADERBUILD_DIR L"\\Preview_VS.cso", &vertexShaderBlob));
+        ThrowIfFailed(D3DReadFileToBlob(SHADERBUILD_DIR L"\\Preview_PS.cso", &pixelShaderBlob));
 
         D3D12_RT_FORMAT_ARRAY rtvFormats = {};
         rtvFormats.NumRenderTargets = 1;
@@ -823,8 +823,8 @@ bool RaytracerWindows::LoadContent()
     {
         // Load shaders
         ComPtr<ID3DBlob> vertexShaderBlob, pixelShaderBlob;
-        ThrowIfFailed(D3DReadFileToBlob(L"Shadowmap_VS.cso", &vertexShaderBlob));
-        ThrowIfFailed(D3DReadFileToBlob(L"Shadowmap_PS.cso", &pixelShaderBlob));
+        ThrowIfFailed(D3DReadFileToBlob(SHADERBUILD_DIR L"\\Shadowmap_VS.cso", &vertexShaderBlob));
+        ThrowIfFailed(D3DReadFileToBlob(SHADERBUILD_DIR L"\\Shadowmap_PS.cso", &pixelShaderBlob));
 
         D3D12_RT_FORMAT_ARRAY rtvFormats = {};
         rtvFormats.NumRenderTargets = 1;
@@ -899,8 +899,8 @@ bool RaytracerWindows::LoadContent()
     // Load scene
     // -------------------------------------------------------------------
     LoadScene(commandList);
-    commandList->LoadTextureFromFile(PreviewTex, L"checker.jpg");
-    commandList->LoadTextureFromFile(WhiteTex, L"white.png");
+    commandList->LoadTextureFromFile(PreviewTex, RUNTIMEDATA_DIR L"\\checker.jpg");
+    commandList->LoadTextureFromFile(WhiteTex, RUNTIMEDATA_DIR L"\\white.png");
     
 
     // -------------------------------------------------------------------

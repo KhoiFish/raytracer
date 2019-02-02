@@ -5,6 +5,11 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+#define RUNTIMEDATA_DIR     "RuntimeData"
+#define SHADERBUILD_DIR     "ShaderBuild"
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 #define DEBUG_PRINTF(fmt, ...) RenderDebugPrintf(fmt, ##__VA_ARGS__)
 void RenderDebugPrintf(const char *fmt, ...);
 

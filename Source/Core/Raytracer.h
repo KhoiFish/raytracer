@@ -73,8 +73,8 @@ private:
     std::atomic<int>      NumThreadsDone;
     std::atomic<int>      NumPdfQueryRetries;
     std::atomic<bool>     ThreadExitRequested;
-    std::atomic<StdTime>  StartTime;
-    std::atomic<StdTime>  EndTime;
+    StdTime               StartTime;
+    StdTime               EndTime;
     std::thread**         ThreadPtrs;
     ThreadEvent           RaytraceEvent;
     bool                  IsRaytracing;

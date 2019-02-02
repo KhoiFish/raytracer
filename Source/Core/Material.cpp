@@ -1,5 +1,6 @@
 #include "Material.h"
 #include "OrthoNormalBasis.h"
+#include <cstring>
 #include <iostream>
 #include <fstream>
 #include <filesystem>
@@ -21,7 +22,7 @@ bool MLambertian::Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterReco
 
     scatterRec.IsSpecular       = false;
     scatterRec.Attenuation      = Albedo->Value(hitRec.U, hitRec.V, hitRec.P);
-    scatterRec.Pdf              = new CosinePdf(hitRec.Normal);
+    scatterRec.PdfPtr           = new CosinePdf(hitRec.Normal);
     scatterRec.ScatteredClassic = Ray(hitRec.P, target - hitRec.P, rayIn.Time());
    
     return true;
@@ -80,7 +81,7 @@ bool MMetal::Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& s
     scatterRec.SpecularRay = Ray(hitRec.P, reflected + Fuzz * RandomInUnitSphere());
     scatterRec.Attenuation = Albedo->Value(hitRec.U, hitRec.V, hitRec.P);
     scatterRec.IsSpecular  = true;
-    scatterRec.Pdf         = nullptr;
+    scatterRec.PdfPtr      = nullptr;
 
     return true;
 }
@@ -109,7 +110,7 @@ bool MDielectric::Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterReco
 
     scatterRec.IsSpecular  = true;
     scatterRec.Attenuation = Vec3(1.0f, 1.0f, 1.0f);
-    scatterRec.Pdf         = nullptr;
+    scatterRec.PdfPtr      = nullptr;
 
     float niOverNt;
     Vec3 refracted;
@@ -191,8 +192,8 @@ bool MIsotropic::Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecor
 {
     scatterRec.SpecularRay = Ray(hitRec.P, RandomInUnitSphere());
     scatterRec.Attenuation = Albedo->Value(hitRec.U, hitRec.V, hitRec.P);
-    scatterRec.Pdf = nullptr;
-    scatterRec.IsSpecular = true;
+    scatterRec.PdfPtr      = nullptr;
+    scatterRec.IsSpecular  = true;
 
     return true;
 }
@@ -245,7 +246,7 @@ bool MWavefrontObj::Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRe
         Vec3 reflected = Reflect(UnitVector(rayIn.Direction()), hitRec.Normal);
         scatterRec.SpecularRay = Ray(hitRec.P, reflected + Fuzz * RandomInUnitSphere());
         scatterRec.IsSpecular  = true;
-        scatterRec.Pdf         = nullptr;
+        scatterRec.PdfPtr      = nullptr;
     }
     else
     {

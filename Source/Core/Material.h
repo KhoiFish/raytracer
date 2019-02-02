@@ -14,15 +14,15 @@ public:
 
     struct ScatterRecord
     {
-        ScatterRecord() : IsSpecular(false), Attenuation(0, 0, 0), Pdf(nullptr) {}
+        ScatterRecord() : IsSpecular(false), Attenuation(0, 0, 0), PdfPtr(nullptr) {}
         ~ScatterRecord()
         {
             // I don't like the asymmetrical allocation/deallocation strategy for pdfs.
             // But we'll do this for now.
-            if (Pdf)
+            if (PdfPtr)
             {
-                delete Pdf;
-                Pdf = nullptr;
+                delete PdfPtr;
+                PdfPtr = nullptr;
             }
         }
 
@@ -30,7 +30,7 @@ public:
         bool  IsSpecular;
         Vec3  Attenuation;
         Ray   ScatteredClassic;
-        Pdf*  Pdf;
+        Pdf*  PdfPtr;
     };
 
     virtual bool  Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& scatterRec) const { return false; }

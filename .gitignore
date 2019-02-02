@@ -3,6 +3,7 @@ Debug/
 Release/
 BuildOutput/
 ShaderBuild/
+CMakeBuildOutput/
 OutputImages/*.png
 OutputImages/*.ppm
 *.aps

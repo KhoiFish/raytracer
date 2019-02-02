@@ -1,6 +1,7 @@
 #include "Raytracer.h"
 #include "XYZRect.h"
 #include "BVHNode.h"
+#include <memory.h>
 #include <cfloat>
 #include <vector>
 #include <math.h>
@@ -87,14 +88,14 @@ bool Raytracer::WaitForTraceToFinish(int timeoutMicroSeconds)
 
 Raytracer::Stats Raytracer::GetStats() const
 {
-    const StdTime endTime = IsRaytracing ? std::chrono::system_clock::now() : EndTime.load();
+    const StdTime endTime = IsRaytracing ? std::chrono::system_clock::now() : EndTime;
 
     Stats stats;
     stats.TotalRaysFired       = TotalRaysFired.load();
     stats.NumPixelSamples      = CurrentPixelSampleOffset.load();
     stats.TotalNumPixelSamples = int64_t(OutputWidth * OutputHeight) * int64_t(NumRaySamples);
     stats.NumPdfQueryRetries   = NumPdfQueryRetries.load();
-    stats.TotalTimeInSeconds   = (int)std::chrono::duration<double>(endTime - StartTime.load()).count();
+    stats.TotalTimeInSeconds   = (int)std::chrono::duration<double>(endTime - StartTime).count();
     
     return stats;
 }
@@ -267,8 +268,8 @@ Vec3 Raytracer::trace(WorldScene* scene, const Ray& r, int depth)
                 {
                     // Prepare the pdf query
                     HitablePdf  hitablePdf(scene->GetLightShapes(), hitRec.P);
-                    MixturePdf  mixPdf(&hitablePdf, scatterRec.Pdf);
-                    Pdf*        pdf = scatterRec.Pdf;
+                    MixturePdf  mixPdf(&hitablePdf, scatterRec.PdfPtr);
+                    Pdf*        pdf = scatterRec.PdfPtr;
                     if (scene->GetLightShapes() != nullptr)
                     {
                         pdf = &mixPdf;

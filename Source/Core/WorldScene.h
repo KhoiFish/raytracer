@@ -31,7 +31,7 @@ public:
         }
         newScene->LightShapes = new HitableList(lightShapesList, lightShapesSize);
 
-        newScene->Camera = camera;
+        newScene->TheCamera = camera;
     }
 
     static inline WorldScene* Create(const Camera& camera, IHitable** hitables, int numHitables, IHitable** lightShapes = nullptr, int numLightShapes = 0)
@@ -44,7 +44,7 @@ public:
             newScene->LightShapes = new HitableList(lightShapes, numLightShapes);
         }
         
-        newScene->Camera = camera;
+        newScene->TheCamera = camera;
 
         return newScene;
     }
@@ -66,7 +66,7 @@ public:
 
     inline HitableList* GetWorld()       { return World; }
     inline HitableList* GetLightShapes() { return LightShapes; }
-    inline Camera&      GetCamera()      { return Camera; }
+    inline Camera&      GetCamera()      { return TheCamera; }
 
 private:
 
@@ -76,5 +76,5 @@ private:
 
     HitableList* World;
     HitableList* LightShapes;
-    Camera       Camera;
+    Camera       TheCamera;
 };

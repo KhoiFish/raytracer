@@ -1,6 +1,7 @@
 #include "Core/Camera.h"
 #include "Core/Raytracer.h"
 #include "SampleScenes.h"
+#include <cstring>
 
 // ----------------------------------------------------------------------------------------------------------------------------
 

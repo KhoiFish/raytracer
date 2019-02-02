@@ -2,9 +2,15 @@
 #include "Raytracer.h"
 #include "ImageIO.h"
 
-#include <windows.h>
+#if defined(PLATFORM_WINDOWS)
+    #include <windows.h>
+#else
+    #define vsprintf_s  vsprintf
+#endif
+
 #include <stdlib.h>
-#include <varargs.h>
+#include <stdarg.h>
+#include <cstring>
 #include <chrono>
 #include <ctime>
 #include <sstream>
@@ -12,6 +18,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <inttypes.h>
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -39,7 +46,7 @@ const char* ProgressPrint(Raytracer* tracer)
     int    numMinutes = stats.TotalTimeInSeconds / 60;
     int    numSeconds = stats.TotalTimeInSeconds % 60;
 
-    snprintf(buf, 256, "#time:%dm:%2ds  #rays:%lld  #pixels:%lld  #pdfQueryRetries:%d ",
+    snprintf(buf, 256, "#time:%dm:%2ds  #rays:%" PRId64 "  #pixels:%" PRId64 "  #pdfQueryRetries:%d ",
         numMinutes, numSeconds, stats.TotalRaysFired, stats.NumPixelSamples, stats.NumPdfQueryRetries);
 
     PrintCompletion(buf, percentage);
@@ -49,18 +56,21 @@ const char* ProgressPrint(Raytracer* tracer)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+// Disable annoying windows warning about localtime being unsecure
+#pragma warning(push)
+#pragma warning(disable : 4996)
+
 std::string GetTimeAndDateString()
 {
-    auto n = std::chrono::system_clock::now();
-    auto in_time_t = std::chrono::system_clock::to_time_t(n);
-    std::tm timeBuf;
-    localtime_s(&timeBuf, &in_time_t);
-
     std::stringstream ss;
-    ss << std::put_time(&timeBuf, "%Y-%m-%d-%H.%M.%S");
+
+    std::time_t t = std::time(nullptr);
+    ss << std::put_time(std::localtime(&t), "%Y-%m-%d-%H.%M.%S");
 
     return ss.str();
 }
+
+#pragma warning(pop) 
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -87,7 +97,7 @@ void RenderDebugPrintf(const char *fmt, ...)
     vsprintf_s(buf, fmt, arg);
     va_end(arg);
 
-    printf(buf);
+    printf("%s", buf);
 
     #if defined(PLATFORM_WINDOWS)
         OutputDebugStringA(buf);

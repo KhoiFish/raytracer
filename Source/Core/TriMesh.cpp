@@ -1,4 +1,5 @@
 #include "TriMesh.h"
+#include <cstring>
 #include <iostream>
 #include <fstream>
 #include <cstdint>
@@ -26,7 +27,8 @@ namespace fs = std::filesystem;
 TriMesh* TriMesh::CreateFromSTLFile(const char* filePath, Material* material, float scale /*= 1.0f*/)
 {
     TriMesh* ret = nullptr;
-    std::ifstream inputFile(filePath, std::ios::in, std::ios::binary);
+
+    std::ifstream inputFile(filePath, std::ios::binary);
     if (inputFile.is_open())
     {
         ret = new TriMesh();

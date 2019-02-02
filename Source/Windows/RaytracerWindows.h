@@ -127,6 +127,7 @@ private:
     bool                       AllowFullscreenToggle;
     bool                       ShiftKeyPressed;
     bool                       ShowHelperWindow;
+    bool                       LoadSceneRequested;
 
     int                        BackbufferWidth;
     int                        BackbufferHeight;

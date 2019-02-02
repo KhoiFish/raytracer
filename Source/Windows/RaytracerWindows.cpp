@@ -84,6 +84,7 @@ static int    overrideHeight      = 720;
 static int    sNumSamplesPerRay   = 500;
 static int    sMaxScatterDepth    = 50;
 static int    sNumThreads         = 4;
+static int    sSampleScene        = SceneMesh;
 static float  sClearColor[]       = { 0.2f, 0.2f, 0.2f, 1.0f };
 
 static const RenderMaterial MaterialWhite =
@@ -256,6 +257,7 @@ RaytracerWindows::RaytracerWindows(const std::wstring& name, bool vSync)
     , AllowFullscreenToggle(true)
     , ShiftKeyPressed(false)
     , ShowHelperWindow(true)
+    , LoadSceneRequested(false)
     , BackbufferWidth(0)
     , BackbufferHeight(0)
 {
@@ -378,15 +380,21 @@ void RaytracerWindows::NextRenderMode()
 
 void RaytracerWindows::LoadScene(std::shared_ptr<CommandList> commandList)
 {
-#if 0
-    Scene = GetSampleScene(SceneFinal);
-#elif 0
-    Scene = GetSampleScene(SceneCornell);
-#elif 0
-    Scene = GetSampleScene(SceneRandom);
-#else
-    Scene = GetSampleScene(SceneMesh);
-#endif
+    if (Scene != nullptr)
+    {
+        delete Scene;
+        Scene = nullptr;
+    }
+
+    for (int i = 0; i < RenderSceneList.size(); i++)
+    {
+        delete RenderSceneList[i];
+    }
+    RenderSceneList.clear();
+    SpotLightsList.clear();
+    DirLightsList.clear();
+
+    Scene = GetSampleScene(SampleScene(sSampleScene));
 
     Scene->GetCamera().SetAspect((float)BackbufferWidth / (float)BackbufferHeight);
     Scene->GetCamera().SetFocusDistanceToLookAt();
@@ -1138,7 +1146,7 @@ void RaytracerWindows::OnGUI()
         return;
 
     ImGui::SetNextWindowPos(ImVec2(770, 10), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(500, 400), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(500, 450), ImGuiCond_FirstUseEver);
 
     ImGuiWindowFlags window_flags = 0;
     if (!ImGui::Begin("Raytracer", &ShowHelperWindow, window_flags))
@@ -1147,16 +1155,10 @@ void RaytracerWindows::OnGUI()
         return;
     }
 
-    ImGui::Text("----- Help -----");
-    ImGui::Text("Translate camera: Press keys WASD strafe, QE up and down");
-    ImGui::Text("Pan camera: Right mouse button (press and hold)");
-    ImGui::Text("Start/stop trace: Space bar/escape key");
-    ImGui::Text("Cycle render modes: R key");
-    ImGui::Text("Toggle wireframe: F key");
-    ImGui::Text("");
-
-    ImGui::Text("----- Status -----");
+    ImGui::Text("----- Status -------------------------------------");
     ImGui::Text("Render Mode: %s", GetRenderingModeString(RenderMode).c_str());
+    ImGui::Separator();
+    ImGui::Separator();
 
     if (TheRaytracer != nullptr && TheRaytracer->IsTracing())
     {
@@ -1170,17 +1172,36 @@ void RaytracerWindows::OnGUI()
     }
     else
     {
+        char stringBuf[128];
         bool rayTracerDirty = false;
-        ImGui::Text("");
-        ImGui::Text("----- Raytracing Options -----");
 
-        if (ImGui::SliderInt("Num Samples", &sNumSamplesPerRay, 1, 50000))
+        ImGui::Text("----- Help ---------------------------------------");
+        ImGui::BulletText("Translate camera: Press keys WASD strafe, QE up and down");
+        ImGui::BulletText("Pan camera: Right mouse button (press and hold)");
+        ImGui::BulletText("Start/stop trace: Space bar/escape key");
+        ImGui::BulletText("Cycle render modes: R key");
+        ImGui::BulletText("Toggle wireframe: F key");
+        ImGui::Separator();
+        ImGui::Separator();
+
+
+        ImGui::Text("----- Raytracing Options -------------------------");
+        if (ImGui::ListBox("Scene", &sSampleScene, SampleSceneNames, IM_ARRAYSIZE(SampleSceneNames), MaxScene))
         {
+            LoadSceneRequested = true;
+        }
+
+        _itoa_s(sNumSamplesPerRay, stringBuf, 10);
+        if(ImGui::InputText("Num Samples", stringBuf, IM_ARRAYSIZE(stringBuf), ImGuiInputTextFlags_CharsDecimal))
+        {
+            sNumSamplesPerRay = atoi(stringBuf);
             rayTracerDirty = true;
         }
 
-        if (ImGui::SliderInt("Scatter Depth", &sMaxScatterDepth, 1, 100))
+        _itoa_s(sMaxScatterDepth, stringBuf, 10);
+        if (ImGui::InputText("Scatter Depth", stringBuf, IM_ARRAYSIZE(stringBuf), ImGuiInputTextFlags_CharsDecimal))
         {
+            sMaxScatterDepth = atoi(stringBuf);
             rayTracerDirty = true;
         }
 
@@ -1195,7 +1216,6 @@ void RaytracerWindows::OnGUI()
             OnResizeRaytracer();
         }
 
-        // Should we start tracing?
         ImGui::Text("");
         if (ImGui::Button("Begin Trace", ImVec2(100, 50)))
         {
@@ -1215,6 +1235,12 @@ void RaytracerWindows::OnRender(RenderEventArgs& e)
 
     auto commandQueue = Application::Get().GetCommandQueue(D3D12_COMMAND_LIST_TYPE_DIRECT);
     auto commandList  = commandQueue->GetCommandList();
+
+    if (LoadSceneRequested)
+    {
+        LoadScene(commandList);
+        LoadSceneRequested = false;
+    }
 
     // -------------------------------------------------------------------
     // Render shadowmaps first

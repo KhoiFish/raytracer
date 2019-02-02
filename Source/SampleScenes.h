@@ -18,6 +18,15 @@ enum SampleScene
     MaxScene
 };
 
+constexpr const char* SampleSceneNames[MaxScene] =
+{
+    "SceneRandom",
+    "SceneCornell",
+    "SceneCornellSmoke",
+    "SceneMesh",
+    "SceneFinal",
+};
+
 // ----------------------------------------------------------------------------------------------------------------------------
 
 WorldScene* GetSampleScene(SampleScene sceneType);

@@ -94,7 +94,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_LIB;PLATFORM_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../Source</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Source;$(SolutionDir)ThirdParty</AdditionalIncludeDirectories>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointModel>Precise</FloatingPointModel>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
@@ -134,7 +134,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_LIB;PLATFORM_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../Source</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Source;$(SolutionDir)ThirdParty</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -162,56 +162,56 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\Source\Core\AABB.h" />
-    <ClInclude Include="..\Source\Core\BVHNode.h" />
-    <ClInclude Include="..\Source\Core\Camera.h" />
-    <ClInclude Include="..\Source\Core\ConstantMedium.h" />
-    <ClInclude Include="..\Source\Core\FlipNormals.h" />
-    <ClInclude Include="..\Source\Core\HitableBox.h" />
-    <ClInclude Include="..\Source\Core\HitableList.h" />
-    <ClInclude Include="..\Source\Core\HitableTransform.h" />
-    <ClInclude Include="..\Source\Core\IHitable.h" />
-    <ClInclude Include="..\Source\Core\ImageIO.h" />
-    <ClInclude Include="..\Source\Core\Material.h" />
-    <ClInclude Include="..\Source\Core\Systems.h" />
-    <ClInclude Include="..\Source\Core\TriMesh.h" />
-    <ClInclude Include="..\Source\Core\MovingSphere.h" />
-    <ClInclude Include="..\Source\Core\OrthoNormalBasis.h" />
-    <ClInclude Include="..\Source\Core\Pdf.h" />
-    <ClInclude Include="..\Source\Core\Perlin.h" />
-    <ClInclude Include="..\Source\Core\Quat.h" />
-    <ClInclude Include="..\Source\Core\Ray.h" />
-    <ClInclude Include="..\Source\Core\Raytracer.h" />
-    <ClInclude Include="..\Source\Core\Sphere.h" />
-    <ClInclude Include="..\Source\Core\Texture.h" />
-    <ClInclude Include="..\Source\Core\ThreadEvent.h" />
-    <ClInclude Include="..\Source\Core\Triangle.h" />
-    <ClInclude Include="..\Source\Core\Util.h" />
-    <ClInclude Include="..\Source\Core\Vec3.h" />
-    <ClInclude Include="..\Source\Core\WorldScene.h" />
-    <ClInclude Include="..\Source\Core\XYZRect.h" />
-    <ClInclude Include="..\Source\StbImage\stb_image.h" />
+    <ClInclude Include="..\..\Source\Core\AABB.h" />
+    <ClInclude Include="..\..\Source\Core\BVHNode.h" />
+    <ClInclude Include="..\..\Source\Core\Camera.h" />
+    <ClInclude Include="..\..\Source\Core\ConstantMedium.h" />
+    <ClInclude Include="..\..\Source\Core\FlipNormals.h" />
+    <ClInclude Include="..\..\Source\Core\HitableBox.h" />
+    <ClInclude Include="..\..\Source\Core\HitableList.h" />
+    <ClInclude Include="..\..\Source\Core\HitableTransform.h" />
+    <ClInclude Include="..\..\Source\Core\IHitable.h" />
+    <ClInclude Include="..\..\Source\Core\ImageIO.h" />
+    <ClInclude Include="..\..\Source\Core\Material.h" />
+    <ClInclude Include="..\..\Source\Core\Systems.h" />
+    <ClInclude Include="..\..\Source\Core\TriMesh.h" />
+    <ClInclude Include="..\..\Source\Core\MovingSphere.h" />
+    <ClInclude Include="..\..\Source\Core\OrthoNormalBasis.h" />
+    <ClInclude Include="..\..\Source\Core\Pdf.h" />
+    <ClInclude Include="..\..\Source\Core\Perlin.h" />
+    <ClInclude Include="..\..\Source\Core\Quat.h" />
+    <ClInclude Include="..\..\Source\Core\Ray.h" />
+    <ClInclude Include="..\..\Source\Core\Raytracer.h" />
+    <ClInclude Include="..\..\Source\Core\Sphere.h" />
+    <ClInclude Include="..\..\Source\Core\Texture.h" />
+    <ClInclude Include="..\..\Source\Core\ThreadEvent.h" />
+    <ClInclude Include="..\..\Source\Core\Triangle.h" />
+    <ClInclude Include="..\..\Source\Core\Util.h" />
+    <ClInclude Include="..\..\Source\Core\Vec3.h" />
+    <ClInclude Include="..\..\Source\Core\WorldScene.h" />
+    <ClInclude Include="..\..\Source\Core\XYZRect.h" />
+    <ClInclude Include="..\..\ThirdParty\StbImage\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\Source\Core\BVHNode.cpp" />
-    <ClCompile Include="..\Source\Core\Camera.cpp" />
-    <ClCompile Include="..\Source\Core\ConstantMedium.cpp" />
-    <ClCompile Include="..\Source\Core\FlipNormals.cpp" />
-    <ClCompile Include="..\Source\Core\HitableBox.cpp" />
-    <ClCompile Include="..\Source\Core\HitableList.cpp" />
-    <ClCompile Include="..\Source\Core\HitableTransform.cpp" />
-    <ClCompile Include="..\Source\Core\ImageIO.cpp" />
-    <ClCompile Include="..\Source\Core\Material.cpp" />
-    <ClCompile Include="..\Source\Core\MovingSphere.cpp" />
-    <ClCompile Include="..\Source\Core\Perlin.cpp" />
-    <ClCompile Include="..\Source\Core\Raytracer.cpp" />
-    <ClCompile Include="..\Source\Core\Sphere.cpp" />
-    <ClCompile Include="..\Source\Core\Texture.cpp" />
-    <ClCompile Include="..\Source\Core\Triangle.cpp" />
-    <ClCompile Include="..\Source\Core\TriMesh.cpp" />
-    <ClCompile Include="..\Source\Core\Util.cpp" />
-    <ClCompile Include="..\Source\Core\XYZRect.cpp" />
-    <ClCompile Include="..\Source\StbImage\StbImageImpl.cpp" />
+    <ClCompile Include="..\..\Source\Core\BVHNode.cpp" />
+    <ClCompile Include="..\..\Source\Core\Camera.cpp" />
+    <ClCompile Include="..\..\Source\Core\ConstantMedium.cpp" />
+    <ClCompile Include="..\..\Source\Core\FlipNormals.cpp" />
+    <ClCompile Include="..\..\Source\Core\HitableBox.cpp" />
+    <ClCompile Include="..\..\Source\Core\HitableList.cpp" />
+    <ClCompile Include="..\..\Source\Core\HitableTransform.cpp" />
+    <ClCompile Include="..\..\Source\Core\ImageIO.cpp" />
+    <ClCompile Include="..\..\Source\Core\Material.cpp" />
+    <ClCompile Include="..\..\Source\Core\MovingSphere.cpp" />
+    <ClCompile Include="..\..\Source\Core\Perlin.cpp" />
+    <ClCompile Include="..\..\Source\Core\Raytracer.cpp" />
+    <ClCompile Include="..\..\Source\Core\Sphere.cpp" />
+    <ClCompile Include="..\..\Source\Core\Texture.cpp" />
+    <ClCompile Include="..\..\Source\Core\Triangle.cpp" />
+    <ClCompile Include="..\..\Source\Core\TriMesh.cpp" />
+    <ClCompile Include="..\..\Source\Core\Util.cpp" />
+    <ClCompile Include="..\..\Source\Core\XYZRect.cpp" />
+    <ClCompile Include="..\..\ThirdParty\StbImage\StbImageImpl.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

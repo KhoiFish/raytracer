@@ -3,14 +3,14 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28307.168
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RayTracerConsole", "RayTracerConsole\RayTracerConsole.vcxproj", "{2AD2BE84-18D5-4F6B-B94E-47D60D4566FB}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RayTracerConsole", "VSProjects\RayTracerConsole\RayTracerConsole.vcxproj", "{2AD2BE84-18D5-4F6B-B94E-47D60D4566FB}"
 	ProjectSection(ProjectDependencies) = postProject
 		{393812B2-42A1-4EB3-B5C9-F4DC05470394} = {393812B2-42A1-4EB3-B5C9-F4DC05470394}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RayTracerLib", "RayTracerLib\RayTracerLib.vcxproj", "{393812B2-42A1-4EB3-B5C9-F4DC05470394}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RayTracerLib", "VSProjects\RayTracerLib\RayTracerLib.vcxproj", "{393812B2-42A1-4EB3-B5C9-F4DC05470394}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RayTracerWindows", "RayTracerWindows\RayTracerWindows.vcxproj", "{42D26F47-C869-4E43-9DB1-F8046F8A4252}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RayTracerWindows", "VSProjects\RayTracerWindows\RayTracerWindows.vcxproj", "{42D26F47-C869-4E43-9DB1-F8046F8A4252}"
 	ProjectSection(ProjectDependencies) = postProject
 		{393812B2-42A1-4EB3-B5C9-F4DC05470394} = {393812B2-42A1-4EB3-B5C9-F4DC05470394}
 		{771ECBC7-2278-3E0C-83AD-E6EA328098E9} = {771ECBC7-2278-3E0C-83AD-E6EA328098E9}

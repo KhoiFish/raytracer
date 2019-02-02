@@ -19,11 +19,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Source\SampleScenes.h" />
+    <ClInclude Include="..\..\Source\SampleScenes.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\Source\ConsoleMain.cpp" />
-    <ClCompile Include="..\Source\SampleScenes.cpp" />
+    <ClCompile Include="..\..\Source\ConsoleMain.cpp" />
+    <ClCompile Include="..\..\Source\SampleScenes.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

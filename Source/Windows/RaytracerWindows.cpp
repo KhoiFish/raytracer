@@ -1186,7 +1186,7 @@ void RaytracerWindows::OnGUI()
 
 
         ImGui::Text("----- Raytracing Options -------------------------");
-        if (ImGui::ListBox("Scene", &sSampleScene, SampleSceneNames, IM_ARRAYSIZE(SampleSceneNames), MaxScene))
+        if (ImGui::ListBox("Scene Select", &sSampleScene, SampleSceneNames, IM_ARRAYSIZE(SampleSceneNames), MaxScene))
         {
             LoadSceneRequested = true;
         }

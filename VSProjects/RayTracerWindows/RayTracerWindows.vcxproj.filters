@@ -16,20 +16,20 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Source\SampleScenes.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Source\Windows\CameraDX12.h">
-      <Filter>Source\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Source\Windows\RaytracerWindows.h">
-      <Filter>Source\Render</Filter>
-    </ClInclude>
     <ClInclude Include="Resource.h">
       <Filter>Resource Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Source\Windows\ShaderStructs.h">
+    <ClInclude Include="..\..\Source\Windows\CameraDX12.h">
       <Filter>Source\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Windows\RaytracerWindows.h">
+      <Filter>Source\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SampleScenes.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Windows\ShaderStructs.h">
+      <Filter>Shaders</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -46,42 +46,42 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\Source\SampleScenes.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
     <ClCompile Include="WinMain.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="..\Source\Windows\CameraDX12.cpp">
+    <ClCompile Include="..\..\Source\Windows\CameraDX12.cpp">
       <Filter>Source\Render</Filter>
     </ClCompile>
-    <ClCompile Include="..\Source\Windows\RaytracerWindows.cpp">
+    <ClCompile Include="..\..\Source\Windows\RaytracerWindows.cpp">
       <Filter>Source\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SampleScenes.cpp">
+      <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="..\Source\Windows\Shaders\FullscreenQuad_VS.hlsl">
+    <FxCompile Include="..\..\Source\Windows\Shaders\FullscreenQuad_PS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="..\Source\Windows\Shaders\FullscreenQuad_PS.hlsl">
+    <FxCompile Include="..\..\Source\Windows\Shaders\FullscreenQuad_VS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="..\Source\Windows\Shaders\Preview_PS.hlsl">
+    <FxCompile Include="..\..\Source\Windows\Shaders\Lighting.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="..\Source\Windows\Shaders\Preview_VS.hlsl">
+    <FxCompile Include="..\..\Source\Windows\Shaders\Preview_PS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="..\Source\Windows\Shaders\ShaderStructs.hlsl">
+    <FxCompile Include="..\..\Source\Windows\Shaders\Preview_VS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="..\Source\Windows\Shaders\Lighting.hlsl">
+    <FxCompile Include="..\..\Source\Windows\Shaders\ShaderStructs.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="..\Source\Windows\Shaders\Shadowmap_PS.hlsl">
+    <FxCompile Include="..\..\Source\Windows\Shaders\Shadowmap_PS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="..\Source\Windows\Shaders\Shadowmap_VS.hlsl">
+    <FxCompile Include="..\..\Source\Windows\Shaders\Shadowmap_VS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>

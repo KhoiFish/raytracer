@@ -3,7 +3,7 @@
 #include "ImageIO.h"
 
 #include <stdlib.h>
-#include <stdio.h> 
+#include <stdio.h>
 #include <stdarg.h>
 #include <cstring>
 #include <chrono>
@@ -21,7 +21,7 @@
     #define STD_FILESYSTEM_SUPPORTED
 #else
     #define vsprintf_s  vsprintf
-    #include <linux/limits.h>
+    #include <limits.h>
 #endif
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -74,7 +74,7 @@ std::string GetTimeAndDateString()
     return ss.str();
 }
 
-#pragma warning(pop) 
+#pragma warning(pop)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 

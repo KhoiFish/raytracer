@@ -9,6 +9,7 @@
 class Pdf
 {
 public:
+    virtual ~Pdf() {}
 
     virtual float Value(const Vec3& direction) const = 0;
     virtual Vec3  Generate() const = 0;

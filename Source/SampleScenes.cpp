@@ -438,6 +438,9 @@ WorldScene* GetSampleScene(SampleScene sceneType)
             ret = sampleSceneFinal();
         }
         break;
+
+        default:
+        break;
     }
 
     return ret;

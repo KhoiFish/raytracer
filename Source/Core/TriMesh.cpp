@@ -33,7 +33,7 @@ TriMesh* TriMesh::CreateFromSTLFile(const char* filePath, Material* material, fl
         // Read the header, which we'll ignore for now
         uint8_t header[80];
         inputFile.read((char*)header, sizeof(header));
-        
+
         uint32_t numTriangles;
         inputFile.read((char*)&numTriangles, sizeof(uint32_t));
 
@@ -225,7 +225,7 @@ TriMesh* TriMesh::CreateFromOBJFile(const char* filePath, float scale, bool make
                             (float)atof(tokens[1].c_str())
                         }
                     };
-                    
+
                     texCoordList.push_back(texCoord);
                 }
                 break;
@@ -271,6 +271,9 @@ TriMesh* TriMesh::CreateFromOBJFile(const char* filePath, float scale, bool make
                         ret->Mat = new MWavefrontObj(matPath.c_str(), makeMetalMaterial);
                     }
                 }
+                break;
+
+                default:
                 break;
             }
         }

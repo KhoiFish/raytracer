@@ -29,6 +29,7 @@ public:
         int64_t     TotalRaysFired;
         int64_t     NumPixelSamples;
         int64_t     TotalNumPixelSamples;
+        int         CompletedSampleCount;
         int         NumPdfQueryRetries;
         int         TotalTimeInSeconds;
     };

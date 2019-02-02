@@ -1155,14 +1155,31 @@ void RaytracerWindows::OnGUI()
         return;
     }
 
-    ImGui::Text("----- Status -------------------------------------");
-    ImGui::Text("Render Mode: %s", GetRenderingModeString(RenderMode).c_str());
     ImGui::Separator();
+    ImGui::Text("*** STATUS ***");
     ImGui::Separator();
+    ImGui::BulletText("Render Mode: %s", GetRenderingModeString(RenderMode).c_str());
 
     if (TheRaytracer != nullptr && TheRaytracer->IsTracing())
     {
-        ImGui::Text("%s", ProgressPrint(TheRaytracer, false));
+        {
+            Raytracer::Stats stats = TheRaytracer->GetStats();
+            double percentage = double(double(stats.NumPixelSamples) / double(stats.TotalNumPixelSamples));
+            int    percentInt = (int)(percentage * 100);
+            int    numMinutes = stats.TotalTimeInSeconds / 60;
+            int    numSeconds = stats.TotalTimeInSeconds % 60;
+
+            ImGui::BulletText("Completion: %d%%", percentInt);
+            ImGui::BulletText("Time: %dm:%ds", numMinutes, numSeconds);
+            ImGui::BulletText("Resolution: %dx%d", BackbufferWidth, BackbufferHeight);
+            ImGui::BulletText("Scatter Depth: %d", sMaxScatterDepth);
+            ImGui::BulletText("Num Threads: %d", sNumThreads);
+            ImGui::BulletText("Num Samples: %d", sNumSamplesPerRay);
+            ImGui::BulletText("Done Samples: %d", stats.CompletedSampleCount);
+            ImGui::BulletText("Rays Fired: %" PRId64 "", stats.TotalRaysFired);
+            ImGui::BulletText("Num Pixels Sampled: %" PRId64 "", stats.NumPixelSamples);
+            ImGui::BulletText("Pdf Query Retries: %d", stats.NumPdfQueryRetries);
+        }
 
         ImGui::Text("");
         if (ImGui::Button("Stop Trace", ImVec2(100, 50)))
@@ -1175,17 +1192,19 @@ void RaytracerWindows::OnGUI()
         char stringBuf[128];
         bool rayTracerDirty = false;
 
-        ImGui::Text("----- Help ---------------------------------------");
+        ImGui::Separator();
+        ImGui::Text("*** HELP ***");
+        ImGui::Separator();
         ImGui::BulletText("Translate camera: Press keys WASD strafe, QE up and down");
         ImGui::BulletText("Pan camera: Right mouse button (press and hold)");
         ImGui::BulletText("Start/stop trace: Space bar/escape key");
         ImGui::BulletText("Cycle render modes: R key");
         ImGui::BulletText("Toggle wireframe: F key");
-        ImGui::Separator();
-        ImGui::Separator();
 
 
-        ImGui::Text("----- Raytracing Options -------------------------");
+        ImGui::Separator();
+        ImGui::Text("*** RAYTRACING ***");
+        ImGui::Separator();
         if (ImGui::ListBox("Scene Select", &sSampleScene, SampleSceneNames, IM_ARRAYSIZE(SampleSceneNames), MaxScene))
         {
             LoadSceneRequested = true;

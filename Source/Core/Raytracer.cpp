@@ -91,11 +91,12 @@ Raytracer::Stats Raytracer::GetStats() const
     const StdTime endTime = IsRaytracing ? std::chrono::system_clock::now() : EndTime;
 
     Stats stats;
-    stats.TotalRaysFired       = TotalRaysFired.load();
-    stats.NumPixelSamples      = CurrentPixelSampleOffset.load();
-    stats.TotalNumPixelSamples = int64_t(OutputWidth * OutputHeight) * int64_t(NumRaySamples);
-    stats.NumPdfQueryRetries   = NumPdfQueryRetries.load();
-    stats.TotalTimeInSeconds   = (int)std::chrono::duration<double>(endTime - StartTime).count();
+    stats.TotalRaysFired        = TotalRaysFired.load();
+    stats.NumPixelSamples       = CurrentPixelSampleOffset.load();
+    stats.TotalNumPixelSamples  = int64_t(OutputWidth * OutputHeight) * int64_t(NumRaySamples);
+    stats.CompletedSampleCount  = int(CurrentPixelSampleOffset.load() / int64_t(OutputWidth * OutputHeight));
+    stats.NumPdfQueryRetries    = NumPdfQueryRetries.load();
+    stats.TotalTimeInSeconds    = (int)std::chrono::duration<double>(endTime - StartTime).count();
     
     return stats;
 }

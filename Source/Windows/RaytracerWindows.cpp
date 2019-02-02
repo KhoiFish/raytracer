@@ -1104,20 +1104,14 @@ void RaytracerWindows::RenderPreviewObjects(std::shared_ptr<CommandList>& comman
             XMStoreFloat4x4(&matrices.ShadowViewProj, XMMatrixTranspose((*shadowViewProj) * t));
         }
 
+        const Texture& diffuseTex   = (RenderSceneList[i]->DiffuseTexture != nullptr) ? *RenderSceneList[i]->DiffuseTexture : WhiteTex;
+        const Texture& shadowmapTex = (!shadowmapRender && ShadowmapRTList.size() > 0) ? ShadowmapRTList[0]->GetTexture(Color0) : WhiteTex;
+
         commandList->SetGraphicsDynamicConstantBuffer(RootParameters::MatricesCB, matrices);
         commandList->SetGraphicsDynamicConstantBuffer(RootParameters::MaterialCB, RenderSceneList[i]->Material);
-        commandList->SetShaderResourceView(RootParameters::TextureDiffuse, 0, *RenderSceneList[i]->DiffuseTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-
-        if (shadowmapRender)
-        {
-            commandList->SetShaderResourceView(RootParameters::TextureShadowmap, 0, WhiteTex, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-        }
-        else
-        {
-            commandList->SetShaderResourceView(RootParameters::TextureShadowmap, 0, ShadowmapRTList[0]->GetTexture(Color0), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-        }
+        commandList->SetShaderResourceView(RootParameters::TextureDiffuse, 0, diffuseTex, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+        commandList->SetShaderResourceView(RootParameters::TextureShadowmap, 0, shadowmapTex, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
         
-
         RenderSceneList[i]->MeshData->Draw(*commandList);
     }
 }
@@ -1191,6 +1185,7 @@ void RaytracerWindows::OnRender(RenderEventArgs& e)
         // Draw fullscreen quad
         commandList->SetPipelineState(FullscreenPipelineState);
         commandList->SetShaderResourceView(RootParameters::TextureDiffuse, 0, CPURaytracerTex, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+        commandList->SetShaderResourceView(RootParameters::TextureShadowmap, 0, WhiteTex, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
         commandList->SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         commandList->SetNullVertexBuffer(0);
         commandList->SetNullIndexBuffer();

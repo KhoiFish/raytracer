@@ -163,13 +163,13 @@
     <ClInclude Include="..\..\Source\Windows\CameraDX12.h" />
     <ClInclude Include="..\..\Source\Windows\RaytracerWindows.h" />
     <ClInclude Include="..\..\Source\Windows\ShaderStructs.h" />
-    <ClInclude Include="Resource.h" />
+    <ClInclude Include="..\..\Source\Windows\Resource.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\SampleScenes.cpp" />
     <ClCompile Include="..\..\Source\Windows\CameraDX12.cpp" />
     <ClCompile Include="..\..\Source\Windows\RaytracerWindows.cpp" />
-    <ClCompile Include="WinMain.cpp" />
+    <ClCompile Include="..\..\Source\Windows\WinMain.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="RayTracerWindows.rc" />

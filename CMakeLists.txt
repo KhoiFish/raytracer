@@ -5,12 +5,12 @@ project (RayTracerConsoleUnix)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/BuildOutput)
 
 # Build with C++17 standard and pthread
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++17 -pthread -g")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++17 -pthread")
 
 # Specify the sources to build
-include_directories(Source)
+include_directories(Source ThirdParty)
 file(GLOB CORE_SOURCE "Source/Core/*.cpp")
-set(STB_SOURCE  "Source/StbImage/StbImageImpl.cpp")
+set(STB_SOURCE  "ThirdParty/StbImage/StbImageImpl.cpp")
 set(SAMPLE_SOURCE "Source/SampleScenes.cpp")
 set(MAIN_SOURCE "Source/ConsoleMain.cpp")
 

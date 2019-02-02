@@ -12,7 +12,7 @@ REM Copy source files
 mkdir %BUILD_DIR%
 mkdir %BUILD_DIR%\%RUNTIMEDATA%
 mkdir %BUILD_DIR%\%SHADERBUILD%
-xcopy /E /Y BuildOutput\*.* %BUILD_DIR%
+xcopy /Y BuildOutput\*.* %BUILD_DIR%
 xcopy /E /Y %RUNTIMEDATA%\*.* %BUILD_DIR%\%RUNTIMEDATA%
 xcopy /E /Y %SHADERBUILD%\*.* %BUILD_DIR%\%SHADERBUILD%
 

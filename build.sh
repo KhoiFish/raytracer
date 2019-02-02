@@ -1,7 +1,7 @@
 #!/bin/sh
-rm -rf CMakeBuildOutput
-mkdir CMakeBuildOutput
-cd CMakeBuildOutput
-cmake ../
+rm -rf BuildOutput/CMakeBuildOutput
+mkdir BuildOutput/CMakeBuildOutput
+cd BuildOutput/CMakeBuildOutput
+cmake ../../
 make
-cd ..
+cd ../../

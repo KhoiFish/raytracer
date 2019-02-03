@@ -1,0 +1,3 @@
+[submodule "ThirdParty/Vc"]
+	path = ThirdParty/Vc
+	url = https://github.com/VcDevel/Vc.git

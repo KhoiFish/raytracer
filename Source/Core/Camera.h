@@ -41,6 +41,11 @@ public:
         return BackgroundColor;
     }
 
+    inline float GetVertFov() const
+    {
+        return VertFov;
+    }
+
     inline void GetCameraParams(
         Vec3& lookFrom, Vec3& lookAt, Vec3& up,
         float& vertFov, float& aspect, float& aperture, float& focusDist,

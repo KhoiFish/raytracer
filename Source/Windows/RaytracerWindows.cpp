@@ -23,6 +23,7 @@ static int          overrideHeight      = 720;
 static int          sNumSamplesPerRay   = 500;
 static int          sMaxScatterDepth    = 50;
 static int          sNumThreads         = 4;
+static float        sVertFov            = 40.f;
 static int          sSampleScene        = SceneMesh;
 static float        sClearColor[]       = { 0.2f, 0.2f, 0.2f, 1.0f };
 static const float  sShadowmapNear      = 0.1f;
@@ -254,6 +255,7 @@ void RaytracerWindows::LoadScene(std::shared_ptr<CommandList> commandList)
     Scene = GetSampleScene(SampleScene(sSampleScene));
     Scene->GetCamera().SetAspect((float)BackbufferWidth / (float)BackbufferHeight);
     Scene->GetCamera().SetFocusDistanceToLookAt();
+    sVertFov = Scene->GetCamera().GetVertFov();
 
     // Generate render list from loaded scene
     std::vector<DirectX::XMMATRIX> matrixStack;
@@ -576,7 +578,7 @@ void RaytracerWindows::OnUpdate(UpdateEventArgs& e)
     float strafeAmount   = (Left - Right) * scale;
     float upDownAmount   = (Up - Down) * scale;
 
-    UpdateCameras(forwardAmount, strafeAmount, upDownAmount, MouseDx, MouseDy, Scene->GetCamera(), RenderCamera);
+    UpdateCameras(sVertFov, forwardAmount, strafeAmount, upDownAmount, MouseDx, MouseDy, Scene->GetCamera(), RenderCamera);
     MouseDx = 0;
     MouseDy = 0;
 
@@ -795,11 +797,12 @@ void RaytracerWindows::OnGUI()
         ImGui::Separator();
         ImGui::Text("*** HELP ***");
         ImGui::Separator();
-        ImGui::BulletText("Translate camera: Press keys WASD strafe, QE up and down");
-        ImGui::BulletText("Pan camera: Right mouse button (press and hold)");
-        ImGui::BulletText("Start/stop trace: Space bar/escape key");
-        ImGui::BulletText("Cycle render modes: R key");
-        ImGui::BulletText("Toggle wireframe: F key");
+        ImGui::BulletText("Translate camera:    Press keys WASD strafe, QE up and down");
+        ImGui::BulletText("Pan camera:          Right mouse button (press and hold)");
+        ImGui::BulletText("Fov adjust:          Mouse wheel");
+        ImGui::BulletText("Start/stop trace:    Space bar/escape key");
+        ImGui::BulletText("Cycle render modes:  R key");
+        ImGui::BulletText("Toggle wireframe:    F key");
 
 
         ImGui::Separator();
@@ -1169,10 +1172,8 @@ void RaytracerWindows::OnMouseWheel(MouseWheelEventArgs& e)
 {
     if (!ImGui::GetIO().WantCaptureMouse)
     {
-        auto fov = RenderCamera.get_FoV();
-        fov -= e.WheelDelta;
-        fov = Clamp(fov, 12.0f, 90.0f);
-
-        RenderCamera.set_FoV(fov);
+        sVertFov -= e.WheelDelta;
+        sVertFov = Clamp(sVertFov, 12.0f, 90.0f);
+        Raytrace(false);
     }
 }

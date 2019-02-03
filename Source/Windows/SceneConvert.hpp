@@ -361,7 +361,7 @@ void GenerateRenderListFromWorld(std::shared_ptr<CommandList> commandList, const
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static void UpdateCameras(float forwardAmount, float strafeAmount, float upDownAmount, int mouseDx, int mouseDy, Camera& raytracerCamera, CameraDX12& renderCamera)
+static void UpdateCameras(float newVertFov, float forwardAmount, float strafeAmount, float upDownAmount, int mouseDx, int mouseDy, Camera& raytracerCamera, CameraDX12& renderCamera)
 {
     // Has mouse moved?
     static int lastMouseDx = mouseDx;
@@ -399,7 +399,7 @@ static void UpdateCameras(float forwardAmount, float strafeAmount, float upDownA
     lookAt = lookFrom + (viewDir * diffVec.Length());
 
     // Update raytracer camera
-    raytracerCamera.Setup(lookFrom, lookAt, up, vertFov, aspect, aperture, focusDist, t0, t1, clearColor);
+    raytracerCamera.Setup(lookFrom, lookAt, up, newVertFov, aspect, aperture, focusDist, t0, t1, clearColor);
     raytracerCamera.SetFocusDistanceToLookAt();
 
     // Set the render camera
@@ -407,7 +407,7 @@ static void UpdateCameras(float forwardAmount, float strafeAmount, float upDownA
     XMVECTOR cameraTarget = ConvertToXMVector(lookAt);
     XMVECTOR cameraUp = ConvertToXMVector(up);
     renderCamera.set_LookAt(cameraPos, cameraTarget, cameraUp);
-    renderCamera.set_Projection(vertFov, aspect, 0.1f, 10000.0f);
+    renderCamera.set_Projection(newVertFov, aspect, 0.1f, 10000.0f);
 
     // Print out camera changes
     if (mouseMoved)
@@ -416,7 +416,7 @@ static void UpdateCameras(float forwardAmount, float strafeAmount, float upDownA
             lookFrom[0], lookFrom[1], lookFrom[2],
             lookAt[0], lookAt[1], lookAt[2],
             up[0], up[1], up[2],
-            vertFov, aspect, aperture, focusDist
+            newVertFov, aspect, aperture, focusDist
         );
     }
 }

@@ -118,10 +118,10 @@ inline Vec3 RandomToSphere(float radius, float distanceSquared)
 {
     float r1  = RandomFloat();
     float r2  = RandomFloat();
-    float  z  = 1 + r2 * (sqrt(1 - radius * radius / distanceSquared) - 1);
+    float  z  = 1 + r2 * (sqrt(GetMax(0.f, 1 - radius * radius / distanceSquared)) - 1);
     float phi = 2 * RT_PI * r1;
-    float x   = cos(phi) * sqrt(1 - z * z);
-    float y   = sin(phi) * sqrt(1 - z * z);
+    float x   = cos(phi) * sqrt(GetMax(0.f, 1 - z * z));
+    float y   = sin(phi) * sqrt(GetMax(0.f, 1 - z * z));
 
     return Vec3(x, y, z);
 }

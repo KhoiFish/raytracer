@@ -12,6 +12,7 @@ class HitableTranslate : public IHitable
 public:
 
     inline HitableTranslate(IHitable* p, const Vec3& displacement) : HitObject(p), Offset(displacement) {}
+    virtual ~HitableTranslate();
 
     virtual bool           Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const;
     virtual bool           BoundingBox(float t0, float t1, AABB& box) const;
@@ -31,6 +32,7 @@ class HitableRotateY : public IHitable
 public:
 
     HitableRotateY(IHitable* obj, float angleDeg);
+    virtual ~HitableRotateY();
 
     virtual bool           Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const;
     virtual bool           BoundingBox(float t0, float t1, AABB& box) const;

@@ -19,6 +19,30 @@ struct STLTriangle
 };
 #pragma pack(pop)
 
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+TriMesh::~TriMesh()
+{
+    if (BVHHead != nullptr)
+    {
+        delete BVHHead;
+        BVHHead = nullptr;
+    }
+
+    if (TriArray != nullptr)
+    {
+        delete[] TriArray;
+        TriArray = nullptr;
+    }
+
+    if (Mat != nullptr)
+    {
+        delete Mat;
+        Mat = nullptr;
+    }
+}
+
 // ----------------------------------------------------------------------------------------------------------------------------
 
 TriMesh* TriMesh::CreateFromSTLFile(const char* filePath, Material* material, float scale /*= 1.0f*/)

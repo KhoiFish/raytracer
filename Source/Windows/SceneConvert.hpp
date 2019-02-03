@@ -23,6 +23,12 @@ using namespace DirectX;
 
 struct RenderSceneNode
 {
+    RenderSceneNode() : Hitable(nullptr), DiffuseTexture(nullptr) {}
+
+    // Note we intentionally leak the DiffuseTexture. There's bugs with the texture referencing
+    // in the DX12 library.
+    ~RenderSceneNode() {}
+
     const IHitable*         Hitable;
     std::shared_ptr<Mesh>   MeshData;
     XMMATRIX                WorldMatrix;

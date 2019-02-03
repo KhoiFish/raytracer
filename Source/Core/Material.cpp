@@ -6,7 +6,7 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-MLambertian::MLambertian(BaseTexture* albedo) : Albedo(albedo)
+MLambertian::MLambertian(BaseTexture* albedo) : Material(albedo, nullptr)
 {
     ;
 }
@@ -58,7 +58,7 @@ Vec3 MLambertian::AlbedoValue(float u, float v, const Vec3& p) const
 // ----------------------------------------------------------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------------------------------
 
-MMetal::MMetal(BaseTexture* albedo, float fuzz) : Albedo(albedo)
+MMetal::MMetal(BaseTexture* albedo, float fuzz) : Material(albedo, nullptr)
 {
     if (fuzz < 1)
     {
@@ -151,7 +151,7 @@ bool MDielectric::Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterReco
 // ----------------------------------------------------------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------------------------------
 
-MDiffuseLight::MDiffuseLight(BaseTexture* tex) : EmitTex(tex)
+MDiffuseLight::MDiffuseLight(BaseTexture* tex) : Material(nullptr, tex)
 {
     ;
 }
@@ -178,7 +178,7 @@ Vec3 MDiffuseLight::AlbedoValue(float u, float v, const Vec3& p) const
 // ----------------------------------------------------------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------------------------------
 
-MIsotropic::MIsotropic(BaseTexture* albedo) : Albedo(albedo)
+MIsotropic::MIsotropic(BaseTexture* albedo)  : Material(albedo, nullptr)
 {
 
 }
@@ -236,6 +236,17 @@ MWavefrontObj::MWavefrontObj(const char* materialFilePath, bool makeMetal, float
     else
     {
         DEBUG_PRINTF("Could not open material file %s!", materialFilePath);
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+MWavefrontObj::~MWavefrontObj()
+{
+    if (DiffuseMap != nullptr)
+    {
+        delete DiffuseMap;
+        DiffuseMap = nullptr;
     }
 }
 

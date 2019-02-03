@@ -2,6 +2,17 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+HitableTranslate::~HitableTranslate()
+{
+    if (HitObject != nullptr)
+    {
+        delete HitObject;
+        HitObject = nullptr;
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 bool HitableTranslate::Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const
 {
     Ray movedRay(r.Origin() - Offset, r.Direction(), r.Time());
@@ -67,6 +78,17 @@ HitableRotateY::HitableRotateY(IHitable* obj, float angleDeg) : HitObject(obj), 
         }
     }
     Bbox = AABB(minV, maxV);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+HitableRotateY::~HitableRotateY()
+{
+    if (HitObject != nullptr)
+    {
+        delete HitObject;
+        HitObject = nullptr;
+    }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

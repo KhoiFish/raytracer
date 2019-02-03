@@ -4,6 +4,11 @@
 
 HitableBox::HitableBox(const Vec3& p0, const Vec3& p1, Material* mat) : Mat(mat)
 {
+    if (Mat->Owner == nullptr)
+    {
+        Mat->Owner = this;
+    }
+
     Pmin = p0;
     Pmax = p1;
     IHitable** list = new IHitable*[6];
@@ -19,6 +24,23 @@ HitableBox::HitableBox(const Vec3& p0, const Vec3& p1, Material* mat) : Mat(mat)
     list[i++] = new FlipNormals(new XYZRect(XYZRect::YZ, p0.Y(), p1.Y(), p0.Z(), p1.Z(), p0.X(), mat));
 
     HitList = new HitableList(list, 6);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+HitableBox::~HitableBox()
+{
+   if (HitList != nullptr)
+   {
+       delete HitList;
+       HitList = nullptr;
+   }
+
+   if (Mat != nullptr && Mat->Owner == this)
+   {
+       delete Mat;
+       Mat = nullptr;
+   }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

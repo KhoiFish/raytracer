@@ -9,6 +9,17 @@ ConstantMedium::ConstantMedium(IHitable* boundary, float density, BaseTexture* t
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+ConstantMedium::~ConstantMedium()
+{
+    if (PhaseFunction != nullptr)
+    {
+        delete PhaseFunction;
+        PhaseFunction = nullptr;
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 bool ConstantMedium::Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const
 {
     HitRecord rec1, rec2;

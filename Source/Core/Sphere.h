@@ -9,7 +9,8 @@ class Sphere : public IHitable
 {
 public:
 
-    inline Sphere(Vec3 cen, float r, Material* mat, bool isLightShape = false) : IHitable(isLightShape), Center(cen), Radius(r), MatPtr(mat) {}
+    Sphere(Vec3 cen, float r, Material* mat, bool isLightShape = false);
+    virtual ~Sphere();
 
     virtual bool    Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const;
     virtual bool    BoundingBox(float t0, float t1, AABB& box) const;
@@ -18,11 +19,11 @@ public:
 
     const Vec3&     GetCenter() const { return Center; }
     float           GetRadius() const { return Radius; }
-    Material*       GetMaterial() const { return MatPtr; }
+    Material*       GetMaterial() const { return Mat; }
 
 private:
 
     Vec3       Center;
     float      Radius;
-    Material*  MatPtr;
+    Material*  Mat;
 };

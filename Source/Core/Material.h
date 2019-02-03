@@ -33,10 +33,37 @@ public:
         Pdf*  PdfPtr;
     };
 
+    Material() : Owner(nullptr), Albedo(nullptr), EmitTex(nullptr) {}
+    Material(BaseTexture* albedo, BaseTexture* emitTex) : Owner(nullptr), Albedo(albedo), EmitTex(emitTex) {}
+
+    virtual ~Material()
+    {
+        if (Albedo != nullptr)
+        {
+            delete Albedo;
+            Albedo = nullptr;
+        }
+
+        if (EmitTex != nullptr)
+        {
+            delete EmitTex;
+            EmitTex = nullptr;
+        }
+    }
+
     virtual bool  Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& scatterRec) const { return false; }
     virtual float ScatteringPdf(const Ray& rayIn, const HitRecord& rec, Ray& scattered) const { return 1.f; }
     virtual Vec3  Emitted(const Ray& rayIn, const HitRecord& rec, float u, float v, Vec3& p) const { return Vec3(0, 0, 0); }
     virtual Vec3  AlbedoValue(float u, float v, const Vec3& p) const { return Vec3(0, 0, 0); }
+
+public:
+
+    IHitable*   Owner;
+
+protected:
+
+    BaseTexture* Albedo;
+    BaseTexture* EmitTex;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -50,10 +77,6 @@ public:
     virtual bool  Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& scatterRec) const;
     virtual float ScatteringPdf(const Ray& rayIn, const HitRecord& rec, Ray& scattered) const;
     virtual Vec3  AlbedoValue(float u, float v, const Vec3& p) const;
-
-protected:
-
-    BaseTexture* Albedo;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -69,7 +92,6 @@ public:
 
 private:
 
-    BaseTexture* Albedo;
     float Fuzz;
 };
 
@@ -98,10 +120,6 @@ public:
 
     virtual Vec3 Emitted(const Ray& rayIn, const HitRecord& rec, float u, float v, Vec3& p) const;
     virtual Vec3 AlbedoValue(float u, float v, const Vec3& p) const;
-
-private:
-
-    BaseTexture* EmitTex;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -114,10 +132,6 @@ public:
 
     virtual bool Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& scatterRec) const;
     virtual Vec3 AlbedoValue(float u, float v, const Vec3& p) const;
-
-private:
-
-    BaseTexture* Albedo;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -127,6 +141,7 @@ class MWavefrontObj : public MLambertian
 public:
 
     MWavefrontObj(const char* materialFilePath, bool makeMetal = false, float fuzz = 0.5f);
+    virtual ~MWavefrontObj();
 
     virtual bool  Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& scatterRec) const;
     virtual Vec3  AlbedoValue(float u, float v, const Vec3& p) const;

@@ -11,6 +11,21 @@ class WorldScene
 {
 public:
 
+    virtual ~WorldScene()
+    {
+        if (World != nullptr)
+        {
+            delete World;
+            World = nullptr;
+        }
+
+        if (LightShapes != nullptr)
+        {
+            delete LightShapes;
+            LightShapes = nullptr;
+        }
+    }
+
     static inline WorldScene* Create(const Camera& camera, std::vector <IHitable*> hitables, std::vector<IHitable*> lightShapes)
     {
         WorldScene* newScene = new WorldScene();
@@ -29,7 +44,9 @@ public:
         {
             lightShapesList[i] = lightShapes[i];
         }
-        newScene->LightShapes = new HitableList(lightShapesList, lightShapesSize);
+
+        // Lightshapes are shared hitables, don't delete them
+        newScene->LightShapes = new HitableList(lightShapesList, lightShapesSize, false);
 
         newScene->TheCamera = camera;
 
@@ -43,7 +60,8 @@ public:
 
         if (lightShapes != nullptr && numLightShapes > 0)
         {
-            newScene->LightShapes = new HitableList(lightShapes, numLightShapes);
+            // Lightshapes are shared hitables, don't delete them
+            newScene->LightShapes = new HitableList(lightShapes, numLightShapes, false);
         }
 
         newScene->TheCamera = camera;

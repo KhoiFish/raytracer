@@ -1,5 +1,27 @@
 #include "Sphere.h"
 #include "OrthoNormalBasis.h"
+#include "Material.h"
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+Sphere::Sphere(Vec3 cen, float r, Material* mat, bool isLightShape /*= false*/) : IHitable(isLightShape), Center(cen), Radius(r), Mat(mat)
+{
+    if (Mat->Owner == nullptr)
+    {
+        Mat->Owner = this;
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+Sphere::~Sphere()
+{
+    if (Mat != nullptr && Mat->Owner == this)
+    {
+        delete Mat;
+        Mat = nullptr;
+    }
+}
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -27,7 +49,7 @@ bool Sphere::Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const
 
             const Vec3 delta = (rec.P - Center) / Radius;
             rec.Normal = delta;
-            rec.MatPtr = MatPtr;
+            rec.MatPtr = Mat;
 
             GetSphereUV(delta, rec.U, rec.V);
 

@@ -3,6 +3,22 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+HitableList::~HitableList()
+{
+    if (FreeHitables)
+    {
+        for (int i = 0; i < ListSize; i++)
+        {
+            delete List[i];
+            List[i] = nullptr;
+        }
+    }
+
+    delete[] List;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 bool HitableList::Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const
 {
     HitRecord tempRec;

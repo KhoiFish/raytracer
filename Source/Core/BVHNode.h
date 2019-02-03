@@ -11,6 +11,7 @@ class BVHNode : public IHitable
 public:
 
     BVHNode(IHitable** list, int n, float time0, float time1);
+    virtual ~BVHNode();
 
     virtual bool Hit(const Ray& ray, float tMin, float tMax, HitRecord& rec) const;
     virtual bool BoundingBox(float t0, float t1, AABB& box) const;

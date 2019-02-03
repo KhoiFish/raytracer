@@ -24,6 +24,8 @@ class IHitable
 {
 public:
 
+    virtual ~IHitable() {}
+
     virtual bool  Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const = 0;
     virtual bool  BoundingBox(float t0, float t1, AABB& box) const = 0;
     virtual float PdfValue(const Vec3& origin, const Vec3& v) const { return 0.f; }

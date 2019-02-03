@@ -2,6 +2,30 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+XYZRect::XYZRect(AxisPlane axis, float a0, float a1, float b0, float b1, float k, Material* mat, bool isLightShape /*= false*/) : IHitable(isLightShape)
+, AxisMode(axis)
+, A0(a0), A1(a1), B0(b0), B1(b1), K(k)
+, Mat(mat)
+{
+    if (Mat->Owner == nullptr)
+    {
+        Mat->Owner = this;
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+XYZRect::~XYZRect()
+{
+    if (Mat != nullptr && Mat->Owner == this)
+    {
+        delete Mat;
+        Mat = nullptr;
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 bool XYZRect::Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const
 {
     Vec3  normal, planeP;

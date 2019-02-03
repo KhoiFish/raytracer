@@ -2,6 +2,17 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+FlipNormals::~FlipNormals()
+{
+    if (Hitable != nullptr)
+    {
+        delete Hitable;
+        Hitable = nullptr;
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 bool FlipNormals::Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const
 {
     if (Hitable->Hit(r, tMin, tMax, rec))

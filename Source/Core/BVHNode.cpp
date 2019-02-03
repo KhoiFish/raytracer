@@ -116,6 +116,24 @@ BVHNode::BVHNode(IHitable** list, int n, float time0, float time1)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+BVHNode::~BVHNode()
+{
+    if (Left != nullptr)
+    {
+        delete Left;
+    }
+
+    if (Right != nullptr && Right != Left)
+    {
+        delete Right;
+    }
+
+    Left  = nullptr;
+    Right = nullptr;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 bool BVHNode::BoundingBox(float t0, float t1, AABB& box) const
 {
     box = Box;

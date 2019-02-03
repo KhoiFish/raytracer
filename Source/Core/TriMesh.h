@@ -48,6 +48,7 @@ public:
 private:
 
     TriMesh() : TriArray(nullptr), NumTriangles(0), BVHHead(NULL) {}
+    virtual ~TriMesh();
 
     void        createFromArray(std::vector<Triangle*> triArray);
     Triangle*   makeNewTriangle(

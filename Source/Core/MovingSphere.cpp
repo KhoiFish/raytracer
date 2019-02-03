@@ -1,6 +1,29 @@
 #include "MovingSphere.h"
 #include "Util.h"
+#include "Material.h"
 
+// ----------------------------------------------------------------------------------------------------------------------------
+
+MovingSphere::MovingSphere(Vec3 center0, Vec3 center1, float time0, float time1, float r, Material* mat) : Center0(center0), Center1(center1)
+, Time0(time0), Time1(time1)
+, Radius(r), Mat(mat)
+{
+    if (Mat->Owner == nullptr)
+    {
+        Mat->Owner = this;
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+MovingSphere::~MovingSphere()
+{
+    if (Mat != nullptr && Mat->Owner == this)
+    {
+        delete Mat;
+        Mat = nullptr;
+    }
+}
 // ----------------------------------------------------------------------------------------------------------------------------
 
 Vec3 MovingSphere::Center(float time) const
@@ -30,7 +53,7 @@ bool MovingSphere::Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) con
             rec.T = test0Passed ? test0 : test1;
             rec.P = r.PointAtParameter(rec.T);
             rec.Normal = (rec.P - Center(r.Time())) / Radius;
-            rec.MatPtr = MatPtr;
+            rec.MatPtr = Mat;
             GetSphereUV((rec.P - Center(r.Time())) / Radius, rec.U, rec.V);
             return true;
         }

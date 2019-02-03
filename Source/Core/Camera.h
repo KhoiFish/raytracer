@@ -10,21 +10,21 @@ class Camera
 public:
 
     Camera();
-    Camera(Vec3 lookFrom, Vec3 lookAt, Vec3 vup,
+    Camera(Vec4 lookFrom, Vec4 lookAt, Vec4 vup,
         float vertFov, float aspect, float aperture, float focusDist,
-        float t0, float t1, Vec3 backgroundColor);
+        float t0, float t1, Vec4 backgroundColor);
 
-    void Setup(Vec3 lookFrom, Vec3 lookAt, Vec3 vup,
+    void Setup(Vec4 lookFrom, Vec4 lookAt, Vec4 vup,
         float vertFov, float aspect, float aperture, float focusDist,
-        float t0, float t1, Vec3 backgroundColor);
+        float t0, float t1, Vec4 backgroundColor);
 
     void SetAspect(float aspect);
     void SetFocusDistanceToLookAt();
 
     inline Ray GetRay(float s, float t) const
     {
-        Vec3  rd     = LensRadius * RandomInUnitDisk();
-        Vec3  offset = U * rd.X() + V * rd.Y();
+        Vec4  rd     = LensRadius * RandomInUnitDisk();
+        Vec4  offset = U * rd.X() + V * rd.Y();
         float time = Time0 + RandomFloat()*(Time1 - Time0);
 
         return Ray(Origin + offset, LowerLeftCorner + (s * Horizontal) + (t * Vertical) - Origin - offset, time);
@@ -36,7 +36,7 @@ public:
         time1 = Time1;
     }
 
-    inline Vec3 GetBackgroundColor() const
+    inline Vec4 GetBackgroundColor() const
     {
         return BackgroundColor;
     }
@@ -47,9 +47,9 @@ public:
     }
 
     inline void GetCameraParams(
-        Vec3& lookFrom, Vec3& lookAt, Vec3& up,
+        Vec4& lookFrom, Vec4& lookAt, Vec4& up,
         float& vertFov, float& aspect, float& aperture, float& focusDist,
-        float& t0, float& t1, Vec3& clearColor) const
+        float& t0, float& t1, Vec4& clearColor) const
     {
         lookFrom = LookFrom;
         lookAt = LookAt;
@@ -69,20 +69,20 @@ private:
 
 private:
 
-    Vec3   LookFrom; 
-    Vec3   LookAt; 
-    Vec3   Up;
+    Vec4   LookFrom; 
+    Vec4   LookAt; 
+    Vec4   Up;
     float  VertFov;
     float  Aspect;
     float  Aperture;
     float  FocusDist;
-    Vec3   BackgroundColor;
+    Vec4   BackgroundColor;
 
-    Vec3   Origin;
-    Vec3   LowerLeftCorner;
-    Vec3   Horizontal;
-    Vec3   Vertical;
-    Vec3   U, V, W;
+    Vec4   Origin;
+    Vec4   LowerLeftCorner;
+    Vec4   Horizontal;
+    Vec4   Vertical;
+    Vec4   U, V, W;
     float  Time0, Time1;
     float  LensRadius;
 };

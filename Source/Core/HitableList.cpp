@@ -78,7 +78,7 @@ bool HitableList::BoundingBox(float t0, float t1, AABB& box) const
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-float HitableList::PdfValue(const Vec3& origin, const Vec3& v) const
+float HitableList::PdfValue(const Vec4& origin, const Vec4& v) const
 {
     float weight = 1.0f / ListSize;
     float sum    = 0;
@@ -90,7 +90,7 @@ float HitableList::PdfValue(const Vec3& origin, const Vec3& v) const
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-Vec3 HitableList::Random(const Vec3& origin) const
+Vec4 HitableList::Random(const Vec4& origin) const
 {
     int index = rand() % ListSize;
     return List[index]->Random(origin);

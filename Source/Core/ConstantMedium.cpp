@@ -54,7 +54,7 @@ bool ConstantMedium::Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) c
             {
                 rec.T = rec1.T + hitDistance / r.Direction().Length();
                 rec.P = r.PointAtParameter(rec.T);
-                rec.Normal = Vec3(1, 0, 0); // This is arbitrary
+                rec.Normal = Vec4(1, 0, 0); // This is arbitrary
                 rec.MatPtr = PhaseFunction;
 
                 return true;

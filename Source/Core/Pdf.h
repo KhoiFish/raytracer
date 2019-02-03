@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Vec3.h"
+#include "Vec4.h"
 #include "OrthoNormalBasis.h"
 #include "Util.h"
 
@@ -11,8 +11,8 @@ class Pdf
 public:
     virtual ~Pdf() {}
 
-    virtual float Value(const Vec3& direction) const = 0;
-    virtual Vec3  Generate() const = 0;
+    virtual float Value(const Vec4& direction) const = 0;
+    virtual Vec4  Generate() const = 0;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -21,12 +21,12 @@ class CosinePdf : public Pdf
 {
 public:
 
-    CosinePdf(const Vec3& w)
+    CosinePdf(const Vec4& w)
     {
         UVW.BuildFromW(w);
     }
 
-    virtual float Value(const Vec3& direction) const
+    virtual float Value(const Vec4& direction) const
     {
         float cosine = Dot(UnitVector(direction), UVW.W());
         if (cosine > 0)
@@ -46,7 +46,7 @@ public:
         }
     }
 
-    virtual Vec3 Generate() const
+    virtual Vec4 Generate() const
     {
         return UVW.Local(RandomCosineDirection());
     }
@@ -62,14 +62,14 @@ class HitablePdf : public Pdf
 {
 public:
 
-    HitablePdf(IHitable* hitable, const Vec3& origin) : Hitable(hitable), Origin(origin) {}
+    HitablePdf(IHitable* hitable, const Vec4& origin) : Hitable(hitable), Origin(origin) {}
 
-    virtual float Value(const Vec3& direction) const
+    virtual float Value(const Vec4& direction) const
     {
         return Hitable->PdfValue(Origin, direction);
     }
 
-    virtual Vec3 Generate() const
+    virtual Vec4 Generate() const
     {
         return Hitable->Random(Origin);
     }
@@ -77,7 +77,7 @@ public:
 private:
 
     IHitable*   Hitable;
-    Vec3        Origin;
+    Vec4        Origin;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -92,12 +92,12 @@ public:
         pdfs[1] = p1;
     }
 
-    virtual float Value(const Vec3& direction) const
+    virtual float Value(const Vec4& direction) const
     {
         return (0.5f * pdfs[0]->Value(direction)) + (0.5f * pdfs[1]->Value(direction));
     }
 
-    virtual Vec3 Generate() const
+    virtual Vec4 Generate() const
     {
         if (RandomFloat() < 0.5f)
         {

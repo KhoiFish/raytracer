@@ -4,7 +4,7 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-MovingSphere::MovingSphere(Vec3 center0, Vec3 center1, float time0, float time1, float r, Material* mat) : Center0(center0), Center1(center1)
+MovingSphere::MovingSphere(Vec4 center0, Vec4 center1, float time0, float time1, float r, Material* mat) : Center0(center0), Center1(center1)
 , Time0(time0), Time1(time1)
 , Radius(r), Mat(mat)
 {
@@ -26,7 +26,7 @@ MovingSphere::~MovingSphere()
 }
 // ----------------------------------------------------------------------------------------------------------------------------
 
-Vec3 MovingSphere::Center(float time) const
+Vec4 MovingSphere::Center(float time) const
 {
     return Center0 + ((time - Time0) / (Time1 - Time0)) * (Center1 - Center0);
 }
@@ -35,7 +35,7 @@ Vec3 MovingSphere::Center(float time) const
 
 bool MovingSphere::Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const
 {
-    Vec3  oc = r.Origin() - Center(r.Time());
+    Vec4  oc = r.Origin() - Center(r.Time());
 
     float a = Dot(r.Direction(), r.Direction());
     float b = Dot(oc, r.Direction());

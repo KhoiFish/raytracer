@@ -49,7 +49,7 @@ static const RenderMaterial MaterialWhite =
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static bool FlipFromNormalStack(Vec3& normal, const std::vector<bool>& flipNormalStack)
+static bool FlipFromNormalStack(Vec4& normal, const std::vector<bool>& flipNormalStack)
 {
     bool flipped = false;
     for (int i = 0; i < (int)flipNormalStack.size(); i++)
@@ -80,7 +80,7 @@ static inline XMMATRIX ComputeFinalMatrix(std::vector<DirectX::XMMATRIX>& matrix
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static inline XMVECTOR ConvertToXMVector(const Vec3& vec)
+static inline XMVECTOR ConvertToXMVector(const Vec4& vec)
 {
     // Negate Z
     return XMVectorSet(vec.X(), vec.Y(), -vec.Z(), vec.W());
@@ -88,19 +88,19 @@ static inline XMVECTOR ConvertToXMVector(const Vec3& vec)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static inline XMFLOAT4 ConvertToXMFloat4(const Vec3& vec, bool negateZ = true)
+static inline XMFLOAT4 ConvertToXMFloat4(const Vec4& vec, bool negateZ = true)
 {
     return DirectX::XMFLOAT4(vec[0], vec[1], negateZ ? -vec[2] : vec[2], 1.f);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static inline Vec3 ConvertToVec3(const XMVECTOR& vec)
+static inline Vec4 ConvertToVec4(const XMVECTOR& vec)
 {
     // Negate Z
     XMFLOAT4 v4;
     XMStoreFloat4(&v4, vec);
-    return Vec3(v4.x, v4.y, -v4.z, v4.w);
+    return Vec4(v4.x, v4.y, -v4.z, v4.w);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -134,7 +134,7 @@ void GenerateRenderListFromWorld(std::shared_ptr<CommandList> commandList, const
     else if (tid == typeid(HitableTranslate))
     {
         HitableTranslate* translateHitable = (HitableTranslate*)currentHead;
-        Vec3              offset           = translateHitable->GetOffset();
+        Vec4              offset           = translateHitable->GetOffset();
         XMMATRIX          translation      = XMMatrixTranslation(offset.X(), offset.Y(), -offset.Z());
 
         matrixStack.push_back(translation);
@@ -159,7 +159,7 @@ void GenerateRenderListFromWorld(std::shared_ptr<CommandList> commandList, const
     }
     else if (tid == typeid(Sphere) || tid == typeid(MovingSphere))
     {
-        Vec3  offset;
+        Vec4  offset;
         float radius;
         Material* material = nullptr;
         if (tid == typeid(Sphere))
@@ -181,7 +181,7 @@ void GenerateRenderListFromWorld(std::shared_ptr<CommandList> commandList, const
         XMMATRIX         newMatrix   = ComputeFinalMatrix(matrixStack, translation);
         RenderSceneNode* newNode     = new RenderSceneNode();
 
-        Vec3 color = material->AlbedoValue(0.5f, 0.5f, Vec3(0, 0, 0));
+        Vec4 color = material->AlbedoValue(0.5f, 0.5f, Vec4(0, 0, 0));
         const RenderMaterial newMaterial =
         {
             { 0.0f, 0.0f, 0.0f, 1.0f },
@@ -202,18 +202,18 @@ void GenerateRenderListFromWorld(std::shared_ptr<CommandList> commandList, const
     {
         HitableBox* box = (HitableBox*)currentHead;
 
-        Vec3 minP, maxP;
+        Vec4 minP, maxP;
         box->GetPoints(minP, maxP);
 
-        Vec3             diff        = maxP - minP;
-        Vec3             offset      = minP + (diff * 0.5f);
+        Vec4             diff        = maxP - minP;
+        Vec4             offset      = minP + (diff * 0.5f);
         XMMATRIX         translation = XMMatrixTranslation(offset.X(), offset.Y(), -offset.Z());
         XMMATRIX         newMatrix   = ComputeFinalMatrix(matrixStack, translation);
         XMFLOAT3         sideLengths = XMFLOAT3(fabs(diff.X()), fabs(diff.Y()), fabs(diff.Z()));
         RenderSceneNode* newNode     = new RenderSceneNode();
         const Material*  material    = box->GetMaterial();
 
-        Vec3 color = material->AlbedoValue(0.5f, 0.5f, Vec3(0, 0, 0));
+        Vec4 color = material->AlbedoValue(0.5f, 0.5f, Vec4(0, 0, 0));
         const RenderMaterial newMaterial =
         {
             { 0.0f, 0.0f, 0.0f, 1.0f },
@@ -282,8 +282,8 @@ void GenerateRenderListFromWorld(std::shared_ptr<CommandList> commandList, const
     else if (tid == typeid(XYZRect))
     {
         XYZRect*  xyzRect = (XYZRect*)currentHead;
-        Vec3      planePoints[4];
-        Vec3      normal;
+        Vec4      planePoints[4];
+        Vec4      normal;
         XMFLOAT3  xmPlanePoints[4];
         XMFLOAT3  xmNormal;
         xyzRect->GetPlaneData(planePoints, normal);
@@ -301,11 +301,11 @@ void GenerateRenderListFromWorld(std::shared_ptr<CommandList> commandList, const
         RenderSceneNode* newNode     = new RenderSceneNode();
 
         // Clamp colors for lights, since they can overblow the color buffer
-        Vec3 color = material->AlbedoValue(0.5f, 0.5f, Vec3(0, 0, 0));
+        Vec4 color = material->AlbedoValue(0.5f, 0.5f, Vec4(0, 0, 0));
         color.Clamp(0.f, 1.f);
 
         // Light shapes should not get lit, and always show up fully shaded
-        Vec3 em = xyzRect->IsALightShape() ? Vec3(1.f, 1.f, 1.f, 1.f) : Vec3(0.0f, 0.0f, 0.0f, 1.0f);
+        Vec4 em = xyzRect->IsALightShape() ? Vec4(1.f, 1.f, 1.f, 1.f) : Vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
         const RenderMaterial newMaterial =
         {
@@ -334,18 +334,18 @@ void GenerateRenderListFromWorld(std::shared_ptr<CommandList> commandList, const
                     zValues[0], zValues[1],
                     yValue);
 
-                Vec3 pos(
+                Vec4 pos(
                     (xValues[0] + xValues[1]) * 0.5f,
                     yValue,
                     (zValues[0] + zValues[1]) * 0.5f);
                 
-                Vec3  upDir   = Vec3(1.f, 0.f, 1.f);
-                Vec3  lookAt  = Vec3(pos[0], -yValue, pos[2]);
-                Vec3  dir     = UnitVector(lookAt - pos);
+                Vec4  upDir   = Vec4(1.f, 0.f, 1.f);
+                Vec4  lookAt  = Vec4(pos[0], -yValue, pos[2]);
+                Vec4  dir     = UnitVector(lookAt - pos);
 
                 // Pullback the camera for shadowmap rendering
                 float smapDist = sShadowmapFar - fabs(yValue);
-                Vec3  smapPos  = pos - (dir * smapDist);
+                Vec4  smapPos  = pos - (dir * smapDist);
 
                 SpotLight light;
                 light.PositionWS           = ConvertToXMFloat4(pos);
@@ -381,15 +381,15 @@ static void UpdateCameras(float newVertFov, float forwardAmount, float strafeAmo
     }
 
     // Get ray tracer camera params
-    Vec3   lookFrom, lookAt, up;
+    Vec4   lookFrom, lookAt, up;
     float  vertFov, aspect, aperture, focusDist, t0, t1;
-    Vec3   clearColor;
+    Vec4   clearColor;
     raytracerCamera.GetCameraParams(lookFrom, lookAt, up, vertFov, aspect, aperture, focusDist, t0, t1, clearColor);
 
     // Update render camera look at
-    Vec3  diffVec = (lookAt - lookFrom);
-    Vec3  viewDir = diffVec.MakeUnitVector();
-    Vec3  rightDir = Cross(up, viewDir).MakeUnitVector();
+    Vec4  diffVec = (lookAt - lookFrom);
+    Vec4  viewDir = diffVec.MakeUnitVector();
+    Vec4  rightDir = Cross(up, viewDir).MakeUnitVector();
     float upAngle = mouseDx * -.1f;
     float rightAngle = mouseDy * -.1f;
 
@@ -400,7 +400,7 @@ static void UpdateCameras(float newVertFov, float forwardAmount, float strafeAmo
     // Rotate around right axis
     viewDir = Quat::RotateVector(viewDir, rightDir, rightAngle);
 
-    Vec3 cameraTranslate = (viewDir * forwardAmount) + (rightDir * strafeAmount) + (up * upDownAmount);
+    Vec4 cameraTranslate = (viewDir * forwardAmount) + (rightDir * strafeAmount) + (up * upDownAmount);
     lookFrom += cameraTranslate;
     lookAt = lookFrom + (viewDir * diffVec.Length());
 

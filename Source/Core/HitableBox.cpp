@@ -2,7 +2,7 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-HitableBox::HitableBox(const Vec3& p0, const Vec3& p1, Material* mat) : Mat(mat)
+HitableBox::HitableBox(const Vec4& p0, const Vec4& p1, Material* mat) : Mat(mat)
 {
     if (Mat->Owner == nullptr)
     {

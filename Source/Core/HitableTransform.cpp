@@ -48,8 +48,8 @@ HitableRotateY::HitableRotateY(IHitable* obj, float angleDeg) : HitObject(obj), 
     CosTheta = cos(radians);
     HasBox = HitObject->BoundingBox(0, 1, Bbox);
 
-    Vec3 minV(FLT_MAX, FLT_MAX, FLT_MAX);
-    Vec3 maxV(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+    Vec4 minV(FLT_MAX, FLT_MAX, FLT_MAX);
+    Vec4 maxV(-FLT_MAX, -FLT_MAX, -FLT_MAX);
     for (int i = 0; i < 2; i++)
     {
         for (int j = 0; j < 2; j++)
@@ -62,7 +62,7 @@ HitableRotateY::HitableRotateY(IHitable* obj, float angleDeg) : HitObject(obj), 
                 float newX =  CosTheta * x + SinTheta * z;
                 float newZ = -SinTheta * x + CosTheta * z;
 
-                Vec3 tester(newX, y, newZ);
+                Vec4 tester(newX, y, newZ);
                 for (int c = 0; c < 3; c++)
                 {
                     if (tester[c] > maxV[c])
@@ -95,8 +95,8 @@ HitableRotateY::~HitableRotateY()
 
 bool HitableRotateY::Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const
 {
-    Vec3 origin = r.Origin();
-    Vec3 direction = r.Direction();
+    Vec4 origin = r.Origin();
+    Vec4 direction = r.Direction();
 
     origin[0] = CosTheta * r.Origin()[0] - SinTheta * r.Origin()[2];
     origin[2] = SinTheta * r.Origin()[0] + CosTheta * r.Origin()[2];
@@ -107,8 +107,8 @@ bool HitableRotateY::Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) c
     Ray rotatedR(origin, direction, r.Time());
     if (HitObject->Hit(rotatedR, tMin, tMax, rec))
     {
-        Vec3 p = rec.P;
-        Vec3 normal = rec.Normal;
+        Vec4 p = rec.P;
+        Vec4 normal = rec.Normal;
 
         p[0] =  CosTheta * rec.P[0] + SinTheta * rec.P[2];
         p[2] = -SinTheta * rec.P[0] + CosTheta * rec.P[2];

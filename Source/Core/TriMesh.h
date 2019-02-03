@@ -1,7 +1,7 @@
 #pragma once
 
 #include "IHitable.h"
-#include "Vec3.h"
+#include "Vec4.h"
 #include "Material.h"
 #include "Triangle.h"
 #include "BVHNode.h"
@@ -53,7 +53,7 @@ private:
     void        createFromArray(std::vector<Triangle*> triArray);
     Triangle*   makeNewTriangle(
         int v0, int v1, int v2, 
-        const std::vector<Vec3>& vertList, const std::vector<Vec3>& vertNormalList, const std::vector<TexCoord>& texCoordList,
+        const std::vector<Vec4>& vertList, const std::vector<Vec4>& vertNormalList, const std::vector<TexCoord>& texCoordList,
         const Face& face, Material* material);
 
 private:

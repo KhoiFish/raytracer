@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Vec3.h"
+#include "Vec4.h"
 #include "Util.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -9,7 +9,7 @@ class Perlin
 {
 public:
 
-    static inline float Noise(const Vec3& p)
+    static inline float Noise(const Vec4& p)
     {
         float u = p.X() - floor(p.X());
         float v = p.Y() - floor(p.Y());
@@ -24,7 +24,7 @@ public:
         int j = (int)floor(p.Y());
         int k = (int)floor(p.Z());
 
-        Vec3 c[2][2][2];
+        Vec4 c[2][2][2];
         for(int di = 0; di < 2; di++)
         {
             for (int dj = 0; dj < 2; dj++)
@@ -43,10 +43,10 @@ public:
         return PerlinInterp(c, u, v, w);
     }
 
-    static inline float Turb(const Vec3& p, int depth = 7)
+    static inline float Turb(const Vec4& p, int depth = 7)
     {
         float accum = 0;
-        Vec3  tempP = p;
+        Vec4  tempP = p;
         float weight = 1.f;
         for (int i = 0; i < depth; i++)
         {
@@ -60,12 +60,12 @@ public:
 
 private:
 
-    static inline Vec3* perlinGenerate()
+    static inline Vec4* perlinGenerate()
     {
-        Vec3* p = new Vec3[256];
+        Vec4* p = new Vec4[256];
         for (int i = 0; i < 256; i++)
         {
-            p[i] = UnitVector(Vec3(
+            p[i] = UnitVector(Vec4(
                 -1 + 2 * RandomFloat(),
                 -1 + 2 * RandomFloat(),
                 -1 + 2 * RandomFloat()));
@@ -100,7 +100,7 @@ private:
 
 private:
 
-    static Vec3*  RanVec;
+    static Vec4*  RanVec;
     static int*   PermX;
     static int*   PermY;
     static int*   PermZ;

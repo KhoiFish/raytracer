@@ -5,7 +5,7 @@
 #include <cstdint>
 
 #include "Ray.h"
-#include "Vec3.h"
+#include "Vec4.h"
 #include "IHitable.h"
 #include "HitableList.h"
 #include "Material.h"
@@ -43,7 +43,7 @@ public:
     bool             WaitForTraceToFinish(int timeoutMicroSeconds);
     Stats            GetStats() const;
 
-    inline Vec3*     GetOutputBuffer() const     { return OutputBuffer; }
+    inline Vec4*     GetOutputBuffer() const     { return OutputBuffer; }
     inline uint8_t*  GetOutputBufferRGBA() const { return OutputBufferRGBA; }
     inline int       GetOutputWidth() const      { return OutputWidth; }
     inline int       GetOutputHeight() const     { return OutputHeight; }
@@ -52,7 +52,7 @@ public:
 private:
 
     static void      threadTraceNextPixel(int id, Raytracer* tracer, WorldScene* scene);
-    Vec3             trace(WorldScene* scene, const Ray& r, int depth);
+    Vec4             trace(WorldScene* scene, const Ray& r, int depth);
     void             cleanupRaytrace();
 
 private:
@@ -60,7 +60,7 @@ private:
     // Output options
     int                   OutputWidth;
     int                   OutputHeight;
-    Vec3*                 OutputBuffer;
+    Vec4*                 OutputBuffer;
     uint8_t*              OutputBufferRGBA;
 
     // Tracing options

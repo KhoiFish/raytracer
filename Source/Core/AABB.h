@@ -1,6 +1,6 @@
 #pragma once
 #include "Ray.h"
-#include "Vec3.h"
+#include "Vec4.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -9,10 +9,10 @@ class AABB
 public:
 
     inline AABB() {}
-    inline AABB(const Vec3& minP, const Vec3& maxP) : MinP(minP), MaxP(maxP) {}
+    inline AABB(const Vec4& minP, const Vec4& maxP) : MinP(minP), MaxP(maxP) {}
 
-    inline Vec3 Min() const { return MinP; }
-    inline Vec3 Max() const { return MaxP; }
+    inline Vec4 Min() const { return MinP; }
+    inline Vec4 Max() const { return MaxP; }
 
     inline bool Hit(const Ray& ray, float tMin, float tMax) const
     {
@@ -39,21 +39,21 @@ public:
         return true;
     }
 
-    static inline AABB ComputerAABBForSphere(const Vec3& center, float radius)
+    static inline AABB ComputerAABBForSphere(const Vec4& center, float radius)
     {
-        Vec3 temp(radius, radius, radius);
+        Vec4 temp(radius, radius, radius);
         return AABB(center - temp, center + temp);
     }
 
     static inline AABB SurroundingBox(AABB box0, AABB box1)
     {
-        Vec3 small(
+        Vec4 small(
             fmin(box0.MinP.X(), box1.MinP.X()),
             fmin(box0.MinP.Y(), box1.MinP.Y()),
             fmin(box0.MinP.Z(), box1.MinP.Z())
         );
 
-        Vec3 big(
+        Vec4 big(
             fmax(box0.Max().X(), box1.Max().X()),
             fmax(box0.Max().Y(), box1.Max().Y()),
             fmax(box0.Max().Z(), box1.Max().Z())
@@ -64,6 +64,6 @@ public:
 
 private:
 
-    Vec3 MinP;
-    Vec3 MaxP;
+    Vec4 MinP;
+    Vec4 MaxP;
 };

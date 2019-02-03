@@ -26,14 +26,14 @@ Camera::Camera()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-Camera::Camera(Vec3 lookFrom, Vec3 lookAt, Vec3 vup, float vertFov, float aspect, float aperture, float focusDist, float t0, float t1, Vec3 backgroundColor)
+Camera::Camera(Vec4 lookFrom, Vec4 lookAt, Vec4 vup, float vertFov, float aspect, float aperture, float focusDist, float t0, float t1, Vec4 backgroundColor)
 {
     Setup(lookFrom, lookAt, vup, vertFov, aspect, aperture, focusDist, t0, t1, backgroundColor);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void Camera::Setup(Vec3 lookFrom, Vec3 lookAt, Vec3 vup, float vertFov, float aspect, float aperture, float focusDist, float t0, float t1, Vec3 backgroundColor)
+void Camera::Setup(Vec4 lookFrom, Vec4 lookAt, Vec4 vup, float vertFov, float aspect, float aperture, float focusDist, float t0, float t1, Vec4 backgroundColor)
 {
     LookFrom         = lookFrom;
     LookAt           = lookAt;

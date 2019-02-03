@@ -14,8 +14,8 @@ Triangle::Triangle(const Vertex& v0, const Vertex& v1, const Vertex& v2, Materia
 
 bool Triangle::BoundingBox(float t0, float t1, AABB& box) const
 {
-    Vec3 vMin(FLT_MAX, FLT_MAX, FLT_MAX);
-    Vec3 vMax(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+    Vec4 vMin(FLT_MAX, FLT_MAX, FLT_MAX);
+    Vec4 vMax(-FLT_MAX, -FLT_MAX, -FLT_MAX);
 
     for (int i = 0; i < 3; i++)
     {
@@ -36,11 +36,11 @@ bool Triangle::BoundingBox(float t0, float t1, AABB& box) const
 bool Triangle::Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const
 {
     const float EPSILON = 0.0000001f;
-    const Vec3& vertex0 = Vertices[0].Vert;
-    const Vec3& vertex1 = Vertices[1].Vert;
-    const Vec3& vertex2 = Vertices[2].Vert;
+    const Vec4& vertex0 = Vertices[0].Vert;
+    const Vec4& vertex1 = Vertices[1].Vert;
+    const Vec4& vertex2 = Vertices[2].Vert;
 
-    Vec3 edge1, edge2, h, s, q;
+    Vec4 edge1, edge2, h, s, q;
     float a, f, u, v;
 
     edge1 = vertex1 - vertex0;
@@ -72,15 +72,15 @@ bool Triangle::Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const
     float t = f * Dot(edge2, q);
     if (t > EPSILON && t > tMin && t < tMax)
     {
-        Vec3 tempUV[3] =
+        Vec4 tempUV[3] =
         {
-            Vec3(Vertices[0].UV[0], Vertices[0].UV[1], 0),
-            Vec3(Vertices[1].UV[0], Vertices[1].UV[1], 0),
-            Vec3(Vertices[2].UV[0], Vertices[2].UV[1], 0)
+            Vec4(Vertices[0].UV[0], Vertices[0].UV[1], 0),
+            Vec4(Vertices[1].UV[0], Vertices[1].UV[1], 0),
+            Vec4(Vertices[2].UV[0], Vertices[2].UV[1], 0)
         };
 
-        Vec3 texUv  = (1 - u - v) * tempUV[0] + u * tempUV[1] + v * tempUV[2];
-        Vec3 normal = (1 - u - v) * Vertices[0].Normal + u * Vertices[1].Normal + v * Vertices[2].Normal;
+        Vec4 texUv  = (1 - u - v) * tempUV[0] + u * tempUV[1] + v * tempUV[2];
+        Vec4 normal = (1 - u - v) * Vertices[0].Normal + u * Vertices[1].Normal + v * Vertices[2].Normal;
 
         // Ray intersection
         rec.U       = texUv[0];

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Vec3.h"
+#include "Vec4.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -10,22 +10,22 @@ public:
 
     inline Ray() {}
 
-    inline Ray(const Vec3& a, const Vec3& b, float ti = 0.f)
+    inline Ray(const Vec4& a, const Vec4& b, float ti = 0.f)
         : A(a), B(b), Timestamp(ti)
     {}
 
-    inline Vec3  Origin() const    { return A; }
-    inline Vec3  Direction() const { return B; }
+    inline Vec4  Origin() const    { return A; }
+    inline Vec4  Direction() const { return B; }
     inline float Time() const      { return Timestamp; }
 
-    inline Vec3 PointAtParameter(float t) const
+    inline Vec4 PointAtParameter(float t) const
     {
         return A + (t * B);
     }
 
 private:
 
-    Vec3   A;
-    Vec3   B;
+    Vec4   A;
+    Vec4   B;
     float  Timestamp;
 };

@@ -8,7 +8,7 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void ImageIO::WriteToPPMFile(const Vec3* buffer, int width, int height, const char* pOutFilename)
+void ImageIO::WriteToPPMFile(const Vec4* buffer, int width, int height, const char* pOutFilename)
 {
     std::ofstream outFile(pOutFilename);
 
@@ -20,7 +20,7 @@ void ImageIO::WriteToPPMFile(const Vec3* buffer, int width, int height, const ch
     for (int i = 0; i < numPixels; i++)
     {
         // Get the pixel
-        Vec3 col = buffer[i];
+        Vec4 col = buffer[i];
 
         int ir, ig, ib, ia;
         GetRGBA8888(col, true, ir, ig, ib, ia);
@@ -39,14 +39,14 @@ void ImageIO::WriteToPPMFile(const Vec3* buffer, int width, int height, const ch
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void ImageIO::WriteToPNGFile(const Vec3* buffer, int width, int height, const char* pOutFilename)
+void ImageIO::WriteToPNGFile(const Vec4* buffer, int width, int height, const char* pOutFilename)
 {
     const int numPixels = width * height;
     uint8_t* convertedBuffer = new uint8_t[width * height * 4];
     for (int i = 0; i < numPixels; i++)
     {
         // Get the pixel
-        Vec3 col = buffer[i];
+        Vec4 col = buffer[i];
 
         // Convert to rgba and gamma correct
         int ir, ig, ib, ia;

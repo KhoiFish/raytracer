@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Vec3.h"
+#include "Vec4.h"
 #include "Util.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -10,7 +10,7 @@ class Quat
 public:
 
     Quat() : S(0), V(0, 0, 0) {}
-    Quat(float s, const Vec3& v) : S(s), V(v) {}
+    Quat(float s, const Vec4& v) : S(s), V(v) {}
 
     // ----------------------------------------------------------------------------
 
@@ -27,19 +27,19 @@ public:
     inline Quat operator *(const Quat& q) const
     {
         float scalar = S * q.S - ::Dot(V, q.V);
-        Vec3  imaginary = q.V * S + V * q.S + ::Cross(V, q.V);
+        Vec4  imaginary = q.V * S + V * q.S + ::Cross(V, q.V);
 
         return Quat(scalar, imaginary);
     }
 
-    inline Quat operator*(const Vec3& otherV) const
+    inline Quat operator*(const Vec4& otherV) const
     {
         float sPart = -(V.X()*otherV.X() + V.Y()*otherV.Y() + V.Z()*otherV.Z());
         float xPart =  (S    *otherV.X() + V.Y()*otherV.Z() - V.Z()*otherV.Y());
         float yPart =  (S    *otherV.Y() + V.Z()*otherV.X() - V.X()*otherV.Z());
         float zPart =  (S    *otherV.Z() + V.X()*otherV.Y() - V.Y()*otherV.X());
 
-        return Quat (sPart, Vec3(xPart, yPart, zPart));
+        return Quat (sPart, Vec4(xPart, yPart, zPart));
     }
 
     inline float Dot(const Quat& q) const
@@ -66,7 +66,7 @@ public:
         Quat conjugateValue = Conjugate();
 
         float scalar    = conjugateValue.S*(absoluteValue);
-        Vec3  imaginary = conjugateValue.V*(absoluteValue);
+        Vec4  imaginary = conjugateValue.V*(absoluteValue);
 
         return Quat(scalar, imaginary);
     }
@@ -82,10 +82,10 @@ public:
         return (*this);
     }
 
-    static inline Vec3 RotateVector(const Vec3& vToRotate, const Vec3& axis, float angleDegrees)
+    static inline Vec4 RotateVector(const Vec4& vToRotate, const Vec4& axis, float angleDegrees)
     {
         Quat p(0, vToRotate);
-        Vec3 normalizedAxis = Vec3(axis).MakeUnitVector();
+        Vec4 normalizedAxis = Vec4(axis).MakeUnitVector();
 
         Quat q(angleDegrees, normalizedAxis);
         q.ToUnitNormQuaternion();
@@ -96,7 +96,7 @@ public:
         return rotated.V;
     }
 
-    inline Vec3 RotateVector(const Vec3& vToRotate) const
+    inline Vec4 RotateVector(const Vec4& vToRotate) const
     {
         return RotateVector(vToRotate, V, S);
     }
@@ -131,5 +131,5 @@ public:
 private:
 
     float S;
-    Vec3  V;
+    Vec4  V;
 };

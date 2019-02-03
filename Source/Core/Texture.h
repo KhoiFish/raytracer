@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Vec3.h"
+#include "Vec4.h"
 #include "Perlin.h"
 #include <string>
 
@@ -10,7 +10,7 @@ class BaseTexture
 {
 public:
 
-    virtual Vec3 Value(float u, float v, const Vec3& p) const = 0;
+    virtual Vec4 Value(float u, float v, const Vec4& p) const = 0;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -20,13 +20,13 @@ class ConstantTexture : public BaseTexture
 public:
 
     inline ConstantTexture() {}
-    inline ConstantTexture(const Vec3& color) : Color(color) {}
+    inline ConstantTexture(const Vec4& color) : Color(color) {}
 
-    virtual Vec3 Value(float u, float v, const Vec3& p) const;
+    virtual Vec4 Value(float u, float v, const Vec4& p) const;
 
 private:
 
-    Vec3 Color;
+    Vec4 Color;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -38,7 +38,7 @@ public:
     inline CheckerTexture() {}
     inline CheckerTexture(BaseTexture* t0, BaseTexture* t1) : Odd(t0), Even(t1) {}
 
-    virtual Vec3 Value(float u, float v, const Vec3& p) const;
+    virtual Vec4 Value(float u, float v, const Vec4& p) const;
 
 private:
 
@@ -54,7 +54,7 @@ public:
 
     inline NoiseTexture(float scale) : Scale(scale) {}
 
-    virtual Vec3 Value(float u, float v, const Vec3& p) const;
+    virtual Vec4 Value(float u, float v, const Vec4& p) const;
 
 private:
 
@@ -71,10 +71,10 @@ public:
     ImageTexture(const char* filePath);
     ~ImageTexture();
 
-    virtual Vec3   Value(float u, float v, const Vec3& p) const;
+    virtual Vec4   Value(float u, float v, const Vec4& p) const;
 
     std::string    GetSourceFilename() const { return Filename; }
-    const Vec3*    GetImageFP() const        { return ImageData; }
+    const Vec4*    GetImageFP() const        { return ImageData; }
     const uint8_t* GetImageRgba8888() const  { return ImageRgba; }
 
 private:
@@ -84,7 +84,7 @@ private:
 private:
 
     std::string     Filename;
-    Vec3*           ImageData;
+    Vec4*           ImageData;
     uint8_t*        ImageRgba;
     int             Width, Height;
 };

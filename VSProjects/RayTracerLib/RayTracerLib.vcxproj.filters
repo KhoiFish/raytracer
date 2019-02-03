@@ -75,9 +75,6 @@
     <ClInclude Include="..\..\Source\Core\TriMesh.h">
       <Filter>Core\Headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Core\Vec3.h">
-      <Filter>Core\Headers</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Source\Core\XYZRect.h">
       <Filter>Core\Headers</Filter>
     </ClInclude>
@@ -104,6 +101,9 @@
     </ClInclude>
     <ClInclude Include="..\..\ThirdParty\StbImage\stb_image.h">
       <Filter>ThirdParty\StbImage</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Core\Vec4.h">
+      <Filter>Core\Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

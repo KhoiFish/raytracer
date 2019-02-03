@@ -4,7 +4,7 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-Sphere::Sphere(Vec3 cen, float r, Material* mat, bool isLightShape /*= false*/) : IHitable(isLightShape), Center(cen), Radius(r), Mat(mat)
+Sphere::Sphere(Vec4 cen, float r, Material* mat, bool isLightShape /*= false*/) : IHitable(isLightShape), Center(cen), Radius(r), Mat(mat)
 {
     if (Mat->Owner == nullptr)
     {
@@ -27,7 +27,7 @@ Sphere::~Sphere()
 
 bool Sphere::Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const
 {
-    Vec3  oc = r.Origin() - Center;
+    Vec4  oc = r.Origin() - Center;
 
     float a     = Dot(r.Direction(), r.Direction());
     float b     = Dot(oc, r.Direction());
@@ -47,7 +47,7 @@ bool Sphere::Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const
             rec.T = test0Passed ? test0 : test1;
             rec.P = r.PointAtParameter(rec.T);
 
-            const Vec3 delta = (rec.P - Center) / Radius;
+            const Vec4 delta = (rec.P - Center) / Radius;
             rec.Normal = delta;
             rec.MatPtr = Mat;
 
@@ -70,7 +70,7 @@ bool Sphere::BoundingBox(float t0, float t1, AABB& box) const
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-float Sphere::PdfValue(const Vec3& origin, const Vec3& v) const
+float Sphere::PdfValue(const Vec4& origin, const Vec4& v) const
 {
     HitRecord rec;
 
@@ -89,9 +89,9 @@ float Sphere::PdfValue(const Vec3& origin, const Vec3& v) const
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-Vec3 Sphere::Random(const Vec3& origin) const
+Vec4 Sphere::Random(const Vec4& origin) const
 {
-    Vec3  direction = Center - origin;
+    Vec4  direction = Center - origin;
     float distanceSquared = direction.SquaredLength();
 
     OrthoNormalBasis uvw;

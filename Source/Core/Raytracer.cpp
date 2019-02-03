@@ -21,7 +21,7 @@ Raytracer::Raytracer(int width, int height, int numSamples, int maxDepth, int nu
     , ThreadExitRequested(false)
     , IsRaytracing(false)
 {
-    OutputBuffer      = new Vec3[OutputWidth * OutputHeight];
+    OutputBuffer      = new Vec4[OutputWidth * OutputHeight];
     OutputBufferRGBA  = new uint8_t[OutputWidth * OutputHeight * 4];
     ThreadPtrs        = new std::thread*[NumThreads];
 }
@@ -62,7 +62,7 @@ void Raytracer::BeginRaytrace(WorldScene* scene, OnTraceComplete onComplete)
     memset(OutputBufferRGBA, 0, sizeof(uint8_t) * area * 4);
     for (int i = 0; i < area; i++)
     {
-        OutputBuffer[i] = Vec3(0, 0, 0);
+        OutputBuffer[i] = Vec4(0, 0, 0);
     }
 
     // Create the threads and run them
@@ -192,7 +192,7 @@ void Raytracer::threadTraceNextPixel(int id, Raytracer* tracer, WorldScene* scen
             // Write RGBA (for previewing)
             {
                 const int64_t numSamples = (pixelSampleOffset / int64_t(numPixels)) + 1;
-                Vec3          curCol     = tracer->OutputBuffer[outIdx] * float(1.0 / double(numSamples));
+                Vec4          curCol     = tracer->OutputBuffer[outIdx] * float(1.0 / double(numSamples));
 
                 int rgbaOffset = outIdx * 4;
                 int ir, ig, ib, ia;
@@ -234,7 +234,7 @@ void Raytracer::threadTraceNextPixel(int id, Raytracer* tracer, WorldScene* scen
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-Vec3 Raytracer::trace(WorldScene* scene, const Ray& r, int depth)
+Vec4 Raytracer::trace(WorldScene* scene, const Ray& r, int depth)
 {
     // Bail if we're requested to exit
     if (ThreadExitRequested.load() == true)
@@ -250,7 +250,7 @@ Vec3 Raytracer::trace(WorldScene* scene, const Ray& r, int depth)
     if (scene->GetWorld()->Hit(r, 0.001f, FLT_MAX, hitRec))
     {
         // We got a hit, get the emitted color
-        const Vec3 emitted = hitRec.MatPtr->Emitted(r, hitRec, hitRec.U, hitRec.V, hitRec.P);
+        const Vec4 emitted = hitRec.MatPtr->Emitted(r, hitRec, hitRec.U, hitRec.V, hitRec.P);
 
         // Test for ray scatter
         Material::ScatterRecord scatterRec;
@@ -295,8 +295,8 @@ Vec3 Raytracer::trace(WorldScene* scene, const Ray& r, int depth)
                 }
 
                 // Compute the aggregate color
-                const Vec3 color = trace(scene, scattered, depth + 1);
-                const Vec3 ret   = emitted + (scatterRec.Attenuation * scatterPdf * color / pdfValue);
+                const Vec4 color = trace(scene, scattered, depth + 1);
+                const Vec4 ret   = emitted + (scatterRec.Attenuation * scatterPdf * color / pdfValue);
 
                 VEC3_SANITY_CHECK(ret);
                 return ret;

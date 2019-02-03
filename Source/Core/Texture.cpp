@@ -3,14 +3,14 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-Vec3 ConstantTexture::Value(float u, float v, const Vec3& p) const
+Vec4 ConstantTexture::Value(float u, float v, const Vec4& p) const
 {
     return Color;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-Vec3 CheckerTexture::Value(float u, float v, const Vec3& p) const
+Vec4 CheckerTexture::Value(float u, float v, const Vec4& p) const
 {
     float sines = sin(10.f * p.X()) * sin(10.f * p.Y()) * sin(10.f * p.Z());
     if (sines < 0)
@@ -25,9 +25,9 @@ Vec3 CheckerTexture::Value(float u, float v, const Vec3& p) const
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-Vec3 NoiseTexture::Value(float u, float v, const Vec3& p) const
+Vec4 NoiseTexture::Value(float u, float v, const Vec4& p) const
 {
-    return Vec3(1, 1, 1) * 0.5f * (1 + sin(Scale * p.Z() + 10 * Perlin::Turb(p)));
+    return Vec4(1, 1, 1) * 0.5f * (1 + sin(Scale * p.Z() + 10 * Perlin::Turb(p)));
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -74,7 +74,7 @@ ImageTexture::~ImageTexture()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-Vec3 ImageTexture::Value(float u, float v, const Vec3& p) const
+Vec4 ImageTexture::Value(float u, float v, const Vec4& p) const
 {
     int i = int((u)* Width);
     int j = int((1 - v) * Height);
@@ -94,7 +94,7 @@ Vec3 ImageTexture::Value(float u, float v, const Vec3& p) const
 
 void ImageTexture::createFromPixelData(const unsigned char* pixels, bool hasAlpha, int width, int height)
 {
-    ImageData = new Vec3[width * height];
+    ImageData = new Vec4[width * height];
     ImageRgba = new uint8_t[width * height * 4];
 
     const int bpp = hasAlpha ? 4 : 3;
@@ -125,7 +125,7 @@ void ImageTexture::createFromPixelData(const unsigned char* pixels, bool hasAlph
                 ImageRgba[srcOffset + 3] = 255;
             }
                 
-            ImageData[dstOffset] = Vec3(r, g, b, a);
+            ImageData[dstOffset] = Vec4(r, g, b, a);
         }
     }
 }

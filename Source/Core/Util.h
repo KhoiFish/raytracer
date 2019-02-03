@@ -1,5 +1,5 @@
 #pragma once
-#include "Vec3.h"
+#include "Vec4.h"
 #include "Systems.h"
 #include <vector>
 #include <string>
@@ -64,9 +64,9 @@ inline float CompareFloatEqual(float a, float b, float relTol = 0.0000001f, floa
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline Vec3 DeNaN(const Vec3& c)
+inline Vec4 DeNaN(const Vec4& c)
 {
-    Vec3 temp = c;
+    Vec4 temp = c;
     for (int i = 0; i < 3; i++)
     {
         if (isnan(temp[i]))
@@ -88,12 +88,12 @@ inline float RandomFloat()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline Vec3 RandomInUnitSphere()
+inline Vec4 RandomInUnitSphere()
 {
-    Vec3 p;
+    Vec4 p;
     do
     {
-        p = 2.0f * Vec3(RandomFloat(), RandomFloat(), RandomFloat()) - Vec3(1.f, 1.f, 1.f);
+        p = 2.0f * Vec4(RandomFloat(), RandomFloat(), RandomFloat()) - Vec4(1.f, 1.f, 1.f);
     } while (p.SquaredLength() >= 1.f);
 
     return p;
@@ -101,12 +101,12 @@ inline Vec3 RandomInUnitSphere()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline Vec3 RandomInUnitDisk()
+inline Vec4 RandomInUnitDisk()
 {
-    Vec3 p;
+    Vec4 p;
     do 
     {
-        p = 2.0f * Vec3(RandomFloat(), RandomFloat(), 0) - Vec3(1, 1, 0);
+        p = 2.0f * Vec4(RandomFloat(), RandomFloat(), 0) - Vec4(1, 1, 0);
     } while (Dot(p, p) >= 1.0f);
 
     return p;
@@ -114,7 +114,7 @@ inline Vec3 RandomInUnitDisk()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline Vec3 RandomToSphere(float radius, float distanceSquared)
+inline Vec4 RandomToSphere(float radius, float distanceSquared)
 {
     float r1  = RandomFloat();
     float r2  = RandomFloat();
@@ -123,12 +123,12 @@ inline Vec3 RandomToSphere(float radius, float distanceSquared)
     float x   = cos(phi) * sqrt(GetMax(0.f, 1 - z * z));
     float y   = sin(phi) * sqrt(GetMax(0.f, 1 - z * z));
 
-    return Vec3(x, y, z);
+    return Vec4(x, y, z);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline Vec3 RandomCosineDirection()
+inline Vec4 RandomCosineDirection()
 {
     float r1  = RandomFloat();
     float r2  = RandomFloat();
@@ -137,7 +137,7 @@ inline Vec3 RandomCosineDirection()
     float x   = cos(phi) * 2 * sqrt(r2);
     float y   = sin(phi) * 2 * sqrt(r2);
 
-    return Vec3(x, y, z);
+    return Vec4(x, y, z);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -175,7 +175,7 @@ inline float TrilinearInterp(float c[2][2][2], float u, float v, float w)
 // ----------------------------------------------------------------------------------------------------------------------------
 
 // This method produces incorrect output, as described in the github
-inline float PerlinInterp(Vec3 c[2][2][2], float u, float v, float w)
+inline float PerlinInterp(Vec4 c[2][2][2], float u, float v, float w)
 {
     float uu = u * u * (3 - 2 * u);
     float vv = v * v * (3 - 2 * v);
@@ -187,7 +187,7 @@ inline float PerlinInterp(Vec3 c[2][2][2], float u, float v, float w)
         {
             for (int k = 0; k < 2; k++)
             {
-                Vec3 weight(u - i, v - j, w - k);
+                Vec4 weight(u - i, v - j, w - k);
                 accum +=
                     (i*uu + (1 - i)*(1 - uu)) *
                     (j*vv + (1 - j)*(1 - vv)) *
@@ -248,7 +248,7 @@ inline float asinFast(float x)
     return ret - 2 * negate * ret;
 }
 
-inline void GetSphereUV(const Vec3& p, float& u, float& v)
+inline void GetSphereUV(const Vec4& p, float& u, float& v)
 {
     const float oneOverPi    = 1.f / (RT_PI);
     const float oneOverTwoPi = 1.f / (2 * RT_PI);
@@ -262,12 +262,12 @@ inline void GetSphereUV(const Vec3& p, float& u, float& v)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline void GetRGBA8888(Vec3 col, bool gammaCorrect, int& ir, int& ig, int& ib, int& ia)
+inline void GetRGBA8888(Vec4 col, bool gammaCorrect, int& ir, int& ig, int& ib, int& ia)
 {
     // Gamma correct
     if (gammaCorrect)
     {
-        col = Vec3(sqrt(col.R()), sqrt(col.G()), sqrt(col.B()));
+        col = Vec4(sqrt(col.R()), sqrt(col.G()), sqrt(col.B()));
     }
 
     // Write pixel to file

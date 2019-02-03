@@ -11,13 +11,13 @@ class HitableBox : public IHitable
 {
 public:
 
-    HitableBox(const Vec3& p0, const Vec3& p1, Material* mat);
+    HitableBox(const Vec4& p0, const Vec4& p1, Material* mat);
     virtual ~HitableBox();
 
     virtual bool BoundingBox(float t0, float t1, AABB& box) const;
     virtual bool Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const;
 
-    inline void  GetPoints(Vec3& minP, Vec3& maxP) const
+    inline void  GetPoints(Vec4& minP, Vec4& maxP) const
     {
         minP = Pmin;
         maxP = Pmax;
@@ -27,7 +27,7 @@ public:
 
 private:
 
-    Vec3      Pmin, Pmax;
+    Vec4      Pmin, Pmax;
     IHitable* HitList;
     Material* Mat;
 };

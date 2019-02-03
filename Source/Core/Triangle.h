@@ -1,6 +1,6 @@
 #pragma once
 #include "IHitable.h"
-#include "Vec3.h"
+#include "Vec4.h"
 #include "Material.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -11,9 +11,9 @@ public:
 
     struct Vertex
     {
-        Vec3  Vert;
-        Vec3  Normal;
-        Vec3  Color;
+        Vec4  Vert;
+        Vec4  Normal;
+        Vec4  Color;
         float UV[2];
     };
 

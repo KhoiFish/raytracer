@@ -28,7 +28,7 @@ public:
 
         Ray   SpecularRay;
         bool  IsSpecular;
-        Vec3  Attenuation;
+        Vec4  Attenuation;
         Ray   ScatteredClassic;
         Pdf*  PdfPtr;
     };
@@ -53,8 +53,8 @@ public:
 
     virtual bool  Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& scatterRec) const { return false; }
     virtual float ScatteringPdf(const Ray& rayIn, const HitRecord& rec, Ray& scattered) const { return 1.f; }
-    virtual Vec3  Emitted(const Ray& rayIn, const HitRecord& rec, float u, float v, Vec3& p) const { return Vec3(0, 0, 0); }
-    virtual Vec3  AlbedoValue(float u, float v, const Vec3& p) const { return Vec3(0, 0, 0); }
+    virtual Vec4  Emitted(const Ray& rayIn, const HitRecord& rec, float u, float v, Vec4& p) const { return Vec4(0, 0, 0); }
+    virtual Vec4  AlbedoValue(float u, float v, const Vec4& p) const { return Vec4(0, 0, 0); }
 
 public:
 
@@ -76,7 +76,7 @@ public:
 
     virtual bool  Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& scatterRec) const;
     virtual float ScatteringPdf(const Ray& rayIn, const HitRecord& rec, Ray& scattered) const;
-    virtual Vec3  AlbedoValue(float u, float v, const Vec3& p) const;
+    virtual Vec4  AlbedoValue(float u, float v, const Vec4& p) const;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -88,7 +88,7 @@ public:
     MMetal(BaseTexture* albedo, float fuzz);
 
     virtual bool Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& scatterRec) const;
-    virtual Vec3 AlbedoValue(float u, float v, const Vec3& p) const;
+    virtual Vec4 AlbedoValue(float u, float v, const Vec4& p) const;
 
 private:
 
@@ -118,8 +118,8 @@ public:
 
     MDiffuseLight(BaseTexture* tex);
 
-    virtual Vec3 Emitted(const Ray& rayIn, const HitRecord& rec, float u, float v, Vec3& p) const;
-    virtual Vec3 AlbedoValue(float u, float v, const Vec3& p) const;
+    virtual Vec4 Emitted(const Ray& rayIn, const HitRecord& rec, float u, float v, Vec4& p) const;
+    virtual Vec4 AlbedoValue(float u, float v, const Vec4& p) const;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -131,7 +131,7 @@ public:
     MIsotropic(BaseTexture* albedo);
 
     virtual bool Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& scatterRec) const;
-    virtual Vec3 AlbedoValue(float u, float v, const Vec3& p) const;
+    virtual Vec4 AlbedoValue(float u, float v, const Vec4& p) const;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -144,7 +144,7 @@ public:
     virtual ~MWavefrontObj();
 
     virtual bool  Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& scatterRec) const;
-    virtual Vec3  AlbedoValue(float u, float v, const Vec3& p) const;
+    virtual Vec4  AlbedoValue(float u, float v, const Vec4& p) const;
 
     const ImageTexture* GetDiffuseMap() const { return DiffuseMap; }
 

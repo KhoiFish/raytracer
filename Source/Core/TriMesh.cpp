@@ -70,25 +70,25 @@ TriMesh* TriMesh::CreateFromSTLFile(const char* filePath, Material* material, fl
 
             Triangle::Vertex v0 =
             {
-                Vec3(stlTri.Vert0[0], stlTri.Vert0[1], -stlTri.Vert0[2]) * scale,
-                Vec3(0, 0, 0),
-                Vec3(1, 1, 1),
+                Vec4(stlTri.Vert0[0], stlTri.Vert0[1], -stlTri.Vert0[2]) * scale,
+                Vec4(0, 0, 0),
+                Vec4(1, 1, 1),
                 {0, 0}
             };
 
             Triangle::Vertex v1 =
             {
-                Vec3(stlTri.Vert1[0], stlTri.Vert1[1], -stlTri.Vert1[2]) * scale,
-                Vec3(0, 0, 0),
-                Vec3(1, 1, 1),
+                Vec4(stlTri.Vert1[0], stlTri.Vert1[1], -stlTri.Vert1[2]) * scale,
+                Vec4(0, 0, 0),
+                Vec4(1, 1, 1),
                 {0, 0}
             };
 
             Triangle::Vertex v2 =
             {
-                Vec3(stlTri.Vert2[0], stlTri.Vert2[1], -stlTri.Vert2[2]) * scale,
-                Vec3(0, 0, 0),
-                Vec3(1, 1, 1),
+                Vec4(stlTri.Vert2[0], stlTri.Vert2[1], -stlTri.Vert2[2]) * scale,
+                Vec4(0, 0, 0),
+                Vec4(1, 1, 1),
                 {0, 0}
             };
 
@@ -105,15 +105,15 @@ TriMesh* TriMesh::CreateFromSTLFile(const char* filePath, Material* material, fl
 
 Triangle* TriMesh::makeNewTriangle(
     int v0, int v1, int v2,
-    const std::vector<Vec3>& vertList, const std::vector<Vec3>& vertNormalList, const std::vector<TexCoord>& texCoordList,
+    const std::vector<Vec4>& vertList, const std::vector<Vec4>& vertNormalList, const std::vector<TexCoord>& texCoordList,
     const Face& face, Material* material)
 {
     Triangle* newTri0 = new Triangle(
         Triangle::Vertex(
             {
                 vertList[face.Verts[v0].VertIndex],
-                face.Verts[v0].NormIndex >= 0 ? vertNormalList[face.Verts[v0].NormIndex] : Vec3(0, 0, 0),
-                Vec3(0, 0, 0),
+                face.Verts[v0].NormIndex >= 0 ? vertNormalList[face.Verts[v0].NormIndex] : Vec4(0, 0, 0),
+                Vec4(0, 0, 0),
                 {
                     face.Verts[v0].TexCoordIndex >= 0 ? texCoordList[face.Verts[v0].TexCoordIndex].UV[0] : 0.f,
                     face.Verts[v0].TexCoordIndex >= 0 ? texCoordList[face.Verts[v0].TexCoordIndex].UV[1] : 0.f,
@@ -123,8 +123,8 @@ Triangle* TriMesh::makeNewTriangle(
         Triangle::Vertex(
             {
                 vertList[face.Verts[v1].VertIndex],
-                face.Verts[v1].NormIndex >= 0 ? vertNormalList[face.Verts[v1].NormIndex] : Vec3(0, 0, 0),
-                Vec3(0, 0, 0),
+                face.Verts[v1].NormIndex >= 0 ? vertNormalList[face.Verts[v1].NormIndex] : Vec4(0, 0, 0),
+                Vec4(0, 0, 0),
                 {
                     face.Verts[v1].TexCoordIndex >= 0 ? texCoordList[face.Verts[v1].TexCoordIndex].UV[0] : 0.f,
                     face.Verts[v1].TexCoordIndex >= 0 ? texCoordList[face.Verts[v1].TexCoordIndex].UV[1] : 0.f,
@@ -134,8 +134,8 @@ Triangle* TriMesh::makeNewTriangle(
         Triangle::Vertex(
             {
                 vertList[face.Verts[v2].VertIndex],
-                face.Verts[v2].NormIndex >= 0 ? vertNormalList[face.Verts[v2].NormIndex] : Vec3(0, 0, 0),
-                Vec3(0, 0, 0),
+                face.Verts[v2].NormIndex >= 0 ? vertNormalList[face.Verts[v2].NormIndex] : Vec4(0, 0, 0),
+                Vec4(0, 0, 0),
                 {
                     face.Verts[v2].TexCoordIndex >= 0 ? texCoordList[face.Verts[v2].TexCoordIndex].UV[0] : 0.f,
                     face.Verts[v2].TexCoordIndex >= 0 ? texCoordList[face.Verts[v2].TexCoordIndex].UV[1] : 0.f,
@@ -172,8 +172,8 @@ TriMesh* TriMesh::CreateFromOBJFile(const char* filePath, float scale, bool make
     {
         ret = new TriMesh();
 
-        std::vector<Vec3>       vertList;
-        std::vector<Vec3>       vertNormalList;
+        std::vector<Vec4>       vertList;
+        std::vector<Vec4>       vertNormalList;
         std::vector<TexCoord>   texCoordList;
         std::vector<Face>       faceList;
 
@@ -219,7 +219,7 @@ TriMesh* TriMesh::CreateFromOBJFile(const char* filePath, float scale, bool make
                     std::string sourceString = &lineBuf[lineBufOffset];
                     std::vector<std::string> tokens = GetStringTokens(sourceString, " ");
 
-                    Vec3 point(
+                    Vec4 point(
                          (float)atof(tokens[0].c_str()),
                          (float)atof(tokens[1].c_str()),
                          (float)atof(tokens[2].c_str()));

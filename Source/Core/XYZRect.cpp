@@ -28,14 +28,14 @@ XYZRect::~XYZRect()
 
 bool XYZRect::Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const
 {
-    Vec3  normal, planeP;
+    Vec4  normal, planeP;
     float aParams[2], bParams[2];
     switch (AxisMode)
     {
         case XY:
         {
-            normal     = Vec3(0, 0, 1);
-            planeP     = Vec3(A0, B0, K);
+            normal     = Vec4(0, 0, 1);
+            planeP     = Vec4(A0, B0, K);
             aParams[0] = r.Origin().X();
             aParams[1] = r.Direction().X();
             bParams[0] = r.Origin().Y();
@@ -45,8 +45,8 @@ bool XYZRect::Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const
 
         case XZ:
         {
-            normal     = Vec3(0, 1, 0);
-            planeP     = Vec3(A0, K, B0);
+            normal     = Vec4(0, 1, 0);
+            planeP     = Vec4(A0, K, B0);
             aParams[0] = r.Origin().X();
             aParams[1] = r.Direction().X();
             bParams[0] = r.Origin().Z();
@@ -56,8 +56,8 @@ bool XYZRect::Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const
 
         case YZ:
         {
-            normal     = Vec3(1, 0, 0);
-            planeP     = Vec3(K, A0, B0);
+            normal     = Vec4(1, 0, 0);
+            planeP     = Vec4(K, A0, B0);
             aParams[0] = r.Origin().Y();
             aParams[1] = r.Direction().Y();
             bParams[0] = r.Origin().Z();
@@ -107,15 +107,15 @@ bool XYZRect::BoundingBox(float t0, float t1, AABB& box) const
     switch (AxisMode)
     {
     case XY:
-        box = AABB(Vec3(A0, B0, K - 0.0001f), Vec3(A1, B1, K + 0.0001f));
+        box = AABB(Vec4(A0, B0, K - 0.0001f), Vec4(A1, B1, K + 0.0001f));
         break;
 
     case XZ:
-        box = AABB(Vec3(A0, K - 0.0001f, B0), Vec3(A1, K + 0.0001f, B1));
+        box = AABB(Vec4(A0, K - 0.0001f, B0), Vec4(A1, K + 0.0001f, B1));
         break;
 
     case YZ:
-        box = AABB(Vec3(K - 0.0001f, A0, B0), Vec3(K + 0.0001f, A1, B1));
+        box = AABB(Vec4(K - 0.0001f, A0, B0), Vec4(K + 0.0001f, A1, B1));
         break;
     }
 
@@ -124,7 +124,7 @@ bool XYZRect::BoundingBox(float t0, float t1, AABB& box) const
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-float XYZRect::PdfValue(const Vec3& origin, const Vec3& v) const
+float XYZRect::PdfValue(const Vec4& origin, const Vec4& v) const
 {
     HitRecord rec;
     if (this->Hit(Ray(origin, v), 0.001f, FLT_MAX, rec))
@@ -145,30 +145,30 @@ float XYZRect::PdfValue(const Vec3& origin, const Vec3& v) const
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-Vec3 XYZRect::Random(const Vec3& origin) const
+Vec4 XYZRect::Random(const Vec4& origin) const
 {
     const float a = A0 + RandomFloat() * (A1 - A0);
     const float b = B0 + RandomFloat() * (B1 - B0);
     const float c = K;
 
-    Vec3 randomPoint;
+    Vec4 randomPoint;
     switch (AxisMode)
     {
         case XY:
         {
-            randomPoint = Vec3(a, b, c);
+            randomPoint = Vec4(a, b, c);
         }
         break;
 
         case XZ:
         {
-            randomPoint = Vec3(a, c, b);
+            randomPoint = Vec4(a, c, b);
         }
         break;
 
         case YZ:
         {
-            randomPoint = Vec3(c, a, b);
+            randomPoint = Vec4(c, a, b);
         }
         break;
     }
@@ -178,37 +178,37 @@ Vec3 XYZRect::Random(const Vec3& origin) const
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void XYZRect::GetPlaneData(Vec3 outPoints[4], Vec3& normal)
+void XYZRect::GetPlaneData(Vec4 outPoints[4], Vec4& normal)
 {
     switch (AxisMode)
     {
         case XY:
         {
-            normal       = Vec3(0, 0, 1);
-            outPoints[0] = Vec3(A0, B0, K);
-            outPoints[1] = Vec3(A1, B0, K);
-            outPoints[2] = Vec3(A1, B1, K);
-            outPoints[3] = Vec3(A0, B1, K);
+            normal       = Vec4(0, 0, 1);
+            outPoints[0] = Vec4(A0, B0, K);
+            outPoints[1] = Vec4(A1, B0, K);
+            outPoints[2] = Vec4(A1, B1, K);
+            outPoints[3] = Vec4(A0, B1, K);
         }
         break;
 
         case XZ:
         {
-            normal       = Vec3(0, 1, 0);
-            outPoints[0] = Vec3(A0, K, B0);
-            outPoints[1] = Vec3(A1, K, B0);
-            outPoints[2] = Vec3(A1, K, B1);
-            outPoints[3] = Vec3(A0, K, B1);
+            normal       = Vec4(0, 1, 0);
+            outPoints[0] = Vec4(A0, K, B0);
+            outPoints[1] = Vec4(A1, K, B0);
+            outPoints[2] = Vec4(A1, K, B1);
+            outPoints[3] = Vec4(A0, K, B1);
         }
         break;
 
         case YZ:
         {
-            normal       = Vec3(1, 0, 0);
-            outPoints[0] = Vec3(K, A0, B0);
-            outPoints[1] = Vec3(K, A1, B0);
-            outPoints[2] = Vec3(K, A1, B1);
-            outPoints[3] = Vec3(K, A0, B1);
+            normal       = Vec4(1, 0, 0);
+            outPoints[0] = Vec4(K, A0, B0);
+            outPoints[1] = Vec4(K, A1, B0);
+            outPoints[2] = Vec4(K, A1, B1);
+            outPoints[3] = Vec4(K, A0, B1);
         }
         break;
     }

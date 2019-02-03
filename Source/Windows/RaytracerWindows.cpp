@@ -748,7 +748,7 @@ void RaytracerWindows::OnGUI()
         return;
 
     ImGui::SetNextWindowPos(ImVec2(770, 10), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(500, 450), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(500, 460), ImGuiCond_FirstUseEver);
 
     ImGuiWindowFlags window_flags = 0;
     if (!ImGui::Begin("Raytracer", &ShowHelperWindow, window_flags))

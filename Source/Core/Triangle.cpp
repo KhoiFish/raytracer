@@ -89,15 +89,9 @@ bool Triangle::Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const
     float t = f * dot_product(edge2, q);
     if (t > EPSILON && t > tMin && t < tMax)
     {
-        Vec3f tempUV[3] =
-        {
-            Vec3f(Vertices[0].UV[0], Vertices[0].UV[1], 0),
-            Vec3f(Vertices[1].UV[0], Vertices[1].UV[1], 0),
-            Vec3f(Vertices[2].UV[0], Vertices[2].UV[1], 0)
-        };
-
-        Vec3f texUv  = (1 - u - v) * tempUV[0] + u * tempUV[1] + v * tempUV[2];
-        Vec3f normal = (1 - u - v) * FastVertices[0].Normal + u * FastVertices[1].Normal + v * FastVertices[2].Normal;
+        const float w       = (1 - u - v);
+        Vec3f       texUv   = w * FastVertices[0].UV     + u * FastVertices[1].UV     + v * FastVertices[2].UV;
+        Vec3f       normal  = w * FastVertices[0].Normal + u * FastVertices[1].Normal + v * FastVertices[2].Normal;
 
         Vec4 slowNormal;
         normal.store(&slowNormal[0]);

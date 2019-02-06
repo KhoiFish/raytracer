@@ -6,6 +6,8 @@
 
 Sphere::Sphere(Vec4 cen, float r, Material* mat, bool isLightShape /*= false*/) : IHitable(isLightShape), Center(cen), Radius(r), Mat(mat)
 {
+    CenterFast = Vec3f(cen[0], cen[1], cen[2]);
+
     if (Mat->Owner == nullptr)
     {
         Mat->Owner = this;
@@ -27,12 +29,12 @@ Sphere::~Sphere()
 
 bool Sphere::Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const
 {
-    Vec4  oc = r.Origin() - Center;
+    Vec3f oc = r.OriginFast() - CenterFast;
 
-    float a     = Dot(r.Direction(), r.Direction());
-    float b     = Dot(oc, r.Direction());
+    float a     = dot_product(r.DirectionFast(), r.DirectionFast());
+    float b     = dot_product(oc, r.DirectionFast());
     float bSqrd = b * b;
-    float c     = Dot(oc, oc) - Radius * Radius;
+    float c     = dot_product(oc, oc) - Radius * Radius;
     float d     = bSqrd - (a * c);
     if (d > 0)
     {

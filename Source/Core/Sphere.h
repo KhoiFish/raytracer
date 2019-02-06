@@ -2,6 +2,7 @@
 
 #include "IHitable.h"
 #include "Util.h"
+#include <vcl/vector3d.h>
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -24,6 +25,7 @@ public:
 private:
 
     Vec4       Center;
+    Vec3f      CenterFast;
     float      Radius;
     Material*  Mat;
 };

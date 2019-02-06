@@ -1,4 +1,5 @@
 #include "XYZRect.h"
+#include <vcl/vector3d.h>
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -28,14 +29,14 @@ XYZRect::~XYZRect()
 
 bool XYZRect::Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const
 {
-    Vec4  normal, planeP;
+    Vec3f normal, planeP;
     float aParams[2], bParams[2];
     switch (AxisMode)
     {
         case XY:
         {
-            normal     = Vec4(0, 0, 1);
-            planeP     = Vec4(A0, B0, K);
+            normal     = Vec3f(0, 0, 1);
+            planeP     = Vec3f(A0, B0, K);
             aParams[0] = r.Origin().X();
             aParams[1] = r.Direction().X();
             bParams[0] = r.Origin().Y();
@@ -45,8 +46,8 @@ bool XYZRect::Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const
 
         case XZ:
         {
-            normal     = Vec4(0, 1, 0);
-            planeP     = Vec4(A0, K, B0);
+            normal     = Vec3f(0, 1, 0);
+            planeP     = Vec3f(A0, K, B0);
             aParams[0] = r.Origin().X();
             aParams[1] = r.Direction().X();
             bParams[0] = r.Origin().Z();
@@ -56,8 +57,8 @@ bool XYZRect::Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const
 
         case YZ:
         {
-            normal     = Vec4(1, 0, 0);
-            planeP     = Vec4(K, A0, B0);
+            normal     = Vec3f(1, 0, 0);
+            planeP     = Vec3f(K, A0, B0);
             aParams[0] = r.Origin().Y();
             aParams[1] = r.Direction().Y();
             bParams[0] = r.Origin().Z();
@@ -66,13 +67,13 @@ bool XYZRect::Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const
         break;
     }
 
-    const float denom = Dot(normal, r.Direction());
+    const float denom = dot_product(normal, r.DirectionFast());
     if (fabs(denom) < 0.00001f)
     {
         return false;
     }
 
-    const float t = Dot(planeP - r.Origin(), normal) / denom;
+    const float t = dot_product(planeP - r.OriginFast(), normal) / denom;
     const float a = aParams[0] + t * aParams[1];
     const float b = bParams[0] + t * bParams[1];
 
@@ -90,12 +91,15 @@ bool XYZRect::Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const
         return false;
     }
 
+    Vec4 slowNormal;
+    normal.store(&slowNormal[0]);
+
     rec.U       = (a - A0) / (A1 - A0);
     rec.V       = (b - B0) / (B1 - B0);
     rec.T       = t;
     rec.P       = r.PointAtParameter(t);
     rec.MatPtr  = Mat;
-    rec.Normal  = normal;
+    rec.Normal  = slowNormal;
 
     return true;
 }

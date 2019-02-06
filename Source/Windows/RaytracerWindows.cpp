@@ -19,7 +19,7 @@ using namespace Microsoft::WRL;
 // ----------------------------------------------------------------------------------------------------------------------------
 
 static int          overrideWidth       = 1280;
-static int          overrideHeight      = 720;
+static int          overrideHeight      = 640;
 static int          sNumSamplesPerRay   = 500;
 static int          sMaxScatterDepth    = 50;
 static int          sNumThreads         = 4;

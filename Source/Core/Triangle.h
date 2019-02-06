@@ -2,6 +2,7 @@
 #include "IHitable.h"
 #include "Vec4.h"
 #include "Material.h"
+#include <vcl/vector3d.h>
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -28,6 +29,17 @@ public:
 
 private:
 
+    struct FastVert
+    {
+        Vec3f  Vert;
+        Vec3f  Normal;
+        Vec3f  Color;
+        Vec3f  UV;
+    };
+
+private:
+
     Vertex      Vertices[3];
+    FastVert    FastVertices[3];
     Material*   MatPtr;
 };

@@ -23,30 +23,21 @@ public:
     inline bool Hit(const Ray& ray, float tMin, float tMax) const
     {
         // Do the math fast using SIMD
-        Vec3f vT0 = (FastMinP - ray.OriginFast()) * ray.InverseDirectionFast();
-        Vec3f vT1 = (FastMaxP - ray.OriginFast()) * ray.InverseDirectionFast();
+        const Vec4f vT0  = static_cast<Vec4f>((FastMinP - ray.OriginFast()) * ray.InverseDirectionFast());
+        const Vec4f vT1  = static_cast<Vec4f>((FastMaxP - ray.OriginFast()) * ray.InverseDirectionFast());
+        const Vec4f vMin = min(vT0, vT1);
+        const Vec4f vMax = max(vT0, vT1);
 
         // Extract the data from the SIMD registers
-        FloatAligned16 t0, t1;
-        static_cast<Vec4f>(vT0).store_a(t0.Data);
-        static_cast<Vec4f>(vT1).store_a(t1.Data);
+        FloatAligned16 minData, maxData;
+        vMin.store_a(minData.Data);
+        vMax.store_a(maxData.Data);
 
-        // Run through the cases and early reject
-        for (int i = 0; i < 3; i++)
-        {
-            float data[2]  = { t0.Data[i], t1.Data[i] };
-            int   minIndex = (ray.InverseDirectionArray()[i] < 0.f) ? 1 : 0;
-            int   maxIndex = (minIndex + 1) % 2;
+        // Horizontal min/max
+        const float minVal = GetMax(minData.Data[2], GetMax(minData.Data[0], minData.Data[1]));
+        const float maxVal = GetMin(maxData.Data[2], GetMin(maxData.Data[0], maxData.Data[1]));
 
-            tMin = data[minIndex] > tMin ? data[minIndex] : tMin;
-            tMax = data[maxIndex] < tMax ? data[maxIndex] : tMax;
-            if (tMax < tMin)
-            {
-                return false;
-            }
-        }
-
-        return true;
+        return (maxVal >= GetMax(tMin, minVal) && minVal < tMax);
     }
 
     static inline AABB ComputerAABBForSphere(const Vec4& center, float radius)

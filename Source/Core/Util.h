@@ -38,19 +38,19 @@ inline float RadiansToDegrees(float radians)
 // ----------------------------------------------------------------------------------------------------------------------------
 
 template<typename T>
-constexpr const T& GetMax(const T& a, const T& b)
+constexpr inline const T& GetMax(const T& a, const T& b)
 {
-    return (a > b) ? a : b;
+    return (b < a) ? a : b;
 }
 
 template<typename T>
-constexpr const T& GetMin(const T& a, const T& b)
+constexpr inline const T& GetMin(const T& a, const T& b)
 {
     return (a < b) ? a : b;
 }
 
 template<typename T>
-constexpr const T& Clamp(const T& val, const T& min, const T& max)
+constexpr inline const T& Clamp(const T& val, const T& min, const T& max)
 {
     return val < min ? min : val > max ? max : val;
 }

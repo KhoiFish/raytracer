@@ -1,8 +1,8 @@
 #pragma once
 #include "IHitable.h"
 #include "Vec4.h"
+#include "Ray.h"
 #include "Material.h"
-#include <vcl/vector3d.h>
 
 // ----------------------------------------------------------------------------------------------------------------------------
 

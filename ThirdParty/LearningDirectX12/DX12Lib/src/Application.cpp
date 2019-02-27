@@ -69,7 +69,7 @@ void Application::Initialize()
     // are caught by the debug layer.
     ComPtr<ID3D12Debug1> debugInterface;
     ThrowIfFailed(D3D12GetDebugInterface(IID_PPV_ARGS(&debugInterface)));
-    debugInterface->EnableDebugLayer();
+    //debugInterface->EnableDebugLayer();
     // Enable these if you want full validation (will slow down rendering a lot).
     //debugInterface->SetEnableGPUBasedValidation(TRUE);
     //debugInterface->SetEnableSynchronizedCommandQueueValidation(TRUE);

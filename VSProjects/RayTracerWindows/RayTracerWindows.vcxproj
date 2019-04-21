@@ -23,32 +23,32 @@
     <ProjectGuid>{42D26F47-C869-4E43-9DB1-F8046F8A4252}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>RayTracerWindows</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -163,14 +163,24 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\Realtime\DeviceResources.h" />
+    <ClInclude Include="..\..\Source\Realtime\Globals.h" />
+    <ClInclude Include="..\..\Source\Realtime\IDeviceNotify.h" />
+    <ClInclude Include="..\..\Source\Realtime\PlatformApp.h" />
+    <ClInclude Include="..\..\Source\Realtime\RenderInterface.h" />
+    <ClInclude Include="..\..\Source\Realtime\Renderer.h" />
     <ClInclude Include="..\..\Source\SampleScenes.h" />
     <ClInclude Include="..\..\Source\Windows\CameraDX12.h" />
     <ClInclude Include="..\..\Source\Windows\RaytracerWindows.h" />
     <ClInclude Include="..\..\Source\Windows\SceneConvert.hpp" />
     <ClInclude Include="..\..\Source\Windows\ShaderStructs.h" />
     <ClInclude Include="..\..\Source\Windows\Resource.h" />
+    <ClInclude Include="..\..\Source\WindowsRenderApp.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Source\Realtime\DeviceResources.cpp" />
+    <ClCompile Include="..\..\Source\Realtime\PlatformApp.cpp" />
+    <ClCompile Include="..\..\Source\Realtime\Renderer.cpp" />
     <ClCompile Include="..\..\Source\SampleScenes.cpp" />
     <ClCompile Include="..\..\Source\Windows\CameraDX12.cpp" />
     <ClCompile Include="..\..\Source\Windows\RaytracerWindows.cpp" />

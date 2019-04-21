@@ -14,6 +14,9 @@
     <Filter Include="Source\Render">
       <UniqueIdentifier>{39354d31-0fe7-44c2-ac94-72d4db55f16e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Realtime">
+      <UniqueIdentifier>{6d199c18-d450-4e18-805d-84cd5bf27efa}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Source\Windows\CameraDX12.h">
@@ -33,6 +36,27 @@
     </ClInclude>
     <ClInclude Include="..\..\Source\Windows\SceneConvert.hpp">
       <Filter>Source\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Realtime\Globals.h">
+      <Filter>Source\Realtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Realtime\IDeviceNotify.h">
+      <Filter>Source\Realtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\WindowsRenderApp.h">
+      <Filter>Source\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Realtime\DeviceResources.h">
+      <Filter>Source\Realtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Realtime\PlatformApp.h">
+      <Filter>Source\Realtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Realtime\RenderInterface.h">
+      <Filter>Source\Realtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Realtime\Renderer.h">
+      <Filter>Source\Realtime</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -60,6 +84,15 @@
     </ClCompile>
     <ClCompile Include="..\..\Source\SampleScenes.cpp">
       <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Realtime\PlatformApp.cpp">
+      <Filter>Source\Realtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Realtime\DeviceResources.cpp">
+      <Filter>Source\Realtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Realtime\Renderer.cpp">
+      <Filter>Source\Realtime</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

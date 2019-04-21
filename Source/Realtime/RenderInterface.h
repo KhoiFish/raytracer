@@ -1,25 +1,27 @@
-/*
-  Copyright 2019 Khoi Nguyen
-
-  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
-  files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
-  modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
-
-	 The above copyright notice and this permission notice shall be included in all copies or substantial
-	 portions of the Software.
-
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-  WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-  TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// ----------------------------------------------------------------------------------------------------------------------------
+// 
+// Copyright 2019 Khoi Nguyen
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
+// modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+// 
+//    The above copyright notice and this permission notice shall be included in all copies or substantial
+//    portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+// WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+// 
+// ----------------------------------------------------------------------------------------------------------------------------
 
 #pragma once
 
 #include "Globals.h"
 #include "IDeviceNotify.h"
-#include "DeviceResources.h"
+#include "RenderDevice.h"
 
 namespace yart
 {
@@ -31,8 +33,7 @@ namespace yart
             Width(width),
             Height(height),
             WindowBounds{ 0,0,0,0 },
-            AspectRatio(0.0f),
-            AdapterIDoverride(UINT_MAX)
+            AspectRatio(0.0f)
         {
             UpdateForSizeChange(width, height);
         }
@@ -49,12 +50,12 @@ namespace yart
 
     public:
 
-        virtual void                   OnKeyDown(uint8_t /*key*/) {}
-        virtual void                   OnKeyUp(uint8_t /*key*/) {}
-        virtual void                   OnWindowMoved(int /*x*/, int /*y*/) {}
-        virtual void                   OnMouseMove(uint32_t /*x*/, uint32_t /*y*/) {}
-        virtual void                   OnLeftButtonDown(uint32_t /*x*/, uint32_t /*y*/) {}
-        virtual void                   OnLeftButtonUp(uint32_t /*x*/, uint32_t /*y*/) {}
+        virtual void                   OnKeyDown(uint8_t key) {}
+        virtual void                   OnKeyUp(uint8_t key) {}
+        virtual void                   OnWindowMoved(int x, int y) {}
+        virtual void                   OnMouseMove(uint32_t x, uint32_t y) {}
+        virtual void                   OnLeftButtonDown(uint32_t x, uint32_t y) {}
+        virtual void                   OnLeftButtonUp(uint32_t x, uint32_t y) {}
         virtual void                   OnDisplayChanged() {}
 
 	public:
@@ -62,8 +63,7 @@ namespace yart
 		uint32_t                       GetWidth() const           { return Width; }
 		uint32_t                       GetHeight() const          { return Height; }
         RECT                           GetWindowsBounds() const   { return WindowBounds; }
-        virtual IDXGISwapChain*        GetSwapchain()             { return nullptr; }
-        DeviceResources*               GetDeviceResources() const { return DeviceResourcePtr.get(); }
+        virtual GfxSwapChain*          GetSwapchain()             { return nullptr; }
 
     public:
 
@@ -87,10 +87,7 @@ namespace yart
         uint32_t                          Width;
         uint32_t                          Height;
         float                             AspectRatio;
-
         RECT                              WindowBounds;
-        uint32_t                          AdapterIDoverride;
-        std::unique_ptr<DeviceResources>  DeviceResourcePtr;
     };
 
 }

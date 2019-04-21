@@ -36,6 +36,6 @@ namespace yart
 		virtual void OnRender();
 		virtual void OnSizeChanged(UINT width, UINT height, bool minimized);
 		virtual void OnDestroy();
-		virtual IDXGISwapChain* GetSwapchain() { return DeviceResources->GetSwapChain(); }
+		virtual IDXGISwapChain* GetSwapchain() { return RenderDevice->GetSwapChain(); }
 	};
 }

@@ -163,12 +163,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Source\Realtime\DeviceResources.h" />
+    <ClInclude Include="..\..\Source\Realtime\CommandContext.h" />
+    <ClInclude Include="..\..\Source\Realtime\GpuBuffer.h" />
+    <ClInclude Include="..\..\Source\Realtime\PipelineStateObject.h" />
+    <ClInclude Include="..\..\Source\Realtime\RenderDevice.h" />
     <ClInclude Include="..\..\Source\Realtime\Globals.h" />
+    <ClInclude Include="..\..\Source\Realtime\GPUResource.h" />
     <ClInclude Include="..\..\Source\Realtime\IDeviceNotify.h" />
     <ClInclude Include="..\..\Source\Realtime\PlatformApp.h" />
     <ClInclude Include="..\..\Source\Realtime\RenderInterface.h" />
     <ClInclude Include="..\..\Source\Realtime\Renderer.h" />
+    <ClInclude Include="..\..\Source\Realtime\RootSignature.h" />
+    <ClInclude Include="..\..\Source\Realtime\Texture.h" />
     <ClInclude Include="..\..\Source\SampleScenes.h" />
     <ClInclude Include="..\..\Source\Windows\CameraDX12.h" />
     <ClInclude Include="..\..\Source\Windows\RaytracerWindows.h" />
@@ -178,9 +184,14 @@
     <ClInclude Include="..\..\Source\WindowsRenderApp.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Source\Realtime\DeviceResources.cpp" />
+    <ClCompile Include="..\..\Source\Realtime\CommandContext.cpp" />
+    <ClCompile Include="..\..\Source\Realtime\GpuBuffer.cpp" />
+    <ClCompile Include="..\..\Source\Realtime\PipelineStateObject.cpp" />
+    <ClCompile Include="..\..\Source\Realtime\RenderDevice.cpp" />
     <ClCompile Include="..\..\Source\Realtime\PlatformApp.cpp" />
     <ClCompile Include="..\..\Source\Realtime\Renderer.cpp" />
+    <ClCompile Include="..\..\Source\Realtime\RootSignature.cpp" />
+    <ClCompile Include="..\..\Source\Realtime\Texture.cpp" />
     <ClCompile Include="..\..\Source\SampleScenes.cpp" />
     <ClCompile Include="..\..\Source\Windows\CameraDX12.cpp" />
     <ClCompile Include="..\..\Source\Windows\RaytracerWindows.cpp" />

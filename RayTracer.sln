@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.168
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28803.202
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RayTracerConsole", "VSProjects\RayTracerConsole\RayTracerConsole.vcxproj", "{2AD2BE84-18D5-4F6B-B94E-47D60D4566FB}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -13,13 +13,7 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RayTracerWindows", "VSProjects\RayTracerWindows\RayTracerWindows.vcxproj", "{42D26F47-C869-4E43-9DB1-F8046F8A4252}"
 	ProjectSection(ProjectDependencies) = postProject
 		{393812B2-42A1-4EB3-B5C9-F4DC05470394} = {393812B2-42A1-4EB3-B5C9-F4DC05470394}
-		{771ECBC7-2278-3E0C-83AD-E6EA328098E9} = {771ECBC7-2278-3E0C-83AD-E6EA328098E9}
-		{92552ED9-9EEF-3ED7-B026-9EDB799817AD} = {92552ED9-9EEF-3ED7-B026-9EDB799817AD}
 	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DX12Lib", "ThirdParty\LearningDirectX12\build_vs2017\DX12Lib\DX12Lib.vcxproj", "{92552ED9-9EEF-3ED7-B026-9EDB799817AD}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DirectXTex", "ThirdParty\LearningDirectX12\build_vs2017\DirectXTex\DirectXTex.vcxproj", "{771ECBC7-2278-3E0C-83AD-E6EA328098E9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -81,30 +75,6 @@ Global
 		{42D26F47-C869-4E43-9DB1-F8046F8A4252}.RelWithDebInfo|x64.Build.0 = Release|x64
 		{42D26F47-C869-4E43-9DB1-F8046F8A4252}.RelWithDebInfo|x86.ActiveCfg = Release|Win32
 		{42D26F47-C869-4E43-9DB1-F8046F8A4252}.RelWithDebInfo|x86.Build.0 = Release|Win32
-		{92552ED9-9EEF-3ED7-B026-9EDB799817AD}.Debug|x64.ActiveCfg = Debug|x64
-		{92552ED9-9EEF-3ED7-B026-9EDB799817AD}.Debug|x64.Build.0 = Debug|x64
-		{92552ED9-9EEF-3ED7-B026-9EDB799817AD}.Debug|x86.ActiveCfg = Debug|x64
-		{92552ED9-9EEF-3ED7-B026-9EDB799817AD}.MinSizeRel|x64.ActiveCfg = MinSizeRel|x64
-		{92552ED9-9EEF-3ED7-B026-9EDB799817AD}.MinSizeRel|x64.Build.0 = MinSizeRel|x64
-		{92552ED9-9EEF-3ED7-B026-9EDB799817AD}.MinSizeRel|x86.ActiveCfg = MinSizeRel|x64
-		{92552ED9-9EEF-3ED7-B026-9EDB799817AD}.Release|x64.ActiveCfg = Release|x64
-		{92552ED9-9EEF-3ED7-B026-9EDB799817AD}.Release|x64.Build.0 = Release|x64
-		{92552ED9-9EEF-3ED7-B026-9EDB799817AD}.Release|x86.ActiveCfg = Release|x64
-		{92552ED9-9EEF-3ED7-B026-9EDB799817AD}.RelWithDebInfo|x64.ActiveCfg = RelWithDebInfo|x64
-		{92552ED9-9EEF-3ED7-B026-9EDB799817AD}.RelWithDebInfo|x64.Build.0 = RelWithDebInfo|x64
-		{92552ED9-9EEF-3ED7-B026-9EDB799817AD}.RelWithDebInfo|x86.ActiveCfg = RelWithDebInfo|x64
-		{771ECBC7-2278-3E0C-83AD-E6EA328098E9}.Debug|x64.ActiveCfg = Debug|x64
-		{771ECBC7-2278-3E0C-83AD-E6EA328098E9}.Debug|x64.Build.0 = Debug|x64
-		{771ECBC7-2278-3E0C-83AD-E6EA328098E9}.Debug|x86.ActiveCfg = Debug|x64
-		{771ECBC7-2278-3E0C-83AD-E6EA328098E9}.MinSizeRel|x64.ActiveCfg = MinSizeRel|x64
-		{771ECBC7-2278-3E0C-83AD-E6EA328098E9}.MinSizeRel|x64.Build.0 = MinSizeRel|x64
-		{771ECBC7-2278-3E0C-83AD-E6EA328098E9}.MinSizeRel|x86.ActiveCfg = MinSizeRel|x64
-		{771ECBC7-2278-3E0C-83AD-E6EA328098E9}.Release|x64.ActiveCfg = Release|x64
-		{771ECBC7-2278-3E0C-83AD-E6EA328098E9}.Release|x64.Build.0 = Release|x64
-		{771ECBC7-2278-3E0C-83AD-E6EA328098E9}.Release|x86.ActiveCfg = Release|x64
-		{771ECBC7-2278-3E0C-83AD-E6EA328098E9}.RelWithDebInfo|x64.ActiveCfg = RelWithDebInfo|x64
-		{771ECBC7-2278-3E0C-83AD-E6EA328098E9}.RelWithDebInfo|x64.Build.0 = RelWithDebInfo|x64
-		{771ECBC7-2278-3E0C-83AD-E6EA328098E9}.RelWithDebInfo|x86.ActiveCfg = RelWithDebInfo|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

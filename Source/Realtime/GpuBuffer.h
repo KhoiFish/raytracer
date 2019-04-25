@@ -79,6 +79,8 @@ namespace yart
 
     protected:
 
+        friend class ComputeContext;
+
         GpuBuffer(void);
 
         D3D12_RESOURCE_DESC                 DescribeBuffer();

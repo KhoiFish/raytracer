@@ -167,6 +167,7 @@
     <ClInclude Include="..\..\Source\Realtime\ColorBuffer.h" />
     <ClInclude Include="..\..\Source\Realtime\CommandContext.h" />
     <ClInclude Include="..\..\Source\Realtime\CommandList.h" />
+    <ClInclude Include="..\..\Source\Realtime\DepthBuffer.h" />
     <ClInclude Include="..\..\Source\Realtime\DescriptorHeap.h" />
     <ClInclude Include="..\..\Source\Realtime\DynamicDescriptorHeap.h" />
     <ClInclude Include="..\..\Source\Realtime\GpuBuffer.h" />
@@ -195,6 +196,7 @@
     <ClCompile Include="..\..\Source\Realtime\ColorBuffer.cpp" />
     <ClCompile Include="..\..\Source\Realtime\CommandContext.cpp" />
     <ClCompile Include="..\..\Source\Realtime\CommandList.cpp" />
+    <ClCompile Include="..\..\Source\Realtime\DepthBuffer.cpp" />
     <ClCompile Include="..\..\Source\Realtime\DescriptorHeap.cpp" />
     <ClCompile Include="..\..\Source\Realtime\DynamicDescriptorHeap.cpp" />
     <ClCompile Include="..\..\Source\Realtime\Globals.cpp" />

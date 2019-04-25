@@ -83,9 +83,9 @@ namespace yart
         WorldScene*                Scene;
         //RenderNodeList             RenderSceneList;
 
-        Texture                    CPURaytracerTex;
-        Texture                    PreviewTex;
-        Texture                    WhiteTex;
+        //Texture                    CPURaytracerTex;
+        //Texture                    PreviewTex;
+        //Texture                    WhiteTex;
 
         DXGI_FORMAT                BackBufferFormat;
         DXGI_FORMAT                DepthBufferFormat;

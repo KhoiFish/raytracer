@@ -97,6 +97,9 @@
     <ClInclude Include="..\..\Source\Realtime\PixelBuffer.h">
       <Filter>Source\Realtime</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\Realtime\DepthBuffer.h">
+      <Filter>Source\Realtime</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="RayTracerWindows.rc">
@@ -170,6 +173,9 @@
       <Filter>Source\Realtime</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Realtime\ColorBuffer.cpp">
+      <Filter>Source\Realtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Realtime\DepthBuffer.cpp">
       <Filter>Source\Realtime</Filter>
     </ClCompile>
   </ItemGroup>

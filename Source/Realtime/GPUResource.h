@@ -28,47 +28,54 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-class GpuResource
+namespace yart
 {
-public:
-
-    GpuResource() :
-        GpuVirtualAddress(D3D12_GPU_VIRTUAL_ADDRESS_NULL),
-        UserAllocatedMemory(nullptr),
-        UsageState(D3D12_RESOURCE_STATE_COMMON),
-        TransitioningState((D3D12_RESOURCE_STATES)-1)
-    {}
-
-    GpuResource(ID3D12Resource* pResource, D3D12_RESOURCE_STATES CurrentState) :
-        GpuVirtualAddress(D3D12_GPU_VIRTUAL_ADDRESS_NULL),
-        UserAllocatedMemory(nullptr),
-        ResourcePtr(pResource),
-        UsageState(CurrentState),
-        TransitioningState((D3D12_RESOURCE_STATES)-1)
-    {}
-
-    virtual void Destroy()
+    class GpuResource
     {
-        ResourcePtr = nullptr;
-        GpuVirtualAddress = D3D12_GPU_VIRTUAL_ADDRESS_NULL;
-        if (UserAllocatedMemory != nullptr)
+    public:
+
+        GpuResource() :
+            GpuVirtualAddress(D3D12_GPU_VIRTUAL_ADDRESS_NULL),
+            UserAllocatedMemory(nullptr),
+            UsageState(D3D12_RESOURCE_STATE_COMMON),
+            TransitioningState((D3D12_RESOURCE_STATES)-1)
+        {}
+
+        GpuResource(ID3D12Resource* pResource, D3D12_RESOURCE_STATES CurrentState) :
+            GpuVirtualAddress(D3D12_GPU_VIRTUAL_ADDRESS_NULL),
+            UserAllocatedMemory(nullptr),
+            ResourcePtr(pResource),
+            UsageState(CurrentState),
+            TransitioningState((D3D12_RESOURCE_STATES)-1)
+        {}
+
+        virtual void Destroy()
         {
-            VirtualFree(UserAllocatedMemory, 0, MEM_RELEASE);
-            UserAllocatedMemory = nullptr;
+            ResourcePtr = nullptr;
+            GpuVirtualAddress = D3D12_GPU_VIRTUAL_ADDRESS_NULL;
+            if (UserAllocatedMemory != nullptr)
+            {
+                VirtualFree(UserAllocatedMemory, 0, MEM_RELEASE);
+                UserAllocatedMemory = nullptr;
+            }
         }
-    }
 
-    ID3D12Resource*            operator->()                  { return ResourcePtr.Get(); }
-    const ID3D12Resource*      operator->() const            { return ResourcePtr.Get(); }
-    ID3D12Resource*            GetResource()                 { return ResourcePtr.Get(); }
-    const ID3D12Resource*      GetResource() const           { return ResourcePtr.Get(); }
-    D3D12_GPU_VIRTUAL_ADDRESS  GetGpuVirtualAddress() const  { return GpuVirtualAddress; }
+        ID3D12Resource*            operator->()                  { return ResourcePtr.Get(); }
+        const ID3D12Resource*      operator->() const            { return ResourcePtr.Get(); }
+        ID3D12Resource*            GetResource()                 { return ResourcePtr.Get(); }
+        const ID3D12Resource*      GetResource() const           { return ResourcePtr.Get(); }
+        D3D12_GPU_VIRTUAL_ADDRESS  GetGpuVirtualAddress() const  { return GpuVirtualAddress; }
 
-protected:
+    protected:
 
-    Microsoft::WRL::ComPtr<ID3D12Resource>   ResourcePtr;
-    D3D12_RESOURCE_STATES                    UsageState;
-    D3D12_RESOURCE_STATES                    TransitioningState;
-    D3D12_GPU_VIRTUAL_ADDRESS                GpuVirtualAddress;
-    void*                                    UserAllocatedMemory;
-};
+        friend class CommandContext;
+        friend class ComputeContext;
+        friend class GraphicsContext;
+
+        Microsoft::WRL::ComPtr<ID3D12Resource>   ResourcePtr;
+        D3D12_RESOURCE_STATES                    UsageState;
+        D3D12_RESOURCE_STATES                    TransitioningState;
+        D3D12_GPU_VIRTUAL_ADDRESS                GpuVirtualAddress;
+        void*                                    UserAllocatedMemory;
+    };
+}

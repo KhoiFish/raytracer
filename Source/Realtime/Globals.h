@@ -31,8 +31,8 @@
 
 #include <dxgi.h>
 #include <dxgi1_6.h>
-#include "d3d12.h"
-#include "d3dx12.h"
+#include <DX12/d3d12.h>
+#include <DX12/d3dx12.h>
 
 #ifdef _DEBUG
 #include <dxgidebug.h>
@@ -186,3 +186,6 @@ template <typename T> __forceinline bool IsDivisible(T value, T divisor)
 {
     return (value / divisor) * divisor == value;
 }
+
+void SIMDMemCopy(void* __restrict Dest, const void* __restrict Source, size_t NumQuadwords);
+void SIMDMemFill(void* __restrict Dest, __m128 FillVector, size_t NumQuadwords);

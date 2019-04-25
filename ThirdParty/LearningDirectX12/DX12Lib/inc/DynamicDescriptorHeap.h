@@ -41,6 +41,7 @@
 #include <cstdint>
 #include <memory>
 #include <queue>
+#include <functional>
 
 class CommandList;
 class RootSignature;

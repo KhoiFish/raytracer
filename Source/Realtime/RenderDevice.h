@@ -23,6 +23,8 @@
 #include "IDeviceNotify.h"
 #include "GPUResource.h"
 #include "DescriptorHeap.h"
+#include "RootSignature.h"
+#include "PipelineStateObject.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -65,31 +67,35 @@ namespace yart
         void                           ExecuteCommandList();
         void                           WaitForGpu() noexcept;
 
-        RECT                           GetOutputSize() const         { return OutputSize; }
-        bool                           IsWindowVisible() const       { return IsWindowVisibleState; }
-        bool                           IsTearingSupported() const    { return Options & AllowTearing; }
-        IDXGIAdapter1*                 GetAdapter() const            { return Adapter.Get(); }
-        ID3D12Device*                  GetD3DDevice() const          { return D3DDevice.Get(); }
-        IDXGIFactory4*                 GetDXGIFactory() const        { return DXGIFactory.Get(); }
-        IDXGISwapChain3*               GetSwapChain() const          { return SwapChain.Get(); }
-        D3D_FEATURE_LEVEL              GetDeviceFeatureLevel() const { return D3dFeatureLevel; }
-        ID3D12Resource*                GetRenderTarget() const       { return RenderTargets[BackBufferIndex].Get(); }
-        ID3D12Resource*                GetDepthStencil() const       { return DepthStencil.Get(); }
-        ID3D12CommandQueue*            GetCommandQueue() const       { return CommandQueue.Get(); }
-        ID3D12CommandAllocator*        GetCommandAllocator() const   { return CommandAllocators[BackBufferIndex].Get(); }
-        ID3D12GraphicsCommandList*     GetCommandList() const        { return CommandList.Get(); }
-        DXGI_FORMAT                    GetBackBufferFormat() const   { return BackBufferFormat; }
-        DXGI_FORMAT                    GetDepthBufferFormat() const  { return DepthBufferFormat; }
-        D3D12_VIEWPORT                 GetScreenViewport() const     { return ScreenViewport; }
-        D3D12_RECT                     GetScissorRect() const        { return ScissorRect; }
-        UINT                           GetCurrentFrameIndex() const  { return BackBufferIndex; }
-        UINT                           GetPreviousFrameIndex() const { return BackBufferIndex == 0 ? BackBufferCount - 1 : BackBufferIndex - 1; }
-        UINT                           GetBackBufferCount() const    { return BackBufferCount; }
-        unsigned int                   GetDeviceOptions() const      { return Options; }
-        LPCWSTR                        GetAdapterDescription() const { return AdapterDescription.c_str(); }
-        UINT                           GetAdapterID() const          { return AdapterID; }
-        CD3DX12_CPU_DESCRIPTOR_HANDLE  GetRenderTargetView() const   { return CD3DX12_CPU_DESCRIPTOR_HANDLE(RtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), BackBufferIndex, RtvDescriptorSize); }
-        CD3DX12_CPU_DESCRIPTOR_HANDLE  GetDepthStencilView() const   { return CD3DX12_CPU_DESCRIPTOR_HANDLE(DsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart()); }
+        RECT                           GetOutputSize() const            { return OutputSize; }
+        bool                           IsWindowVisible() const          { return IsWindowVisibleState; }
+        bool                           IsTearingSupported() const       { return Options & AllowTearing; }
+        IDXGIAdapter1*                 GetAdapter() const               { return Adapter.Get(); }
+        ID3D12Device*                  GetD3DDevice() const             { return D3DDevice.Get(); }
+        IDXGIFactory4*                 GetDXGIFactory() const           { return DXGIFactory.Get(); }
+        IDXGISwapChain3*               GetSwapChain() const             { return SwapChain.Get(); }
+        D3D_FEATURE_LEVEL              GetDeviceFeatureLevel() const    { return D3dFeatureLevel; }
+        ID3D12Resource*                GetRenderTarget() const          { return RenderTargets[BackBufferIndex].Get(); }
+        ID3D12Resource*                GetDepthStencil() const          { return DepthStencil.Get(); }
+        ID3D12CommandQueue*            GetCommandQueue() const          { return CommandQueue.Get(); }
+        ID3D12CommandAllocator*        GetCommandAllocator() const      { return CommandAllocators[BackBufferIndex].Get(); }
+        ID3D12GraphicsCommandList*     GetCommandList() const           { return CommandList.Get(); }
+        DXGI_FORMAT                    GetBackBufferFormat() const      { return BackBufferFormat; }
+        DXGI_FORMAT                    GetDepthBufferFormat() const     { return DepthBufferFormat; }
+        D3D12_VIEWPORT                 GetScreenViewport() const        { return ScreenViewport; }
+        D3D12_RECT                     GetScissorRect() const           { return ScissorRect; }
+        UINT                           GetCurrentFrameIndex() const     { return BackBufferIndex; }
+        UINT                           GetPreviousFrameIndex() const    { return BackBufferIndex == 0 ? BackBufferCount - 1 : BackBufferIndex - 1; }
+        UINT                           GetBackBufferCount() const       { return BackBufferCount; }
+        unsigned int                   GetDeviceOptions() const         { return Options; }
+        LPCWSTR                        GetAdapterDescription() const    { return AdapterDescription.c_str(); }
+        UINT                           GetAdapterID() const             { return AdapterID; }
+        CD3DX12_CPU_DESCRIPTOR_HANDLE  GetRenderTargetView() const      { return CD3DX12_CPU_DESCRIPTOR_HANDLE(RtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), BackBufferIndex, RtvDescriptorSize); }
+        CD3DX12_CPU_DESCRIPTOR_HANDLE  GetDepthStencilView() const      { return CD3DX12_CPU_DESCRIPTOR_HANDLE(DsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart()); }
+
+        ComputePSO*                    GetGenerateMipsLinearPSO()       { return GenerateMipsLinearPSO; }
+        ComputePSO*                    GetGenerateMipsGammaPSO()        { return GenerateMipsGammaPSO; }
+        RootSignature&                 GetGenerateMipsRootSig()         { return GenerateMipsRS; }
 
         inline D3D12_CPU_DESCRIPTOR_HANDLE AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE Type, UINT Count = 1)
         {
@@ -138,6 +144,10 @@ namespace yart
             D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
             D3D12_DESCRIPTOR_HEAP_TYPE_DSV,
         };
+
+        RootSignature                                       GenerateMipsRS;
+        ComputePSO                                          GenerateMipsLinearPSO[4];
+        ComputePSO                                          GenerateMipsGammaPSO[4];
 
         Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>        RtvDescriptorHeap;
         Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>        DsvDescriptorHeap;

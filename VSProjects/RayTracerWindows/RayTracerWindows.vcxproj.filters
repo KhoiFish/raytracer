@@ -85,6 +85,18 @@
     <ClInclude Include="..\..\Source\Realtime\DescriptorHeap.h">
       <Filter>Source\Realtime</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\Realtime\Color.h">
+      <Filter>Source\Realtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Realtime\DynamicDescriptorHeap.h">
+      <Filter>Source\Realtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Realtime\ColorBuffer.h">
+      <Filter>Source\Realtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Realtime\PixelBuffer.h">
+      <Filter>Source\Realtime</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="RayTracerWindows.rc">
@@ -143,6 +155,21 @@
       <Filter>Source\Realtime</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Realtime\DescriptorHeap.cpp">
+      <Filter>Source\Realtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Realtime\Color.cpp">
+      <Filter>Source\Realtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Realtime\DynamicDescriptorHeap.cpp">
+      <Filter>Source\Realtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Realtime\Globals.cpp">
+      <Filter>Source\Realtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Realtime\PixelBuffer.cpp">
+      <Filter>Source\Realtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Realtime\ColorBuffer.cpp">
       <Filter>Source\Realtime</Filter>
     </ClCompile>
   </ItemGroup>

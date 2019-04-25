@@ -18,6 +18,7 @@
 // ----------------------------------------------------------------------------------------------------------------------------
 
 #include "RootSignature.h"
+#include "RenderDevice.h"
 #include <map>
 #include <thread>
 #include <mutex>

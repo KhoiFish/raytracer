@@ -36,7 +36,6 @@ namespace yart
         void                                Create(size_t Pitch, size_t Width, size_t Height, DXGI_FORMAT Format, const void* InitData);
         void                                Create(size_t Width, size_t Height, DXGI_FORMAT Format, const void* InitData);
         void                                CreateTGAFromMemory(const void* memBuffer, size_t fileSize, bool sRGB);
-        bool                                CreateDDSFromMemory(const void* memBuffer, size_t fileSize, bool sRGB);
         void                                CreatePIXImageFromMemory(const void* memBuffer, size_t fileSize);
         virtual void                        Destroy() override;
         const D3D12_CPU_DESCRIPTOR_HANDLE&  GetSRV() const;
@@ -83,7 +82,6 @@ namespace yart
         static void                   Initialize(const string_t& TextureLibRoot);
         static void                   Shutdown();
         static const ManagedTexture*  LoadFromFile(const string_t& fileName, bool sRGB = false);
-        static const ManagedTexture*  LoadDDSFromFile(const string_t& fileName, bool sRGB = false);
         static const ManagedTexture*  LoadTGAFromFile(const string_t& fileName, bool sRGB = false);
         static const ManagedTexture*  LoadPIXImageFromFile(const string_t& fileName);
         static const Texture&         GetBlackTex2D();

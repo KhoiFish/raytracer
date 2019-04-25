@@ -98,7 +98,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Source;$(SolutionDir)ThirdParty/LearningDirectX12/DX12Lib/inc;$(SolutionDir)ThirdParty</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Source;$(SolutionDir)ThirdParty</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
@@ -133,7 +133,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Source;$(SolutionDir)ThirdParty/LearningDirectX12/DX12Lib/inc;$(SolutionDir)ThirdParty</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Source;$(SolutionDir)ThirdParty</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
@@ -163,12 +163,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\Realtime\Color.h" />
+    <ClInclude Include="..\..\Source\Realtime\ColorBuffer.h" />
     <ClInclude Include="..\..\Source\Realtime\CommandContext.h" />
     <ClInclude Include="..\..\Source\Realtime\CommandList.h" />
     <ClInclude Include="..\..\Source\Realtime\DescriptorHeap.h" />
+    <ClInclude Include="..\..\Source\Realtime\DynamicDescriptorHeap.h" />
     <ClInclude Include="..\..\Source\Realtime\GpuBuffer.h" />
     <ClInclude Include="..\..\Source\Realtime\LinearAllocator.h" />
     <ClInclude Include="..\..\Source\Realtime\PipelineStateObject.h" />
+    <ClInclude Include="..\..\Source\Realtime\PixelBuffer.h" />
     <ClInclude Include="..\..\Source\Realtime\RenderDevice.h" />
     <ClInclude Include="..\..\Source\Realtime\Globals.h" />
     <ClInclude Include="..\..\Source\Realtime\GPUResource.h" />
@@ -187,12 +191,17 @@
     <ClInclude Include="..\..\Source\WindowsRenderApp.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Source\Realtime\Color.cpp" />
+    <ClCompile Include="..\..\Source\Realtime\ColorBuffer.cpp" />
     <ClCompile Include="..\..\Source\Realtime\CommandContext.cpp" />
     <ClCompile Include="..\..\Source\Realtime\CommandList.cpp" />
     <ClCompile Include="..\..\Source\Realtime\DescriptorHeap.cpp" />
+    <ClCompile Include="..\..\Source\Realtime\DynamicDescriptorHeap.cpp" />
+    <ClCompile Include="..\..\Source\Realtime\Globals.cpp" />
     <ClCompile Include="..\..\Source\Realtime\GpuBuffer.cpp" />
     <ClCompile Include="..\..\Source\Realtime\LinearAllocator.cpp" />
     <ClCompile Include="..\..\Source\Realtime\PipelineStateObject.cpp" />
+    <ClCompile Include="..\..\Source\Realtime\PixelBuffer.cpp" />
     <ClCompile Include="..\..\Source\Realtime\RenderDevice.cpp" />
     <ClCompile Include="..\..\Source\Realtime\PlatformApp.cpp" />
     <ClCompile Include="..\..\Source\Realtime\Renderer.cpp" />

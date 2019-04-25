@@ -18,6 +18,7 @@
 // ----------------------------------------------------------------------------------------------------------------------------
 
 #include "PipelineStateObject.h"
+#include "RenderDevice.h"
 #include <memory.h>
 #include <map>
 #include <thread>

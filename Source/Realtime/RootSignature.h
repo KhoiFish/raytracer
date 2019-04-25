@@ -20,7 +20,6 @@
 #pragma once
 
 #include "Globals.h"
-#include "RenderDevice.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -106,6 +105,8 @@ namespace yart
         {
             return Signature;
         }
+
+        friend class DynamicDescriptorHeap;
 
     protected:
 

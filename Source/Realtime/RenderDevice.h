@@ -22,6 +22,7 @@
 #include "Globals.h"
 #include "IDeviceNotify.h"
 #include "GPUResource.h"
+#include "DescriptorHeap.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -90,6 +91,11 @@ namespace yart
         CD3DX12_CPU_DESCRIPTOR_HANDLE  GetRenderTargetView() const   { return CD3DX12_CPU_DESCRIPTOR_HANDLE(RtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), BackBufferIndex, RtvDescriptorSize); }
         CD3DX12_CPU_DESCRIPTOR_HANDLE  GetDepthStencilView() const   { return CD3DX12_CPU_DESCRIPTOR_HANDLE(DsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart()); }
 
+        inline D3D12_CPU_DESCRIPTOR_HANDLE AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE Type, UINT Count = 1)
+        {
+            return DescriptorAllocators[Type].Allocate(Count);
+        }
+
     private:
 
         void                           MoveToNextFrame();
@@ -125,6 +131,14 @@ namespace yart
         Microsoft::WRL::Wrappers::Event                     FenceEvent;
 
         // Direct3D rendering objects.
+        DescriptorAllocator                                 DescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES] =
+        {
+            D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
+            D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER,
+            D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
+            D3D12_DESCRIPTOR_HEAP_TYPE_DSV,
+        };
+
         Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>        RtvDescriptorHeap;
         Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>        DsvDescriptorHeap;
         UINT                                                RtvDescriptorSize;

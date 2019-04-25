@@ -164,7 +164,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Source\Realtime\CommandContext.h" />
+    <ClInclude Include="..\..\Source\Realtime\CommandList.h" />
+    <ClInclude Include="..\..\Source\Realtime\DescriptorHeap.h" />
     <ClInclude Include="..\..\Source\Realtime\GpuBuffer.h" />
+    <ClInclude Include="..\..\Source\Realtime\LinearAllocator.h" />
     <ClInclude Include="..\..\Source\Realtime\PipelineStateObject.h" />
     <ClInclude Include="..\..\Source\Realtime\RenderDevice.h" />
     <ClInclude Include="..\..\Source\Realtime\Globals.h" />
@@ -185,7 +188,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\Realtime\CommandContext.cpp" />
+    <ClCompile Include="..\..\Source\Realtime\CommandList.cpp" />
+    <ClCompile Include="..\..\Source\Realtime\DescriptorHeap.cpp" />
     <ClCompile Include="..\..\Source\Realtime\GpuBuffer.cpp" />
+    <ClCompile Include="..\..\Source\Realtime\LinearAllocator.cpp" />
     <ClCompile Include="..\..\Source\Realtime\PipelineStateObject.cpp" />
     <ClCompile Include="..\..\Source\Realtime\RenderDevice.cpp" />
     <ClCompile Include="..\..\Source\Realtime\PlatformApp.cpp" />

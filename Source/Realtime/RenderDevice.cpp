@@ -19,6 +19,7 @@
 
 #include "RenderDevice.h"
 #include "PlatformApp.h"
+#include <algorithm>
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -295,8 +296,8 @@ void RenderDevice::CreateWindowSizeDependentResources()
     }
 
     // Determine the render target size in pixels.
-    UINT backBufferWidth = max(OutputSize.right - OutputSize.left, 1);
-    UINT backBufferHeight = max(OutputSize.bottom - OutputSize.top, 1);
+    UINT backBufferWidth  = max(UINT(OutputSize.right - OutputSize.left), (UINT)1);
+    UINT backBufferHeight = max(UINT(OutputSize.bottom - OutputSize.top), (UINT)1);
     DXGI_FORMAT backBufferFormat = NoSRGB(BackBufferFormat);
 
     // If the swap chain already exists, resize it, otherwise create one.

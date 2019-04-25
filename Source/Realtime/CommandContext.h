@@ -20,16 +20,16 @@
 #pragma once
 
 #include "Globals.h"
-#include "CommandListManager.h"
+#include "CommandList.h"
 #include "PipelineStateObject.h"
 #include "RootSignature.h"
 #include "GpuBuffer.h"
 #include "Texture.h"
-#include "PixelBuffer.h"
+//#include "PixelBuffer.h"
 #include "DynamicDescriptorHeap.h"
 #include "LinearAllocator.h"
-#include "CommandSignature.h"
-#include "GraphicsCore.h"
+//#include "CommandSignature.h"
+//#include "GraphicsCore.h"
 
 #include <vector>
 #include <mutex>
@@ -291,8 +291,7 @@ public:
     void Dispatch2D( size_t ThreadCountX, size_t ThreadCountY, size_t GroupSizeX = 8, size_t GroupSizeY = 8);
     void Dispatch3D( size_t ThreadCountX, size_t ThreadCountY, size_t ThreadCountZ, size_t GroupSizeX, size_t GroupSizeY, size_t GroupSizeZ );
     void DispatchIndirect( GpuBuffer& ArgumentBuffer, uint64_t ArgumentBufferOffset = 0 );
-    void ExecuteIndirect(CommandSignature& CommandSig, GpuBuffer& ArgumentBuffer, uint64_t ArgumentStartOffset = 0,
-        uint32_t MaxCommands = 1, GpuBuffer* CommandCounterBuffer = nullptr, uint64_t CounterOffset = 0);
+    void ExecuteIndirect(CommandSignature& CommandSig, GpuBuffer& ArgumentBuffer, uint64_t ArgumentStartOffset = 0, uint32_t MaxCommands = 1, GpuBuffer* CommandCounterBuffer = nullptr, uint64_t CounterOffset = 0);
 
 private:
 };

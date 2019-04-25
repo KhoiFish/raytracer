@@ -28,8 +28,8 @@ using namespace yart;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static string_t                                    s_RootPath = "";
-static map< string_t, unique_ptr<ManagedTexture> > s_TextureCache;
+static string_t                                    sRootPath = "";
+static map< string_t, unique_ptr<ManagedTexture> > sTextureCache;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -77,7 +77,7 @@ void Texture::Create(size_t Pitch, size_t Width, size_t Height, DXGI_FORMAT Form
 
     if (CpuDescriptorHandle.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
     {
-        CpuDescriptorHandle = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+        CpuDescriptorHandle = RenderDevice::Get()->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
     }
 
     RenderDevice::Get()->GetD3DDevice()->CreateShaderResourceView(ResourcePtr.Get(), nullptr, CpuDescriptorHandle);
@@ -168,7 +168,7 @@ void Texture::CreateTGAFromMemory(const void* _filePtr, size_t, bool sRGB)
 bool Texture::CreateDDSFromMemory(const void* filePtr, size_t fileSize, bool sRGB)
 {
     if (CpuDescriptorHandle.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
-        CpuDescriptorHandle = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+        CpuDescriptorHandle = RenderDevice::Get()->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
     HRESULT hr = CreateDDSTextureFromMemory(Graphics::g_Device,
         (const uint8_t*)filePtr, fileSize, 0, sRGB, &m_pResource, m_hCpuDescriptorHandle);
@@ -226,14 +226,14 @@ bool yart::ManagedTexture::IsValid() const
 
 void TextureManager::Initialize(const string_t& TextureLibRoot)
 {
-    s_RootPath = TextureLibRoot;
+    sRootPath = TextureLibRoot;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
 void Shutdown(void)
 {
-    s_TextureCache.clear();
+    sTextureCache.clear();
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -243,16 +243,16 @@ static inline pair<ManagedTexture*, bool> FindOrLoadTexture(const string_t& file
     static mutex sMutex;
     lock_guard<mutex> guard(sMutex);
 
-    auto iter = s_TextureCache.find(fileName);
+    auto iter = sTextureCache.find(fileName);
 
     // If it's found, it has already been loaded or the load process has begun
-    if (iter != s_TextureCache.end())
+    if (iter != sTextureCache.end())
     {
         return make_pair(iter->second.get(), false);
     }
 
     ManagedTexture * newTexture = new ManagedTexture(fileName);
-    s_TextureCache[fileName].reset(newTexture);
+    sTextureCache[fileName].reset(newTexture);
 
     // This was the first time it was requested, so indicate that the caller must read the file
     return make_pair(newTexture, true);
@@ -345,7 +345,7 @@ const ManagedTexture* TextureManager::LoadDDSFromFile(const string_t & fileName,
         return manTex;
     }
 
-    Utility::ByteArray ba = Utility::ReadFileSync(s_RootPath + fileName);
+    Utility::ByteArray ba = Utility::ReadFileSync(sRootPath + fileName);
     if (ba->size() == 0 || !manTex->CreateDDSFromMemory(ba->data(), ba->size(), sRGB))
     {
         manTex->SetToInvalidTexture();
@@ -371,7 +371,7 @@ const ManagedTexture * TextureManager::LoadTGAFromFile(const string_t & fileName
         return manTex;
     }
 
-    Utility::ByteArray ba = Utility::ReadFileSync(s_RootPath + fileName);
+    Utility::ByteArray ba = Utility::ReadFileSync(sRootPath + fileName);
     if (ba->size() > 0)
     {
         manTex->CreateTGAFromMemory(ba->data(), ba->size(), sRGB);
@@ -399,7 +399,7 @@ const ManagedTexture* TextureManager::LoadPIXImageFromFile(const string_t & file
         return manTex;
     }
 
-    Utility::ByteArray ba = Utility::ReadFileSync(s_RootPath + fileName);
+    Utility::ByteArray ba = Utility::ReadFileSync(sRootPath + fileName);
     if (ba->size() > 0)
     {
         manTex->CreatePIXImageFromMemory(ba->data(), ba->size());

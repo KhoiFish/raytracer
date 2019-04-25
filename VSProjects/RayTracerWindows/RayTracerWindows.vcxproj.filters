@@ -76,6 +76,15 @@
     <ClInclude Include="..\..\Source\Realtime\GpuBuffer.h">
       <Filter>Source\Realtime</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\Realtime\LinearAllocator.h">
+      <Filter>Source\Realtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Realtime\CommandList.h">
+      <Filter>Source\Realtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Realtime\DescriptorHeap.h">
+      <Filter>Source\Realtime</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="RayTracerWindows.rc">
@@ -125,6 +134,15 @@
       <Filter>Source\Realtime</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Realtime\GpuBuffer.cpp">
+      <Filter>Source\Realtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Realtime\LinearAllocator.cpp">
+      <Filter>Source\Realtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Realtime\CommandList.cpp">
+      <Filter>Source\Realtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Realtime\DescriptorHeap.cpp">
       <Filter>Source\Realtime</Filter>
     </ClCompile>
   </ItemGroup>

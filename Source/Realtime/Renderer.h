@@ -27,6 +27,7 @@
 #include "RenderInterface.h"
 #include "RootSignature.h"
 #include "PipelineStateObject.h"
+#include "ColorBuffer.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -92,7 +93,7 @@ namespace yart
         DXGI_FORMAT                ShadowmapFormat;
         DXGI_SAMPLE_DESC           SampleDesc;
         DXGI_SAMPLE_DESC           ShadowmapSampleDesc;
-        RenderTarget               DisplayRenderTarget;
+        ColorBuffer                DisplayRenderTarget;
         RootSignature              MainRootSignature;
 
         GraphicsPSO                FullscreenPipelineState;

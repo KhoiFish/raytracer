@@ -184,8 +184,14 @@
     <ClInclude Include="..\..\Source\Realtime\RootSignature.h" />
     <ClInclude Include="..\..\Source\Realtime\Texture.h" />
     <ClInclude Include="..\..\Source\SampleScenes.h" />
-    <ClInclude Include="..\..\Source\Windows\CameraDX12.h" />
-    <ClInclude Include="..\..\Source\Windows\RaytracerWindows.h" />
+    <ClInclude Include="..\..\Source\Windows\CameraDX12.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Windows\RaytracerWindows.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="..\..\Source\Windows\SceneConvert.hpp" />
     <ClInclude Include="..\..\Source\Windows\ShaderStructs.h" />
     <ClInclude Include="..\..\Source\Windows\Resource.h" />
@@ -210,8 +216,14 @@
     <ClCompile Include="..\..\Source\Realtime\RootSignature.cpp" />
     <ClCompile Include="..\..\Source\Realtime\Texture.cpp" />
     <ClCompile Include="..\..\Source\SampleScenes.cpp" />
-    <ClCompile Include="..\..\Source\Windows\CameraDX12.cpp" />
-    <ClCompile Include="..\..\Source\Windows\RaytracerWindows.cpp" />
+    <ClCompile Include="..\..\Source\Windows\CameraDX12.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Windows\RaytracerWindows.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\Source\Windows\WinMain.cpp" />
   </ItemGroup>
   <ItemGroup>

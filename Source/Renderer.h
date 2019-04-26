@@ -23,11 +23,11 @@
 #include "Core/Camera.h"
 #include "SampleScenes.h"
 
-#include "Globals.h"
-#include "RenderInterface.h"
-#include "RootSignature.h"
-#include "PipelineStateObject.h"
-#include "ColorBuffer.h"
+#include "RealtimeEngine/Globals.h"
+#include "RealtimeEngine/RenderInterface.h"
+#include "RealtimeEngine/RootSignature.h"
+#include "RealtimeEngine/PipelineStateObject.h"
+#include "RealtimeEngine/ColorBuffer.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 

@@ -1,9 +1,10 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
-#include "Realtime/Renderer.h"
-#include "Realtime/RenderInterface.h"
-#include "Realtime/PlatformApp.h"
+#include "Renderer.h"
+#include "RealtimeEngine/RenderInterface.h"
+#include "RealtimeEngine/PlatformApp.h"
+
 
 // ----------------------------------------------------------------------------------------------------------------------------
 

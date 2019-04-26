@@ -163,26 +163,26 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Source\Realtime\Color.h" />
-    <ClInclude Include="..\..\Source\Realtime\ColorBuffer.h" />
-    <ClInclude Include="..\..\Source\Realtime\CommandContext.h" />
-    <ClInclude Include="..\..\Source\Realtime\CommandList.h" />
-    <ClInclude Include="..\..\Source\Realtime\DepthBuffer.h" />
-    <ClInclude Include="..\..\Source\Realtime\DescriptorHeap.h" />
-    <ClInclude Include="..\..\Source\Realtime\DynamicDescriptorHeap.h" />
-    <ClInclude Include="..\..\Source\Realtime\GpuBuffer.h" />
-    <ClInclude Include="..\..\Source\Realtime\LinearAllocator.h" />
-    <ClInclude Include="..\..\Source\Realtime\PipelineStateObject.h" />
-    <ClInclude Include="..\..\Source\Realtime\PixelBuffer.h" />
-    <ClInclude Include="..\..\Source\Realtime\RenderDevice.h" />
-    <ClInclude Include="..\..\Source\Realtime\Globals.h" />
-    <ClInclude Include="..\..\Source\Realtime\GPUResource.h" />
-    <ClInclude Include="..\..\Source\Realtime\IDeviceNotify.h" />
-    <ClInclude Include="..\..\Source\Realtime\PlatformApp.h" />
-    <ClInclude Include="..\..\Source\Realtime\RenderInterface.h" />
-    <ClInclude Include="..\..\Source\Realtime\Renderer.h" />
-    <ClInclude Include="..\..\Source\Realtime\RootSignature.h" />
-    <ClInclude Include="..\..\Source\Realtime\Texture.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\Color.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\ColorBuffer.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\CommandContext.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\CommandList.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\DepthBuffer.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\DescriptorHeap.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\DynamicDescriptorHeap.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\Globals.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\GpuBuffer.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\GPUResource.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\IDeviceNotify.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\LinearAllocator.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\PipelineStateObject.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\PixelBuffer.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\PlatformApp.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\RenderDevice.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\RenderInterface.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\RootSignature.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\Texture.h" />
+    <ClInclude Include="..\..\Source\Renderer.h" />
     <ClInclude Include="..\..\Source\SampleScenes.h" />
     <ClInclude Include="..\..\Source\Windows\CameraDX12.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -198,23 +198,23 @@
     <ClInclude Include="..\..\Source\WindowsRenderApp.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Source\Realtime\Color.cpp" />
-    <ClCompile Include="..\..\Source\Realtime\ColorBuffer.cpp" />
-    <ClCompile Include="..\..\Source\Realtime\CommandContext.cpp" />
-    <ClCompile Include="..\..\Source\Realtime\CommandList.cpp" />
-    <ClCompile Include="..\..\Source\Realtime\DepthBuffer.cpp" />
-    <ClCompile Include="..\..\Source\Realtime\DescriptorHeap.cpp" />
-    <ClCompile Include="..\..\Source\Realtime\DynamicDescriptorHeap.cpp" />
-    <ClCompile Include="..\..\Source\Realtime\Globals.cpp" />
-    <ClCompile Include="..\..\Source\Realtime\GpuBuffer.cpp" />
-    <ClCompile Include="..\..\Source\Realtime\LinearAllocator.cpp" />
-    <ClCompile Include="..\..\Source\Realtime\PipelineStateObject.cpp" />
-    <ClCompile Include="..\..\Source\Realtime\PixelBuffer.cpp" />
-    <ClCompile Include="..\..\Source\Realtime\RenderDevice.cpp" />
-    <ClCompile Include="..\..\Source\Realtime\PlatformApp.cpp" />
-    <ClCompile Include="..\..\Source\Realtime\Renderer.cpp" />
-    <ClCompile Include="..\..\Source\Realtime\RootSignature.cpp" />
-    <ClCompile Include="..\..\Source\Realtime\Texture.cpp" />
+    <ClCompile Include="..\..\Source\RealtimeEngine\Color.cpp" />
+    <ClCompile Include="..\..\Source\RealtimeEngine\ColorBuffer.cpp" />
+    <ClCompile Include="..\..\Source\RealtimeEngine\CommandContext.cpp" />
+    <ClCompile Include="..\..\Source\RealtimeEngine\CommandList.cpp" />
+    <ClCompile Include="..\..\Source\RealtimeEngine\DepthBuffer.cpp" />
+    <ClCompile Include="..\..\Source\RealtimeEngine\DescriptorHeap.cpp" />
+    <ClCompile Include="..\..\Source\RealtimeEngine\DynamicDescriptorHeap.cpp" />
+    <ClCompile Include="..\..\Source\RealtimeEngine\Globals.cpp" />
+    <ClCompile Include="..\..\Source\RealtimeEngine\GpuBuffer.cpp" />
+    <ClCompile Include="..\..\Source\RealtimeEngine\LinearAllocator.cpp" />
+    <ClCompile Include="..\..\Source\RealtimeEngine\PipelineStateObject.cpp" />
+    <ClCompile Include="..\..\Source\RealtimeEngine\PixelBuffer.cpp" />
+    <ClCompile Include="..\..\Source\RealtimeEngine\PlatformApp.cpp" />
+    <ClCompile Include="..\..\Source\RealtimeEngine\RenderDevice.cpp" />
+    <ClCompile Include="..\..\Source\RealtimeEngine\RootSignature.cpp" />
+    <ClCompile Include="..\..\Source\RealtimeEngine\Texture.cpp" />
+    <ClCompile Include="..\..\Source\Renderer.cpp" />
     <ClCompile Include="..\..\Source\SampleScenes.cpp" />
     <ClCompile Include="..\..\Source\Windows\CameraDX12.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>

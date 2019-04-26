@@ -18,9 +18,9 @@
 // ----------------------------------------------------------------------------------------------------------------------------
 
 #include "Renderer.h"
-#include "RenderDevice.h"
-#include "PlatformApp.h"
-#include "CommandList.h"
+#include "RealtimeEngine/RenderDevice.h"
+#include "RealtimeEngine/PlatformApp.h"
+#include "RealtimeEngine/CommandList.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 

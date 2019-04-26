@@ -25,118 +25,131 @@
 #include "DescriptorHeap.h"
 #include "RootSignature.h"
 #include "PipelineStateObject.h"
+#include "ColorBuffer.h"
+#include "DepthBuffer.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
 namespace yart
 {
+    class GraphicsContext;
+
     class RenderDevice
     {
     public:
 
-        static const unsigned int AllowTearing = 0x1;
+        static const unsigned int AllowTearing          = 0x1;
         static const unsigned int RequireTearingSupport = 0x2;
 
     public:
 
-        RenderDevice() {}
-
-        RenderDevice(DXGI_FORMAT backBufferFormat = DXGI_FORMAT_B8G8R8A8_UNORM,
-            DXGI_FORMAT depthBufferFormat = DXGI_FORMAT_D32_FLOAT,
-            UINT backBufferCount = 2,
-            D3D_FEATURE_LEVEL minFeatureLevel = D3D_FEATURE_LEVEL_11_0,
-            UINT flags = 0,
-            UINT adapterIDoverride = UINT_MAX);
-
         ~RenderDevice();
+
+        static void                                         Initialize(
+                                                                HWND window, int width, int height, IDeviceNotify* deviceNotify,
+                                                                DXGI_FORMAT backBufferFormat  = DXGI_FORMAT_B8G8R8A8_UNORM,
+                                                                DXGI_FORMAT depthBufferFormat = DXGI_FORMAT_D32_FLOAT,
+                                                                UINT backBufferCount = 2,
+                                                                D3D_FEATURE_LEVEL minFeatureLevel = D3D_FEATURE_LEVEL_12_1,
+                                                                UINT flags = 0,
+                                                                UINT adapterIDoverride = UINT_MAX);
+
+        static void                                         Shutdown();
+        static RenderDevice*                                Get();
 
     public:
 
-        static RenderDevice*           Get();
+        void                                                TransitionRenderTarget();
+        void                                                Present();
+        D3D12_CPU_DESCRIPTOR_HANDLE                         AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE Type, UINT Count = 1);
+        
+    public:
 
-        void                           InitializeDXGIAdapter();
-        void                           SetAdapterOverride(UINT adapterID) { AdapterIDoverride = adapterID; }
-        void                           CreateDeviceResources();
-        void                           CreateWindowSizeDependentResources();
-        void                           SetWindow(HWND window, int width, int height);
-        bool                           WindowSizeChanged(int width, int height, bool minimized);
-        void                           HandleDeviceLost();
-        void                           RegisterDeviceNotify(IDeviceNotify* deviceNotify);
-        void                           Prepare(D3D12_RESOURCE_STATES beforeState = D3D12_RESOURCE_STATE_PRESENT);
-        void                           Present(D3D12_RESOURCE_STATES beforeState = D3D12_RESOURCE_STATE_RENDER_TARGET);
-        void                           ExecuteCommandList();
-        void                           WaitForGpu() noexcept;
+        IDXGIAdapter1*                                      GetAdapter()                     { return Adapter.Get(); }
+        ID3D12Device*                                       GetD3DDevice()                   { return D3DDevice.Get(); }
+        IDXGIFactory4*                                      GetDXGIFactory()                 { return DXGIFactory.Get(); }
+        IDXGISwapChain3*                                    GetSwapChain()                   { return SwapChain.Get(); }
 
-        RECT                           GetOutputSize() const            { return OutputSize; }
-        bool                           IsWindowVisible() const          { return IsWindowVisibleState; }
-        bool                           IsTearingSupported() const       { return Options & AllowTearing; }
-        IDXGIAdapter1*                 GetAdapter() const               { return Adapter.Get(); }
-        ID3D12Device*                  GetD3DDevice() const             { return D3DDevice.Get(); }
-        IDXGIFactory4*                 GetDXGIFactory() const           { return DXGIFactory.Get(); }
-        IDXGISwapChain3*               GetSwapChain() const             { return SwapChain.Get(); }
-        D3D_FEATURE_LEVEL              GetDeviceFeatureLevel() const    { return D3dFeatureLevel; }
-        ID3D12Resource*                GetRenderTarget() const          { return RenderTargets[BackBufferIndex].Get(); }
-        ID3D12Resource*                GetDepthStencil() const          { return DepthStencil.Get(); }
-        ID3D12CommandQueue*            GetCommandQueue() const          { return CommandQueue.Get(); }
-        ID3D12CommandAllocator*        GetCommandAllocator() const      { return CommandAllocators[BackBufferIndex].Get(); }
-        ID3D12GraphicsCommandList*     GetCommandList() const           { return CommandList.Get(); }
-        DXGI_FORMAT                    GetBackBufferFormat() const      { return BackBufferFormat; }
-        DXGI_FORMAT                    GetDepthBufferFormat() const     { return DepthBufferFormat; }
-        D3D12_VIEWPORT                 GetScreenViewport() const        { return ScreenViewport; }
-        D3D12_RECT                     GetScissorRect() const           { return ScissorRect; }
-        UINT                           GetCurrentFrameIndex() const     { return BackBufferIndex; }
-        UINT                           GetPreviousFrameIndex() const    { return BackBufferIndex == 0 ? BackBufferCount - 1 : BackBufferIndex - 1; }
-        UINT                           GetBackBufferCount() const       { return BackBufferCount; }
-        unsigned int                   GetDeviceOptions() const         { return Options; }
-        LPCWSTR                        GetAdapterDescription() const    { return AdapterDescription.c_str(); }
-        UINT                           GetAdapterID() const             { return AdapterID; }
-        CD3DX12_CPU_DESCRIPTOR_HANDLE  GetRenderTargetView() const      { return CD3DX12_CPU_DESCRIPTOR_HANDLE(RtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(), BackBufferIndex, RtvDescriptorSize); }
-        CD3DX12_CPU_DESCRIPTOR_HANDLE  GetDepthStencilView() const      { return CD3DX12_CPU_DESCRIPTOR_HANDLE(DsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart()); }
+        ID3D12Resource*                                     GetRenderTarget()                { return RenderTargets[BackBufferIndex].GetResource(); }
+        ID3D12Resource*                                     GetDepthStencil()                { return DepthStencil.GetResource(); }
+        const D3D12_CPU_DESCRIPTOR_HANDLE&                  GetRenderTargetView()            { return RenderTargets[BackBufferIndex].GetRTV(); }
+        const D3D12_CPU_DESCRIPTOR_HANDLE&                  GetDepthStencilView()            { return DepthStencil.GetDSV(); }
 
-        ComputePSO*                    GetGenerateMipsLinearPSO()       { return GenerateMipsLinearPSO; }
-        ComputePSO*                    GetGenerateMipsGammaPSO()        { return GenerateMipsGammaPSO; }
-        RootSignature&                 GetGenerateMipsRootSig()         { return GenerateMipsRS; }
+        bool                                                IsWindowVisible() const          { return IsWindowVisibleState; }
+        bool                                                IsTearingSupported() const       { return Options & AllowTearing; }
 
-        inline D3D12_CPU_DESCRIPTOR_HANDLE AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE Type, UINT Count = 1)
-        {
-            return DescriptorAllocators[Type].Allocate(Count);
-        }
+        D3D_FEATURE_LEVEL                                   GetDeviceFeatureLevel() const    { return D3dFeatureLevel; }
+        DXGI_FORMAT                                         GetBackBufferFormat() const      { return BackBufferFormat; }
+        DXGI_FORMAT                                         GetDepthBufferFormat() const     { return DepthBufferFormat; }
+        D3D12_VIEWPORT                                      GetScreenViewport() const        { return ScreenViewport; }
+        D3D12_RECT                                          GetScissorRect() const           { return ScissorRect; }
+        RECT                                                GetOutputSize() const            { return OutputSize; }
+
+        UINT                                                GetCurrentFrameIndex() const     { return BackBufferIndex; }
+        UINT                                                GetPreviousFrameIndex() const    { return BackBufferIndex == 0 ? BackBufferCount - 1 : BackBufferIndex - 1; }
+        UINT                                                GetBackBufferCount() const       { return BackBufferCount; }
+        unsigned int                                        GetDeviceOptions() const         { return Options; }
+        LPCWSTR                                             GetAdapterDescription() const    { return AdapterDescription.c_str(); }
+        UINT                                                GetAdapterID() const             { return AdapterID; }
+
+        ComputePSO*                                         GetGenerateMipsLinearPSO()       { return GenerateMipsLinearPSO; }
+        ComputePSO*                                         GetGenerateMipsGammaPSO()        { return GenerateMipsGammaPSO; }
+        RootSignature&                                      GetGenerateMipsRootSig()         { return GenerateMipsRS; }
 
     private:
 
-        void                           MoveToNextFrame();
-        void                           InitializeAdapter(IDXGIAdapter1** ppAdapter);
+        RenderDevice(DXGI_FORMAT backBufferFormat, DXGI_FORMAT depthBufferFormat, UINT backBufferCount, D3D_FEATURE_LEVEL minFeatureLevel, UINT flags, UINT adapterIDoverride);
+
+        void                                                SetupDevice();
+        void                                                CleanupDevice();
+
+        void                                                InitializeDXGIAdapter();
+        void                                                InitializeAdapter(IDXGIAdapter1** ppAdapter);
+        void                                                SetAdapterOverride(UINT adapterID) { AdapterIDoverride = adapterID; }
+        void                                                CreateDeviceResources();
+        void                                                CreateWindowSizeDependentResources();
+        void                                                CreateDisplayTargets();
+
+        void                                                SetWindow(HWND window, int width, int height);
+        bool                                                WindowSizeChanged(int width, int height, bool minimized);
+
+        void                                                HandleDeviceLost();
+        void                                                RegisterDeviceNotify(IDeviceNotify* deviceNotify);
 
     private:
 
         const static size_t                                 MAX_BACK_BUFFER_COUNT = 3;
 
-        static std::unique_ptr<RenderDevice>                RenderDevicePtr;
-
         UINT                                                AdapterIDoverride;
-        UINT                                                BackBufferIndex;
         Microsoft::WRL::ComPtr<IDXGIAdapter1>               Adapter;
         UINT                                                AdapterID;
         std::wstring                                        AdapterDescription;
-
-        // Direct3D objects.
         Microsoft::WRL::ComPtr<ID3D12Device>                D3DDevice;
-        Microsoft::WRL::ComPtr<ID3D12CommandQueue>          CommandQueue;
-        Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>   CommandList;
-        Microsoft::WRL::ComPtr<ID3D12CommandAllocator>      CommandAllocators[MAX_BACK_BUFFER_COUNT];
-
-        // Swap chain objects.
         Microsoft::WRL::ComPtr<IDXGIFactory4>               DXGIFactory;
         Microsoft::WRL::ComPtr<IDXGISwapChain3>             SwapChain;
-        Microsoft::WRL::ComPtr<ID3D12Resource>              RenderTargets[MAX_BACK_BUFFER_COUNT];
-        Microsoft::WRL::ComPtr<ID3D12Resource>              DepthStencil;
 
-        // Presentation fence objects.
-        Microsoft::WRL::ComPtr<ID3D12Fence>                 Fence;
-        UINT64                                              FenceValues[MAX_BACK_BUFFER_COUNT];
-        Microsoft::WRL::Wrappers::Event                     FenceEvent;
+        DXGI_FORMAT                                         BackBufferFormat;
+        DXGI_FORMAT                                         DepthBufferFormat;
+        UINT                                                BackBufferIndex;
+        UINT                                                BackBufferCount;
+        ColorBuffer                                         RenderTargets[MAX_BACK_BUFFER_COUNT];
+        DepthBuffer                                         DepthStencil;
 
-        // Direct3D rendering objects.
+        D3D12_VIEWPORT                                      ScreenViewport;
+        D3D12_RECT                                          ScissorRect;
+        D3D_FEATURE_LEVEL                                   D3dMinFeatureLevel;
+        D3D_FEATURE_LEVEL                                   D3dFeatureLevel;
+
+        HWND                                                Window;
+        RECT                                                OutputSize;
+        bool                                                IsWindowVisibleState;
+        unsigned int                                        Options;
+        IDeviceNotify*                                      DeviceNotify;
+
+        RootSignature                                       GenerateMipsRS;
+        ComputePSO                                          GenerateMipsLinearPSO[4];
+        ComputePSO                                          GenerateMipsGammaPSO[4];
+
         DescriptorAllocator                                 DescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES] =
         {
             D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
@@ -144,33 +157,5 @@ namespace yart
             D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
             D3D12_DESCRIPTOR_HEAP_TYPE_DSV,
         };
-
-        RootSignature                                       GenerateMipsRS;
-        ComputePSO                                          GenerateMipsLinearPSO[4];
-        ComputePSO                                          GenerateMipsGammaPSO[4];
-
-        Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>        RtvDescriptorHeap;
-        Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>        DsvDescriptorHeap;
-        UINT                                                RtvDescriptorSize;
-        D3D12_VIEWPORT                                      ScreenViewport;
-        D3D12_RECT                                          ScissorRect;
-
-        // Direct3D properties.
-        DXGI_FORMAT                                         BackBufferFormat;
-        DXGI_FORMAT                                         DepthBufferFormat;
-        UINT                                                BackBufferCount;
-        D3D_FEATURE_LEVEL                                   D3dMinFeatureLevel;
-
-        // Cached device properties.
-        HWND                                                Window;
-        D3D_FEATURE_LEVEL                                   D3dFeatureLevel;
-        RECT                                                OutputSize;
-        bool                                                IsWindowVisibleState;
-
-        // DeviceResources options (see flags above)
-        unsigned int                                        Options;
-
-        // The IDeviceNotify can be held directly as it owns the DeviceResources.
-        IDeviceNotify*                                      DeviceNotify;
     };
 }

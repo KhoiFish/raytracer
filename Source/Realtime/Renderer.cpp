@@ -20,6 +20,7 @@
 #include "Renderer.h"
 #include "RenderDevice.h"
 #include "PlatformApp.h"
+#include "CommandList.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -71,14 +72,7 @@ void Renderer::OnDeviceRestored()
 
 void Renderer::OnInit()
 {
-    // This will create the render device
-    RenderDevice* pRenderDevice = RenderDevice::Get();
-
-    pRenderDevice->RegisterDeviceNotify(this);
-    pRenderDevice->SetWindow(PlatformApp::GetHwnd(), Width, Height);
-    pRenderDevice->InitializeDXGIAdapter();
-    pRenderDevice->CreateDeviceResources();
-    pRenderDevice->CreateWindowSizeDependentResources();
+    RenderDevice::Initialize(PlatformApp::GetHwnd(), Width, Height, this);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -127,16 +121,8 @@ void Renderer::OnUpdate()
 
 void Renderer::OnRender()
 {
-    RenderDevice::Get()->Prepare();
-
-    auto commandList  = RenderDevice::Get()->GetCommandList();
-    auto renderTarget = RenderDevice::Get()->GetRenderTarget();
-
-    D3D12_RESOURCE_BARRIER postCopyBarriers[1];
-    postCopyBarriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(renderTarget, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
-    commandList->ResourceBarrier(ARRAYSIZE(postCopyBarriers), postCopyBarriers);
-
-    RenderDevice::Get()->Present(D3D12_RESOURCE_STATE_PRESENT);
+    RenderDevice::Get()->TransitionRenderTarget();
+    RenderDevice::Get()->Present();
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -151,6 +137,6 @@ void Renderer::OnSizeChanged(UINT width, UINT height, bool minimized)
 void Renderer::OnDestroy()
 {
     // Let GPU finish before releasing D3D resources.
-    RenderDevice::Get()->WaitForGpu();
+    CommandListManager::Get().IdleGPU();
     OnDeviceLost();
 }

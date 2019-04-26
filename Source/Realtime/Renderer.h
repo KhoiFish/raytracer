@@ -88,12 +88,7 @@ namespace yart
         //Texture                    PreviewTex;
         //Texture                    WhiteTex;
 
-        DXGI_FORMAT                BackBufferFormat;
-        DXGI_FORMAT                DepthBufferFormat;
-        DXGI_FORMAT                ShadowmapFormat;
-        DXGI_SAMPLE_DESC           SampleDesc;
-        DXGI_SAMPLE_DESC           ShadowmapSampleDesc;
-        ColorBuffer                DisplayRenderTarget;
+        ColorBuffer                SceneColorBuffer;
         RootSignature              MainRootSignature;
 
         GraphicsPSO                FullscreenPipelineState;
@@ -111,11 +106,6 @@ namespace yart
         float                      Down;
         int                        MouseDx;
         int                        MouseDy;
-
-        bool                       AllowFullscreenToggle;
-        bool                       ShiftKeyPressed;
-        bool                       ShowHelperWindow;
-        bool                       LoadSceneRequested;
 
         int                        BackbufferWidth;
         int                        BackbufferHeight;

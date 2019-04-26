@@ -36,13 +36,15 @@ namespace yart
     public:
 
         CommandAllocatorPool(D3D12_COMMAND_LIST_TYPE Type);
-        ~CommandAllocatorPool();
+        ~CommandAllocatorPool();\
 
-        void                     Create(ID3D12Device* pDevice);
-        void                     Shutdown();
-        ID3D12CommandAllocator*  RequestAllocator(uint64_t completedFenceValue);
-        void                     DiscardAllocator(uint64_t fenceValue, ID3D12CommandAllocator* allocator);
-        inline size_t            Size() { return AllocatorPool.size(); }
+    public:
+
+        void                                                       Create(ID3D12Device* pDevice);
+        void                                                       Shutdown();
+        ID3D12CommandAllocator*                                    RequestAllocator(uint64_t completedFenceValue);
+        void                                                       DiscardAllocator(uint64_t fenceValue, ID3D12CommandAllocator* allocator);
+        inline size_t                                              Size() { return AllocatorPool.size(); }
 
     private:
 
@@ -62,30 +64,31 @@ namespace yart
         CommandQueue(D3D12_COMMAND_LIST_TYPE type);
         ~CommandQueue();
 
-        void                    Create(ID3D12Device* pDevice);
-        void                    Shutdown();
-        uint64_t                IncrementFence();
-        bool                    IsFenceComplete(uint64_t fenceValue);
-        void                    StallForFence(uint64_t fenceValue);
-        void                    StallForProducer(CommandQueue& producer);
-        void                    WaitForFence(uint64_t fenceValue);
+    public:
 
-        void                    WaitForIdle()        { WaitForFence(IncrementFence()); }
-        ID3D12CommandQueue*     GetCommandQueue()    { return TheCommandQueue; }
-        uint64_t                GetNextFenceValue()  { return NextFenceValue; }
-        inline bool             IsReady()            { return TheCommandQueue != nullptr; }
+        void                            Create(ID3D12Device* pDevice);
+        void                            Shutdown();
+        uint64_t                        IncrementFence();
+        bool                            IsFenceComplete(uint64_t fenceValue);
+        void                            StallForFence(uint64_t fenceValue);
+        void                            StallForProducer(CommandQueue& producer);
+        void                            WaitForFence(uint64_t fenceValue);
+
+        void                            WaitForIdle()        { WaitForFence(IncrementFence()); }
+        ID3D12CommandQueue*             GetCommandQueue()    { return TheCommandQueue; }
+        uint64_t                        GetNextFenceValue()  { return NextFenceValue; }
+        inline bool                     IsReady()            { return TheCommandQueue != nullptr; }
+
+    private:
+
+        uint64_t                        ExecuteCommandList(ID3D12CommandList* list);
+        ID3D12CommandAllocator*         RequestAllocator();
+        void                            DiscardAllocator(uint64_t fenceValueForReset, ID3D12CommandAllocator* allocator);
 
     private:
 
         friend class CommandListManager;
         friend class CommandContext;
-
-        uint64_t                ExecuteCommandList(ID3D12CommandList* list);
-        ID3D12CommandAllocator* RequestAllocator();
-        void                    DiscardAllocator(uint64_t fenceValueForReset, ID3D12CommandAllocator* allocator);
-
-    private:
-
 
         ID3D12CommandQueue*             TheCommandQueue;
         const D3D12_COMMAND_LIST_TYPE   Type;
@@ -109,6 +112,8 @@ namespace yart
 
         CommandListManager();
         ~CommandListManager();
+
+    public:
 
         static CommandListManager&  Get();
         void                        Create(ID3D12Device* pDevice);

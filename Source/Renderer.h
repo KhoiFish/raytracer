@@ -55,14 +55,11 @@ public:
 
 private:
 
+    void                       SetupRenderPipeline();
+    void                       LoadScene();
     void                       Raytrace(bool enable);
     void                       OnResizeRaytracer();
     static void                OnRaytraceComplete(Raytracer* tracer, bool actuallyFinished);
-
-    void                       CreateDeviceDependentResources();
-    void                       CreateWindowSizeDependentResources();
-    void                       ReleaseDeviceDependentResources();
-    void                       ReleaseWindowSizeDependentResources();
 
 private:
 
@@ -87,21 +84,11 @@ private:
 
     Raytracer*                 TheRaytracer;
     WorldScene*                Scene;
-    //RenderNodeList             RenderSceneList;
 
-    //Texture                    CPURaytracerTex;
-    //Texture                    PreviewTex;
-    //Texture                    WhiteTex;
-
-    ColorBuffer                SceneColorBuffer;
+    ColorBuffer                CPURaytracerTex;
     RootSignature              MainRootSignature;
-
     GraphicsPSO                FullscreenPipelineState;
-    GraphicsPSO                PreviewPipelineState;
     GraphicsPSO                WireframePreviewPipelineState;
-    GraphicsPSO                ShadowmapPipelineState;
-    GfxViewport                Viewport;
-    GfxRect                    ScissorRect;
 
     float                      Forward;
     float                      Backward;

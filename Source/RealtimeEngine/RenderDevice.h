@@ -55,13 +55,13 @@ namespace yart
 
         static void                                         Shutdown();
         static RenderDevice&                                Get();
-        bool                                                WindowSizeChanged(int width, int height, bool minimized);
 
     public:
 
         void                                                BeginRendering();
         void                                                Present();
         D3D12_CPU_DESCRIPTOR_HANDLE                         AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE Type, uint32_t Count = 1);
+        bool                                                WindowSizeChanged(int width, int height, bool minimized);
         
     public:
 

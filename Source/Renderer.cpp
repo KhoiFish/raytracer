@@ -21,19 +21,19 @@
 #include "RealtimeEngine/RenderDevice.h"
 #include "RealtimeEngine/PlatformApp.h"
 #include "RealtimeEngine/CommandList.h"
+#include "RealtimeEngine/CommandContext.h"
+#include <d3dcompiler.h>
 
 using namespace yart;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static int          sNumSamplesPerRay = 500;
-static int          sMaxScatterDepth  = 50;
-static int          sNumThreads       = 4;
-static float        sVertFov          = 40.f;
-static int          sSampleScene      = SceneFinal;
-static float        sClearColor[]     = { 0.2f, 0.2f, 0.2f, 1.0f };
-static const float  sShadowmapNear    = 0.1f;
-static const float  sShadowmapFar     = 1000.f;
+static int     sNumSamplesPerRay = 500;
+static int     sMaxScatterDepth  = 50;
+static int     sNumThreads       = 4;
+static float   sVertFov          = 40.f;
+static int     sSampleScene      = SceneFinal;
+static float   sClearColor[]     = { 0.2f, 0.2f, 0.2f, 1.0f };
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -69,6 +69,123 @@ void Renderer::OnDeviceRestored()
 void Renderer::OnInit()
 {
     RenderDevice::Initialize(PlatformApp::GetHwnd(), Width, Height, this);
+    LoadScene();
+    SetupRenderPipeline();
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void Renderer::SetupRenderPipeline()
+{
+    D3D12_RASTERIZER_DESC rasterizerDefault;
+    rasterizerDefault.FillMode                              = D3D12_FILL_MODE_SOLID;
+    rasterizerDefault.CullMode                              = D3D12_CULL_MODE_BACK;
+    rasterizerDefault.FrontCounterClockwise                 = TRUE;
+    rasterizerDefault.DepthBias                             = D3D12_DEFAULT_DEPTH_BIAS;
+    rasterizerDefault.DepthBiasClamp                        = D3D12_DEFAULT_DEPTH_BIAS_CLAMP;
+    rasterizerDefault.SlopeScaledDepthBias                  = D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS;
+    rasterizerDefault.DepthClipEnable                       = TRUE;
+    rasterizerDefault.MultisampleEnable                     = FALSE;
+    rasterizerDefault.AntialiasedLineEnable                 = FALSE;
+    rasterizerDefault.ForcedSampleCount                     = 0;
+    rasterizerDefault.ConservativeRaster                    = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
+
+    D3D12_BLEND_DESC blendNoColorWrite = {};
+    blendNoColorWrite.IndependentBlendEnable                = FALSE;
+    blendNoColorWrite.RenderTarget[0].BlendEnable           = FALSE;
+    blendNoColorWrite.RenderTarget[0].SrcBlend              = D3D12_BLEND_SRC_ALPHA;
+    blendNoColorWrite.RenderTarget[0].DestBlend             = D3D12_BLEND_INV_SRC_ALPHA;
+    blendNoColorWrite.RenderTarget[0].BlendOp               = D3D12_BLEND_OP_ADD;
+    blendNoColorWrite.RenderTarget[0].SrcBlendAlpha         = D3D12_BLEND_ONE;
+    blendNoColorWrite.RenderTarget[0].DestBlendAlpha        = D3D12_BLEND_INV_SRC_ALPHA;
+    blendNoColorWrite.RenderTarget[0].BlendOpAlpha          = D3D12_BLEND_OP_ADD;
+    blendNoColorWrite.RenderTarget[0].RenderTargetWriteMask = 0;
+
+    D3D12_DEPTH_STENCIL_DESC depthStateReadWrite;
+    depthStateReadWrite.DepthEnable                         = TRUE;
+    depthStateReadWrite.DepthWriteMask                      = D3D12_DEPTH_WRITE_MASK_ALL;
+    depthStateReadWrite.DepthFunc                           = D3D12_COMPARISON_FUNC_GREATER_EQUAL;
+    depthStateReadWrite.StencilEnable                       = FALSE;
+    depthStateReadWrite.StencilReadMask                     = D3D12_DEFAULT_STENCIL_READ_MASK;
+    depthStateReadWrite.StencilWriteMask                    = D3D12_DEFAULT_STENCIL_WRITE_MASK;
+    depthStateReadWrite.FrontFace.StencilFunc               = D3D12_COMPARISON_FUNC_ALWAYS;
+    depthStateReadWrite.FrontFace.StencilPassOp             = D3D12_STENCIL_OP_KEEP;
+    depthStateReadWrite.FrontFace.StencilFailOp             = D3D12_STENCIL_OP_KEEP;
+    depthStateReadWrite.FrontFace.StencilDepthFailOp        = D3D12_STENCIL_OP_KEEP;
+    depthStateReadWrite.BackFace                            = depthStateReadWrite.FrontFace;
+
+    D3D12_SAMPLER_DESC defaultSamplerDesc;
+    defaultSamplerDesc.Filter                               = D3D12_FILTER_ANISOTROPIC;
+    defaultSamplerDesc.AddressU                             = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+    defaultSamplerDesc.AddressV                             = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+    defaultSamplerDesc.AddressW                             = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+    defaultSamplerDesc.MipLODBias                           = 0.0f;
+    defaultSamplerDesc.MaxAnisotropy                        = 8;
+    defaultSamplerDesc.ComparisonFunc                       = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+    defaultSamplerDesc.BorderColor[0]                       = 1.0f;
+    defaultSamplerDesc.BorderColor[1]                       = 1.0f;
+    defaultSamplerDesc.BorderColor[2]                       = 1.0f;
+    defaultSamplerDesc.BorderColor[3]                       = 1.0f;
+    defaultSamplerDesc.MinLOD                               = 0.0f;
+    defaultSamplerDesc.MaxLOD                               = D3D12_FLOAT32_MAX;
+
+    // Main root signature setup
+    {
+        MainRootSignature.Reset(6, 2);
+        MainRootSignature.InitStaticSampler(0, defaultSamplerDesc, D3D12_SHADER_VISIBILITY_PIXEL);
+        MainRootSignature.InitStaticSampler(1, defaultSamplerDesc, D3D12_SHADER_VISIBILITY_PIXEL);
+        MainRootSignature[0].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_VERTEX);
+        MainRootSignature[1].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_PIXEL);
+        MainRootSignature[2].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 6, D3D12_SHADER_VISIBILITY_PIXEL);
+        MainRootSignature[3].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 64, 6, D3D12_SHADER_VISIBILITY_PIXEL);
+        MainRootSignature[4].InitAsConstants(1, 2, D3D12_SHADER_VISIBILITY_VERTEX);
+        MainRootSignature[5].InitAsConstants(1, 1, D3D12_SHADER_VISIBILITY_PIXEL);
+        MainRootSignature.Finalize(L"RaytracerRender", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+    }
+
+    // Full screen pipeline state setup
+    {
+        D3D12_INPUT_ELEMENT_DESC vertElem[] =
+        {
+            { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+            { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+        };
+
+        Microsoft::WRL::ComPtr<ID3DBlob> vertexShaderBlob, pixelShaderBlob;
+        ThrowIfFailed(D3DReadFileToBlob(SHADERBUILD_DIR L"\\FullscreenQuad_VS.cso", &vertexShaderBlob));
+        ThrowIfFailed(D3DReadFileToBlob(SHADERBUILD_DIR L"\\FullscreenQuad_PS.cso", &pixelShaderBlob));
+
+        DXGI_FORMAT rtFormats[] { RenderDevice::Get().GetBackBufferFormat() };
+
+        FullscreenPipelineState.SetRootSignature(MainRootSignature);
+        FullscreenPipelineState.SetRasterizerState(rasterizerDefault);
+        FullscreenPipelineState.SetBlendState(blendNoColorWrite);
+        FullscreenPipelineState.SetDepthStencilState(depthStateReadWrite);
+        FullscreenPipelineState.SetInputLayout(_countof(vertElem), vertElem);
+        FullscreenPipelineState.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
+        FullscreenPipelineState.SetRenderTargetFormats(_countof(rtFormats), rtFormats, RenderDevice::Get().GetDepthBufferFormat());
+        FullscreenPipelineState.SetVertexShader(vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize());
+        FullscreenPipelineState.SetPixelShader(pixelShaderBlob->GetBufferPointer(), pixelShaderBlob->GetBufferSize());
+        FullscreenPipelineState.Finalize();
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void Renderer::LoadScene()
+{
+    // Clean up previous scene
+    if (Scene != nullptr)
+    {
+        delete Scene;
+        Scene = nullptr;
+    }
+
+    // Load the selected scene
+    Scene = GetSampleScene(SampleScene(sSampleScene));
+    Scene->GetCamera().SetAspect((float)RenderDevice::Get().GetBackbufferWidth() / (float)RenderDevice::Get().GetBackbufferHeight());
+    Scene->GetCamera().SetFocusDistanceToLookAt();
+    sVertFov = Scene->GetCamera().GetVertFov();
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -104,35 +221,14 @@ void Renderer::OnResizeRaytracer()
     int backbufferWidth  = RenderDevice::Get().GetBackbufferWidth();
     int backbufferHeight = RenderDevice::Get().GetBackbufferHeight();
 
-    // Is this the first time running?
-    if (TheRaytracer == nullptr)
+    if (TheRaytracer != nullptr)
     {
-        /*auto device = Application::Get().GetDevice();
-
-        D3D12_RESOURCE_DESC textureDesc
-            = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM, backbufferWidth, backbufferHeight, 1);
-
-        Microsoft::WRL::ComPtr<ID3D12Resource> textureResource;
-        ThrowIfFailed(device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
-            D3D12_HEAP_FLAG_NONE,
-            &textureDesc,
-            D3D12_RESOURCE_STATE_COMMON,
-            nullptr,
-            IID_PPV_ARGS(&textureResource)));
-
-        CPURaytracerTex.SetTextureUsage(TextureUsage::Albedo);
-        CPURaytracerTex.SetD3D12Resource(textureResource);
-        CPURaytracerTex.CreateViews();
-        CPURaytracerTex.SetName(L"RaytraceSourceTexture");*/
-    }
-    else
-    {
-        // Resize
-        //CPURaytracerTex.Resize(backbufferWidth, backbufferHeight);
-
         delete TheRaytracer;
         TheRaytracer = nullptr;
     }
+
+    CPURaytracerTex.Destroy();
+    CPURaytracerTex.Create(L"CpuRaytracerTex", backbufferWidth, backbufferHeight, 1, DXGI_FORMAT_R8G8B8A8_UNORM);
 
     // Create the ray tracer
     TheRaytracer = new Raytracer(backbufferWidth, backbufferHeight, sNumSamplesPerRay, sMaxScatterDepth, sNumThreads, true);
@@ -156,37 +252,16 @@ void Renderer::OnRaytraceComplete(Raytracer* tracer, bool actuallyFinished)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::CreateDeviceDependentResources()
-{
-
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-void Renderer::CreateWindowSizeDependentResources()
-{
-
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-void Renderer::ReleaseDeviceDependentResources()
-{
-
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-void Renderer::ReleaseWindowSizeDependentResources()
-{
-
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
 void Renderer::OnKeyDown(UINT8 key)
 {
-
+    switch (key)
+    {
+        case VK_SPACE:
+        {
+            Raytrace(true);
+            break;
+        }
+    }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -201,6 +276,19 @@ void Renderer::OnUpdate()
 void Renderer::OnRender()
 {
     RenderDevice::Get().BeginRendering();
+    GraphicsContext& renderContext = GraphicsContext::Begin(L"Renderer::OnRender()");
+    {
+        if (TheRaytracer != nullptr)
+        {
+            // Update GPU texture with the cpu traced results
+            D3D12_SUBRESOURCE_DATA subresource;
+            subresource.RowPitch   = 4 * TheRaytracer->GetOutputWidth();
+            subresource.SlicePitch = subresource.RowPitch * TheRaytracer->GetOutputHeight();
+            subresource.pData      = TheRaytracer->GetOutputBufferRGBA();
+            renderContext.InitializeTexture(CPURaytracerTex, 1, &subresource);
+        }
+    }
+    renderContext.Finish();
     RenderDevice::Get().Present();
 }
 

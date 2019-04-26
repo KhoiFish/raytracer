@@ -54,7 +54,7 @@ static inline DXGI_FORMAT NoSRGB(DXGI_FORMAT fmt)
 // ----------------------------------------------------------------------------------------------------------------------------
 
 void RenderDevice::Initialize(HWND window, int width, int height, IDeviceNotify* deviceNotify,
-    DXGI_FORMAT backBufferFormat, DXGI_FORMAT depthBufferFormat , UINT backBufferCount , D3D_FEATURE_LEVEL minFeatureLevel, UINT flags, UINT adapterIDoverride)
+    DXGI_FORMAT backBufferFormat, DXGI_FORMAT depthBufferFormat, uint32_t backBufferCount, D3D_FEATURE_LEVEL minFeatureLevel, uint32_t flags, uint32_t adapterIDoverride)
 {
     if (sRenderDevicePtr == nullptr)
     {
@@ -72,6 +72,17 @@ void RenderDevice::Initialize(HWND window, int width, int height, IDeviceNotify*
         sRenderDevicePtr->RegisterDeviceNotify(deviceNotify);
         sRenderDevicePtr->SetWindow(window, width, height);
         sRenderDevicePtr->SetupDevice();
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void RenderDevice::Shutdown()
+{
+    if (sRenderDevicePtr != nullptr)
+    {
+        delete sRenderDevicePtr;
+        sRenderDevicePtr = nullptr;
     }
 }
 
@@ -105,14 +116,14 @@ void RenderDevice::CleanupDevice()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-RenderDevice* RenderDevice::Get()
+RenderDevice& RenderDevice::Get()
 {
-    return sRenderDevicePtr;
+    return *sRenderDevicePtr;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-RenderDevice::RenderDevice(DXGI_FORMAT backBufferFormat, DXGI_FORMAT depthBufferFormat, UINT backBufferCount, D3D_FEATURE_LEVEL minFeatureLevel, UINT flags, UINT adapterIDoverride) :
+RenderDevice::RenderDevice(DXGI_FORMAT backBufferFormat, DXGI_FORMAT depthBufferFormat, uint32_t backBufferCount, D3D_FEATURE_LEVEL minFeatureLevel, uint32_t flags, uint32_t adapterIDoverride) :
     BackBufferFormat(backBufferFormat),
     DepthBufferFormat(depthBufferFormat),
     BackBufferIndex(0),
@@ -289,8 +300,8 @@ void RenderDevice::CreateWindowSizeDependentResources()
     }
 
     // Determine the render target size in pixels.
-    UINT         backBufferWidth  = max(UINT(OutputSize.right - OutputSize.left), (UINT)1);
-    UINT         backBufferHeight = max(UINT(OutputSize.bottom - OutputSize.top), (UINT)1);
+    UINT         backBufferWidth  = GetBackbufferWidth();
+    UINT         backBufferHeight = GetBackbufferHeight();
     DXGI_FORMAT  backBufferFormat = NoSRGB(GetBackBufferFormat());
 
     // If the swap chain already exists, resize it, otherwise create one.
@@ -396,10 +407,6 @@ void RenderDevice::CreateWindowSizeDependentResources()
 
 void RenderDevice::CreateDisplayTargets()
 {
-    EsramAllocator esram;
-    UINT           backBufferWidth  = max(UINT(OutputSize.right - OutputSize.left), (UINT)1);
-    UINT           backBufferHeight = max(UINT(OutputSize.bottom - OutputSize.top), (UINT)1);
-
     // Create render targets from swap chain
     for (uint32_t i = 0; i < BackBufferCount; ++i)
     {
@@ -409,7 +416,8 @@ void RenderDevice::CreateDisplayTargets()
     }
 
     // Create depth buffer
-    DepthStencil.Create(L"Scene Depth Buffer", backBufferWidth, backBufferHeight, DepthBufferFormat, esram);
+    EsramAllocator esram;
+    DepthStencil.Create(L"Scene Depth Buffer", GetBackbufferWidth(), GetBackbufferHeight(), DepthBufferFormat, esram);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -483,7 +491,7 @@ void RenderDevice::HandleDeviceLost()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RenderDevice::TransitionRenderTarget()
+void RenderDevice::BeginRendering()
 {
     GraphicsContext& context = GraphicsContext::Begin(L"PrepareDisplayTargets");
     context.TransitionResource(RenderTargets[BackBufferIndex], D3D12_RESOURCE_STATE_RENDER_TARGET);
@@ -624,7 +632,7 @@ void RenderDevice::RegisterDeviceNotify(IDeviceNotify* deviceNotify)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-D3D12_CPU_DESCRIPTOR_HANDLE yart::RenderDevice::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE Type, UINT Count /*= 1*/)
+D3D12_CPU_DESCRIPTOR_HANDLE yart::RenderDevice::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE Type, uint32_t Count /*= 1*/)
 {
     return DescriptorAllocators[Type].Allocate(Count);
 }

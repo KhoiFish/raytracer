@@ -195,7 +195,6 @@
     <ClInclude Include="..\..\Source\Windows\SceneConvert.hpp" />
     <ClInclude Include="..\..\Source\Windows\ShaderStructs.h" />
     <ClInclude Include="..\..\Source\Windows\Resource.h" />
-    <ClInclude Include="..\..\Source\WindowsRenderApp.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\RealtimeEngine\Color.cpp" />

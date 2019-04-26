@@ -175,7 +175,7 @@ void GraphicsPSO::Finalize()
 
     if (firstCompile)
     {
-        ASSERT_SUCCEEDED(RenderDevice::Get()->GetD3DDevice()->CreateGraphicsPipelineState(&PSODesc, IID_PPV_ARGS(&PSOObject)));
+        ASSERT_SUCCEEDED(RenderDevice::Get().GetD3DDevice()->CreateGraphicsPipelineState(&PSODesc, IID_PPV_ARGS(&PSOObject)));
         sGraphicsPSOHashMap[hashCode].Attach(PSOObject);
     }
     else
@@ -218,7 +218,7 @@ void ComputePSO::Finalize()
 
     if (firstCompile)
     {
-        ASSERT_SUCCEEDED(RenderDevice::Get()->GetD3DDevice()->CreateComputePipelineState(&PSODesc, IID_PPV_ARGS(&PSOObject)));
+        ASSERT_SUCCEEDED(RenderDevice::Get().GetD3DDevice()->CreateComputePipelineState(&PSODesc, IID_PPV_ARGS(&PSOObject)));
         sComputePSOHashMap[hashCode].Attach(PSOObject);
     }
     else

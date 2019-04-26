@@ -37,9 +37,6 @@
     <ClInclude Include="..\..\Source\Windows\SceneConvert.hpp">
       <Filter>Source\Render</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\WindowsRenderApp.h">
-      <Filter>Source\Render</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Source\Renderer.h">
       <Filter>Source</Filter>
     </ClInclude>

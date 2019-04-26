@@ -143,7 +143,7 @@ LinearAllocationPage* LinearAllocatorPageManager::CreateNewPage(size_t pageSize)
     }
 
     ID3D12Resource* pBuffer;
-    ASSERT_SUCCEEDED(RenderDevice::Get()->GetD3DDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE,
+    ASSERT_SUCCEEDED(RenderDevice::Get().GetD3DDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE,
         &resourceDesc, defaultUsage, nullptr, IID_PPV_ARGS(&pBuffer)));
 
     pBuffer->SetName(L"LinearAllocator Page");

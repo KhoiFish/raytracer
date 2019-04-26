@@ -58,7 +58,7 @@ ID3D12DescriptorHeap* DynamicDescriptorHeap::RequestDescriptorHeap(D3D12_DESCRIP
         HeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
         HeapDesc.NodeMask = 1;
         Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> HeapPtr;
-        ASSERT_SUCCEEDED(RenderDevice::Get()->GetD3DDevice()->CreateDescriptorHeap(&HeapDesc, IID_PPV_ARGS(&HeapPtr)));
+        ASSERT_SUCCEEDED(RenderDevice::Get().GetD3DDevice()->CreateDescriptorHeap(&HeapDesc, IID_PPV_ARGS(&HeapPtr)));
         sm_DescriptorHeapPool[idx].emplace_back(HeapPtr);
         return HeapPtr.Get();
     }
@@ -98,7 +98,7 @@ DynamicDescriptorHeap::DynamicDescriptorHeap(CommandContext& OwningContext, D3D1
 {
     m_CurrentHeapPtr = nullptr;
     m_CurrentOffset = 0;
-    m_DescriptorSize = RenderDevice::Get()->GetD3DDevice()->GetDescriptorHandleIncrementSize(HeapType);
+    m_DescriptorSize = RenderDevice::Get().GetD3DDevice()->GetDescriptorHandleIncrementSize(HeapType);
 }
 
 DynamicDescriptorHeap::~DynamicDescriptorHeap()
@@ -215,7 +215,7 @@ void DynamicDescriptorHeap::DescriptorHandleCache::CopyAndBindStaleTables(
             // If we run out of temp room, copy what we've got so far
             if (NumSrcDescriptorRanges + DescriptorCount > kMaxDescriptorsPerCopy)
             {
-                RenderDevice::Get()->GetD3DDevice()->CopyDescriptors(
+                RenderDevice::Get().GetD3DDevice()->CopyDescriptors(
                     NumDestDescriptorRanges, pDestDescriptorRangeStarts, pDestDescriptorRangeSizes,
                     NumSrcDescriptorRanges, pSrcDescriptorRangeStarts, pSrcDescriptorRangeSizes,
                     Type);
@@ -243,7 +243,7 @@ void DynamicDescriptorHeap::DescriptorHandleCache::CopyAndBindStaleTables(
         }
     }
 
-    RenderDevice::Get()->GetD3DDevice()->CopyDescriptors(
+    RenderDevice::Get().GetD3DDevice()->CopyDescriptors(
         NumDestDescriptorRanges, pDestDescriptorRangeStarts, pDestDescriptorRangeSizes,
         NumSrcDescriptorRanges, pSrcDescriptorRangeStarts, pSrcDescriptorRangeSizes,
         Type);
@@ -284,7 +284,7 @@ D3D12_GPU_DESCRIPTOR_HANDLE DynamicDescriptorHeap::UploadDirect( D3D12_CPU_DESCR
     DescriptorHandle DestHandle = m_FirstDescriptor + m_CurrentOffset * m_DescriptorSize;
     m_CurrentOffset += 1;
 
-    RenderDevice::Get()->GetD3DDevice()->CopyDescriptorsSimple(1, DestHandle.GetCpuHandle(), Handle, m_DescriptorType);
+    RenderDevice::Get().GetD3DDevice()->CopyDescriptorsSimple(1, DestHandle.GetCpuHandle(), Handle, m_DescriptorType);
 
     return DestHandle.GetGpuHandle();
 }

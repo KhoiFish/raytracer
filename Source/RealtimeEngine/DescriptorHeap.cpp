@@ -47,7 +47,7 @@ ID3D12DescriptorHeap* DescriptorAllocator::RequestNewHeap(D3D12_DESCRIPTOR_HEAP_
     Desc.NodeMask       = 1;
 
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> pHeap;
-    ASSERT_SUCCEEDED(RenderDevice::Get()->GetD3DDevice()->CreateDescriptorHeap(&Desc, IID_PPV_ARGS(&pHeap)));
+    ASSERT_SUCCEEDED(RenderDevice::Get().GetD3DDevice()->CreateDescriptorHeap(&Desc, IID_PPV_ARGS(&pHeap)));
     DescriptorHeapPool.emplace_back(pHeap);
 
     return pHeap.Get();
@@ -65,7 +65,7 @@ D3D12_CPU_DESCRIPTOR_HANDLE DescriptorAllocator::Allocate(uint32_t count)
 
         if (DescriptorSize == 0)
         {
-            DescriptorSize = RenderDevice::Get()->GetD3DDevice()->GetDescriptorHandleIncrementSize(Type);
+            DescriptorSize = RenderDevice::Get().GetD3DDevice()->GetDescriptorHandleIncrementSize(Type);
         }
     }
 
@@ -80,7 +80,7 @@ D3D12_CPU_DESCRIPTOR_HANDLE DescriptorAllocator::Allocate(uint32_t count)
 
 void UserDescriptorHeap::Create(const string_t& debugHeapName)
 {
-    ASSERT_SUCCEEDED(RenderDevice::Get()->GetD3DDevice()->CreateDescriptorHeap(&HeapDesc, IID_PPV_ARGS(Heap.ReleaseAndGetAddressOf())));
+    ASSERT_SUCCEEDED(RenderDevice::Get().GetD3DDevice()->CreateDescriptorHeap(&HeapDesc, IID_PPV_ARGS(Heap.ReleaseAndGetAddressOf())));
 
 #ifdef RELEASE
     (void)debugHeapName;
@@ -88,7 +88,7 @@ void UserDescriptorHeap::Create(const string_t& debugHeapName)
     Heap->SetName(MakeWStr(debugHeapName).c_str());
 #endif
 
-    DescriptorSize     = RenderDevice::Get()->GetD3DDevice()->GetDescriptorHandleIncrementSize(HeapDesc.Type);
+    DescriptorSize     = RenderDevice::Get().GetD3DDevice()->GetDescriptorHandleIncrementSize(HeapDesc.Type);
     NumFreeDescriptors = HeapDesc.NumDescriptors;
     FirstHandle        = DescriptorHandle( Heap->GetCPUDescriptorHandleForHeapStart(),  Heap->GetGPUDescriptorHandleForHeapStart() );
     NextFreeHandle     = FirstHandle;

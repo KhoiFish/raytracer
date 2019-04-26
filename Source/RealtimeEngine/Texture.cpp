@@ -212,7 +212,7 @@ void Texture::Create(size_t Pitch, size_t Width, size_t Height, DXGI_FORMAT Form
     HeapProps.CreationNodeMask     = 1;
     HeapProps.VisibleNodeMask      = 1;
 
-    ASSERT_SUCCEEDED(RenderDevice::Get()->GetD3DDevice()->CreateCommittedResource(&HeapProps, D3D12_HEAP_FLAG_NONE, &texDesc,
+    ASSERT_SUCCEEDED(RenderDevice::Get().GetD3DDevice()->CreateCommittedResource(&HeapProps, D3D12_HEAP_FLAG_NONE, &texDesc,
         UsageState, nullptr, IID_PPV_ARGS(ResourcePtr.ReleaseAndGetAddressOf())));
 
     ResourcePtr->SetName(L"Texture");
@@ -226,10 +226,10 @@ void Texture::Create(size_t Pitch, size_t Width, size_t Height, DXGI_FORMAT Form
 
     if (CpuDescriptorHandle.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
     {
-        CpuDescriptorHandle = RenderDevice::Get()->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+        CpuDescriptorHandle = RenderDevice::Get().AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
     }
 
-    RenderDevice::Get()->GetD3DDevice()->CreateShaderResourceView(ResourcePtr.Get(), nullptr, CpuDescriptorHandle);
+    RenderDevice::Get().GetD3DDevice()->CreateShaderResourceView(ResourcePtr.Get(), nullptr, CpuDescriptorHandle);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

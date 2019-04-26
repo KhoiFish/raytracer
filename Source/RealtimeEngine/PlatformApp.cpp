@@ -228,7 +228,7 @@ LRESULT CALLBACK PlatformApp::WindowProc(HWND hWnd, UINT message, WPARAM wParam,
         // Handle ALT+ENTER:
         if ((wParam == VK_RETURN) && (lParam & (1 << 29)))
         {
-            if (pRenderInterface && RenderDevice::Get()->IsTearingSupported())
+            if (pRenderInterface && RenderDevice::Get().IsTearingSupported())
             {
                 ToggleFullscreenWindow(pRenderInterface->GetSwapchain());
                 return 0;

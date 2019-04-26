@@ -32,8 +32,8 @@ void DepthBuffer::Create( const std::wstring& Name, uint32_t Width, uint32_t Hei
 
     D3D12_CLEAR_VALUE ClearValue = {};
     ClearValue.Format = Format;
-    CreateTextureResource(RenderDevice::Get()->GetD3DDevice(), Name, ResourceDesc, ClearValue, VidMemPtr);
-    CreateDerivedViews(RenderDevice::Get()->GetD3DDevice(), Format);
+    CreateTextureResource(RenderDevice::Get().GetD3DDevice(), Name, ResourceDesc, ClearValue, VidMemPtr);
+    CreateDerivedViews(RenderDevice::Get().GetD3DDevice(), Format);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -45,8 +45,8 @@ void DepthBuffer::Create( const std::wstring& Name, uint32_t Width, uint32_t Hei
 
     D3D12_CLEAR_VALUE ClearValue = {};
     ClearValue.Format = Format;
-    CreateTextureResource(RenderDevice::Get()->GetD3DDevice(), Name, ResourceDesc, ClearValue, VidMemPtr);
-    CreateDerivedViews(RenderDevice::Get()->GetD3DDevice(), Format);
+    CreateTextureResource(RenderDevice::Get().GetD3DDevice(), Name, ResourceDesc, ClearValue, VidMemPtr);
+    CreateDerivedViews(RenderDevice::Get().GetD3DDevice(), Format);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -83,8 +83,8 @@ void DepthBuffer::CreateDerivedViews( ID3D12Device* Device, DXGI_FORMAT Format )
 
     if (m_hDSV[0].ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
     {
-        m_hDSV[0] = RenderDevice::Get()->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
-        m_hDSV[1] = RenderDevice::Get()->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+        m_hDSV[0] = RenderDevice::Get().AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+        m_hDSV[1] = RenderDevice::Get().AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
     }
 
     dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
@@ -98,8 +98,8 @@ void DepthBuffer::CreateDerivedViews( ID3D12Device* Device, DXGI_FORMAT Format )
     {
         if (m_hDSV[2].ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
         {
-            m_hDSV[2] = RenderDevice::Get()->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
-            m_hDSV[3] = RenderDevice::Get()->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+            m_hDSV[2] = RenderDevice::Get().AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+            m_hDSV[3] = RenderDevice::Get().AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
         }
 
         dsvDesc.Flags = D3D12_DSV_FLAG_READ_ONLY_STENCIL;
@@ -115,7 +115,7 @@ void DepthBuffer::CreateDerivedViews( ID3D12Device* Device, DXGI_FORMAT Format )
     }
 
     if (m_hDepthSRV.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
-        m_hDepthSRV = RenderDevice::Get()->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+        m_hDepthSRV = RenderDevice::Get().AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
     // Create the shader resource view
     D3D12_SHADER_RESOURCE_VIEW_DESC SRVDesc = {};
@@ -135,7 +135,7 @@ void DepthBuffer::CreateDerivedViews( ID3D12Device* Device, DXGI_FORMAT Format )
     if (stencilReadFormat != DXGI_FORMAT_UNKNOWN)
     {
         if (m_hStencilSRV.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
-            m_hStencilSRV = RenderDevice::Get()->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+            m_hStencilSRV = RenderDevice::Get().AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
         SRVDesc.Format = stencilReadFormat;
         Device->CreateShaderResourceView( Resource, &SRVDesc, m_hStencilSRV );

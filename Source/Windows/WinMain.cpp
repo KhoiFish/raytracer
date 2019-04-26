@@ -10,6 +10,6 @@
 
 int CALLBACK wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLine, int nCmdShow)
 {
-    yart::Renderer renderer(1280, 720);
+    Renderer renderer(1280, 720);
     return yart::PlatformApp::Run(&renderer, hInstance, nCmdShow);
 }

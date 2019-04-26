@@ -27,6 +27,7 @@
 #include "PipelineStateObject.h"
 #include "ColorBuffer.h"
 #include "DepthBuffer.h"
+#include <algorithm>
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -43,25 +44,24 @@ namespace yart
 
     public:
 
-        ~RenderDevice();
-
         static void                                         Initialize(
                                                                 HWND window, int width, int height, IDeviceNotify* deviceNotify,
-                                                                DXGI_FORMAT backBufferFormat  = DXGI_FORMAT_B8G8R8A8_UNORM,
+                                                                DXGI_FORMAT backBufferFormat = DXGI_FORMAT_B8G8R8A8_UNORM,
                                                                 DXGI_FORMAT depthBufferFormat = DXGI_FORMAT_D32_FLOAT,
-                                                                UINT backBufferCount = 2,
+                                                                uint32_t backBufferCount = 2,
                                                                 D3D_FEATURE_LEVEL minFeatureLevel = D3D_FEATURE_LEVEL_12_1,
-                                                                UINT flags = 0,
-                                                                UINT adapterIDoverride = UINT_MAX);
+                                                                uint32_t flags = 0,
+                                                                uint32_t adapterIDoverride = UINT_MAX);
 
         static void                                         Shutdown();
-        static RenderDevice*                                Get();
+        static RenderDevice&                                Get();
+        bool                                                WindowSizeChanged(int width, int height, bool minimized);
 
     public:
 
-        void                                                TransitionRenderTarget();
+        void                                                BeginRendering();
         void                                                Present();
-        D3D12_CPU_DESCRIPTOR_HANDLE                         AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE Type, UINT Count = 1);
+        D3D12_CPU_DESCRIPTOR_HANDLE                         AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE Type, uint32_t Count = 1);
         
     public:
 
@@ -84,13 +84,15 @@ namespace yart
         D3D12_VIEWPORT                                      GetScreenViewport() const        { return ScreenViewport; }
         D3D12_RECT                                          GetScissorRect() const           { return ScissorRect; }
         RECT                                                GetOutputSize() const            { return OutputSize; }
+        uint32_t                                            GetBackbufferWidth() const       { return std::max(uint32_t(OutputSize.right - OutputSize.left), (uint32_t)1); }
+        uint32_t                                            GetBackbufferHeight() const      { return std::max(uint32_t(OutputSize.bottom - OutputSize.top), (uint32_t)1); }
 
-        UINT                                                GetCurrentFrameIndex() const     { return BackBufferIndex; }
-        UINT                                                GetPreviousFrameIndex() const    { return BackBufferIndex == 0 ? BackBufferCount - 1 : BackBufferIndex - 1; }
-        UINT                                                GetBackBufferCount() const       { return BackBufferCount; }
+        uint32_t                                            GetCurrentFrameIndex() const     { return BackBufferIndex; }
+        uint32_t                                            GetPreviousFrameIndex() const    { return BackBufferIndex == 0 ? BackBufferCount - 1 : BackBufferIndex - 1; }
+        uint32_t                                            GetBackBufferCount() const       { return BackBufferCount; }
         unsigned int                                        GetDeviceOptions() const         { return Options; }
         LPCWSTR                                             GetAdapterDescription() const    { return AdapterDescription.c_str(); }
-        UINT                                                GetAdapterID() const             { return AdapterID; }
+        uint32_t                                            GetAdapterID() const             { return AdapterID; }
 
         ComputePSO*                                         GetGenerateMipsLinearPSO()       { return GenerateMipsLinearPSO; }
         ComputePSO*                                         GetGenerateMipsGammaPSO()        { return GenerateMipsGammaPSO; }
@@ -98,21 +100,18 @@ namespace yart
 
     private:
 
-        RenderDevice(DXGI_FORMAT backBufferFormat, DXGI_FORMAT depthBufferFormat, UINT backBufferCount, D3D_FEATURE_LEVEL minFeatureLevel, UINT flags, UINT adapterIDoverride);
+        RenderDevice(DXGI_FORMAT backBufferFormat, DXGI_FORMAT depthBufferFormat, uint32_t backBufferCount, D3D_FEATURE_LEVEL minFeatureLevel, uint32_t flags, uint32_t adapterIDoverride);
+        ~RenderDevice();
 
         void                                                SetupDevice();
         void                                                CleanupDevice();
-
         void                                                InitializeDXGIAdapter();
         void                                                InitializeAdapter(IDXGIAdapter1** ppAdapter);
         void                                                SetAdapterOverride(UINT adapterID) { AdapterIDoverride = adapterID; }
         void                                                CreateDeviceResources();
         void                                                CreateWindowSizeDependentResources();
         void                                                CreateDisplayTargets();
-
         void                                                SetWindow(HWND window, int width, int height);
-        bool                                                WindowSizeChanged(int width, int height, bool minimized);
-
         void                                                HandleDeviceLost();
         void                                                RegisterDeviceNotify(IDeviceNotify* deviceNotify);
 
@@ -120,9 +119,9 @@ namespace yart
 
         const static size_t                                 MAX_BACK_BUFFER_COUNT = 3;
 
-        UINT                                                AdapterIDoverride;
+        uint32_t                                            AdapterIDoverride;
         Microsoft::WRL::ComPtr<IDXGIAdapter1>               Adapter;
-        UINT                                                AdapterID;
+        uint32_t                                            AdapterID;
         std::wstring                                        AdapterDescription;
         Microsoft::WRL::ComPtr<ID3D12Device>                D3DDevice;
         Microsoft::WRL::ComPtr<IDXGIFactory4>               DXGIFactory;
@@ -130,8 +129,8 @@ namespace yart
 
         DXGI_FORMAT                                         BackBufferFormat;
         DXGI_FORMAT                                         DepthBufferFormat;
-        UINT                                                BackBufferIndex;
-        UINT                                                BackBufferCount;
+        uint32_t                                            BackBufferIndex;
+        uint32_t                                            BackBufferCount;
         ColorBuffer                                         RenderTargets[MAX_BACK_BUFFER_COUNT];
         DepthBuffer                                         DepthStencil;
 

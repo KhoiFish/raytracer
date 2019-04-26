@@ -178,7 +178,7 @@ void RootSignature::Finalize(const std::wstring & name, D3D12_ROOT_SIGNATURE_FLA
         ComPtr<ID3DBlob> pOutBlob, pErrorBlob;
 
         ASSERT_SUCCEEDED(D3D12SerializeRootSignature(&RootDesc, D3D_ROOT_SIGNATURE_VERSION_1, pOutBlob.GetAddressOf(), pErrorBlob.GetAddressOf()));
-        ASSERT_SUCCEEDED(RenderDevice::Get()->GetD3DDevice()->CreateRootSignature(1, pOutBlob->GetBufferPointer(), pOutBlob->GetBufferSize(), IID_PPV_ARGS(&Signature)));
+        ASSERT_SUCCEEDED(RenderDevice::Get().GetD3DDevice()->CreateRootSignature(1, pOutBlob->GetBufferPointer(), pOutBlob->GetBufferSize(), IID_PPV_ARGS(&Signature)));
 
         Signature->SetName(name.c_str());
 

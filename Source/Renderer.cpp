@@ -22,14 +22,10 @@
 #include "RealtimeEngine/PlatformApp.h"
 #include "RealtimeEngine/CommandList.h"
 
-// ----------------------------------------------------------------------------------------------------------------------------
-
 using namespace yart;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static int          overrideWidth     = 1280;
-static int          overrideHeight    = 640;
 static int          sNumSamplesPerRay = 500;
 static int          sMaxScatterDepth  = 50;
 static int          sNumThreads       = 4;
@@ -73,6 +69,89 @@ void Renderer::OnDeviceRestored()
 void Renderer::OnInit()
 {
     RenderDevice::Initialize(PlatformApp::GetHwnd(), Width, Height, this);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void Renderer::Raytrace(bool enable)
+{
+    if (TheRaytracer)
+    {
+        delete TheRaytracer;
+        TheRaytracer = nullptr;
+    }
+
+    if (enable)
+    {
+        if (!TheRaytracer)
+        {
+            OnResizeRaytracer();
+        }
+
+        RenderMode = ModeRaytracer;
+        TheRaytracer->BeginRaytrace(Scene, OnRaytraceComplete);
+    }
+    else
+    {
+        RenderMode = ModePreview;
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void Renderer::OnResizeRaytracer()
+{
+    int backbufferWidth  = RenderDevice::Get().GetBackbufferWidth();
+    int backbufferHeight = RenderDevice::Get().GetBackbufferHeight();
+
+    // Is this the first time running?
+    if (TheRaytracer == nullptr)
+    {
+        /*auto device = Application::Get().GetDevice();
+
+        D3D12_RESOURCE_DESC textureDesc
+            = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM, backbufferWidth, backbufferHeight, 1);
+
+        Microsoft::WRL::ComPtr<ID3D12Resource> textureResource;
+        ThrowIfFailed(device->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+            D3D12_HEAP_FLAG_NONE,
+            &textureDesc,
+            D3D12_RESOURCE_STATE_COMMON,
+            nullptr,
+            IID_PPV_ARGS(&textureResource)));
+
+        CPURaytracerTex.SetTextureUsage(TextureUsage::Albedo);
+        CPURaytracerTex.SetD3D12Resource(textureResource);
+        CPURaytracerTex.CreateViews();
+        CPURaytracerTex.SetName(L"RaytraceSourceTexture");*/
+    }
+    else
+    {
+        // Resize
+        //CPURaytracerTex.Resize(backbufferWidth, backbufferHeight);
+
+        delete TheRaytracer;
+        TheRaytracer = nullptr;
+    }
+
+    // Create the ray tracer
+    TheRaytracer = new Raytracer(backbufferWidth, backbufferHeight, sNumSamplesPerRay, sMaxScatterDepth, sNumThreads, true);
+
+    // Reset the aspect ratio on the scene camera
+    if (Scene != nullptr)
+    {
+        Scene->GetCamera().SetAspect((float)backbufferWidth / (float)backbufferHeight);
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void Renderer::OnRaytraceComplete(Raytracer* tracer, bool actuallyFinished)
+{
+    if (actuallyFinished)
+    {
+        WriteImageAndLog(tracer, "RaytracerWindows");
+    }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -121,15 +200,20 @@ void Renderer::OnUpdate()
 
 void Renderer::OnRender()
 {
-    RenderDevice::Get()->TransitionRenderTarget();
-    RenderDevice::Get()->Present();
+    RenderDevice::Get().BeginRendering();
+    RenderDevice::Get().Present();
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
 void Renderer::OnSizeChanged(UINT width, UINT height, bool minimized)
 {
+    if (!RenderDevice::Get().WindowSizeChanged(width, height, minimized))
+    {
+        return;
+    }
 
+    OnResizeRaytracer();
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -140,3 +224,4 @@ void Renderer::OnDestroy()
     CommandListManager::Get().IdleGPU();
     OnDeviceLost();
 }
+

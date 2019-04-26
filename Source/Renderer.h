@@ -29,85 +29,87 @@
 #include "RealtimeEngine/PipelineStateObject.h"
 #include "RealtimeEngine/ColorBuffer.h"
 
+
+using namespace yart;
+
 // ----------------------------------------------------------------------------------------------------------------------------
 
-namespace yart
+class Renderer : public RenderInterface
 {
-    class Renderer : public RenderInterface
+public:
+
+    Renderer(uint32_t width, uint32_t height);
+    virtual ~Renderer();
+
+public:
+
+    virtual void               OnDeviceLost() override;
+    virtual void               OnDeviceRestored() override;
+
+    virtual void               OnInit();
+    virtual void               OnKeyDown(UINT8 key);
+    virtual void               OnUpdate();
+    virtual void               OnRender();
+    virtual void               OnSizeChanged(UINT width, UINT height, bool minimized);
+    virtual void               OnDestroy();
+
+private:
+
+    void                       Raytrace(bool enable);
+    void                       OnResizeRaytracer();
+    static void                OnRaytraceComplete(Raytracer* tracer, bool actuallyFinished);
+
+    void                       CreateDeviceDependentResources();
+    void                       CreateWindowSizeDependentResources();
+    void                       ReleaseDeviceDependentResources();
+    void                       ReleaseWindowSizeDependentResources();
+
+private:
+
+    enum RenderingMode
     {
-    public:
+        ModePreview = 0,
+        ModeRaytracer,
 
-        Renderer(uint32_t width, uint32_t height);
-        virtual ~Renderer();
-
-    public:
-
-        virtual void               OnDeviceLost() override;
-        virtual void               OnDeviceRestored() override;
-
-        virtual void               OnInit();
-        virtual void               OnKeyDown(UINT8 key);
-        virtual void               OnUpdate();
-        virtual void               OnRender();
-        virtual void               OnSizeChanged(UINT width, UINT height, bool minimized);
-        virtual void               OnDestroy();
-
-    private:
-
-        void                       CreateDeviceDependentResources();
-        void                       CreateWindowSizeDependentResources();
-        void                       ReleaseDeviceDependentResources();
-        void                       ReleaseWindowSizeDependentResources();
-
-    private:
-
-        enum RenderingMode
-        {
-            ModePreview = 0,
-            ModeRaytracer,
-
-            MaxRenderModes
-        };
-
-        static constexpr const char* RenderingModeStrings[MaxRenderModes] =
-        {
-            "DirectX 12 Render",
-            "Software Tracing",
-        };
-
-    private:
-
-        RenderingMode              RenderMode;
-        bool                       WireframeViewEnabled;
-
-        Raytracer*                 TheRaytracer;
-        WorldScene*                Scene;
-        //RenderNodeList             RenderSceneList;
-
-        //Texture                    CPURaytracerTex;
-        //Texture                    PreviewTex;
-        //Texture                    WhiteTex;
-
-        ColorBuffer                SceneColorBuffer;
-        RootSignature              MainRootSignature;
-
-        GraphicsPSO                FullscreenPipelineState;
-        GraphicsPSO                PreviewPipelineState;
-        GraphicsPSO                WireframePreviewPipelineState;
-        GraphicsPSO                ShadowmapPipelineState;
-        GfxViewport                Viewport;
-        GfxRect                    ScissorRect;
-
-        float                      Forward;
-        float                      Backward;
-        float                      Left;
-        float                      Right;
-        float                      Up;
-        float                      Down;
-        int                        MouseDx;
-        int                        MouseDy;
-
-        int                        BackbufferWidth;
-        int                        BackbufferHeight;
+        MaxRenderModes
     };
-}
+
+    static constexpr const char* RenderingModeStrings[MaxRenderModes] =
+    {
+        "DirectX 12 Render",
+        "Software Tracing",
+    };
+
+private:
+
+    RenderingMode              RenderMode;
+    bool                       WireframeViewEnabled;
+
+    Raytracer*                 TheRaytracer;
+    WorldScene*                Scene;
+    //RenderNodeList             RenderSceneList;
+
+    //Texture                    CPURaytracerTex;
+    //Texture                    PreviewTex;
+    //Texture                    WhiteTex;
+
+    ColorBuffer                SceneColorBuffer;
+    RootSignature              MainRootSignature;
+
+    GraphicsPSO                FullscreenPipelineState;
+    GraphicsPSO                PreviewPipelineState;
+    GraphicsPSO                WireframePreviewPipelineState;
+    GraphicsPSO                ShadowmapPipelineState;
+    GfxViewport                Viewport;
+    GfxRect                    ScissorRect;
+
+    float                      Forward;
+    float                      Backward;
+    float                      Left;
+    float                      Right;
+    float                      Up;
+    float                      Down;
+    int                        MouseDx;
+    int                        MouseDy;
+};
+

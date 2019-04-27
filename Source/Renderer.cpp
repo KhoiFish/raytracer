@@ -131,15 +131,13 @@ void Renderer::SetupRenderPipeline()
 
     // Main root signature setup
     {
-        MainRootSignature.Reset(6, 2);
+        MainRootSignature.Reset(4, 2);
+        MainRootSignature[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 2);
+        MainRootSignature[1].InitAsConstants(0, 6, D3D12_SHADER_VISIBILITY_ALL);
+        MainRootSignature[2].InitAsBufferSRV(2, D3D12_SHADER_VISIBILITY_PIXEL);
+        MainRootSignature[3].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 0, 1);
         MainRootSignature.InitStaticSampler(0, defaultSamplerDesc, D3D12_SHADER_VISIBILITY_PIXEL);
         MainRootSignature.InitStaticSampler(1, defaultSamplerDesc, D3D12_SHADER_VISIBILITY_PIXEL);
-        MainRootSignature[0].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_VERTEX);
-        MainRootSignature[1].InitAsConstantBuffer(0, D3D12_SHADER_VISIBILITY_PIXEL);
-        MainRootSignature[2].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 6, D3D12_SHADER_VISIBILITY_PIXEL);
-        MainRootSignature[3].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 64, 6, D3D12_SHADER_VISIBILITY_PIXEL);
-        MainRootSignature[4].InitAsConstants(1, 2, D3D12_SHADER_VISIBILITY_VERTEX);
-        MainRootSignature[5].InitAsConstants(1, 1, D3D12_SHADER_VISIBILITY_PIXEL);
         MainRootSignature.Finalize(L"RaytracerRender", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
     }
 
@@ -275,9 +273,18 @@ void Renderer::OnUpdate()
 
 void Renderer::OnRender()
 {
-    RenderDevice::Get().BeginRendering();
     GraphicsContext& renderContext = GraphicsContext::Begin(L"Renderer::OnRender()");
     {
+        renderContext.SetRootSignature(MainRootSignature);
+        renderContext.SetViewport(RenderDevice::Get().GetScreenViewport());
+        renderContext.SetScissor(RenderDevice::Get().GetScissorRect());
+
+        renderContext.TransitionResource(RenderDevice::Get().GetRenderTarget(), D3D12_RESOURCE_STATE_RENDER_TARGET, true);
+        renderContext.TransitionResource(RenderDevice::Get().GetDepthStencil(), D3D12_RESOURCE_STATE_DEPTH_WRITE, true);
+        renderContext.ClearDepth(RenderDevice::Get().GetDepthStencil());
+        
+        renderContext.SetRenderTarget(RenderDevice::Get().GetRenderTarget().GetRTV(), RenderDevice::Get().GetDepthStencil().GetDSV());
+
         if (TheRaytracer != nullptr)
         {
             // Update GPU texture with the cpu traced results
@@ -286,9 +293,19 @@ void Renderer::OnRender()
             subresource.SlicePitch = subresource.RowPitch * TheRaytracer->GetOutputHeight();
             subresource.pData      = TheRaytracer->GetOutputBufferRGBA();
             renderContext.InitializeTexture(CPURaytracerTex, 1, &subresource);
+
+            renderContext.TransitionResource(CPURaytracerTex, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+            renderContext.SetPipelineState(FullscreenPipelineState);
+            renderContext.SetDynamicDescriptor(0, 0, CPURaytracerTex.GetSRV());
+            renderContext.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+            renderContext.SetNullVertexBuffer(0);
+            renderContext.SetNullIndexBuffer();
+            renderContext.Draw(3);
         }
     }
     renderContext.Finish();
+
+    // Present
     RenderDevice::Get().Present();
 }
 

@@ -246,6 +246,8 @@ namespace yart
 
         void SetIndexBuffer(const D3D12_INDEX_BUFFER_VIEW& IBView);
         void SetVertexBuffer(UINT Slot, const D3D12_VERTEX_BUFFER_VIEW& VBView);
+        void SetNullIndexBuffer(); 
+        void SetNullVertexBuffer(UINT Slot);
         void SetVertexBuffers(UINT StartSlot, UINT Count, const D3D12_VERTEX_BUFFER_VIEW VBViews[]);
         void SetDynamicVB(UINT Slot, size_t NumVertices, size_t VertexStride, const void* VBData);
         void SetDynamicIB(size_t IndexCount, const uint16_t* IBData);

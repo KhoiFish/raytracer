@@ -58,7 +58,6 @@ namespace yart
 
     public:
 
-        void                                                BeginRendering();
         void                                                Present();
         D3D12_CPU_DESCRIPTOR_HANDLE                         AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE Type, uint32_t Count = 1);
         bool                                                WindowSizeChanged(int width, int height, bool minimized);
@@ -69,11 +68,8 @@ namespace yart
         ID3D12Device*                                       GetD3DDevice()                   { return D3DDevice.Get(); }
         IDXGIFactory4*                                      GetDXGIFactory()                 { return DXGIFactory.Get(); }
         IDXGISwapChain3*                                    GetSwapChain()                   { return SwapChain.Get(); }
-
-        ID3D12Resource*                                     GetRenderTarget()                { return RenderTargets[BackBufferIndex].GetResource(); }
-        ID3D12Resource*                                     GetDepthStencil()                { return DepthStencil.GetResource(); }
-        const D3D12_CPU_DESCRIPTOR_HANDLE&                  GetRenderTargetView()            { return RenderTargets[BackBufferIndex].GetRTV(); }
-        const D3D12_CPU_DESCRIPTOR_HANDLE&                  GetDepthStencilView()            { return DepthStencil.GetDSV(); }
+        ColorBuffer&                                        GetRenderTarget()                { return RenderTargets[BackBufferIndex]; }
+        DepthBuffer&                                        GetDepthStencil()                { return DepthStencil; }
 
         bool                                                IsWindowVisible() const          { return IsWindowVisibleState; }
         bool                                                IsTearingSupported() const       { return Options & AllowTearing; }
@@ -133,6 +129,10 @@ namespace yart
         uint32_t                                            BackBufferCount;
         ColorBuffer                                         RenderTargets[MAX_BACK_BUFFER_COUNT];
         DepthBuffer                                         DepthStencil;
+
+        Microsoft::WRL::ComPtr<ID3D12Fence>                 Fence;
+        UINT64                                              FenceValues[MAX_BACK_BUFFER_COUNT];
+        Microsoft::WRL::Wrappers::Event                     FenceEvent;
 
         D3D12_VIEWPORT                                      ScreenViewport;
         D3D12_RECT                                          ScissorRect;

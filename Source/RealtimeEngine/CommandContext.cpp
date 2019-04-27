@@ -879,6 +879,20 @@ void GraphicsContext::SetVertexBuffers(UINT StartSlot, UINT Count, const D3D12_V
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+void GraphicsContext::SetNullIndexBuffer()
+{
+    m_CommandList->IASetIndexBuffer(NULL);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void GraphicsContext::SetNullVertexBuffer(UINT Slot)
+{
+    m_CommandList->IASetVertexBuffers(Slot, 0, 0);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 void GraphicsContext::Draw(UINT VertexCount, UINT VertexStartOffset)
 {
     DrawInstanced(VertexCount, 1, VertexStartOffset, 0);
@@ -1064,10 +1078,9 @@ void CommandContext::InitializeTexture( GpuResource& Dest, UINT NumSubresources,
 
     // copy data to the intermediate upload heap and then schedule a copy from the upload heap to the default texture
     DynAlloc mem = InitContext.ReserveUploadMemory(uploadBufferSize);
-    InitContext.TransitionResource(Dest, D3D12_RESOURCE_STATE_COPY_DEST);
-    InitContext.FlushResourceBarriers();
+    InitContext.TransitionResource(Dest, D3D12_RESOURCE_STATE_COPY_DEST, true);
     UpdateSubresources(InitContext.m_CommandList, Dest.GetResource(), mem.Buffer.GetResource(), 0, 0, NumSubresources, SubData);
-    InitContext.TransitionResource(Dest, D3D12_RESOURCE_STATE_GENERIC_READ);
+    InitContext.TransitionResource(Dest, D3D12_RESOURCE_STATE_GENERIC_READ, true);
 
     // Execute the command list and wait for it to finish so we can release the upload buffer
     InitContext.Finish(true);

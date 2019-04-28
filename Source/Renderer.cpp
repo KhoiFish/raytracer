@@ -90,19 +90,20 @@ void Renderer::SetupRenderPipeline()
     rasterizerDefault.ForcedSampleCount                     = 0;
     rasterizerDefault.ConservativeRaster                    = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
 
-    D3D12_BLEND_DESC blendNoColorWrite = {};
-    blendNoColorWrite.IndependentBlendEnable                = FALSE;
-    blendNoColorWrite.RenderTarget[0].BlendEnable           = FALSE;
-    blendNoColorWrite.RenderTarget[0].SrcBlend              = D3D12_BLEND_SRC_ALPHA;
-    blendNoColorWrite.RenderTarget[0].DestBlend             = D3D12_BLEND_INV_SRC_ALPHA;
-    blendNoColorWrite.RenderTarget[0].BlendOp               = D3D12_BLEND_OP_ADD;
-    blendNoColorWrite.RenderTarget[0].SrcBlendAlpha         = D3D12_BLEND_ONE;
-    blendNoColorWrite.RenderTarget[0].DestBlendAlpha        = D3D12_BLEND_INV_SRC_ALPHA;
-    blendNoColorWrite.RenderTarget[0].BlendOpAlpha          = D3D12_BLEND_OP_ADD;
-    blendNoColorWrite.RenderTarget[0].RenderTargetWriteMask = 0;
+    D3D12_BLEND_DESC blendDisable = {};
+    blendDisable.IndependentBlendEnable = FALSE;
+    blendDisable.RenderTarget[0].BlendEnable = FALSE;
+    blendDisable.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
+    blendDisable.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
+    blendDisable.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
+    blendDisable.RenderTarget[0].SrcBlendAlpha = D3D12_BLEND_ONE;
+    blendDisable.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_INV_SRC_ALPHA;
+    blendDisable.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;
+    blendDisable.RenderTarget[0].RenderTargetWriteMask = 0;
+    blendDisable.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
 
     D3D12_DEPTH_STENCIL_DESC depthStateReadWrite;
-    depthStateReadWrite.DepthEnable                         = TRUE;
+    depthStateReadWrite.DepthEnable                         = FALSE;
     depthStateReadWrite.DepthWriteMask                      = D3D12_DEPTH_WRITE_MASK_ALL;
     depthStateReadWrite.DepthFunc                           = D3D12_COMPARISON_FUNC_GREATER_EQUAL;
     depthStateReadWrite.StencilEnable                       = FALSE;
@@ -132,10 +133,10 @@ void Renderer::SetupRenderPipeline()
     // Main root signature setup
     {
         MainRootSignature.Reset(4, 2);
-        MainRootSignature[0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 2);
-        MainRootSignature[1].InitAsConstants(0, 6, D3D12_SHADER_VISIBILITY_ALL);
-        MainRootSignature[2].InitAsBufferSRV(2, D3D12_SHADER_VISIBILITY_PIXEL);
-        MainRootSignature[3].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 0, 1);
+        MainRootSignature[0].InitAsConstants(0, 6, D3D12_SHADER_VISIBILITY_ALL);
+        MainRootSignature[1].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 1);
+        MainRootSignature[2].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 0, 4);
+        MainRootSignature[3].InitAsBufferSRV(2, D3D12_SHADER_VISIBILITY_PIXEL);
         MainRootSignature.InitStaticSampler(0, defaultSamplerDesc, D3D12_SHADER_VISIBILITY_PIXEL);
         MainRootSignature.InitStaticSampler(1, defaultSamplerDesc, D3D12_SHADER_VISIBILITY_PIXEL);
         MainRootSignature.Finalize(L"RaytracerRender", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
@@ -157,7 +158,7 @@ void Renderer::SetupRenderPipeline()
 
         FullscreenPipelineState.SetRootSignature(MainRootSignature);
         FullscreenPipelineState.SetRasterizerState(rasterizerDefault);
-        FullscreenPipelineState.SetBlendState(blendNoColorWrite);
+        FullscreenPipelineState.SetBlendState(blendDisable);
         FullscreenPipelineState.SetDepthStencilState(depthStateReadWrite);
         FullscreenPipelineState.SetInputLayout(_countof(vertElem), vertElem);
         FullscreenPipelineState.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
@@ -296,7 +297,7 @@ void Renderer::OnRender()
 
             renderContext.TransitionResource(CPURaytracerTex, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
             renderContext.SetPipelineState(FullscreenPipelineState);
-            renderContext.SetDynamicDescriptor(0, 0, CPURaytracerTex.GetSRV());
+            renderContext.SetDynamicDescriptor(1, 0, CPURaytracerTex.GetSRV());
             renderContext.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
             renderContext.SetNullVertexBuffer(0);
             renderContext.SetNullIndexBuffer();

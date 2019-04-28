@@ -20,13 +20,8 @@ VertexShaderOutput main(VertexInput IN)
 
     uint id = IN.Id;
 
-    OUT.Position.x = (float)(id / 2) * 4.0f - 1.0f;
-    OUT.Position.y = (float)(id % 2) * 4.0f - 1.0f;
-    OUT.Position.z = 0.0f;
-    OUT.Position.w = 1.0f;
-
-    OUT.TexCoord.x = (float)(id / 2) * 2.0f;
-    OUT.TexCoord.y = 1.0f - (float)(id % 2) * 2.0f;
+    OUT.TexCoord = float2(uint2(id, id << 1) & 2);
+    OUT.Position = float4(lerp(float2(-1, 1), float2(1, -1), OUT.TexCoord), 0, 1);
 
     return OUT;
 }

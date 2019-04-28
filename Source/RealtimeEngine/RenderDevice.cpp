@@ -171,7 +171,8 @@ void RenderDevice::InitializeDXGIAdapter()
 {
     bool debugDXGI = false;
 
-    #if defined(_DEBUG)
+    //#if defined(_DEBUG)
+    #if 0
         // Enable the debug layer (requires the Graphics Tools "optional feature").
         // NOTE: Enabling the debug layer after device creation will invalidate the active device.
         {

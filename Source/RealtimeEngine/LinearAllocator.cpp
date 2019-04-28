@@ -155,14 +155,12 @@ LinearAllocationPage* LinearAllocatorPageManager::CreateNewPage(size_t pageSize)
 
 void LinearAllocator::CleanupUsedPages( uint64_t fenceID )
 {
-    if (CurPage == nullptr)
+    if (CurPage != nullptr)
     {
-        return;
+        RetiredPages.push_back(CurPage);
+        CurPage = nullptr;
+        CurOffset = 0;
     }
-
-    RetiredPages.push_back(CurPage);
-    CurPage   = nullptr;
-    CurOffset = 0;
 
     PageManager[AllocationType].DiscardPages(fenceID, RetiredPages);
     RetiredPages.clear();

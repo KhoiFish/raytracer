@@ -52,15 +52,9 @@
 #include <cassert>
 
 
-// ----------------------------------------------------------------------------------------------------------------------------
+#include <Core/Systems.h>
 
-typedef Microsoft::WRL::ComPtr<ID3D12PipelineState>    GfxPipeState;
-typedef Microsoft::WRL::ComPtr<ID3D12RootSignature>    GfxRootSignature;
-typedef Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>   GfxDescHeap;
-typedef Microsoft::WRL::ComPtr<ID3D12Resource>         GfxResource;
-typedef D3D12_VIEWPORT                                 GfxViewport;
-typedef D3D12_RECT                                     GfxRect;
-typedef IDXGISwapChain                                 GfxSwapChain;
+// ----------------------------------------------------------------------------------------------------------------------------
 
 typedef std::string                                    string_t;
 
@@ -71,7 +65,7 @@ class HrException : public std::runtime_error
     inline std::string HrToString(HRESULT hr)
     {
         char s_str[64] = {};
-        sprintf_s(s_str, "HRESULT of 0x%08X", static_cast<UINT>(hr));
+        sprintf_s(s_str, "HRESULT of 0x%08X", static_cast<uint32_t>(hr));
         return std::string(s_str);
     }
 public:
@@ -111,11 +105,65 @@ inline void ThrowIfFalse(bool value, const wchar_t* msg)
 }
 
 
-#define ASSERT( isTrue, ... ) (void)(isTrue)
+inline void Print(const char* msg) { printf("%s", msg); }
+inline void Print(const wchar_t* msg) { wprintf(L"%ws", msg); }
+
+inline void GlobalPrint(const char* format, ...)
+{
+    char buffer[256];
+    va_list ap;
+    va_start(ap, format);
+    vsprintf_s(buffer, 256, format, ap);
+    Print(buffer);
+}
+
+inline void GlobalPrint(const wchar_t* format, ...)
+{
+    wchar_t buffer[256];
+    va_list ap;
+    va_start(ap, format);
+    vswprintf(buffer, 256, format, ap);
+    Print(buffer);
+}
+
+inline void GlobalPrintSubMessage(const char* format, ...)
+{
+    Print("--> ");
+    char buffer[256];
+    va_list ap;
+    va_start(ap, format);
+    vsprintf_s(buffer, 256, format, ap);
+    Print(buffer);
+    Print("\n");
+}
+inline void GlobalPrintSubMessage(const wchar_t* format, ...)
+{
+    Print("--> ");
+    wchar_t buffer[256];
+    va_list ap;
+    va_start(ap, format);
+    vswprintf(buffer, 256, format, ap);
+    Print(buffer);
+    Print("\n");
+}
+
+
+
 #define WARN_ONCE_IF( isTrue, ... ) (void)(isTrue)
 #define WARN_ONCE_IF_NOT( isTrue, ... ) (void)(isTrue)
 #define DEBUGPRINT( msg, ... ) do {} while(0)
-#define ASSERT_SUCCEEDED( hr, ... ) (void)(hr)
+
+#define STRINGIFY(x) #x
+#define STRINGIFY_BUILTIN(x) STRINGIFY(x)
+#define ASSERT( isFalse, ... ) \
+        if (!(bool)(isFalse)) { \
+            __debugbreak(); \
+        }
+
+#define ASSERT_SUCCEEDED( hr, ... ) \
+        if (FAILED(hr)) { \
+            __debugbreak(); \
+        }
 
 
 inline size_t HashRange(const uint32_t* const Begin, const uint32_t* const End, size_t Hash)

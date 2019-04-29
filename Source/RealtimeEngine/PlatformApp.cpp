@@ -230,7 +230,7 @@ LRESULT CALLBACK PlatformApp::WindowProc(HWND hWnd, uint32_t message, WPARAM wPa
         {
             if (pRenderInterface && RenderDevice::Get().IsTearingSupported())
             {
-                ToggleFullscreenWindow(pRenderInterface->GetSwapchain());
+                ToggleFullscreenWindow(RenderDevice::Get().GetSwapChain());
                 return 0;
             }
         }

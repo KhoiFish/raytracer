@@ -62,7 +62,6 @@ namespace yart
 		uint32_t                       GetWidth() const           { return Width; }
 		uint32_t                       GetHeight() const          { return Height; }
         RECT                           GetWindowsBounds() const   { return WindowBounds; }
-        virtual GfxSwapChain*          GetSwapchain()             { return nullptr; }
 
     public:
 

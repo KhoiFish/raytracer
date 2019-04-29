@@ -91,16 +91,16 @@ void Renderer::SetupRenderPipeline()
     rasterizerDefault.ConservativeRaster                    = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
 
     D3D12_BLEND_DESC blendDisable = {};
-    blendDisable.IndependentBlendEnable = FALSE;
-    blendDisable.RenderTarget[0].BlendEnable = FALSE;
-    blendDisable.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
-    blendDisable.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
-    blendDisable.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
-    blendDisable.RenderTarget[0].SrcBlendAlpha = D3D12_BLEND_ONE;
-    blendDisable.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_INV_SRC_ALPHA;
-    blendDisable.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;
-    blendDisable.RenderTarget[0].RenderTargetWriteMask = 0;
-    blendDisable.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+    blendDisable.IndependentBlendEnable                     = FALSE;
+    blendDisable.RenderTarget[0].BlendEnable                = FALSE;
+    blendDisable.RenderTarget[0].SrcBlend                   = D3D12_BLEND_SRC_ALPHA;
+    blendDisable.RenderTarget[0].DestBlend                  = D3D12_BLEND_INV_SRC_ALPHA;
+    blendDisable.RenderTarget[0].BlendOp                    = D3D12_BLEND_OP_ADD;
+    blendDisable.RenderTarget[0].SrcBlendAlpha              = D3D12_BLEND_ONE;
+    blendDisable.RenderTarget[0].DestBlendAlpha             = D3D12_BLEND_INV_SRC_ALPHA;
+    blendDisable.RenderTarget[0].BlendOpAlpha               = D3D12_BLEND_OP_ADD;
+    blendDisable.RenderTarget[0].RenderTargetWriteMask      = 0;
+    blendDisable.RenderTarget[0].RenderTargetWriteMask      = D3D12_COLOR_WRITE_ENABLE_ALL;
 
     D3D12_DEPTH_STENCIL_DESC depthStateReadWrite;
     depthStateReadWrite.DepthEnable                         = FALSE;

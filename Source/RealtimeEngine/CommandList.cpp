@@ -28,8 +28,8 @@ static CommandListManager gCommandManager;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-CommandAllocatorPool::CommandAllocatorPool(D3D12_COMMAND_LIST_TYPE Type) :
-    CommandListType(Type),
+CommandAllocatorPool::CommandAllocatorPool(D3D12_COMMAND_LIST_TYPE type) :
+    CommandListType(type),
     Device(nullptr)
 {
 }
@@ -64,7 +64,7 @@ void CommandAllocatorPool::Shutdown()
 
 ID3D12CommandAllocator* CommandAllocatorPool::RequestAllocator(uint64_t completedFenceValue)
 {
-    std::lock_guard<std::mutex> LockGuard(AllocatorMutex);
+    std::lock_guard<std::mutex> lockGuard(AllocatorMutex);
 
     ID3D12CommandAllocator* pAllocator = nullptr;
     if (!ReadyAllocators.empty())
@@ -96,7 +96,7 @@ ID3D12CommandAllocator* CommandAllocatorPool::RequestAllocator(uint64_t complete
 
 void CommandAllocatorPool::DiscardAllocator(uint64_t fenceValue, ID3D12CommandAllocator * allocator)
 {
-    std::lock_guard<std::mutex> LockGuard(AllocatorMutex);
+    std::lock_guard<std::mutex> lockGuard(AllocatorMutex);
 
     // That fence value indicates we are free to reset the allocator
     ReadyAllocators.push(std::make_pair(fenceValue, allocator));
@@ -153,10 +153,10 @@ void CommandQueue::Create(ID3D12Device* pDevice)
     ASSERT(!IsReady());
     ASSERT(AllocatorPool.Size() == 0);
 
-    D3D12_COMMAND_QUEUE_DESC QueueDesc = {};
-    QueueDesc.Type = Type;
-    QueueDesc.NodeMask = 1;
-    pDevice->CreateCommandQueue(&QueueDesc, IID_PPV_ARGS(&TheCommandQueue));
+    D3D12_COMMAND_QUEUE_DESC queueDesc = {};
+    queueDesc.Type = Type;
+    queueDesc.NodeMask = 1;
+    pDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&TheCommandQueue));
     TheCommandQueue->SetName(L"CommandList::TheCommandQueue");
 
     ASSERT_SUCCEEDED(pDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&FencePtr)));
@@ -222,7 +222,7 @@ CommandQueue& CommandListManager::GetCopyQueue()
 
 uint64_t CommandQueue::ExecuteCommandList(ID3D12CommandList* list)
 {
-    std::lock_guard<std::mutex> LockGuard(FenceMutex);
+    std::lock_guard<std::mutex> lockGuard(FenceMutex);
 
     ASSERT_SUCCEEDED(((ID3D12GraphicsCommandList*)list)->Close());
 
@@ -240,7 +240,7 @@ uint64_t CommandQueue::ExecuteCommandList(ID3D12CommandList* list)
 
 uint64_t CommandQueue::IncrementFence()
 {
-    std::lock_guard<std::mutex> LockGuard(FenceMutex);
+    std::lock_guard<std::mutex> lockGuard(FenceMutex);
     TheCommandQueue->Signal(FencePtr, NextFenceValue);
     return NextFenceValue++;
 }
@@ -264,8 +264,8 @@ bool CommandQueue::IsFenceComplete(uint64_t fenceValue)
 
 void CommandQueue::StallForFence(uint64_t fenceValue)
 {
-    CommandQueue& Producer = gCommandManager.GetQueue((D3D12_COMMAND_LIST_TYPE)(fenceValue >> 56));
-    TheCommandQueue->Wait(Producer.FencePtr, fenceValue);
+    CommandQueue& producer = gCommandManager.GetQueue((D3D12_COMMAND_LIST_TYPE)(fenceValue >> 56));
+    TheCommandQueue->Wait(producer.FencePtr, fenceValue);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -290,7 +290,7 @@ void CommandQueue::WaitForFence(uint64_t FenceValue)
     // the fence can only have one event set on completion, then thread B has to wait for 
     // 100 before it knows 99 is ready.  Maybe insert sequential events?
     {
-        std::lock_guard<std::mutex> LockGuard(EventMutex);
+        std::lock_guard<std::mutex> lockGuard(EventMutex);
 
         FencePtr->SetEventOnCompletion(FenceValue, FenceEventHandle);
         WaitForSingleObject(FenceEventHandle, INFINITE);
@@ -302,9 +302,9 @@ void CommandQueue::WaitForFence(uint64_t FenceValue)
 
 ID3D12CommandAllocator* CommandQueue::RequestAllocator()
 {
-    uint64_t CompletedFence = FencePtr->GetCompletedValue();
+    uint64_t completedFence = FencePtr->GetCompletedValue();
 
-    return AllocatorPool.RequestAllocator(CompletedFence);
+    return AllocatorPool.RequestAllocator(completedFence);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -340,7 +340,7 @@ void CommandListManager::Create(ID3D12Device* pDevice)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-CommandQueue& CommandListManager::GetQueue(D3D12_COMMAND_LIST_TYPE type /*= D3D12_COMMAND_LIST_TYPE_DIRECT*/)
+CommandQueue& CommandListManager::GetQueue(D3D12_COMMAND_LIST_TYPE type)
 {
     switch (type)
     {
@@ -359,7 +359,7 @@ ID3D12CommandQueue* CommandListManager::GetCommandQueue()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void CommandListManager::CreateNewCommandList( D3D12_COMMAND_LIST_TYPE type, ID3D12GraphicsCommandList** list, ID3D12CommandAllocator** allocator )
+void CommandListManager::CreateNewCommandList( D3D12_COMMAND_LIST_TYPE type, ID3D12GraphicsCommandList** list, ID3D12CommandAllocator** allocator)
 {
     ASSERT(type != D3D12_COMMAND_LIST_TYPE_BUNDLE, "Bundles are not yet supported");
     switch (type)
@@ -385,8 +385,8 @@ bool CommandListManager::IsFenceComplete(uint64_t fenceValue)
 
 void CommandListManager::WaitForFence(uint64_t fenceValue)
 {
-    CommandQueue& Producer = gCommandManager.GetQueue((D3D12_COMMAND_LIST_TYPE)(fenceValue >> 56));
-    Producer.WaitForFence(fenceValue);
+    CommandQueue& producer = gCommandManager.GetQueue((D3D12_COMMAND_LIST_TYPE)(fenceValue >> 56));
+    producer.WaitForFence(fenceValue);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

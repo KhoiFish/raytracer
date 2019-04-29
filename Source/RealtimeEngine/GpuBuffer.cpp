@@ -309,16 +309,16 @@ void TypedBuffer::CreateDerivedViews()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-const D3D12_CPU_DESCRIPTOR_HANDLE& StructuredBuffer::GetCounterSRV(CommandContext& Context)
+const D3D12_CPU_DESCRIPTOR_HANDLE& StructuredBuffer::GetCounterSRV(CommandContext& context)
 {
-    Context.TransitionResource(CounterBuffer, D3D12_RESOURCE_STATE_GENERIC_READ);
+    context.TransitionResource(CounterBuffer, D3D12_RESOURCE_STATE_GENERIC_READ);
     return CounterBuffer.GetSRV();
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-const D3D12_CPU_DESCRIPTOR_HANDLE& StructuredBuffer::GetCounterUAV(CommandContext& Context)
+const D3D12_CPU_DESCRIPTOR_HANDLE& StructuredBuffer::GetCounterUAV(CommandContext& context)
 {
-    Context.TransitionResource(CounterBuffer, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+    context.TransitionResource(CounterBuffer, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
     return CounterBuffer.GetUAV();
 }

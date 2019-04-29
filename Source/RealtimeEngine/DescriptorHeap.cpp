@@ -38,7 +38,7 @@ void DescriptorAllocator::DestroyAll()
 
 ID3D12DescriptorHeap* DescriptorAllocator::RequestNewHeap(D3D12_DESCRIPTOR_HEAP_TYPE type)
 {
-    std::lock_guard<std::mutex> LockGuard(AllocationMutex);
+    std::lock_guard<std::mutex> lockGuard(AllocationMutex);
 
     D3D12_DESCRIPTOR_HEAP_DESC Desc;
     Desc.Type           = type;
@@ -82,11 +82,11 @@ void UserDescriptorHeap::Create(const string_t& debugHeapName)
 {
     ASSERT_SUCCEEDED(RenderDevice::Get().GetD3DDevice()->CreateDescriptorHeap(&HeapDesc, IID_PPV_ARGS(Heap.ReleaseAndGetAddressOf())));
 
-#ifdef RELEASE
-    (void)debugHeapName;
-#else
-    Heap->SetName(MakeWStr(debugHeapName).c_str());
-#endif
+    #ifdef RELEASE
+        (void)debugHeapName;
+    #else
+        Heap->SetName(MakeWStr(debugHeapName).c_str());
+    #endif
 
     DescriptorSize     = RenderDevice::Get().GetD3DDevice()->GetDescriptorHandleIncrementSize(HeapDesc.Type);
     NumFreeDescriptors = HeapDesc.NumDescriptors;

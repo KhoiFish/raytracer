@@ -86,25 +86,25 @@ namespace yart
         {
         }
 
-        DescriptorHandle operator+ (INT OffsetScaledByDescriptorSize) const
+        DescriptorHandle operator+ (INT offsetScaledByDescriptorSize) const
         {
             DescriptorHandle ret = *this;
-            ret += OffsetScaledByDescriptorSize;
+            ret += offsetScaledByDescriptorSize;
             return ret;
         }
 
     public:
 
-        void operator += (INT OffsetScaledByDescriptorSize)
+        void operator += (INT offsetScaledByDescriptorSize)
         {
             if (CpuHandle.ptr != D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
             {
-                CpuHandle.ptr += OffsetScaledByDescriptorSize;
+                CpuHandle.ptr += offsetScaledByDescriptorSize;
             }
 
             if (GpuHandle.ptr != D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
             {
-                GpuHandle.ptr += OffsetScaledByDescriptorSize;
+                GpuHandle.ptr += offsetScaledByDescriptorSize;
             }
         }
 
@@ -126,6 +126,7 @@ namespace yart
     public:
 
         UserDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE type, uint32_t maxCount)
+            : DescriptorSize(0), NumFreeDescriptors(0)
         {
             HeapDesc.Type           = type;
             HeapDesc.NumDescriptors = maxCount;
@@ -134,12 +135,12 @@ namespace yart
         }
 
         void                  Create(const string_t& debugHeapName);
-        bool                  HasAvailableSpace(uint32_t count) const { return count <= NumFreeDescriptors; }
         DescriptorHandle      Alloc(uint32_t count = 1);
-        DescriptorHandle      GetHandleAtOffset(uint32_t offset) const { return FirstHandle + offset * DescriptorSize; }
         bool                  ValidateHandle(const DescriptorHandle& dHandle) const;
 
-        ID3D12DescriptorHeap* GetHeapPointer() const { return Heap.Get(); }
+        ID3D12DescriptorHeap* GetHeapPointer() const                    { return Heap.Get(); }
+        DescriptorHandle      GetHandleAtOffset(uint32_t offset) const  { return FirstHandle + offset * DescriptorSize; }
+        bool                  HasAvailableSpace(uint32_t count) const   { return count <= NumFreeDescriptors; }
 
     private:
 

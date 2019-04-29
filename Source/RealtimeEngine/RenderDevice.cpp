@@ -108,7 +108,6 @@ void RenderDevice::CleanupDevice()
     CommandListManager::Get().Shutdown();
     DepthStencil.Destroy();
     DescriptorAllocator::DestroyAll();
-    Fence.Reset();
     SwapChain.Reset();
     D3DDevice.Reset();
     DXGIFactory.Reset();
@@ -128,7 +127,6 @@ RenderDevice::RenderDevice(DXGI_FORMAT backBufferFormat, DXGI_FORMAT depthBuffer
     BackBufferFormat(backBufferFormat),
     DepthBufferFormat(depthBufferFormat),
     BackBufferIndex(0),
-    FenceValues{},
     ScreenViewport{},
     ScissorRect{},
     BackBufferCount(backBufferCount),
@@ -282,16 +280,6 @@ void RenderDevice::CreateDeviceResources()
     {
         D3dFeatureLevel = D3dMinFeatureLevel;
     }
-
-    // Create a fence for tracking GPU execution progress.
-    ThrowIfFailed(D3DDevice->CreateFence(FenceValues[BackBufferIndex], D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&Fence)));
-    FenceValues[BackBufferIndex]++;
-
-    FenceEvent.Attach(CreateEvent(nullptr, FALSE, FALSE, nullptr));
-    if (!FenceEvent.IsValid())
-    {
-        ThrowIfFailed(E_FAIL, L"CreateEvent failed.\n");
-    }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -310,7 +298,6 @@ void RenderDevice::CreateWindowSizeDependentResources()
     for (UINT n = 0; n < BackBufferCount; n++)
     {
         RenderTargets[n].Destroy();
-        FenceValues[n] = FenceValues[BackBufferIndex];
     }
 
     // Determine the render target size in pixels.
@@ -426,12 +413,11 @@ void RenderDevice::CreateDisplayTargets()
     {
         ComPtr<ID3D12Resource> renderTargetResource;
         ASSERT_SUCCEEDED(SwapChain->GetBuffer(i, IID_PPV_ARGS(&renderTargetResource)));
-        RenderTargets[i].CreateFromSwapChain(L"Primary SwapChain Buffer", renderTargetResource.Detach());
+        RenderTargets[i].CreateFromSwapChain("Primary SwapChain Buffer", renderTargetResource.Detach());
     }
 
     // Create depth buffer
-    EsramAllocator esram;
-    DepthStencil.Create(L"Scene Depth Buffer", GetBackbufferWidth(), GetBackbufferHeight(), DepthBufferFormat, esram);
+    DepthStencil.Create("Scene Depth Buffer", GetBackbufferWidth(), GetBackbufferHeight(), DepthBufferFormat);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -544,22 +530,8 @@ void RenderDevice::Present()
         ThrowIfFailed(hr);
         CommandListManager::Get().WaitForFence(presentFenceValue);
 
-        // Schedule a Signal command in the queue.
-        const UINT64 currentFenceValue = FenceValues[BackBufferIndex];
-        ThrowIfFailed(CommandListManager::Get().GetCommandQueue()->Signal(Fence.Get(), currentFenceValue));
-
         // Update the back buffer index.
         BackBufferIndex = SwapChain->GetCurrentBackBufferIndex();
-
-        // If the next frame is not ready to be rendered yet, wait until it is ready.
-        if (Fence->GetCompletedValue() < FenceValues[BackBufferIndex])
-        {
-            ThrowIfFailed(Fence->SetEventOnCompletion(FenceValues[BackBufferIndex], FenceEvent.Get()));
-            WaitForSingleObjectEx(FenceEvent.Get(), INFINITE, FALSE);
-        }
-
-        // Set the fence value for the next frame.
-        FenceValues[BackBufferIndex] = currentFenceValue + 1;
     }
 }
 

@@ -25,12 +25,9 @@
 #include "RootSignature.h"
 #include "GpuBuffer.h"
 #include "Texture.h"
-#include "Color.h"
-//#include "PixelBuffer.h"
+#include "ColorBuffer.h"
 #include "DynamicDescriptorHeap.h"
 #include "LinearAllocator.h"
-//#include "CommandSignature.h"
-//#include "GraphicsCore.h"
 
 #include <vector>
 #include <mutex>

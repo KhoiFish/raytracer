@@ -30,28 +30,6 @@ namespace yart
 
     // ----------------------------------------------------------------------------------------------------------------------------
 
-    class EsramAllocator
-    {
-    public:
-        EsramAllocator() {}
-
-        void PushStack() {}
-        void PopStack() {}
-
-        inline D3D12_GPU_VIRTUAL_ADDRESS Alloc(size_t size, size_t align, const std::wstring& bufferName)
-        {
-            (size); (align); (bufferName);
-            return D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN;
-        }
-
-        intptr_t SizeOfFreeSpace() const
-        {
-            return 0;
-        }
-    };
-
-    // ----------------------------------------------------------------------------------------------------------------------------
-
     class GpuBuffer : public GpuResource
     {
     public:
@@ -61,7 +39,6 @@ namespace yart
     public:
 
         void                                Create(const std::wstring& name, uint32_t numElements, uint32_t elementSize, const void* initialData = nullptr);
-        void                                Create(const std::wstring& name, uint32_t numElements, uint32_t elementSize, EsramAllocator& allocator, const void* initialData = nullptr);
         void                                CreatePlaced(const std::wstring& name, ID3D12Heap* pBackingHeap, uint32_t heapOffset, uint32_t numElements, uint32_t elementSize, const void* initialData = nullptr);
         D3D12_CPU_DESCRIPTOR_HANDLE         CreateConstantBufferView(uint32_t Offset, uint32_t Size) const;
 

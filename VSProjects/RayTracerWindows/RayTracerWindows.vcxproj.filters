@@ -40,9 +40,6 @@
     <ClInclude Include="..\..\Source\Renderer.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\RealtimeEngine\Color.h">
-      <Filter>Source\Realtime Engine</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Source\RealtimeEngine\ColorBuffer.h">
       <Filter>Source\Realtime Engine</Filter>
     </ClInclude>
@@ -68,9 +65,6 @@
       <Filter>Source\Realtime Engine</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\RealtimeEngine\GPUResource.h">
-      <Filter>Source\Realtime Engine</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\RealtimeEngine\IDeviceNotify.h">
       <Filter>Source\Realtime Engine</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\RealtimeEngine\LinearAllocator.h">
@@ -126,9 +120,6 @@
     </ClCompile>
     <ClCompile Include="..\..\Source\Renderer.cpp">
       <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\RealtimeEngine\Color.cpp">
-      <Filter>Source\Realtime Engine</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\RealtimeEngine\ColorBuffer.cpp">
       <Filter>Source\Realtime Engine</Filter>

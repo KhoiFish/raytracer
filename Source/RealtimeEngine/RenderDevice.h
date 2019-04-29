@@ -20,7 +20,6 @@
 #pragma once
 
 #include "Globals.h"
-#include "IDeviceNotify.h"
 #include "GPUResource.h"
 #include "DescriptorHeap.h"
 #include "RootSignature.h"
@@ -34,6 +33,16 @@
 namespace yart
 {
     class GraphicsContext;
+
+    // ----------------------------------------------------------------------------------------------------------------------------
+
+    struct IDeviceNotify
+    {
+        virtual void OnDeviceLost() = 0;
+        virtual void OnDeviceRestored() = 0;
+    };
+
+    // ----------------------------------------------------------------------------------------------------------------------------
 
     class RenderDevice
     {
@@ -129,10 +138,6 @@ namespace yart
         uint32_t                                            BackBufferCount;
         ColorBuffer                                         RenderTargets[MAX_BACK_BUFFER_COUNT];
         DepthBuffer                                         DepthStencil;
-
-        Microsoft::WRL::ComPtr<ID3D12Fence>                 Fence;
-        UINT64                                              FenceValues[MAX_BACK_BUFFER_COUNT];
-        Microsoft::WRL::Wrappers::Event                     FenceEvent;
 
         D3D12_VIEWPORT                                      ScreenViewport;
         D3D12_RECT                                          ScissorRect;

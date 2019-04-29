@@ -118,13 +118,6 @@ D3D12_GPU_VIRTUAL_ADDRESS GpuBuffer::RootConstantBufferView() const
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void GpuBuffer::Create(const std::wstring& name, uint32_t numElements, uint32_t elementSize, EsramAllocator&, const void* initialData)
-{
-    Create(name, numElements, elementSize, initialData);
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
 D3D12_CPU_DESCRIPTOR_HANDLE GpuBuffer::CreateConstantBufferView(uint32_t offset, uint32_t size) const
 {
     ASSERT(offset + size <= BufferSize);

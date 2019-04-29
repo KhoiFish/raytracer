@@ -20,7 +20,6 @@
 #pragma once
 
 #include "Globals.h"
-#include "IDeviceNotify.h"
 #include "RenderDevice.h"
 
 namespace yart

@@ -163,7 +163,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Source\RealtimeEngine\Color.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\ColorBuffer.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\CommandContext.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\CommandList.h" />
@@ -173,7 +172,6 @@
     <ClInclude Include="..\..\Source\RealtimeEngine\Globals.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\GpuBuffer.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\GPUResource.h" />
-    <ClInclude Include="..\..\Source\RealtimeEngine\IDeviceNotify.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\LinearAllocator.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\PipelineStateObject.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\PixelBuffer.h" />
@@ -197,7 +195,6 @@
     <ClInclude Include="..\..\Source\Windows\Resource.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Source\RealtimeEngine\Color.cpp" />
     <ClCompile Include="..\..\Source\RealtimeEngine\ColorBuffer.cpp" />
     <ClCompile Include="..\..\Source\RealtimeEngine\CommandContext.cpp" />
     <ClCompile Include="..\..\Source\RealtimeEngine\CommandList.cpp" />

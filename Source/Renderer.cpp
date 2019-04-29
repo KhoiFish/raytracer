@@ -227,7 +227,7 @@ void Renderer::OnResizeRaytracer()
     }
 
     CPURaytracerTex.Destroy();
-    CPURaytracerTex.Create(L"CpuRaytracerTex", backbufferWidth, backbufferHeight, 1, DXGI_FORMAT_R8G8B8A8_UNORM);
+    CPURaytracerTex.Create("CpuRaytracerTex", backbufferWidth, backbufferHeight, 1, DXGI_FORMAT_R8G8B8A8_UNORM);
 
     // Create the ray tracer
     TheRaytracer = new Raytracer(backbufferWidth, backbufferHeight, sNumSamplesPerRay, sMaxScatterDepth, sNumThreads, true);
@@ -279,11 +279,9 @@ void Renderer::OnRender()
         renderContext.SetRootSignature(MainRootSignature);
         renderContext.SetViewport(RenderDevice::Get().GetScreenViewport());
         renderContext.SetScissor(RenderDevice::Get().GetScissorRect());
-
         renderContext.TransitionResource(RenderDevice::Get().GetRenderTarget(), D3D12_RESOURCE_STATE_RENDER_TARGET, true);
         renderContext.TransitionResource(RenderDevice::Get().GetDepthStencil(), D3D12_RESOURCE_STATE_DEPTH_WRITE, true);
         renderContext.ClearDepth(RenderDevice::Get().GetDepthStencil());
-        
         renderContext.SetRenderTarget(RenderDevice::Get().GetRenderTarget().GetRTV(), RenderDevice::Get().GetDepthStencil().GetDSV());
 
         if (TheRaytracer != nullptr)

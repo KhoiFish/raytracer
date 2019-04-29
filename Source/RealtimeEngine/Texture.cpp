@@ -182,24 +182,24 @@ static inline size_t BitsPerPixel(_In_ DXGI_FORMAT fmt)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static inline UINT BytesPerPixel(DXGI_FORMAT Format)
+static inline UINT BytesPerPixel(DXGI_FORMAT format)
 {
-    return (UINT)BitsPerPixel(Format) / 8;
+    return (UINT)BitsPerPixel(format) / 8;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void Texture::Create(size_t Pitch, size_t Width, size_t Height, DXGI_FORMAT Format, const void* InitialData)
+void Texture::Create(size_t pitch, size_t width, size_t height, DXGI_FORMAT format, const void* initialData)
 {
     UsageState = D3D12_RESOURCE_STATE_COPY_DEST;
 
     D3D12_RESOURCE_DESC texDesc = {};
     texDesc.Dimension          = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-    texDesc.Width              = Width;
-    texDesc.Height             = (UINT)Height;
+    texDesc.Width              = width;
+    texDesc.Height             = (UINT)height;
     texDesc.DepthOrArraySize   = 1;
     texDesc.MipLevels          = 1;
-    texDesc.Format             = Format;
+    texDesc.Format             = format;
     texDesc.SampleDesc.Count   = 1;
     texDesc.SampleDesc.Quality = 0;
     texDesc.Layout             = D3D12_TEXTURE_LAYOUT_UNKNOWN;
@@ -218,9 +218,9 @@ void Texture::Create(size_t Pitch, size_t Width, size_t Height, DXGI_FORMAT Form
     ResourcePtr->SetName(L"Texture");
 
     D3D12_SUBRESOURCE_DATA texResource;
-    texResource.pData      = InitialData;
-    texResource.RowPitch   = Pitch * BytesPerPixel(Format);
-    texResource.SlicePitch = texResource.RowPitch * Height;
+    texResource.pData      = initialData;
+    texResource.RowPitch   = pitch * BytesPerPixel(format);
+    texResource.SlicePitch = texResource.RowPitch * height;
 
     CommandContext::InitializeTexture(*this, 1, &texResource);
 
@@ -234,9 +234,9 @@ void Texture::Create(size_t Pitch, size_t Width, size_t Height, DXGI_FORMAT Form
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void yart::Texture::Create(size_t Width, size_t Height, DXGI_FORMAT Format, const void* InitData)
+void yart::Texture::Create(size_t width, size_t height, DXGI_FORMAT format, const void* initData)
 {
-    Create(Width, Width, Height, Format, InitData);
+    Create(width, width, height, format, initData);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -258,26 +258,26 @@ const D3D12_CPU_DESCRIPTOR_HANDLE& yart::Texture::GetSRV() const
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void Texture::CreateTGAFromMemory(const void* _filePtr, size_t, bool sRGB)
+void Texture::CreateTGAFromMemory(const void* filePtr, size_t, bool sRGB)
 {
-    const uint8_t* filePtr = (const uint8_t*)_filePtr;
+    const uint8_t* fileRunner = (const uint8_t*)filePtr;
 
     // Skip first two bytes
-    filePtr += 2;
+    fileRunner += 2;
 
-    /*uint8_t imageTypeCode =*/ *filePtr++;
+    /*uint8_t imageTypeCode =*/ *fileRunner++;
 
     // Ignore another 9 bytes
-    filePtr += 9;
+    fileRunner += 9;
 
-    uint16_t imageWidth = *(uint16_t*)filePtr;
-    filePtr += sizeof(uint16_t);
-    uint16_t imageHeight = *(uint16_t*)filePtr;
-    filePtr += sizeof(uint16_t);
-    uint8_t bitCount = *filePtr++;
+    uint16_t imageWidth = *(uint16_t*)fileRunner;
+    fileRunner += sizeof(uint16_t);
+    uint16_t imageHeight = *(uint16_t*)fileRunner;
+    fileRunner += sizeof(uint16_t);
+    uint8_t bitCount = *fileRunner++;
 
     // Ignore another byte
-    filePtr++;
+    fileRunner++;
 
     uint32_t* formattedData = new uint32_t[imageWidth * imageHeight];
     uint32_t* iter = formattedData;
@@ -293,16 +293,16 @@ void Texture::CreateTGAFromMemory(const void* _filePtr, size_t, bool sRGB)
     case 3:
         for (uint32_t byteIdx = 0; byteIdx < numBytes; byteIdx += 3)
         {
-            *iter++ = 0xff000000 | filePtr[0] << 16 | filePtr[1] << 8 | filePtr[2];
-            filePtr += 3;
+            *iter++ = 0xff000000 | fileRunner[0] << 16 | fileRunner[1] << 8 | fileRunner[2];
+            fileRunner += 3;
         }
         break;
 
     case 4:
         for (uint32_t byteIdx = 0; byteIdx < numBytes; byteIdx += 4)
         {
-            *iter++ = filePtr[3] << 24 | filePtr[0] << 16 | filePtr[1] << 8 | filePtr[2];
-            filePtr += 4;
+            *iter++ = fileRunner[3] << 24 | fileRunner[0] << 16 | fileRunner[1] << 8 | fileRunner[2];
+            fileRunner += 4;
         }
         break;
     }
@@ -325,8 +325,7 @@ void Texture::CreatePIXImageFromMemory(const void* memBuffer, size_t fileSize)
     };
     const Header& header = *(Header*)memBuffer;
 
-    ASSERT(fileSize >= header.Pitch * BytesPerPixel(header.Format) * header.Height + sizeof(Header),
-        "Raw PIX image dump has an invalid file size");
+    ASSERT(fileSize >= header.Pitch * BytesPerPixel(header.Format) * header.Height + sizeof(Header), "Raw PIX image dump has an invalid file size");
 
     Create(header.Pitch, header.Width, header.Height, header.Format, (uint8_t*)memBuffer + sizeof(Header));
 }

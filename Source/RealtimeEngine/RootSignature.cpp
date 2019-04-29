@@ -40,68 +40,68 @@ void RootSignature::DestroyAll(void)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RootSignature::InitStaticSampler(UINT Register, const D3D12_SAMPLER_DESC& NonStaticSamplerDesc, D3D12_SHADER_VISIBILITY Visibility)
+void RootSignature::InitStaticSampler(uint32_t reg, const D3D12_SAMPLER_DESC& nonStaticSamplerDesc, D3D12_SHADER_VISIBILITY visibility)
 {
     ASSERT(NumInitializedStaticSamplers < NumSamplers);
-    D3D12_STATIC_SAMPLER_DESC& StaticSamplerDesc = SamplerArray[NumInitializedStaticSamplers++];
+    D3D12_STATIC_SAMPLER_DESC& staticSamplerDesc = SamplerArray[NumInitializedStaticSamplers++];
 
-    StaticSamplerDesc.Filter           = NonStaticSamplerDesc.Filter;
-    StaticSamplerDesc.AddressU         = NonStaticSamplerDesc.AddressU;
-    StaticSamplerDesc.AddressV         = NonStaticSamplerDesc.AddressV;
-    StaticSamplerDesc.AddressW         = NonStaticSamplerDesc.AddressW;
-    StaticSamplerDesc.MipLODBias       = NonStaticSamplerDesc.MipLODBias;
-    StaticSamplerDesc.MaxAnisotropy    = NonStaticSamplerDesc.MaxAnisotropy;
-    StaticSamplerDesc.ComparisonFunc   = NonStaticSamplerDesc.ComparisonFunc;
-    StaticSamplerDesc.BorderColor      = D3D12_STATIC_BORDER_COLOR_OPAQUE_WHITE;
-    StaticSamplerDesc.MinLOD           = NonStaticSamplerDesc.MinLOD;
-    StaticSamplerDesc.MaxLOD           = NonStaticSamplerDesc.MaxLOD;
-    StaticSamplerDesc.ShaderRegister   = Register;
-    StaticSamplerDesc.RegisterSpace    = 0;
-    StaticSamplerDesc.ShaderVisibility = Visibility;
+    staticSamplerDesc.Filter           = nonStaticSamplerDesc.Filter;
+    staticSamplerDesc.AddressU         = nonStaticSamplerDesc.AddressU;
+    staticSamplerDesc.AddressV         = nonStaticSamplerDesc.AddressV;
+    staticSamplerDesc.AddressW         = nonStaticSamplerDesc.AddressW;
+    staticSamplerDesc.MipLODBias       = nonStaticSamplerDesc.MipLODBias;
+    staticSamplerDesc.MaxAnisotropy    = nonStaticSamplerDesc.MaxAnisotropy;
+    staticSamplerDesc.ComparisonFunc   = nonStaticSamplerDesc.ComparisonFunc;
+    staticSamplerDesc.BorderColor      = D3D12_STATIC_BORDER_COLOR_OPAQUE_WHITE;
+    staticSamplerDesc.MinLOD           = nonStaticSamplerDesc.MinLOD;
+    staticSamplerDesc.MaxLOD           = nonStaticSamplerDesc.MaxLOD;
+    staticSamplerDesc.ShaderRegister   = reg;
+    staticSamplerDesc.RegisterSpace    = 0;
+    staticSamplerDesc.ShaderVisibility = visibility;
 
-    if (StaticSamplerDesc.AddressU == D3D12_TEXTURE_ADDRESS_MODE_BORDER ||
-        StaticSamplerDesc.AddressV == D3D12_TEXTURE_ADDRESS_MODE_BORDER ||
-        StaticSamplerDesc.AddressW == D3D12_TEXTURE_ADDRESS_MODE_BORDER)
+    if (staticSamplerDesc.AddressU == D3D12_TEXTURE_ADDRESS_MODE_BORDER ||
+        staticSamplerDesc.AddressV == D3D12_TEXTURE_ADDRESS_MODE_BORDER ||
+        staticSamplerDesc.AddressW == D3D12_TEXTURE_ADDRESS_MODE_BORDER)
     {
         WARN_ONCE_IF_NOT(
             // Transparent Black
-            NonStaticSamplerDesc.BorderColor[0] == 0.0f &&
-            NonStaticSamplerDesc.BorderColor[1] == 0.0f &&
-            NonStaticSamplerDesc.BorderColor[2] == 0.0f &&
-            NonStaticSamplerDesc.BorderColor[3] == 0.0f ||
+            nonStaticSamplerDesc.BorderColor[0] == 0.0f &&
+            nonStaticSamplerDesc.BorderColor[1] == 0.0f &&
+            nonStaticSamplerDesc.BorderColor[2] == 0.0f &&
+            nonStaticSamplerDesc.BorderColor[3] == 0.0f ||
             // Opaque Black
-            NonStaticSamplerDesc.BorderColor[0] == 0.0f &&
-            NonStaticSamplerDesc.BorderColor[1] == 0.0f &&
-            NonStaticSamplerDesc.BorderColor[2] == 0.0f &&
-            NonStaticSamplerDesc.BorderColor[3] == 1.0f ||
+            nonStaticSamplerDesc.BorderColor[0] == 0.0f &&
+            nonStaticSamplerDesc.BorderColor[1] == 0.0f &&
+            nonStaticSamplerDesc.BorderColor[2] == 0.0f &&
+            nonStaticSamplerDesc.BorderColor[3] == 1.0f ||
             // Opaque White
-            NonStaticSamplerDesc.BorderColor[0] == 1.0f &&
-            NonStaticSamplerDesc.BorderColor[1] == 1.0f &&
-            NonStaticSamplerDesc.BorderColor[2] == 1.0f &&
-            NonStaticSamplerDesc.BorderColor[3] == 1.0f,
+            nonStaticSamplerDesc.BorderColor[0] == 1.0f &&
+            nonStaticSamplerDesc.BorderColor[1] == 1.0f &&
+            nonStaticSamplerDesc.BorderColor[2] == 1.0f &&
+            nonStaticSamplerDesc.BorderColor[3] == 1.0f,
             "Sampler border color does not match static sampler limitations");
 
-        if (NonStaticSamplerDesc.BorderColor[3] == 1.0f)
+        if (nonStaticSamplerDesc.BorderColor[3] == 1.0f)
         {
-            if (NonStaticSamplerDesc.BorderColor[0] == 1.0f)
+            if (nonStaticSamplerDesc.BorderColor[0] == 1.0f)
             {
-                StaticSamplerDesc.BorderColor = D3D12_STATIC_BORDER_COLOR_OPAQUE_WHITE;
+                staticSamplerDesc.BorderColor = D3D12_STATIC_BORDER_COLOR_OPAQUE_WHITE;
             }
             else
             {
-                StaticSamplerDesc.BorderColor = D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK;
+                staticSamplerDesc.BorderColor = D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK;
             }
         }
         else
         {
-            StaticSamplerDesc.BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
+            staticSamplerDesc.BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
         }
     }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RootSignature::Finalize(const std::wstring & name, D3D12_ROOT_SIGNATURE_FLAGS Flags)
+void RootSignature::Finalize(const string_t & name, D3D12_ROOT_SIGNATURE_FLAGS flags)
 {
     ASSERT(NumInitializedStaticSamplers == NumSamplers);
     if (Finalized)
@@ -110,51 +110,51 @@ void RootSignature::Finalize(const std::wstring & name, D3D12_ROOT_SIGNATURE_FLA
     }
 
     size_t hashCode;
-    D3D12_ROOT_SIGNATURE_DESC RootDesc;
+    D3D12_ROOT_SIGNATURE_DESC rootDesc;
     {
-        RootDesc.NumParameters     = NumParameters;
-        RootDesc.pParameters       = (const D3D12_ROOT_PARAMETER*)ParamArray.get();
-        RootDesc.NumStaticSamplers = NumSamplers;
-        RootDesc.pStaticSamplers   = (const D3D12_STATIC_SAMPLER_DESC*)SamplerArray.get();
-        RootDesc.Flags             = Flags;
+        rootDesc.NumParameters     = NumParameters;
+        rootDesc.pParameters       = (const D3D12_ROOT_PARAMETER*)ParamArray.get();
+        rootDesc.NumStaticSamplers = NumSamplers;
+        rootDesc.pStaticSamplers   = (const D3D12_STATIC_SAMPLER_DESC*)SamplerArray.get();
+        rootDesc.Flags             = flags;
     }
 
-    hashCode              = HashState(RootDesc.pStaticSamplers, NumSamplers, HashState(&RootDesc.Flags));
+    hashCode              = HashState(rootDesc.pStaticSamplers, NumSamplers, HashState(&rootDesc.Flags));
     DescriptorTableBitMap = 0;
     SamplerTableBitMap    = 0;
-    for (UINT Param = 0; Param < NumParameters; ++Param)
+    for (uint32_t param = 0; param < NumParameters; ++param)
     {
-        const D3D12_ROOT_PARAMETER& RootParam = RootDesc.pParameters[Param];
-        DescriptorTableSize[Param] = 0;
+        const D3D12_ROOT_PARAMETER& rootParam = rootDesc.pParameters[param];
+        DescriptorTableSize[param] = 0;
 
-        if (RootParam.ParameterType == D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE)
+        if (rootParam.ParameterType == D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE)
         {
-            ASSERT(RootParam.DescriptorTable.pDescriptorRanges != nullptr);
+            ASSERT(rootParam.DescriptorTable.pDescriptorRanges != nullptr);
 
-            hashCode = HashState(RootParam.DescriptorTable.pDescriptorRanges, RootParam.DescriptorTable.NumDescriptorRanges, hashCode);
+            hashCode = HashState(rootParam.DescriptorTable.pDescriptorRanges, rootParam.DescriptorTable.NumDescriptorRanges, hashCode);
 
             // We keep track of sampler descriptor tables separately from CBV_SRV_UAV descriptor tables
-            if (RootParam.DescriptorTable.pDescriptorRanges->RangeType == D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER)
+            if (rootParam.DescriptorTable.pDescriptorRanges->RangeType == D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER)
             {
-                SamplerTableBitMap |= (1 << Param);
+                SamplerTableBitMap |= (1 << param);
             }
             else
             {
-                DescriptorTableBitMap |= (1 << Param);
+                DescriptorTableBitMap |= (1 << param);
             }
 
-            for (UINT TableRange = 0; TableRange < RootParam.DescriptorTable.NumDescriptorRanges; ++TableRange)
+            for (uint32_t TableRange = 0; TableRange < rootParam.DescriptorTable.NumDescriptorRanges; ++TableRange)
             {
-                DescriptorTableSize[Param] += RootParam.DescriptorTable.pDescriptorRanges[TableRange].NumDescriptors;
+                DescriptorTableSize[param] += rootParam.DescriptorTable.pDescriptorRanges[TableRange].NumDescriptors;
             }
         }
         else
         {
-            hashCode = HashState(&RootParam, 1, hashCode);
+            hashCode = HashState(&rootParam, 1, hashCode);
         }
     }
 
-    ID3D12RootSignature * *RSRef = nullptr;
+    ID3D12RootSignature * *rsRef = nullptr;
     bool firstCompile = false;
     {
         static mutex s_HashMapMutex;
@@ -164,12 +164,12 @@ void RootSignature::Finalize(const std::wstring & name, D3D12_ROOT_SIGNATURE_FLA
         // Reserve space so the next inquiry will find that someone got here first.
         if (iter == sRootSignatureHashMap.end())
         {
-            RSRef = sRootSignatureHashMap[hashCode].GetAddressOf();
+            rsRef = sRootSignatureHashMap[hashCode].GetAddressOf();
             firstCompile = true;
         }
         else
         {
-            RSRef = iter->second.GetAddressOf();
+            rsRef = iter->second.GetAddressOf();
         }
     }
 
@@ -177,21 +177,21 @@ void RootSignature::Finalize(const std::wstring & name, D3D12_ROOT_SIGNATURE_FLA
     {
         ComPtr<ID3DBlob> pOutBlob, pErrorBlob;
 
-        ASSERT_SUCCEEDED(D3D12SerializeRootSignature(&RootDesc, D3D_ROOT_SIGNATURE_VERSION_1, pOutBlob.GetAddressOf(), pErrorBlob.GetAddressOf()));
+        ASSERT_SUCCEEDED(D3D12SerializeRootSignature(&rootDesc, D3D_ROOT_SIGNATURE_VERSION_1, pOutBlob.GetAddressOf(), pErrorBlob.GetAddressOf()));
         ASSERT_SUCCEEDED(RenderDevice::Get().GetD3DDevice()->CreateRootSignature(1, pOutBlob->GetBufferPointer(), pOutBlob->GetBufferSize(), IID_PPV_ARGS(&Signature)));
 
-        Signature->SetName(name.c_str());
+        Signature->SetName(MakeWStr(name).c_str());
 
         sRootSignatureHashMap[hashCode].Attach(Signature);
-        ASSERT(*RSRef == Signature);
+        ASSERT(*rsRef == Signature);
     }
     else
     {
-        while (*RSRef == nullptr)
+        while (*rsRef == nullptr)
         {
             this_thread::yield();
         }
-        Signature = *RSRef;
+        Signature = *rsRef;
     }
 
     Finalized = true;
@@ -199,28 +199,28 @@ void RootSignature::Finalize(const std::wstring & name, D3D12_ROOT_SIGNATURE_FLA
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RootSignature::Reset(UINT NumRootParams, UINT NumStaticSamplers /*= 0*/)
+void RootSignature::Reset(uint32_t numRootParams, uint32_t numStaticSamplers)
 {
-    if (NumRootParams > 0)
+    if (numRootParams > 0)
     {
-        ParamArray.reset(new RootParameter[NumRootParams]);
+        ParamArray.reset(new RootParameter[numRootParams]);
     }
     else
     {
        ParamArray = nullptr;
     }
 
-    if (NumStaticSamplers > 0)
+    if (numStaticSamplers > 0)
     {
-        SamplerArray.reset(new D3D12_STATIC_SAMPLER_DESC[NumStaticSamplers]);
+        SamplerArray.reset(new D3D12_STATIC_SAMPLER_DESC[numStaticSamplers]);
     }
     else
     {
        SamplerArray = nullptr;
     }
 
-    NumParameters                = NumRootParams;
-    NumSamplers                  = NumStaticSamplers;
+    NumParameters                = numRootParams;
+    NumSamplers                  = numStaticSamplers;
     NumInitializedStaticSamplers = 0;
 }
 
@@ -238,72 +238,72 @@ void RootParameter::Clear()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RootParameter::InitAsConstants(UINT Register, UINT NumDwords, D3D12_SHADER_VISIBILITY Visibility /*= D3D12_SHADER_VISIBILITY_ALL*/)
+void RootParameter::InitAsConstants(uint32_t reg, uint32_t numDwords, D3D12_SHADER_VISIBILITY visibility)
 {
-    RootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
-    RootParam.ShaderVisibility = Visibility;
-    RootParam.Constants.Num32BitValues = NumDwords;
-    RootParam.Constants.ShaderRegister = Register;
-    RootParam.Constants.RegisterSpace = 0;
+    RootParam.ParameterType             = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
+    RootParam.ShaderVisibility          = visibility;
+    RootParam.Constants.Num32BitValues  = numDwords;
+    RootParam.Constants.ShaderRegister  = reg;
+    RootParam.Constants.RegisterSpace   = 0;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RootParameter::InitAsConstantBuffer(UINT Register, D3D12_SHADER_VISIBILITY Visibility /*= D3D12_SHADER_VISIBILITY_ALL*/)
+void RootParameter::InitAsConstantBuffer(uint32_t reg, D3D12_SHADER_VISIBILITY visibility)
 {
-    RootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
-    RootParam.ShaderVisibility = Visibility;
-    RootParam.Descriptor.ShaderRegister = Register;
-    RootParam.Descriptor.RegisterSpace = 0;
+    RootParam.ParameterType             = D3D12_ROOT_PARAMETER_TYPE_CBV;
+    RootParam.ShaderVisibility          = visibility;
+    RootParam.Descriptor.ShaderRegister = reg;
+    RootParam.Descriptor.RegisterSpace  = 0;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RootParameter::InitAsBufferSRV(UINT Register, D3D12_SHADER_VISIBILITY Visibility /*= D3D12_SHADER_VISIBILITY_ALL*/)
+void RootParameter::InitAsBufferSRV(uint32_t reg, D3D12_SHADER_VISIBILITY visibility)
 {
-    RootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_SRV;
-    RootParam.ShaderVisibility = Visibility;
-    RootParam.Descriptor.ShaderRegister = Register;
-    RootParam.Descriptor.RegisterSpace = 0;
+    RootParam.ParameterType             = D3D12_ROOT_PARAMETER_TYPE_SRV;
+    RootParam.ShaderVisibility          = visibility;
+    RootParam.Descriptor.ShaderRegister = reg;
+    RootParam.Descriptor.RegisterSpace  = 0;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RootParameter::InitAsBufferUAV(UINT Register, D3D12_SHADER_VISIBILITY Visibility /*= D3D12_SHADER_VISIBILITY_ALL*/)
+void RootParameter::InitAsBufferUAV(uint32_t reg, D3D12_SHADER_VISIBILITY visibility)
 {
-    RootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_UAV;
-    RootParam.ShaderVisibility = Visibility;
-    RootParam.Descriptor.ShaderRegister = Register;
-    RootParam.Descriptor.RegisterSpace = 0;
+    RootParam.ParameterType             = D3D12_ROOT_PARAMETER_TYPE_UAV;
+    RootParam.ShaderVisibility          = visibility;
+    RootParam.Descriptor.ShaderRegister = reg;
+    RootParam.Descriptor.RegisterSpace  = 0;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RootParameter::InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE Type, UINT Register, UINT Count, D3D12_SHADER_VISIBILITY Visibility /*= D3D12_SHADER_VISIBILITY_ALL*/)
+void RootParameter::InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE type, uint32_t reg, uint32_t count, D3D12_SHADER_VISIBILITY visibility)
 {
-    InitAsDescriptorTable(1, Visibility);
-    SetTableRange(0, Type, Register, Count);
+    InitAsDescriptorTable(1, visibility);
+    SetTableRange(0, type, reg, count);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RootParameter::InitAsDescriptorTable(UINT RangeCount, D3D12_SHADER_VISIBILITY Visibility /*= D3D12_SHADER_VISIBILITY_ALL*/)
+void RootParameter::InitAsDescriptorTable(uint32_t rangeCount, D3D12_SHADER_VISIBILITY visibility)
 {
-    RootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-    RootParam.ShaderVisibility = Visibility;
-    RootParam.DescriptorTable.NumDescriptorRanges = RangeCount;
-    RootParam.DescriptorTable.pDescriptorRanges = new D3D12_DESCRIPTOR_RANGE[RangeCount];
+    RootParam.ParameterType                         = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+    RootParam.ShaderVisibility                      = visibility;
+    RootParam.DescriptorTable.NumDescriptorRanges   = rangeCount;
+    RootParam.DescriptorTable.pDescriptorRanges     = new D3D12_DESCRIPTOR_RANGE[rangeCount];
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RootParameter::SetTableRange(UINT RangeIndex, D3D12_DESCRIPTOR_RANGE_TYPE Type, UINT Register, UINT Count, UINT Space /*= 0*/)
+void RootParameter::SetTableRange(uint32_t rangeIndex, D3D12_DESCRIPTOR_RANGE_TYPE type, uint32_t reg, uint32_t count, uint32_t space)
 {
-    D3D12_DESCRIPTOR_RANGE* range = const_cast<D3D12_DESCRIPTOR_RANGE*>(RootParam.DescriptorTable.pDescriptorRanges + RangeIndex);
+    D3D12_DESCRIPTOR_RANGE* range = const_cast<D3D12_DESCRIPTOR_RANGE*>(RootParam.DescriptorTable.pDescriptorRanges + rangeIndex);
 
-    range->RangeType = Type;
-    range->NumDescriptors = Count;
-    range->BaseShaderRegister = Register;
-    range->RegisterSpace = Space;
-    range->OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+    range->RangeType                            = type;
+    range->NumDescriptors                       = count;
+    range->BaseShaderRegister                   = reg;
+    range->RegisterSpace                        = space;
+    range->OffsetInDescriptorsFromTableStart    = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 }

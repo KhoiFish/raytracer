@@ -43,15 +43,15 @@ namespace yart
     public:
 
         void Clear();
-        void InitAsConstants(UINT Register, UINT NumDwords, D3D12_SHADER_VISIBILITY Visibility = D3D12_SHADER_VISIBILITY_ALL);
-        void InitAsConstantBuffer(UINT Register, D3D12_SHADER_VISIBILITY Visibility = D3D12_SHADER_VISIBILITY_ALL);
-        void InitAsBufferSRV(UINT Register, D3D12_SHADER_VISIBILITY Visibility = D3D12_SHADER_VISIBILITY_ALL);
-        void InitAsBufferUAV(UINT Register, D3D12_SHADER_VISIBILITY Visibility = D3D12_SHADER_VISIBILITY_ALL);
-        void InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE Type, UINT Register, UINT Count, D3D12_SHADER_VISIBILITY Visibility = D3D12_SHADER_VISIBILITY_ALL);
-        void InitAsDescriptorTable(UINT RangeCount, D3D12_SHADER_VISIBILITY Visibility = D3D12_SHADER_VISIBILITY_ALL);
-        void SetTableRange(UINT RangeIndex, D3D12_DESCRIPTOR_RANGE_TYPE Type, UINT Register, UINT Count, UINT Space = 0);
+        void InitAsConstants        (uint32_t reg, uint32_t numDwords, D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL);
+        void InitAsConstantBuffer   (uint32_t reg, D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL);
+        void InitAsBufferSRV        (uint32_t reg, D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL);
+        void InitAsBufferUAV        (uint32_t reg, D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL);
+        void InitAsDescriptorTable  (uint32_t rangeCount, D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL);
+        void InitAsDescriptorRange  (D3D12_DESCRIPTOR_RANGE_TYPE type, uint32_t reg, uint32_t count, D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL);
+        void SetTableRange          (uint32_t rangeIndex, D3D12_DESCRIPTOR_RANGE_TYPE type, uint32_t reg, uint32_t count, uint32_t space = 0);
 
-        const D3D12_ROOT_PARAMETER& operator() (void) const
+        const D3D12_ROOT_PARAMETER& operator() () const
         {
             return RootParam;
         }
@@ -70,10 +70,10 @@ namespace yart
     {
     public:
 
-        RootSignature(UINT NumRootParams = 0, UINT NumStaticSamplers = 0)
-            : Finalized(false), NumParameters(NumRootParams)
+        RootSignature(uint32_t numRootParams = 0, uint32_t numStaticSamplers = 0)
+            : Finalized(false), NumParameters(numRootParams)
         {
-            Reset(NumRootParams, NumStaticSamplers);
+            Reset(numRootParams, numStaticSamplers);
         }
 
         ~RootSignature()
@@ -82,23 +82,23 @@ namespace yart
 
     public:
 
-        static void  DestroyAll(void);
-        void         Reset(UINT NumRootParams, UINT NumStaticSamplers = 0);
-        void         InitStaticSampler(UINT Register, const D3D12_SAMPLER_DESC& NonStaticSamplerDesc, D3D12_SHADER_VISIBILITY Visibility = D3D12_SHADER_VISIBILITY_ALL);
-        void         Finalize(const std::wstring& name, D3D12_ROOT_SIGNATURE_FLAGS Flags = D3D12_ROOT_SIGNATURE_FLAG_NONE);
+        static void  DestroyAll();
+        void         Reset(uint32_t numRootParams, uint32_t numStaticSamplers = 0);
+        void         InitStaticSampler(uint32_t reg, const D3D12_SAMPLER_DESC& nonStaticSamplerDesc, D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL);
+        void         Finalize(const string_t& name, D3D12_ROOT_SIGNATURE_FLAGS flags = D3D12_ROOT_SIGNATURE_FLAG_NONE);
 
     public:
 
-        RootParameter& operator[] (size_t EntryIndex)
+        RootParameter& operator[] (size_t entryIndex)
         {
-            assert(EntryIndex < NumParameters);
-            return ParamArray.get()[EntryIndex];
+            assert(entryIndex < NumParameters);
+            return ParamArray.get()[entryIndex];
         }
 
-        const RootParameter& operator[] (size_t EntryIndex) const
+        const RootParameter& operator[] (size_t entryIndex) const
         {
-            assert(EntryIndex < NumParameters);
-            return ParamArray.get()[EntryIndex];
+            assert(entryIndex < NumParameters);
+            return ParamArray.get()[entryIndex];
         }
 
         ID3D12RootSignature* GetSignature() const

@@ -139,7 +139,7 @@ void Renderer::SetupRenderPipeline()
         MainRootSignature[3].InitAsBufferSRV(2, D3D12_SHADER_VISIBILITY_PIXEL);
         MainRootSignature.InitStaticSampler(0, defaultSamplerDesc, D3D12_SHADER_VISIBILITY_PIXEL);
         MainRootSignature.InitStaticSampler(1, defaultSamplerDesc, D3D12_SHADER_VISIBILITY_PIXEL);
-        MainRootSignature.Finalize(L"RaytracerRender", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+        MainRootSignature.Finalize("RaytracerRender", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
     }
 
     // Full screen pipeline state setup

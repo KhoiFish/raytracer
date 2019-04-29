@@ -52,30 +52,30 @@ LinearAllocationPage* LinearAllocatorPageManager::RequestPage()
         RetiredPages.pop();
     }
 
-    LinearAllocationPage* PagePtr = nullptr;
+    LinearAllocationPage* pagePtr = nullptr;
 
     if (!AvailablePages.empty())
     {
-        PagePtr = AvailablePages.front();
+        pagePtr = AvailablePages.front();
         AvailablePages.pop();
     }
     else
     {
-        PagePtr = CreateNewPage();
-        PagePool.emplace_back(PagePtr);
+        pagePtr = CreateNewPage();
+        PagePool.emplace_back(pagePtr);
     }
 
-    return PagePtr;
+    return pagePtr;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void LinearAllocatorPageManager::DiscardPages(uint64_t FenceValue, const vector<LinearAllocationPage*>& usedPages)
+void LinearAllocatorPageManager::DiscardPages(uint64_t fenceValue, const vector<LinearAllocationPage*>& usedPages)
 {
     lock_guard<mutex> lockGuard(Mutex);
     for (auto iter = usedPages.begin(); iter != usedPages.end(); ++iter)
     {
-        RetiredPages.push(make_pair(FenceValue, *iter));
+        RetiredPages.push(make_pair(fenceValue, *iter));
     }
 }
 
@@ -193,11 +193,11 @@ DynAlloc LinearAllocator::AllocateLargePage(size_t sizeInBytes)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-LinearAllocator::LinearAllocator(LinearAllocatorType Type) 
-    : AllocationType(Type), PageSize(0), CurOffset(~(size_t)0), CurPage(nullptr)
+LinearAllocator::LinearAllocator(LinearAllocatorType type) 
+    : AllocationType(type), PageSize(0), CurOffset(~(size_t)0), CurPage(nullptr)
 {
-    ASSERT(Type > kInvalidAllocator && Type < kNumAllocatorTypes);
-    PageSize = (Type == kGpuExclusive ? kGpuAllocatorPageSize : kCpuAllocatorPageSize);
+    ASSERT(type > kInvalidAllocator && type < kNumAllocatorTypes);
+    PageSize = (type == kGpuExclusive ? kGpuAllocatorPageSize : kCpuAllocatorPageSize);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

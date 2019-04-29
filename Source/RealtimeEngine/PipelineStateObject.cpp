@@ -54,86 +54,86 @@ GraphicsPSO::GraphicsPSO()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void GraphicsPSO::SetBlendState(const D3D12_BLEND_DESC& BlendDesc)
+void GraphicsPSO::SetBlendState(const D3D12_BLEND_DESC& blendDesc)
 {
-    PSODesc.BlendState = BlendDesc;
+    PSODesc.BlendState = blendDesc;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void GraphicsPSO::SetRasterizerState(const D3D12_RASTERIZER_DESC& RasterizerDesc)
+void GraphicsPSO::SetRasterizerState(const D3D12_RASTERIZER_DESC& rasterizerDesc)
 {
-    PSODesc.RasterizerState = RasterizerDesc;
+    PSODesc.RasterizerState = rasterizerDesc;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void GraphicsPSO::SetDepthStencilState(const D3D12_DEPTH_STENCIL_DESC& DepthStencilDesc)
+void GraphicsPSO::SetDepthStencilState(const D3D12_DEPTH_STENCIL_DESC& depthStencilDesc)
 {
-    PSODesc.DepthStencilState = DepthStencilDesc;
+    PSODesc.DepthStencilState = depthStencilDesc;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void GraphicsPSO::SetSampleMask(UINT SampleMask)
+void GraphicsPSO::SetSampleMask(UINT sampleMask)
 {
-    PSODesc.SampleMask = SampleMask;
+    PSODesc.SampleMask = sampleMask;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void GraphicsPSO::SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE TopologyType)
+void GraphicsPSO::SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE topologyType)
 {
-    ASSERT(TopologyType != D3D12_PRIMITIVE_TOPOLOGY_TYPE_UNDEFINED, "Can't draw with undefined topology");
-    PSODesc.PrimitiveTopologyType = TopologyType;
+    ASSERT(topologyType != D3D12_PRIMITIVE_TOPOLOGY_TYPE_UNDEFINED, "Can't draw with undefined topology");
+    PSODesc.PrimitiveTopologyType = topologyType;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void GraphicsPSO::SetPrimitiveRestart(D3D12_INDEX_BUFFER_STRIP_CUT_VALUE IBProps)
+void GraphicsPSO::SetPrimitiveRestart(D3D12_INDEX_BUFFER_STRIP_CUT_VALUE ibProps)
 {
-    PSODesc.IBStripCutValue = IBProps;
+    PSODesc.IBStripCutValue = ibProps;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void GraphicsPSO::SetRenderTargetFormat(DXGI_FORMAT RTVFormat, DXGI_FORMAT DSVFormat, UINT MsaaCount, UINT MsaaQuality)
+void GraphicsPSO::SetRenderTargetFormat(DXGI_FORMAT rtvFormat, DXGI_FORMAT dsvFormat, UINT msaaCount, UINT msaaQuality)
 {
-    SetRenderTargetFormats(1, &RTVFormat, DSVFormat, MsaaCount, MsaaQuality);
+    SetRenderTargetFormats(1, &rtvFormat, dsvFormat, msaaCount, msaaQuality);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void GraphicsPSO::SetRenderTargetFormats(UINT NumRTVs, const DXGI_FORMAT* RTVFormats, DXGI_FORMAT DSVFormat, UINT MsaaCount, UINT MsaaQuality)
+void GraphicsPSO::SetRenderTargetFormats(UINT numRTVs, const DXGI_FORMAT* rtvFormats, DXGI_FORMAT dsvFormat, UINT msaaCount, UINT msaaQuality)
 {
-    ASSERT(NumRTVs == 0 || RTVFormats != nullptr, "Null format array conflicts with non-zero length");
+    ASSERT(numRTVs == 0 || rtvFormats != nullptr, "Null format array conflicts with non-zero length");
 
-    for (UINT i = 0; i < NumRTVs; ++i)
+    for (UINT i = 0; i < numRTVs; ++i)
     {
-        PSODesc.RTVFormats[i] = RTVFormats[i];
+        PSODesc.RTVFormats[i] = rtvFormats[i];
     }
 
-    for (UINT i = NumRTVs; i < PSODesc.NumRenderTargets; ++i)
+    for (UINT i = numRTVs; i < PSODesc.NumRenderTargets; ++i)
     {
         PSODesc.RTVFormats[i] = DXGI_FORMAT_UNKNOWN;
     }
 
-    PSODesc.NumRenderTargets   = NumRTVs;
-    PSODesc.DSVFormat          = DSVFormat;
-    PSODesc.SampleDesc.Count   = MsaaCount;
-    PSODesc.SampleDesc.Quality = MsaaQuality;
+    PSODesc.NumRenderTargets   = numRTVs;
+    PSODesc.DSVFormat          = dsvFormat;
+    PSODesc.SampleDesc.Count   = msaaCount;
+    PSODesc.SampleDesc.Quality = msaaQuality;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void GraphicsPSO::SetInputLayout(UINT NumElements, const D3D12_INPUT_ELEMENT_DESC * pInputElementDescs)
+void GraphicsPSO::SetInputLayout(UINT numElements, const D3D12_INPUT_ELEMENT_DESC * pInputElementDescs)
 {
-    PSODesc.InputLayout.NumElements = NumElements;
+    PSODesc.InputLayout.NumElements = numElements;
 
-    if (NumElements > 0)
+    if (numElements > 0)
     {
-        D3D12_INPUT_ELEMENT_DESC* NewElements = (D3D12_INPUT_ELEMENT_DESC*)malloc(sizeof(D3D12_INPUT_ELEMENT_DESC) * NumElements);
-        memcpy(NewElements, pInputElementDescs, NumElements * sizeof(D3D12_INPUT_ELEMENT_DESC));
+        D3D12_INPUT_ELEMENT_DESC* NewElements = (D3D12_INPUT_ELEMENT_DESC*)malloc(sizeof(D3D12_INPUT_ELEMENT_DESC) * numElements);
+        memcpy(NewElements, pInputElementDescs, numElements * sizeof(D3D12_INPUT_ELEMENT_DESC));
         InputLayouts.reset((const D3D12_INPUT_ELEMENT_DESC*)NewElements);
     }
     else

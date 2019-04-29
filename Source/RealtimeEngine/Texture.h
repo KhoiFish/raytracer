@@ -33,8 +33,8 @@ namespace yart
         Texture() { CpuDescriptorHandle.ptr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN; }
         Texture(D3D12_CPU_DESCRIPTOR_HANDLE Handle) : CpuDescriptorHandle(Handle) {}
 
-        void                                Create(size_t Pitch, size_t Width, size_t Height, DXGI_FORMAT Format, const void* InitData);
-        void                                Create(size_t Width, size_t Height, DXGI_FORMAT Format, const void* InitData);
+        void                                Create(size_t pitch, size_t width, size_t height, DXGI_FORMAT Format, const void* initData);
+        void                                Create(size_t width, size_t height, DXGI_FORMAT format, const void* initData);
         void                                CreateTGAFromMemory(const void* memBuffer, size_t fileSize, bool sRGB);
         void                                CreatePIXImageFromMemory(const void* memBuffer, size_t fileSize);
         virtual void                        Destroy() override;
@@ -56,11 +56,11 @@ namespace yart
     {
     public:
 
-        ManagedTexture(const string_t& FileName) : MapKey(FileName), IsValidState(true) {}
+        ManagedTexture(const string_t& fileName) : MapKey(fileName), IsValidState(true) {}
 
         void WaitForLoad() const;
         void Unload();
-        void SetToInvalidTexture(void);
+        void SetToInvalidTexture();
         bool IsValid() const;
         void operator= (const Texture& Texture);
 
@@ -79,7 +79,7 @@ namespace yart
     {
     public:
 
-        static void                   Initialize(const string_t& TextureLibRoot);
+        static void                   Initialize(const string_t& textureLibRoot);
         static void                   Shutdown();
         static const ManagedTexture*  LoadFromFile(const string_t& fileName, bool sRGB = false);
         static const ManagedTexture*  LoadTGAFromFile(const string_t& fileName, bool sRGB = false);

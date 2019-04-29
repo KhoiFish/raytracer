@@ -37,8 +37,8 @@ namespace yart
 
     struct DynAlloc
     {
-        DynAlloc(GpuResource& BaseResource, size_t ThisOffset, size_t ThisSize)
-            : Buffer(BaseResource), Offset(ThisOffset), Size(ThisSize) {}
+        DynAlloc(GpuResource& baseResource, size_t thisOffset, size_t thisSize)
+            : Buffer(baseResource), Offset(thisOffset), Size(thisSize) {}
 
         GpuResource&               Buffer;       // The D3D buffer associated with this memory.
         size_t                     Offset;       // Offset from start of buffer resource
@@ -53,11 +53,11 @@ namespace yart
     {
     public:
 
-        LinearAllocationPage(ID3D12Resource* pResource, D3D12_RESOURCE_STATES Usage)
+        LinearAllocationPage(ID3D12Resource* pResource, D3D12_RESOURCE_STATES usage)
             : GpuResource()
         {
             ResourcePtr.Attach(pResource);
-            UsageState = Usage;
+            UsageState = usage;
             GpuVirtualAddress = ResourcePtr->GetGPUVirtualAddress();
             ResourcePtr->Map(0, nullptr, &CpuVirtualAddress);
         }
@@ -140,17 +140,17 @@ namespace yart
     {
     public:
 
-        LinearAllocator(LinearAllocatorType Type);
+        LinearAllocator(LinearAllocatorType type);
 
     public:
 
-        DynAlloc                             Allocate(size_t SizeInBytes, size_t Alignment = DEFAULT_ALIGN);
-        void                                 CleanupUsedPages(uint64_t FenceID);
-        static void                          DestroyAll(void);
+        DynAlloc                             Allocate(size_t sizeInBytes, size_t alignment = DEFAULT_ALIGN);
+        void                                 CleanupUsedPages(uint64_t fenceID);
+        static void                          DestroyAll();
 
     private:
 
-        DynAlloc                             AllocateLargePage(size_t SizeInBytes);
+        DynAlloc                             AllocateLargePage(size_t sizeInBytes);
 
     private:
 
@@ -158,7 +158,7 @@ namespace yart
         LinearAllocatorType                  AllocationType;
         size_t                               PageSize;
         size_t                               CurOffset;
-        LinearAllocationPage* CurPage;
+        LinearAllocationPage*                CurPage;
         std::vector<LinearAllocationPage*>   RetiredPages;
         std::vector<LinearAllocationPage*>   LargePageList;
     };

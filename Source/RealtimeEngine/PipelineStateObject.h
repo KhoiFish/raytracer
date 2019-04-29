@@ -32,10 +32,10 @@ namespace yart
 
         PSO() : RootSig(nullptr) {}
 
-        static void          DestroyAll(void);
-        void                 SetRootSignature(const RootSignature& BindMappings) { RootSig = &BindMappings; }
-        const RootSignature& GetRootSignature(void) const                        { return *RootSig; }
-        ID3D12PipelineState* GetPipelineStateObject(void) const                  { return PSOObject; }
+        static void          DestroyAll();
+        void                 SetRootSignature(const RootSignature& bindMappings) { RootSig = &bindMappings; }
+        const RootSignature& GetRootSignature() const                            { return *RootSig; }
+        ID3D12PipelineState* GetPipelineStateObject() const                      { return PSOObject; }
 
     protected:
 
@@ -57,27 +57,27 @@ namespace yart
 
         GraphicsPSO();
 
-        void SetBlendState(const D3D12_BLEND_DESC& BlendDesc);
-        void SetRasterizerState(const D3D12_RASTERIZER_DESC& RasterizerDesc);
-        void SetDepthStencilState(const D3D12_DEPTH_STENCIL_DESC& DepthStencilDesc);
-        void SetSampleMask(UINT SampleMask);
-        void SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE TopologyType);
-        void SetRenderTargetFormat(DXGI_FORMAT RTVFormat, DXGI_FORMAT DSVFormat, UINT MsaaCount = 1, UINT MsaaQuality = 0);
-        void SetRenderTargetFormats(UINT NumRTVs, const DXGI_FORMAT* RTVFormats, DXGI_FORMAT DSVFormat, UINT MsaaCount = 1, UINT MsaaQuality = 0);
-        void SetInputLayout(UINT NumElements, const D3D12_INPUT_ELEMENT_DESC* pInputElementDescs);
-        void SetPrimitiveRestart(D3D12_INDEX_BUFFER_STRIP_CUT_VALUE IBProps);
+        void SetBlendState(const D3D12_BLEND_DESC& blendDesc);
+        void SetRasterizerState(const D3D12_RASTERIZER_DESC& rasterizerDesc);
+        void SetDepthStencilState(const D3D12_DEPTH_STENCIL_DESC& depthStencilDesc);
+        void SetSampleMask(UINT sampleMask);
+        void SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE topologyType);
+        void SetRenderTargetFormat(DXGI_FORMAT rtvFormat, DXGI_FORMAT dsvFormat, UINT msaaCount = 1, UINT msaaQuality = 0);
+        void SetRenderTargetFormats(UINT numRTVs, const DXGI_FORMAT* rtvFormats, DXGI_FORMAT dsvFormat, UINT msaaCount = 1, UINT msaaQuality = 0);
+        void SetInputLayout(UINT numElements, const D3D12_INPUT_ELEMENT_DESC* pInputElementDescs);
+        void SetPrimitiveRestart(D3D12_INDEX_BUFFER_STRIP_CUT_VALUE ibProps);
 
-        void SetVertexShader(const void* Binary, size_t Size) { PSODesc.VS = CD3DX12_SHADER_BYTECODE(const_cast<void*>(Binary), Size); }
-        void SetPixelShader(const void* Binary, size_t Size) { PSODesc.PS = CD3DX12_SHADER_BYTECODE(const_cast<void*>(Binary), Size); }
-        void SetGeometryShader(const void* Binary, size_t Size) { PSODesc.GS = CD3DX12_SHADER_BYTECODE(const_cast<void*>(Binary), Size); }
-        void SetHullShader(const void* Binary, size_t Size) { PSODesc.HS = CD3DX12_SHADER_BYTECODE(const_cast<void*>(Binary), Size); }
-        void SetDomainShader(const void* Binary, size_t Size) { PSODesc.DS = CD3DX12_SHADER_BYTECODE(const_cast<void*>(Binary), Size); }
+        void SetVertexShader(const void* binary, size_t size)       { PSODesc.VS = CD3DX12_SHADER_BYTECODE(const_cast<void*>(binary), size); }
+        void SetPixelShader(const void* binary, size_t size)        { PSODesc.PS = CD3DX12_SHADER_BYTECODE(const_cast<void*>(binary), size); }
+        void SetGeometryShader(const void* binary, size_t size)     { PSODesc.GS = CD3DX12_SHADER_BYTECODE(const_cast<void*>(binary), size); }
+        void SetHullShader(const void* binary, size_t size)         { PSODesc.HS = CD3DX12_SHADER_BYTECODE(const_cast<void*>(binary), size); }
+        void SetDomainShader(const void* binary, size_t size)       { PSODesc.DS = CD3DX12_SHADER_BYTECODE(const_cast<void*>(binary), size); }
 
-        void SetVertexShader(const D3D12_SHADER_BYTECODE& Binary) { PSODesc.VS = Binary; }
-        void SetPixelShader(const D3D12_SHADER_BYTECODE& Binary) { PSODesc.PS = Binary; }
-        void SetGeometryShader(const D3D12_SHADER_BYTECODE& Binary) { PSODesc.GS = Binary; }
-        void SetHullShader(const D3D12_SHADER_BYTECODE& Binary) { PSODesc.HS = Binary; }
-        void SetDomainShader(const D3D12_SHADER_BYTECODE& Binary) { PSODesc.DS = Binary; }
+        void SetVertexShader(const D3D12_SHADER_BYTECODE& binary)   { PSODesc.VS = binary; }
+        void SetPixelShader(const D3D12_SHADER_BYTECODE& binary)    { PSODesc.PS = binary; }
+        void SetGeometryShader(const D3D12_SHADER_BYTECODE& binary) { PSODesc.GS = binary; }
+        void SetHullShader(const D3D12_SHADER_BYTECODE& binary)     { PSODesc.HS = binary; }
+        void SetDomainShader(const D3D12_SHADER_BYTECODE& binary)   { PSODesc.DS = binary; }
 
         void Finalize();
 
@@ -100,8 +100,8 @@ namespace yart
 
         ComputePSO();
 
-        void SetComputeShader(const void* Binary, size_t Size)     { PSODesc.CS = CD3DX12_SHADER_BYTECODE(const_cast<void*>(Binary), Size); }
-        void SetComputeShader(const D3D12_SHADER_BYTECODE& Binary) { PSODesc.CS = Binary; }
+        void SetComputeShader(const void* binary, size_t size)     { PSODesc.CS = CD3DX12_SHADER_BYTECODE(const_cast<void*>(binary), size); }
+        void SetComputeShader(const D3D12_SHADER_BYTECODE& binary) { PSODesc.CS = binary; }
         void Finalize();
 
     private:

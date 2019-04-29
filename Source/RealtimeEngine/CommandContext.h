@@ -57,18 +57,18 @@ namespace yart
     struct DWParam
     {
         DWParam(FLOAT f) : Float(f) {}
-        DWParam(UINT u) : Uint(u) {}
+        DWParam(uint32_t u) : Uint(u) {}
         DWParam(INT i) : Int(i) {}
 
-        void operator= (FLOAT f) { Float = f; }
-        void operator= (UINT u) { Uint = u; }
-        void operator= (INT i) { Int = i; }
+        void operator= (FLOAT f)    { Float = f; }
+        void operator= (uint32_t u) { Uint = u; }
+        void operator= (INT i)      { Int = i; }
 
         union
         {
-            FLOAT Float;
-            UINT  Uint;
-            INT   Int;
+            FLOAT     Float;
+            uint32_t  Uint;
+            INT       Int;
         };
     };
 
@@ -82,16 +82,15 @@ namespace yart
 
     public:
 
-        ContextManager&                               Get();
-        CommandContext*                               AllocateContext(D3D12_COMMAND_LIST_TYPE Type);
+        CommandContext*                               AllocateContext(D3D12_COMMAND_LIST_TYPE type);
         void                                          FreeContext(CommandContext*);
         void                                          DestroyAllContexts();
 
     private:
 
-        std::vector<std::unique_ptr<CommandContext>>  sm_ContextPool[4];
-        std::queue<CommandContext*>                   sm_AvailableContexts[4];
-        std::mutex                                    sm_ContextAllocationMutex;
+        std::vector<std::unique_ptr<CommandContext>>  ContextPool[4];
+        std::queue<CommandContext*>                   AvailableContexts[4];
+        std::mutex                                    ContextAllocationMutex;
     };
 
     // ----------------------------------------------------------------------------------------------------------------------------
@@ -103,84 +102,81 @@ namespace yart
         ~CommandContext(void);
 
         static void                 DestroyAllContexts();
-        static CommandContext&      Begin(const std::wstring ID = L"");
+        static CommandContext&      Begin(const string_t ID = "");
+
         void                        Initialize();
-        uint64_t                    Flush(bool WaitForCompletion = false);
-        uint64_t                    Finish(bool WaitForCompletion = false);
+        uint64_t                    Flush(bool waitForCompletion = false);
+        uint64_t                    Finish(bool waitForCompletion = false);
 
-        void                        CopyBuffer(GpuResource& Dest, GpuResource& Src);
-        void                        CopyBufferRegion(GpuResource& Dest, size_t DestOffset, GpuResource& Src, size_t SrcOffset, size_t NumBytes);
-        void                        CopySubresource(GpuResource& Dest, UINT DestSubIndex, GpuResource& Src, UINT SrcSubIndex);
-        void                        CopyCounter(GpuResource& Dest, size_t DestOffset, StructuredBuffer& Src);
-        void                        ResetCounter(StructuredBuffer& Buf, uint32_t Value = 0);
+        void                        CopyBuffer(GpuResource& dest, GpuResource& src);
+        void                        CopyBufferRegion(GpuResource& dest, size_t destOffset, GpuResource& src, size_t srcOffset, size_t numBytes);
+        void                        CopySubresource(GpuResource& dest, uint32_t destSubIndex, GpuResource& src, uint32_t srcSubIndex);
+        void                        CopyCounter(GpuResource& dest, size_t destOffset, StructuredBuffer& src);
+        void                        ResetCounter(StructuredBuffer& buf, uint32_t value = 0);
 
-        static void                 InitializeTexture(GpuResource& Dest, UINT NumSubresources, D3D12_SUBRESOURCE_DATA SubData[]);
-        static void                 InitializeBuffer(GpuResource& Dest, const void* Data, size_t NumBytes, size_t Offset = 0);
-        static void                 InitializeTextureArraySlice(GpuResource& Dest, UINT SliceIndex, GpuResource& Src);
-//        static void                 ReadbackTexture2D(GpuResource& ReadbackBuffer, PixelBuffer& SrcBuffer);
+        static void                 InitializeTexture(GpuResource& dest, uint32_t numSubresources, D3D12_SUBRESOURCE_DATA subData[]);
+        static void                 InitializeBuffer(GpuResource& dest, const void* Data, size_t numBytes, size_t offset = 0);
+        static void                 InitializeTextureArraySlice(GpuResource& dest, uint32_t sliceIndex, GpuResource& src);
+//        static void                 ReadbackTexture2D(GpuResource& ReadbackBuffer, PixelBuffer& srcBuffer);
 
-        void                        WriteBuffer(GpuResource& Dest, size_t DestOffset, const void* Data, size_t NumBytes);
-        void                        FillBuffer(GpuResource& Dest, size_t DestOffset, DWParam Value, size_t NumBytes);
+        void                        WriteBuffer(GpuResource& dest, size_t destOffset, const void* data, size_t numBytes);
+        void                        FillBuffer(GpuResource& dest, size_t destOffset, DWParam value, size_t numBytes);
 
-        void                        TransitionResource(GpuResource& Resource, D3D12_RESOURCE_STATES NewState, bool FlushImmediate = false);
-        void                        BeginResourceTransition(GpuResource& Resource, D3D12_RESOURCE_STATES NewState, bool FlushImmediate = false);
+        void                        TransitionResource(GpuResource& resource, D3D12_RESOURCE_STATES newState, bool flushImmediate = false);
+        void                        BeginResourceTransition(GpuResource& resource, D3D12_RESOURCE_STATES newState, bool flushImmediate = false);
 
-        void                        InsertUAVBarrier(GpuResource& Resource, bool FlushImmediate = false);
-        void                        InsertAliasBarrier(GpuResource& Before, GpuResource& After, bool FlushImmediate = false);
-        void                        FlushResourceBarriers(void);
+        void                        InsertUAVBarrier(GpuResource& resource, bool flushImmediate = false);
+        void                        InsertAliasBarrier(GpuResource& before, GpuResource& after, bool flushImmediate = false);
+        void                        FlushResourceBarriers();
 
-        void                        InsertTimeStamp(ID3D12QueryHeap* pQueryHeap, uint32_t QueryIdx);
-        void                        ResolveTimeStamps(ID3D12Resource* pReadbackHeap, ID3D12QueryHeap* pQueryHeap, uint32_t NumQueries);
+        void                        InsertTimeStamp(ID3D12QueryHeap* pQueryHeap, uint32_t queryIdx);
+        void                        ResolveTimeStamps(ID3D12Resource* pReadbackHeap, ID3D12QueryHeap* pQueryHeap, uint32_t numQueries);
 
-        void                        PIXBeginEvent(const wchar_t* label);
-        void                        PIXEndEvent(void);
-        void                        PIXSetMarker(const wchar_t* label);
+        void                        SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE type, ID3D12DescriptorHeap* heapPtr);
+        void                        SetDescriptorHeaps(uint32_t heapCount, D3D12_DESCRIPTOR_HEAP_TYPE type[], ID3D12DescriptorHeap* heapPtrs[]);
+        void                        SetPredication(ID3D12Resource* buffer, UINT64 bufferOffset, D3D12_PREDICATION_OP op);
 
-        void                        SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE Type, ID3D12DescriptorHeap* HeapPtr);
-        void                        SetDescriptorHeaps(UINT HeapCount, D3D12_DESCRIPTOR_HEAP_TYPE Type[], ID3D12DescriptorHeap* HeapPtrs[]);
-        void                        SetPredication(ID3D12Resource* Buffer, UINT64 BufferOffset, D3D12_PREDICATION_OP Op);
-
-        GraphicsContext&            GetGraphicsContext() { return reinterpret_cast<GraphicsContext&>(*this); }
-        ComputeContext&             GetComputeContext() { return reinterpret_cast<ComputeContext&>(*this); }
-        ID3D12GraphicsCommandList*  GetCommandList() { return m_CommandList; }
-        DynAlloc                    ReserveUploadMemory(size_t SizeInBytes) { return m_CpuLinearAllocator.Allocate(SizeInBytes); }
+        GraphicsContext&            GetGraphicsContext()                    { return reinterpret_cast<GraphicsContext&>(*this); }
+        ComputeContext&             GetComputeContext()                     { return reinterpret_cast<ComputeContext&>(*this); }
+        ID3D12GraphicsCommandList*  GetCommandList()                        { return TheCommandList; }
+        DynAlloc                    ReserveUploadMemory(size_t SizeInBytes) { return CpuLinearAllocator.Allocate(SizeInBytes); }
 
     protected:
 
-        void                        BindDescriptorHeaps(void);
-        void                        SetID(const std::wstring& ID) { m_ID = ID; }
+        void                        BindDescriptorHeaps();
+        void                        SetID(const string_t& id) { ID = id; }
 
     protected:
 
-        CommandListManager*         m_OwningManager;
-        ID3D12GraphicsCommandList*  m_CommandList;
-        ID3D12CommandAllocator*     m_CurrentAllocator;
+        CommandListManager*         OwningManager;
+        ID3D12GraphicsCommandList*  TheCommandList;
+        ID3D12CommandAllocator*     CurrentAllocator;
 
-        ID3D12RootSignature*        m_CurGraphicsRootSignature;
-        ID3D12PipelineState*        m_CurGraphicsPipelineState;
-        ID3D12RootSignature*        m_CurComputeRootSignature;
-        ID3D12PipelineState*        m_CurComputePipelineState;
+        ID3D12RootSignature*        CurGraphicsRootSignature;
+        ID3D12PipelineState*        CurGraphicsPipelineState;
+        ID3D12RootSignature*        CurComputeRootSignature;
+        ID3D12PipelineState*        CurComputePipelineState;
 
-        DynamicDescriptorHeap       m_DynamicViewDescriptorHeap;        // HEAP_TYPE_CBV_SRV_UAV
-        DynamicDescriptorHeap       m_DynamicSamplerDescriptorHeap;    // HEAP_TYPE_SAMPLER
+        DynamicDescriptorHeap       DynamicViewDescriptorHeap;
+        DynamicDescriptorHeap       DynamicSamplerDescriptorHeap;
 
-        D3D12_RESOURCE_BARRIER      m_ResourceBarrierBuffer[16];
-        UINT                        m_NumBarriersToFlush;
+        D3D12_RESOURCE_BARRIER      ResourceBarrierBuffer[16];
+        uint32_t                    NumBarriersToFlush;
 
-        ID3D12DescriptorHeap*       m_CurrentDescriptorHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
+        ID3D12DescriptorHeap*       CurrentDescriptorHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
 
-        LinearAllocator             m_CpuLinearAllocator;
-        LinearAllocator             m_GpuLinearAllocator;
+        LinearAllocator             CpuLinearAllocator;
+        LinearAllocator             GpuLinearAllocator;
 
-        std::wstring                m_ID;
-        D3D12_COMMAND_LIST_TYPE     m_Type;
+        string_t                    ID;
+        D3D12_COMMAND_LIST_TYPE     Type;
 
     private:
 
-        void                        Reset();
-
         friend ContextManager;
-        CommandContext(D3D12_COMMAND_LIST_TYPE Type);
+        CommandContext(D3D12_COMMAND_LIST_TYPE type);
+
+        void                        Reset();
     };
 
     // ----------------------------------------------------------------------------------------------------------------------------
@@ -189,76 +185,71 @@ namespace yart
     {
     public:
 
-        static GraphicsContext& Begin(const std::wstring& ID = L"")
+        static GraphicsContext& Begin(const string_t& id = "")
         {
-            return CommandContext::Begin(ID).GetGraphicsContext();
+            return CommandContext::Begin(id).GetGraphicsContext();
         }
 
-        void ClearUAV(GpuBuffer& Target);
-        void ClearUAV(ColorBuffer& Target);
-        void ClearColor(ColorBuffer& Target);
-        void ClearDepth(DepthBuffer& Target);
-        void ClearStencil(DepthBuffer& Target);
-        void ClearDepthAndStencil(DepthBuffer& Target);
+        void ClearUAV(GpuBuffer& target);
+        void ClearUAV(ColorBuffer& target);
+        void ClearColor(ColorBuffer& target);
+        void ClearDepth(DepthBuffer& target);
+        void ClearStencil(DepthBuffer& target);
+        void ClearDepthAndStencil(DepthBuffer& target);
 
-        void BeginQuery(ID3D12QueryHeap* QueryHeap, D3D12_QUERY_TYPE Type, UINT HeapIndex);
-        void EndQuery(ID3D12QueryHeap* QueryHeap, D3D12_QUERY_TYPE Type, UINT HeapIndex);
-        void ResolveQueryData(ID3D12QueryHeap* QueryHeap, D3D12_QUERY_TYPE Type, UINT StartIndex, UINT NumQueries, ID3D12Resource* DestinationBuffer, UINT64 DestinationBufferOffset);
+        void BeginQuery(ID3D12QueryHeap* queryHeap, D3D12_QUERY_TYPE type, uint32_t heapIndex);
+        void EndQuery(ID3D12QueryHeap* queryHeap, D3D12_QUERY_TYPE type, uint32_t heapIndex);
+        void ResolveQueryData(ID3D12QueryHeap* queryHeap, D3D12_QUERY_TYPE type, uint32_t startIndex, uint32_t numQueries, ID3D12Resource* destinationBuffer, UINT64 destinationBufferOffset);
 
-        void SetRootSignature(const RootSignature& RootSig);
-
-        void SetRenderTargets(UINT NumRTVs, const D3D12_CPU_DESCRIPTOR_HANDLE RTVs[]);
-        void SetRenderTargets(UINT NumRTVs, const D3D12_CPU_DESCRIPTOR_HANDLE RTVs[], D3D12_CPU_DESCRIPTOR_HANDLE DSV);
-        void SetRenderTarget(D3D12_CPU_DESCRIPTOR_HANDLE RTV) { SetRenderTargets(1, &RTV); }
-        void SetRenderTarget(D3D12_CPU_DESCRIPTOR_HANDLE RTV, D3D12_CPU_DESCRIPTOR_HANDLE DSV) { SetRenderTargets(1, &RTV, DSV); }
-        void SetDepthStencilTarget(D3D12_CPU_DESCRIPTOR_HANDLE DSV) { SetRenderTargets(0, nullptr, DSV); }
+        void SetRootSignature(const RootSignature& rootSig);
+        void SetRenderTargets(uint32_t numRTVs, const D3D12_CPU_DESCRIPTOR_HANDLE rtvArray[]);
+        void SetRenderTargets(uint32_t numRTVs, const D3D12_CPU_DESCRIPTOR_HANDLE rtvArray[], D3D12_CPU_DESCRIPTOR_HANDLE dsv);
+        void SetRenderTarget(D3D12_CPU_DESCRIPTOR_HANDLE rtv);
+        void SetRenderTarget(D3D12_CPU_DESCRIPTOR_HANDLE rtv, D3D12_CPU_DESCRIPTOR_HANDLE dsv);
+        void SetDepthStencilTarget(D3D12_CPU_DESCRIPTOR_HANDLE dsv);
 
         void SetViewport(const D3D12_VIEWPORT& vp);
         void SetViewport(FLOAT x, FLOAT y, FLOAT w, FLOAT h, FLOAT minDepth = 0.0f, FLOAT maxDepth = 1.0f);
         void SetScissor(const D3D12_RECT& rect);
-        void SetScissor(UINT left, UINT top, UINT right, UINT bottom);
+        void SetScissor(uint32_t left, uint32_t top, uint32_t right, uint32_t bottom);
         void SetViewportAndScissor(const D3D12_VIEWPORT& vp, const D3D12_RECT& rect);
-        void SetViewportAndScissor(UINT x, UINT y, UINT w, UINT h);
-        void SetStencilRef(UINT StencilRef);
-        void SetBlendFactor(Color BlendFactor);
-        void SetPrimitiveTopology(D3D12_PRIMITIVE_TOPOLOGY Topology);
+        void SetViewportAndScissor(uint32_t x, uint32_t y, uint32_t w, uint32_t h);
+        void SetStencilRef(uint32_t stencilRef);
+        void SetBlendFactor(Color blendFactor);
+        void SetPrimitiveTopology(D3D12_PRIMITIVE_TOPOLOGY topology);
 
-        void SetPipelineState(const GraphicsPSO& PSO);
-        void SetConstantArray(UINT RootIndex, UINT NumConstants, const void* pConstants);
-        void SetConstant(UINT RootIndex, DWParam Val, UINT Offset = 0);
-        void SetConstants(UINT RootIndex, DWParam X);
-        void SetConstants(UINT RootIndex, DWParam X, DWParam Y);
-        void SetConstants(UINT RootIndex, DWParam X, DWParam Y, DWParam Z);
-        void SetConstants(UINT RootIndex, DWParam X, DWParam Y, DWParam Z, DWParam W);
-        void SetConstantBuffer(UINT RootIndex, D3D12_GPU_VIRTUAL_ADDRESS CBV);
-        void SetDynamicConstantBufferView(UINT RootIndex, size_t BufferSize, const void* BufferData);
-        void SetBufferSRV(UINT RootIndex, const GpuBuffer& SRV, UINT64 Offset = 0);
-        void SetBufferUAV(UINT RootIndex, const GpuBuffer& UAV, UINT64 Offset = 0);
-        void SetDescriptorTable(UINT RootIndex, D3D12_GPU_DESCRIPTOR_HANDLE FirstHandle);
+        void SetPipelineState(const GraphicsPSO& pso);
+        void SetConstantArray(uint32_t rootIndex, uint32_t numConstants, const void* pConstants);
+        void SetConstant(uint32_t rootIndex, DWParam val, uint32_t offset = 0);
+        void SetConstants(uint32_t rootIndex, DWParam x);
+        void SetConstants(uint32_t rootIndex, DWParam x, DWParam y);
+        void SetConstants(uint32_t rootIndex, DWParam x, DWParam y, DWParam z);
+        void SetConstants(uint32_t rootIndex, DWParam x, DWParam y, DWParam z, DWParam w);
+        void SetConstantBuffer(uint32_t rootIndex, D3D12_GPU_VIRTUAL_ADDRESS cbv);
+        void SetDynamicConstantBufferView(uint32_t rootIndex, size_t bufferSize, const void* bufferData);
+        void SetBufferSRV(uint32_t rootIndex, const GpuBuffer& srv, UINT64 offset = 0);
+        void SetBufferUAV(uint32_t rootIndex, const GpuBuffer& uav, UINT64 offset = 0);
+        void SetDescriptorTable(uint32_t rootIndex, D3D12_GPU_DESCRIPTOR_HANDLE firstHandle);
 
-        void SetDynamicDescriptor(UINT RootIndex, UINT Offset, D3D12_CPU_DESCRIPTOR_HANDLE Handle);
-        void SetDynamicDescriptors(UINT RootIndex, UINT Offset, UINT Count, const D3D12_CPU_DESCRIPTOR_HANDLE Handles[]);
-        void SetDynamicSampler(UINT RootIndex, UINT Offset, D3D12_CPU_DESCRIPTOR_HANDLE Handle);
-        void SetDynamicSamplers(UINT RootIndex, UINT Offset, UINT Count, const D3D12_CPU_DESCRIPTOR_HANDLE Handles[]);
+        void SetDynamicDescriptor(uint32_t rootIndex, uint32_t offset, D3D12_CPU_DESCRIPTOR_HANDLE handle);
+        void SetDynamicDescriptors(uint32_t rootIndex, uint32_t offset, uint32_t count, const D3D12_CPU_DESCRIPTOR_HANDLE handles[]);
+        void SetDynamicSampler(uint32_t rootIndex, uint32_t offset, D3D12_CPU_DESCRIPTOR_HANDLE handle);
+        void SetDynamicSamplers(uint32_t rootIndex, uint32_t offset, uint32_t count, const D3D12_CPU_DESCRIPTOR_HANDLE handles[]);
 
-        void SetIndexBuffer(const D3D12_INDEX_BUFFER_VIEW& IBView);
-        void SetVertexBuffer(UINT Slot, const D3D12_VERTEX_BUFFER_VIEW& VBView);
+        void SetIndexBuffer(const D3D12_INDEX_BUFFER_VIEW& ibView);
+        void SetVertexBuffer(uint32_t Slot, const D3D12_VERTEX_BUFFER_VIEW& vbView);
         void SetNullIndexBuffer(); 
-        void SetNullVertexBuffer(UINT Slot);
-        void SetVertexBuffers(UINT StartSlot, UINT Count, const D3D12_VERTEX_BUFFER_VIEW VBViews[]);
-        void SetDynamicVB(UINT Slot, size_t NumVertices, size_t VertexStride, const void* VBData);
-        void SetDynamicIB(size_t IndexCount, const uint16_t* IBData);
-        void SetDynamicSRV(UINT RootIndex, size_t BufferSize, const void* BufferData);
+        void SetNullVertexBuffer(uint32_t slot);
+        void SetVertexBuffers(uint32_t startSlot, uint32_t count, const D3D12_VERTEX_BUFFER_VIEW vbViews[]);
+        void SetDynamicVB(uint32_t slot, size_t numVertices, size_t vertexStride, const void* vbData);
+        void SetDynamicIB(size_t indexCount, const uint16_t* ibData);
+        void SetDynamicSRV(uint32_t rootIndex, size_t bufferSize, const void* bufferData);
 
-        void Draw(UINT VertexCount, UINT VertexStartOffset = 0);
-        void DrawIndexed(UINT IndexCount, UINT StartIndexLocation = 0, INT BaseVertexLocation = 0);
-        void DrawInstanced(UINT VertexCountPerInstance, UINT InstanceCount, UINT StartVertexLocation = 0, UINT StartInstanceLocation = 0);
-        void DrawIndexedInstanced(UINT IndexCountPerInstance, UINT InstanceCount, UINT StartIndexLocation, INT BaseVertexLocation, UINT StartInstanceLocation);
-        void DrawIndirect(GpuBuffer& ArgumentBuffer, uint64_t ArgumentBufferOffset = 0);
-
-#if 0
-        void ExecuteIndirect(CommandSignature& CommandSig, GpuBuffer& ArgumentBuffer, uint64_t ArgumentStartOffset = 0, uint32_t MaxCommands = 1, GpuBuffer* CommandCounterBuffer = nullptr, uint64_t CounterOffset = 0);
-#endif
+        void Draw(uint32_t vertexCount, uint32_t vertexStartOffset = 0);
+        void DrawIndexed(uint32_t indexCount, uint32_t startIndexLocation = 0, INT baseVertexLocation = 0);
+        void DrawInstanced(uint32_t vertexCountPerInstance, uint32_t instanceCount, uint32_t startVertexLocation = 0, uint32_t startInstanceLocation = 0);
+        void DrawIndexedInstanced(uint32_t indexCountPerInstance, uint32_t instanceCount, uint32_t startIndexLocation, INT baseVertexLocation, uint32_t startInstanceLocation);
+        void DrawIndirect(GpuBuffer& argumentBuffer, uint64_t argumentBufferOffset = 0);
     };
 
     // ----------------------------------------------------------------------------------------------------------------------------
@@ -267,41 +258,34 @@ namespace yart
     {
     public:
 
-        static ComputeContext& Begin(const std::wstring& ID = L"", bool Async = false);
+        static ComputeContext& Begin(const string_t& id = "", bool async = false);
 
-        void ClearUAV(GpuBuffer& Target);
-        void ClearUAV(ColorBuffer& Target);
+        void ClearUAV(GpuBuffer& target);
+        void ClearUAV(ColorBuffer& target);
+        void SetRootSignature(const RootSignature& rootSig);
+        void SetPipelineState(const ComputePSO& pso);
+        void SetConstantArray(uint32_t rootIndex, uint32_t numConstants, const void* pConstants);
+        void SetConstant(uint32_t rootIndex, DWParam val, uint32_t offset = 0);
+        void SetConstants(uint32_t rootIndex, DWParam x);
+        void SetConstants(uint32_t rootIndex, DWParam x, DWParam y);
+        void SetConstants(uint32_t rootIndex, DWParam x, DWParam y, DWParam z);
+        void SetConstants(uint32_t rootIndex, DWParam x, DWParam y, DWParam z, DWParam w);
+        void SetConstantBuffer(uint32_t rootIndex, D3D12_GPU_VIRTUAL_ADDRESS cbv);
+        void SetDynamicConstantBufferView(uint32_t rootIndex, size_t bufferSize, const void* bufferData);
+        void SetDynamicSRV(uint32_t rootIndex, size_t bufferSize, const void* bufferData);
+        void SetBufferSRV(uint32_t rootIndex, const GpuBuffer& SRV, UINT64 offset = 0);
+        void SetBufferUAV(uint32_t rootIndex, const GpuBuffer& UAV, UINT64 offset = 0);
+        void SetDescriptorTable(uint32_t rootIndex, D3D12_GPU_DESCRIPTOR_HANDLE firstHandle);
 
-        void SetRootSignature(const RootSignature& RootSig);
+        void SetDynamicDescriptor(uint32_t rootIndex, uint32_t offset, D3D12_CPU_DESCRIPTOR_HANDLE handle);
+        void SetDynamicDescriptors(uint32_t rootIndex, uint32_t offset, uint32_t count, const D3D12_CPU_DESCRIPTOR_HANDLE handles[]);
+        void SetDynamicSampler(uint32_t rootIndex, uint32_t offset, D3D12_CPU_DESCRIPTOR_HANDLE handle);
+        void SetDynamicSamplers(uint32_t rootIndex, uint32_t offset, uint32_t count, const D3D12_CPU_DESCRIPTOR_HANDLE handles[]);
 
-        void SetPipelineState(const ComputePSO& PSO);
-        void SetConstantArray(UINT RootIndex, UINT NumConstants, const void* pConstants);
-        void SetConstant(UINT RootIndex, DWParam Val, UINT Offset = 0);
-        void SetConstants(UINT RootIndex, DWParam X);
-        void SetConstants(UINT RootIndex, DWParam X, DWParam Y);
-        void SetConstants(UINT RootIndex, DWParam X, DWParam Y, DWParam Z);
-        void SetConstants(UINT RootIndex, DWParam X, DWParam Y, DWParam Z, DWParam W);
-        void SetConstantBuffer(UINT RootIndex, D3D12_GPU_VIRTUAL_ADDRESS CBV);
-        void SetDynamicConstantBufferView(UINT RootIndex, size_t BufferSize, const void* BufferData);
-        void SetDynamicSRV(UINT RootIndex, size_t BufferSize, const void* BufferData);
-        void SetBufferSRV(UINT RootIndex, const GpuBuffer& SRV, UINT64 Offset = 0);
-        void SetBufferUAV(UINT RootIndex, const GpuBuffer& UAV, UINT64 Offset = 0);
-        void SetDescriptorTable(UINT RootIndex, D3D12_GPU_DESCRIPTOR_HANDLE FirstHandle);
-
-        void SetDynamicDescriptor(UINT RootIndex, UINT Offset, D3D12_CPU_DESCRIPTOR_HANDLE Handle);
-        void SetDynamicDescriptors(UINT RootIndex, UINT Offset, UINT Count, const D3D12_CPU_DESCRIPTOR_HANDLE Handles[]);
-        void SetDynamicSampler(UINT RootIndex, UINT Offset, D3D12_CPU_DESCRIPTOR_HANDLE Handle);
-        void SetDynamicSamplers(UINT RootIndex, UINT Offset, UINT Count, const D3D12_CPU_DESCRIPTOR_HANDLE Handles[]);
-
-        void Dispatch(size_t GroupCountX = 1, size_t GroupCountY = 1, size_t GroupCountZ = 1);
-        void Dispatch1D(size_t ThreadCountX, size_t GroupSizeX = 64);
-        void Dispatch2D(size_t ThreadCountX, size_t ThreadCountY, size_t GroupSizeX = 8, size_t GroupSizeY = 8);
-        void Dispatch3D(size_t ThreadCountX, size_t ThreadCountY, size_t ThreadCountZ, size_t GroupSizeX, size_t GroupSizeY, size_t GroupSizeZ);
-        void DispatchIndirect(GpuBuffer& ArgumentBuffer, uint64_t ArgumentBufferOffset = 0);
-#if 0
-        void ExecuteIndirect(CommandSignature& CommandSig, GpuBuffer& ArgumentBuffer, uint64_t ArgumentStartOffset = 0, uint32_t MaxCommands = 1, GpuBuffer* CommandCounterBuffer = nullptr, uint64_t CounterOffset = 0);
-#endif
-
-    private:
+        void Dispatch(size_t groupCountX = 1, size_t groupCountY = 1, size_t groupCountZ = 1);
+        void Dispatch1D(size_t threadCountX, size_t groupSizeX = 64);
+        void Dispatch2D(size_t threadCountX, size_t threadCountY, size_t groupSizeX = 8, size_t groupSizeY = 8);
+        void Dispatch3D(size_t threadCountX, size_t threadCountY, size_t threadCountZ, size_t groupSizeX, size_t groupSizeY, size_t groupSizeZ);
+        void DispatchIndirect(GpuBuffer& argumentBuffer, uint64_t argumentBufferOffset = 0);
     };
 }

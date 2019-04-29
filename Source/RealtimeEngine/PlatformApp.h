@@ -38,13 +38,13 @@ namespace yart
 
     protected:
 
-        static LRESULT CALLBACK  WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+        static LRESULT CALLBACK  WindowProc(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam);
 
     private:
 
         static HWND         Hwnd;
         static bool         FullscreenMode;
-        static const UINT   WindowStyle = WS_OVERLAPPEDWINDOW;
+        static const uint32_t   WindowStyle = WS_OVERLAPPEDWINDOW;
         static RECT         WindowRect;
     };
 

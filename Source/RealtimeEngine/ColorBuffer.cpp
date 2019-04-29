@@ -64,18 +64,18 @@ void ColorBuffer::CreateDerivedViews(ID3D12Device* device, DXGI_FORMAT format, u
         rtvDesc.ViewDimension                   = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
         rtvDesc.Texture2DArray.MipSlice         = 0;
         rtvDesc.Texture2DArray.FirstArraySlice  = 0;
-        rtvDesc.Texture2DArray.ArraySize        = (UINT)arraySize;
+        rtvDesc.Texture2DArray.ArraySize        = (uint32_t)arraySize;
 
         uavDesc.ViewDimension                   = D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
         uavDesc.Texture2DArray.MipSlice         = 0;
         uavDesc.Texture2DArray.FirstArraySlice  = 0;
-        uavDesc.Texture2DArray.ArraySize        = (UINT)arraySize;
+        uavDesc.Texture2DArray.ArraySize        = (uint32_t)arraySize;
 
         srvDesc.ViewDimension                   = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
         srvDesc.Texture2DArray.MipLevels        = numMips;
         srvDesc.Texture2DArray.MostDetailedMip  = 0;
         srvDesc.Texture2DArray.FirstArraySlice  = 0;
-        srvDesc.Texture2DArray.ArraySize        = (UINT)arraySize;
+        srvDesc.Texture2DArray.ArraySize        = (uint32_t)arraySize;
     }
     else if (FragmentCount > 1)
     {

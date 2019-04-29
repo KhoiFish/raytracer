@@ -196,7 +196,7 @@ void PlatformApp::SetWindowZorderToTopMost(bool setToTopMost)
 }
 
 // Main message handler for the sample.
-LRESULT CALLBACK PlatformApp::WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK PlatformApp::WindowProc(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam)
 {
     RenderInterface* pRenderInterface = reinterpret_cast<RenderInterface*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
 
@@ -281,24 +281,24 @@ LRESULT CALLBACK PlatformApp::WindowProc(HWND hWnd, UINT message, WPARAM wParam,
     case WM_MOUSEMOVE:
         if (pRenderInterface && static_cast<UINT8>(wParam) == MK_LBUTTON)
         {
-            UINT x = LOWORD(lParam);
-            UINT y = HIWORD(lParam);
+            uint32_t x = LOWORD(lParam);
+            uint32_t y = HIWORD(lParam);
             pRenderInterface->OnMouseMove(x, y);
         }
         return 0;
 
     case WM_LBUTTONDOWN:
     {
-        UINT x = LOWORD(lParam);
-        UINT y = HIWORD(lParam);
+        uint32_t x = LOWORD(lParam);
+        uint32_t y = HIWORD(lParam);
         pRenderInterface->OnLeftButtonDown(x, y);
     }
     return 0;
 
     case WM_LBUTTONUP:
     {
-        UINT x = LOWORD(lParam);
-        UINT y = HIWORD(lParam);
+        uint32_t x = LOWORD(lParam);
+        uint32_t y = HIWORD(lParam);
         pRenderInterface->OnLeftButtonUp(x, y);
     }
     return 0;

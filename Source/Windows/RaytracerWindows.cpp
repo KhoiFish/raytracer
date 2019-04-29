@@ -63,7 +63,7 @@ enum RootParameters
 };
 
 // [register, space]
-static const UINT sShaderRegisterParams[NumRootParameters][2] =
+static const uint32_t sShaderRegisterParams[NumRootParameters][2] =
 {
     { 0, 0 }, // MatricesCB
     { 0, 1 }, // MaterialCB

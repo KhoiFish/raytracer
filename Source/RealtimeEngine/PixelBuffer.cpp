@@ -344,7 +344,7 @@ void PixelBuffer::AssociateWithResource(ID3D12Device* device, const string_t& na
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-D3D12_RESOURCE_DESC PixelBuffer::DescribeTex2D(uint32_t width, uint32_t height, uint32_t depthOrArraySize, uint32_t numMips, DXGI_FORMAT format, UINT flags)
+D3D12_RESOURCE_DESC PixelBuffer::DescribeTex2D(uint32_t width, uint32_t height, uint32_t depthOrArraySize, uint32_t numMips, DXGI_FORMAT format, uint32_t flags)
 {
     Width     = width;
     Height    = height;
@@ -357,7 +357,7 @@ D3D12_RESOURCE_DESC PixelBuffer::DescribeTex2D(uint32_t width, uint32_t height, 
     Desc.Dimension          = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
     Desc.Flags              = (D3D12_RESOURCE_FLAGS)flags;
     Desc.Format             = GetBaseFormat(format);
-    Desc.Height             = (UINT)Height;
+    Desc.Height             = (uint32_t)Height;
     Desc.Layout             = D3D12_TEXTURE_LAYOUT_UNKNOWN;
     Desc.MipLevels          = (UINT16)numMips;
     Desc.SampleDesc.Count   = 1;

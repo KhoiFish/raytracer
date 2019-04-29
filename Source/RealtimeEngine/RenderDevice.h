@@ -68,7 +68,7 @@ namespace yart
     public:
 
         void                                                Present();
-        D3D12_CPU_DESCRIPTOR_HANDLE                         AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE Type, uint32_t Count = 1);
+        D3D12_CPU_DESCRIPTOR_HANDLE                         AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE type, uint32_t count = 1);
         bool                                                WindowSizeChanged(int width, int height, bool minimized);
         
     public:
@@ -112,7 +112,7 @@ namespace yart
         void                                                CleanupDevice();
         void                                                InitializeDXGIAdapter();
         void                                                InitializeAdapter(IDXGIAdapter1** ppAdapter);
-        void                                                SetAdapterOverride(UINT adapterID) { AdapterIDoverride = adapterID; }
+        void                                                SetAdapterOverride(uint32_t adapterID) { AdapterIDoverride = adapterID; }
         void                                                CreateDeviceResources();
         void                                                CreateWindowSizeDependentResources();
         void                                                CreateDisplayTargets();

@@ -50,7 +50,7 @@ public:
     virtual void               OnKeyDown(UINT8 key);
     virtual void               OnUpdate();
     virtual void               OnRender();
-    virtual void               OnSizeChanged(UINT width, UINT height, bool minimized);
+    virtual void               OnSizeChanged(uint32_t width, uint32_t height, bool minimized);
     virtual void               OnDestroy();
 
 private:

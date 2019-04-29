@@ -274,7 +274,7 @@ void Renderer::OnUpdate()
 
 void Renderer::OnRender()
 {
-    GraphicsContext& renderContext = GraphicsContext::Begin(L"Renderer::OnRender()");
+    GraphicsContext& renderContext = GraphicsContext::Begin("Renderer::OnRender()");
     {
         renderContext.SetRootSignature(MainRootSignature);
         renderContext.SetViewport(RenderDevice::Get().GetScreenViewport());
@@ -310,7 +310,7 @@ void Renderer::OnRender()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::OnSizeChanged(UINT width, UINT height, bool minimized)
+void Renderer::OnSizeChanged(uint32_t width, uint32_t height, bool minimized)
 {
     if (!RenderDevice::Get().WindowSizeChanged(width, height, minimized))
     {

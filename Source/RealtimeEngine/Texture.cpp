@@ -182,9 +182,9 @@ static inline size_t BitsPerPixel(_In_ DXGI_FORMAT fmt)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static inline UINT BytesPerPixel(DXGI_FORMAT format)
+static inline uint32_t BytesPerPixel(DXGI_FORMAT format)
 {
-    return (UINT)BitsPerPixel(format) / 8;
+    return (uint32_t)BitsPerPixel(format) / 8;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -196,7 +196,7 @@ void Texture::Create(size_t pitch, size_t width, size_t height, DXGI_FORMAT form
     D3D12_RESOURCE_DESC texDesc = {};
     texDesc.Dimension          = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
     texDesc.Width              = width;
-    texDesc.Height             = (UINT)height;
+    texDesc.Height             = (uint32_t)height;
     texDesc.DepthOrArraySize   = 1;
     texDesc.MipLevels          = 1;
     texDesc.Format             = format;

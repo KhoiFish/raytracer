@@ -42,14 +42,14 @@ void DynamicDescriptorHeap::DestroyAll()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void DynamicDescriptorHeap::SetGraphicsDescriptorHandles(UINT rootIndex, UINT offset, UINT numHandles, const D3D12_CPU_DESCRIPTOR_HANDLE handles[])
+void DynamicDescriptorHeap::SetGraphicsDescriptorHandles(uint32_t rootIndex, uint32_t offset, uint32_t numHandles, const D3D12_CPU_DESCRIPTOR_HANDLE handles[])
 {
     GraphicsHandleCache.StageDescriptorHandles(rootIndex, offset, numHandles, handles);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void DynamicDescriptorHeap::SetComputeDescriptorHandles(UINT rootIndex, UINT offset, UINT numHandles, const D3D12_CPU_DESCRIPTOR_HANDLE handles[])
+void DynamicDescriptorHeap::SetComputeDescriptorHandles(uint32_t rootIndex, uint32_t offset, uint32_t numHandles, const D3D12_CPU_DESCRIPTOR_HANDLE handles[])
 {
     ComputeHandleCache.StageDescriptorHandles(rootIndex, offset, numHandles, handles);
 }
@@ -93,7 +93,7 @@ bool DynamicDescriptorHeap::HasSpace(uint32_t count)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-DescriptorHandle DynamicDescriptorHeap::Allocate(UINT count)
+DescriptorHandle DynamicDescriptorHeap::Allocate(uint32_t count)
 {
     DescriptorHandle ret = FirstDescriptor + CurrentOffset * DescriptorSize;
     CurrentOffset += count;
@@ -240,7 +240,7 @@ uint32_t DynamicDescriptorHeap::DescriptorHandleCache::ComputeStagedSize()
 void DynamicDescriptorHeap::DescriptorHandleCache::CopyAndBindStaleTables(
     D3D12_DESCRIPTOR_HEAP_TYPE type, uint32_t descriptorSize,
     DescriptorHandle destHandleStart, ID3D12GraphicsCommandList* cmdList,
-    void (STDMETHODCALLTYPE ID3D12GraphicsCommandList::*setFunc)(UINT, D3D12_GPU_DESCRIPTOR_HANDLE))
+    void (STDMETHODCALLTYPE ID3D12GraphicsCommandList::*setFunc)(uint32_t, D3D12_GPU_DESCRIPTOR_HANDLE))
 {
     uint32_t staleParamCount = 0;
     uint32_t tableSize[DescriptorHandleCache::kMaxNumDescriptorTables];
@@ -268,14 +268,14 @@ void DynamicDescriptorHeap::DescriptorHandleCache::CopyAndBindStaleTables(
 
     StaleRootParamsBitMap = 0;
 
-    static const uint32_t       kMaxDescriptorsPerCopy = 16;
-    UINT                        numDestDescriptorRanges = 0;
-    D3D12_CPU_DESCRIPTOR_HANDLE pDestDescriptorRangeStarts[kMaxDescriptorsPerCopy];
-    UINT                        pDestDescriptorRangeSizes[kMaxDescriptorsPerCopy];
+    static const uint32_t           kMaxDescriptorsPerCopy = 16;
+    uint32_t                        numDestDescriptorRanges = 0;
+    D3D12_CPU_DESCRIPTOR_HANDLE     pDestDescriptorRangeStarts[kMaxDescriptorsPerCopy];
+    uint32_t                        pDestDescriptorRangeSizes[kMaxDescriptorsPerCopy];
 
-    UINT                        numSrcDescriptorRanges = 0;
-    D3D12_CPU_DESCRIPTOR_HANDLE pSrcDescriptorRangeStarts[kMaxDescriptorsPerCopy];
-    UINT                        pSrcDescriptorRangeSizes[kMaxDescriptorsPerCopy];
+    uint32_t                        numSrcDescriptorRanges = 0;
+    D3D12_CPU_DESCRIPTOR_HANDLE     pSrcDescriptorRangeStarts[kMaxDescriptorsPerCopy];
+    uint32_t                        pSrcDescriptorRangeSizes[kMaxDescriptorsPerCopy];
 
     for (uint32_t i = 0; i < staleParamCount; ++i)
     {
@@ -341,7 +341,7 @@ void DynamicDescriptorHeap::DescriptorHandleCache::CopyAndBindStaleTables(
     // ----------------------------------------------------------------------------------------------------------------------------
     
 void DynamicDescriptorHeap::CopyAndBindStagedTables(DescriptorHandleCache& handleCache, ID3D12GraphicsCommandList* cmdList,
-    void (STDMETHODCALLTYPE ID3D12GraphicsCommandList::*setFunc)(UINT, D3D12_GPU_DESCRIPTOR_HANDLE))
+    void (STDMETHODCALLTYPE ID3D12GraphicsCommandList::*setFunc)(uint32_t, D3D12_GPU_DESCRIPTOR_HANDLE))
 {
     uint32_t neededSize = handleCache.ComputeStagedSize();
     if (!HasSpace(neededSize))
@@ -404,14 +404,14 @@ void DynamicDescriptorHeap::DescriptorHandleCache::UnbindAllValid()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void DynamicDescriptorHeap::DescriptorHandleCache::StageDescriptorHandles(UINT rootIndex, UINT offset, UINT numHandles, const D3D12_CPU_DESCRIPTOR_HANDLE handles[])
+void DynamicDescriptorHeap::DescriptorHandleCache::StageDescriptorHandles(uint32_t rootIndex, uint32_t offset, uint32_t numHandles, const D3D12_CPU_DESCRIPTOR_HANDLE handles[])
 {
     ASSERT(((1 << rootIndex) & RootDescriptorTablesBitMap) != 0, "Root parameter is not a CBV_SRV_UAV descriptor table");
     ASSERT(offset + numHandles <= RootDescriptorTable[rootIndex].TableSize);
 
     DescriptorTableCache& tableCache = RootDescriptorTable[rootIndex];
     D3D12_CPU_DESCRIPTOR_HANDLE* copyDest = tableCache.TableStart + offset;
-    for (UINT i = 0; i < numHandles; ++i)
+    for (uint32_t i = 0; i < numHandles; ++i)
     {
         copyDest[i] = handles[i];
     }
@@ -423,7 +423,7 @@ void DynamicDescriptorHeap::DescriptorHandleCache::StageDescriptorHandles(UINT r
 
 void DynamicDescriptorHeap::DescriptorHandleCache::ParseRootSignature(D3D12_DESCRIPTOR_HEAP_TYPE type, const RootSignature& rootSig)
 {
-    UINT CurrentOffset = 0;
+    uint32_t currentOffset = 0;
 
     ASSERT(rootSig.NumParameters <= 16, "Maybe we need to support something greater");
 
@@ -437,18 +437,18 @@ void DynamicDescriptorHeap::DescriptorHandleCache::ParseRootSignature(D3D12_DESC
     {
         tableParams ^= (1 << rootIndex);
 
-        UINT TableSize = rootSig.DescriptorTableSize[rootIndex];
-        ASSERT(TableSize > 0);
+        uint32_t tableSize = rootSig.DescriptorTableSize[rootIndex];
+        ASSERT(tableSize > 0);
 
         DescriptorTableCache& rootDescriptorTable = RootDescriptorTable[rootIndex];
         rootDescriptorTable.AssignedHandlesBitMap = 0;
-        rootDescriptorTable.TableStart = HandleCache + CurrentOffset;
-        rootDescriptorTable.TableSize = TableSize;
+        rootDescriptorTable.TableStart = HandleCache + currentOffset;
+        rootDescriptorTable.TableSize = tableSize;
 
-        CurrentOffset += TableSize;
+        currentOffset += tableSize;
     }
 
-    MaxCachedDescriptors = CurrentOffset;
+    MaxCachedDescriptors = currentOffset;
 
     ASSERT(MaxCachedDescriptors <= kMaxNumDescriptors, "Exceeded user-supplied maximum cache size");
 }

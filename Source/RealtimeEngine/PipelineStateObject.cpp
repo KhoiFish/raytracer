@@ -75,7 +75,7 @@ void GraphicsPSO::SetDepthStencilState(const D3D12_DEPTH_STENCIL_DESC& depthSten
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void GraphicsPSO::SetSampleMask(UINT sampleMask)
+void GraphicsPSO::SetSampleMask(uint32_t sampleMask)
 {
     PSODesc.SampleMask = sampleMask;
 }
@@ -97,23 +97,23 @@ void GraphicsPSO::SetPrimitiveRestart(D3D12_INDEX_BUFFER_STRIP_CUT_VALUE ibProps
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void GraphicsPSO::SetRenderTargetFormat(DXGI_FORMAT rtvFormat, DXGI_FORMAT dsvFormat, UINT msaaCount, UINT msaaQuality)
+void GraphicsPSO::SetRenderTargetFormat(DXGI_FORMAT rtvFormat, DXGI_FORMAT dsvFormat, uint32_t msaaCount, uint32_t msaaQuality)
 {
     SetRenderTargetFormats(1, &rtvFormat, dsvFormat, msaaCount, msaaQuality);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void GraphicsPSO::SetRenderTargetFormats(UINT numRTVs, const DXGI_FORMAT* rtvFormats, DXGI_FORMAT dsvFormat, UINT msaaCount, UINT msaaQuality)
+void GraphicsPSO::SetRenderTargetFormats(uint32_t numRTVs, const DXGI_FORMAT* rtvFormats, DXGI_FORMAT dsvFormat, uint32_t msaaCount, uint32_t msaaQuality)
 {
     ASSERT(numRTVs == 0 || rtvFormats != nullptr, "Null format array conflicts with non-zero length");
 
-    for (UINT i = 0; i < numRTVs; ++i)
+    for (uint32_t i = 0; i < numRTVs; ++i)
     {
         PSODesc.RTVFormats[i] = rtvFormats[i];
     }
 
-    for (UINT i = numRTVs; i < PSODesc.NumRenderTargets; ++i)
+    for (uint32_t i = numRTVs; i < PSODesc.NumRenderTargets; ++i)
     {
         PSODesc.RTVFormats[i] = DXGI_FORMAT_UNKNOWN;
     }
@@ -126,7 +126,7 @@ void GraphicsPSO::SetRenderTargetFormats(UINT numRTVs, const DXGI_FORMAT* rtvFor
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void GraphicsPSO::SetInputLayout(UINT numElements, const D3D12_INPUT_ELEMENT_DESC * pInputElementDescs)
+void GraphicsPSO::SetInputLayout(uint32_t numElements, const D3D12_INPUT_ELEMENT_DESC * pInputElementDescs)
 {
     PSODesc.InputLayout.NumElements = numElements;
 

@@ -42,12 +42,8 @@ namespace yart
         const RootSignature* RootSig;
         ID3D12PipelineState* PSOObject;
     };
-}
 
-// ----------------------------------------------------------------------------------------------------------------------------
-
-namespace yart
-{
+    // ----------------------------------------------------------------------------------------------------------------------------
 
     class GraphicsPSO : public PSO
     {
@@ -60,11 +56,11 @@ namespace yart
         void SetBlendState(const D3D12_BLEND_DESC& blendDesc);
         void SetRasterizerState(const D3D12_RASTERIZER_DESC& rasterizerDesc);
         void SetDepthStencilState(const D3D12_DEPTH_STENCIL_DESC& depthStencilDesc);
-        void SetSampleMask(UINT sampleMask);
+        void SetSampleMask(uint32_t sampleMask);
         void SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE topologyType);
-        void SetRenderTargetFormat(DXGI_FORMAT rtvFormat, DXGI_FORMAT dsvFormat, UINT msaaCount = 1, UINT msaaQuality = 0);
-        void SetRenderTargetFormats(UINT numRTVs, const DXGI_FORMAT* rtvFormats, DXGI_FORMAT dsvFormat, UINT msaaCount = 1, UINT msaaQuality = 0);
-        void SetInputLayout(UINT numElements, const D3D12_INPUT_ELEMENT_DESC* pInputElementDescs);
+        void SetRenderTargetFormat(DXGI_FORMAT rtvFormat, DXGI_FORMAT dsvFormat, uint32_t msaaCount = 1, uint32_t msaaQuality = 0);
+        void SetRenderTargetFormats(uint32_t numRTVs, const DXGI_FORMAT* rtvFormats, DXGI_FORMAT dsvFormat, uint32_t msaaCount = 1, uint32_t msaaQuality = 0);
+        void SetInputLayout(uint32_t numElements, const D3D12_INPUT_ELEMENT_DESC* pInputElementDescs);
         void SetPrimitiveRestart(D3D12_INDEX_BUFFER_STRIP_CUT_VALUE ibProps);
 
         void SetVertexShader(const void* binary, size_t size)       { PSODesc.VS = CD3DX12_SHADER_BYTECODE(const_cast<void*>(binary), size); }
@@ -86,12 +82,9 @@ namespace yart
         D3D12_GRAPHICS_PIPELINE_STATE_DESC               PSODesc;
         std::shared_ptr<const D3D12_INPUT_ELEMENT_DESC>  InputLayouts;
     };
-}
 
-// ----------------------------------------------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------------------------------------------
 
-namespace yart
-{
     class ComputePSO : public PSO
     {
         friend class CommandContext;

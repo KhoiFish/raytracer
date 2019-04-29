@@ -41,8 +41,8 @@ namespace yart
         static void                     DestroyAll();
         void                            CleanupUsedHeaps(uint64_t fenceValue);
 
-        void                            SetGraphicsDescriptorHandles(UINT rootIndex, UINT offset, UINT numHandles, const D3D12_CPU_DESCRIPTOR_HANDLE handles[]);
-        void                            SetComputeDescriptorHandles(UINT rootIndex, UINT offset, UINT numHandles, const D3D12_CPU_DESCRIPTOR_HANDLE handles[]);
+        void                            SetGraphicsDescriptorHandles(uint32_t rootIndex, uint32_t offset, uint32_t numHandles, const D3D12_CPU_DESCRIPTOR_HANDLE handles[]);
+        void                            SetComputeDescriptorHandles(uint32_t rootIndex, uint32_t offset, uint32_t numHandles, const D3D12_CPU_DESCRIPTOR_HANDLE handles[]);
 
         void                            ParseGraphicsRootSignature(const RootSignature& rootSig);
         void                            ParseComputeRootSignature(const RootSignature& rootSig);
@@ -82,8 +82,8 @@ namespace yart
             }
 
             uint32_t                    ComputeStagedSize();
-            void                        CopyAndBindStaleTables(D3D12_DESCRIPTOR_HEAP_TYPE type, uint32_t descriptorSize, DescriptorHandle destHandleStart, ID3D12GraphicsCommandList* cmdList, void (STDMETHODCALLTYPE ID3D12GraphicsCommandList::* setFunc)(UINT, D3D12_GPU_DESCRIPTOR_HANDLE));
-            void                        StageDescriptorHandles(UINT rootIndex, UINT Offset, UINT numHandles, const D3D12_CPU_DESCRIPTOR_HANDLE handles[]);
+            void                        CopyAndBindStaleTables(D3D12_DESCRIPTOR_HEAP_TYPE type, uint32_t descriptorSize, DescriptorHandle destHandleStart, ID3D12GraphicsCommandList* cmdList, void (STDMETHODCALLTYPE ID3D12GraphicsCommandList::* setFunc)(uint32_t, D3D12_GPU_DESCRIPTOR_HANDLE));
+            void                        StageDescriptorHandles(uint32_t rootIndex, uint32_t Offset, uint32_t numHandles, const D3D12_CPU_DESCRIPTOR_HANDLE handles[]);
             void                        ParseRootSignature(D3D12_DESCRIPTOR_HEAP_TYPE type, const RootSignature& rootSig);
             void                        UnbindAllValid();
 
@@ -107,8 +107,8 @@ namespace yart
         void                            RetireCurrentHeap();
         void                            RetireUsedHeaps(uint64_t fenceValue);
         ID3D12DescriptorHeap*           GetHeapPointer();
-        DescriptorHandle                Allocate(UINT count);
-        void                            CopyAndBindStagedTables(DescriptorHandleCache& handleCache, ID3D12GraphicsCommandList* cmdList, void (STDMETHODCALLTYPE ID3D12GraphicsCommandList::* setFunc)(UINT, D3D12_GPU_DESCRIPTOR_HANDLE));
+        DescriptorHandle                Allocate(uint32_t count);
+        void                            CopyAndBindStagedTables(DescriptorHandleCache& handleCache, ID3D12GraphicsCommandList* cmdList, void (STDMETHODCALLTYPE ID3D12GraphicsCommandList::* setFunc)(uint32_t, D3D12_GPU_DESCRIPTOR_HANDLE));
         void                            UnbindAllValid();
 
     private:

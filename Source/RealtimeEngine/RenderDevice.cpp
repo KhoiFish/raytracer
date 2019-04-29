@@ -100,7 +100,7 @@ void RenderDevice::SetupDevice()
 
 void RenderDevice::CleanupDevice()
 {
-    for (UINT n = 0; n < BackBufferCount; n++)
+    for (uint32_t n = 0; n < BackBufferCount; n++)
     {
         RenderTargets[n].Destroy();
     }
@@ -295,14 +295,14 @@ void RenderDevice::CreateWindowSizeDependentResources()
     CommandListManager::Get().IdleGPU();
 
     // Release resources that are tied to the swap chain and update fence values.
-    for (UINT n = 0; n < BackBufferCount; n++)
+    for (uint32_t n = 0; n < BackBufferCount; n++)
     {
         RenderTargets[n].Destroy();
     }
 
     // Determine the render target size in pixels.
-    UINT         backBufferWidth  = GetBackbufferWidth();
-    UINT         backBufferHeight = GetBackbufferHeight();
+    uint32_t     backBufferWidth  = GetBackbufferWidth();
+    uint32_t     backBufferHeight = GetBackbufferHeight();
     DXGI_FORMAT  backBufferFormat = NoSRGB(GetBackBufferFormat());
 
     // If the swap chain already exists, resize it, otherwise create one.
@@ -494,7 +494,7 @@ void RenderDevice::HandleDeviceLost()
 void RenderDevice::Present()
 {
     // Now prepare for present
-    GraphicsContext& context = GraphicsContext::Begin(L"Present");
+    GraphicsContext& context = GraphicsContext::Begin("Present");
     context.TransitionResource(RenderTargets[BackBufferIndex], D3D12_RESOURCE_STATE_PRESENT);
     context.FlushResourceBarriers();
     uint64_t presentFenceValue = context.Finish();
@@ -542,7 +542,7 @@ void RenderDevice::InitializeAdapter(IDXGIAdapter1 * *ppAdapter)
     *ppAdapter = nullptr;
 
     ComPtr<IDXGIAdapter1> adapter;
-    for (UINT adapterID = 0; DXGI_ERROR_NOT_FOUND != DXGIFactory->EnumAdapters1(adapterID, &adapter); ++adapterID)
+    for (uint32_t adapterID = 0; DXGI_ERROR_NOT_FOUND != DXGIFactory->EnumAdapters1(adapterID, &adapter); ++adapterID)
     {
         if (AdapterIDoverride != UINT_MAX && adapterID != AdapterIDoverride)
         {
@@ -624,7 +624,7 @@ void RenderDevice::RegisterDeviceNotify(IDeviceNotify* deviceNotify)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-D3D12_CPU_DESCRIPTOR_HANDLE yart::RenderDevice::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE Type, uint32_t Count /*= 1*/)
+D3D12_CPU_DESCRIPTOR_HANDLE yart::RenderDevice::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE type, uint32_t count /*= 1*/)
 {
-    return DescriptorAllocators[Type].Allocate(Count);
+    return DescriptorAllocators[type].Allocate(count);
 }

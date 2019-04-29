@@ -203,7 +203,7 @@ void ByteAddressBuffer::CreateDerivedViews()
     srvDesc.ViewDimension            = D3D12_SRV_DIMENSION_BUFFER;
     srvDesc.Format                   = DXGI_FORMAT_R32_TYPELESS;
     srvDesc.Shader4ComponentMapping  = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-    srvDesc.Buffer.NumElements       = (UINT)BufferSize / 4;
+    srvDesc.Buffer.NumElements       = (uint32_t)BufferSize / 4;
     srvDesc.Buffer.Flags             = D3D12_BUFFER_SRV_FLAG_RAW;
 
     if (SRV.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
@@ -216,7 +216,7 @@ void ByteAddressBuffer::CreateDerivedViews()
     D3D12_UNORDERED_ACCESS_VIEW_DESC UAVDesc = {};
     UAVDesc.ViewDimension       = D3D12_UAV_DIMENSION_BUFFER;
     UAVDesc.Format              = DXGI_FORMAT_R32_TYPELESS;
-    UAVDesc.Buffer.NumElements  = (UINT)BufferSize / 4;
+    UAVDesc.Buffer.NumElements  = (uint32_t)BufferSize / 4;
     UAVDesc.Buffer.Flags        = D3D12_BUFFER_UAV_FLAG_RAW;
 
     if (UAV.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)

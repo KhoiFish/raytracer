@@ -69,6 +69,11 @@ void Renderer::OnDeviceRestored()
 
 void Renderer::OnInit()
 {
+    // Get the number of cores on this system
+    SYSTEM_INFO sysInfo;
+    GetSystemInfo(&sysInfo);
+    sNumThreads = sysInfo.dwNumberOfProcessors;
+
     RenderDevice::Initialize(PlatformApp::GetHwnd(), Width, Height, this);
     LoadScene();
     SetupRenderPipeline();

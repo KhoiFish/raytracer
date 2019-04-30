@@ -323,10 +323,6 @@ size_t PixelBuffer::BytesPerPixel(DXGI_FORMAT format)
 
 void PixelBuffer::AssociateWithResource(ID3D12Device* device, const string_t& name, ID3D12Resource* resource, D3D12_RESOURCE_STATES currentState)
 {
-    char buf[128 * 1024];
-    memset(buf, 0, sizeof(buf));
-    printf(buf);
-
     ASSERT(resource != nullptr);
     D3D12_RESOURCE_DESC resourceDesc = resource->GetDesc();
 

@@ -323,17 +323,19 @@ size_t PixelBuffer::BytesPerPixel(DXGI_FORMAT format)
 
 void PixelBuffer::AssociateWithResource(ID3D12Device* device, const string_t& name, ID3D12Resource* resource, D3D12_RESOURCE_STATES currentState)
 {
-    (device); // Unused until we support multiple adapters
+    char buf[128 * 1024];
+    memset(buf, 0, sizeof(buf));
+    printf(buf);
 
     ASSERT(resource != nullptr);
-    D3D12_RESOURCE_DESC ResourceDesc = resource->GetDesc();
+    D3D12_RESOURCE_DESC resourceDesc = resource->GetDesc();
 
     ResourcePtr.Attach(resource);
     UsageState = currentState;
-    Width      = (uint32_t)ResourceDesc.Width;
-    Height     = ResourceDesc.Height;
-    ArraySize  = ResourceDesc.DepthOrArraySize;
-    Format     = ResourceDesc.Format;
+    Width      = (uint32_t)resourceDesc.Width;
+    Height     = resourceDesc.Height;
+    ArraySize  = resourceDesc.DepthOrArraySize;
+    Format     = resourceDesc.Format;
 
     #ifndef RELEASE
         ResourcePtr->SetName(MakeWStr(name).c_str());
@@ -351,20 +353,20 @@ D3D12_RESOURCE_DESC PixelBuffer::DescribeTex2D(uint32_t width, uint32_t height, 
     ArraySize = depthOrArraySize;
     Format    = format;
 
-    D3D12_RESOURCE_DESC Desc = {};
-    Desc.Alignment          = 0;
-    Desc.DepthOrArraySize   = (UINT16)depthOrArraySize;
-    Desc.Dimension          = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-    Desc.Flags              = (D3D12_RESOURCE_FLAGS)flags;
-    Desc.Format             = GetBaseFormat(format);
-    Desc.Height             = (uint32_t)Height;
-    Desc.Layout             = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-    Desc.MipLevels          = (UINT16)numMips;
-    Desc.SampleDesc.Count   = 1;
-    Desc.SampleDesc.Quality = 0;
-    Desc.Width              = (UINT64)Width;
+    D3D12_RESOURCE_DESC desc = {};
+    desc.Alignment          = 0;
+    desc.DepthOrArraySize   = (UINT16)depthOrArraySize;
+    desc.Dimension          = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+    desc.Flags              = (D3D12_RESOURCE_FLAGS)flags;
+    desc.Format             = GetBaseFormat(format);
+    desc.Height             = (uint32_t)Height;
+    desc.Layout             = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+    desc.MipLevels          = (UINT16)numMips;
+    desc.SampleDesc.Count   = 1;
+    desc.SampleDesc.Quality = 0;
+    desc.Width              = (UINT64)Width;
 
-    return Desc;
+    return desc;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

@@ -24,46 +24,50 @@
 #include "AABB.h"
 #include "Util.h"
 
-// ----------------------------------------------------------------------------------------------------------------------------
-
-class HitableTranslate : public IHitable
+namespace Core
 {
-public:
+    // ----------------------------------------------------------------------------------------------------------------------------
 
-    inline HitableTranslate(IHitable* p, const Vec4& displacement) : HitObject(p), Offset(displacement) {}
-    virtual ~HitableTranslate();
+    class HitableTranslate : public IHitable
+    {
+    public:
 
-    virtual bool           Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const;
-    virtual bool           BoundingBox(float t0, float t1, AABB& box) const;
-    inline const IHitable* GetHitObject() const { return HitObject; }
-    inline const Vec4&     GetOffset() const { return Offset;  }
+        inline HitableTranslate(IHitable* p, const Vec4& displacement) : HitObject(p), Offset(displacement) {}
+        virtual ~HitableTranslate();
 
-private:
+        virtual bool           Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const;
+        virtual bool           BoundingBox(float t0, float t1, AABB& box) const;
+        inline const IHitable* GetHitObject() const { return HitObject; }
+        inline const Vec4&     GetOffset() const { return Offset; }
 
-    IHitable* HitObject;
-    Vec4 Offset;
-};
+    private:
 
-// ----------------------------------------------------------------------------------------------------------------------------
+        IHitable* HitObject;
+        Vec4 Offset;
+    };
 
-class HitableRotateY : public IHitable
-{
-public:
+    // ----------------------------------------------------------------------------------------------------------------------------
 
-    HitableRotateY(IHitable* obj, float angleDeg);
-    virtual ~HitableRotateY();
+    class HitableRotateY : public IHitable
+    {
+    public:
 
-    virtual bool           Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const;
-    virtual bool           BoundingBox(float t0, float t1, AABB& box) const;
-    inline float           GetAngleDegrees() const { return AngleDegrees; }
-    inline const IHitable* GetHitObject() const { return HitObject; }
+        HitableRotateY(IHitable* obj, float angleDeg);
+        virtual ~HitableRotateY();
 
-private:
+        virtual bool           Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const;
+        virtual bool           BoundingBox(float t0, float t1, AABB& box) const;
+        inline float           GetAngleDegrees() const { return AngleDegrees; }
+        inline const IHitable* GetHitObject() const { return HitObject; }
 
-    IHitable* HitObject;
-    float     AngleDegrees;
-    float     SinTheta;
-    float     CosTheta;
-    bool      HasBox;
-    AABB      Bbox;
-};
+    private:
+
+        IHitable* HitObject;
+        float     AngleDegrees;
+        float     SinTheta;
+        float     CosTheta;
+        bool      HasBox;
+        AABB      Bbox;
+    };
+
+}

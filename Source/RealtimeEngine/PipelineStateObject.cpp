@@ -26,7 +26,7 @@
 
 using Microsoft::WRL::ComPtr;
 using namespace std;
-using namespace yart;
+using namespace RealtimeEngine;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 

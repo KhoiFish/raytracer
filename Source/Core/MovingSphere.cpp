@@ -21,6 +21,8 @@
 #include "Util.h"
 #include "Material.h"
 
+using namespace Core;
+
 // ----------------------------------------------------------------------------------------------------------------------------
 
 MovingSphere::MovingSphere(Vec4 center0, Vec4 center1, float time0, float time1, float r, Material* mat) : Center0(center0), Center1(center1)

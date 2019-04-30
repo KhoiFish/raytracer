@@ -187,13 +187,30 @@
     <ClInclude Include="..\..\Source\Core\Ray.h" />
     <ClInclude Include="..\..\Source\Core\Raytracer.h" />
     <ClInclude Include="..\..\Source\Core\Sphere.h" />
-    <ClInclude Include="..\..\Source\Core\Texture.h" />
+    <ClInclude Include="..\..\Source\Core\CoreTexture.h" />
     <ClInclude Include="..\..\Source\Core\ThreadEvent.h" />
-    <ClInclude Include="..\..\Source\Core\Triangle.h" />
+    <ClInclude Include="..\..\Source\Core\CoreTriangle.h" />
     <ClInclude Include="..\..\Source\Core\Util.h" />
     <ClInclude Include="..\..\Source\Core\Vec4.h" />
     <ClInclude Include="..\..\Source\Core\WorldScene.h" />
     <ClInclude Include="..\..\Source\Core\XYZRect.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\ColorBuffer.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\CommandContext.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\CommandList.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\DepthBuffer.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\DescriptorHeap.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\DynamicDescriptorHeap.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\Globals.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\GpuBuffer.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\GPUResource.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\LinearAllocator.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\PipelineStateObject.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\PixelBuffer.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\PlatformApp.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\RenderDevice.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\RenderInterface.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\RootSignature.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\RTTexture.h" />
     <ClInclude Include="..\..\ThirdParty\StbImage\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
@@ -210,12 +227,30 @@
     <ClCompile Include="..\..\Source\Core\Perlin.cpp" />
     <ClCompile Include="..\..\Source\Core\Raytracer.cpp" />
     <ClCompile Include="..\..\Source\Core\Sphere.cpp" />
-    <ClCompile Include="..\..\Source\Core\Texture.cpp" />
-    <ClCompile Include="..\..\Source\Core\Triangle.cpp" />
+    <ClCompile Include="..\..\Source\Core\CoreTexture.cpp" />
+    <ClCompile Include="..\..\Source\Core\CoreTriangle.cpp" />
     <ClCompile Include="..\..\Source\Core\TriMesh.cpp" />
     <ClCompile Include="..\..\Source\Core\Util.cpp" />
     <ClCompile Include="..\..\Source\Core\XYZRect.cpp" />
+    <ClCompile Include="..\..\Source\RealtimeEngine\ColorBuffer.cpp" />
+    <ClCompile Include="..\..\Source\RealtimeEngine\CommandContext.cpp" />
+    <ClCompile Include="..\..\Source\RealtimeEngine\CommandList.cpp" />
+    <ClCompile Include="..\..\Source\RealtimeEngine\DepthBuffer.cpp" />
+    <ClCompile Include="..\..\Source\RealtimeEngine\DescriptorHeap.cpp" />
+    <ClCompile Include="..\..\Source\RealtimeEngine\DynamicDescriptorHeap.cpp" />
+    <ClCompile Include="..\..\Source\RealtimeEngine\Globals.cpp" />
+    <ClCompile Include="..\..\Source\RealtimeEngine\GpuBuffer.cpp" />
+    <ClCompile Include="..\..\Source\RealtimeEngine\LinearAllocator.cpp" />
+    <ClCompile Include="..\..\Source\RealtimeEngine\PipelineStateObject.cpp" />
+    <ClCompile Include="..\..\Source\RealtimeEngine\PixelBuffer.cpp" />
+    <ClCompile Include="..\..\Source\RealtimeEngine\PlatformApp.cpp" />
+    <ClCompile Include="..\..\Source\RealtimeEngine\RenderDevice.cpp" />
+    <ClCompile Include="..\..\Source\RealtimeEngine\RootSignature.cpp" />
+    <ClCompile Include="..\..\Source\RealtimeEngine\RTTexture.cpp" />
     <ClCompile Include="..\..\ThirdParty\StbImage\StbImageImpl.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="RayTracerLib.licenseheader" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

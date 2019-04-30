@@ -20,7 +20,7 @@
 #include "DescriptorHeap.h"
 #include "RenderDevice.h"
 
-using namespace yart;
+using namespace RealtimeEngine;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 

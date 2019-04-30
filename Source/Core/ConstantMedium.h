@@ -22,25 +22,28 @@
 #include "IHitable.h"
 #include "Ray.h"
 #include "AABB.h"
-#include "Texture.h"
+#include "CoreTexture.h"
 #include "Material.h"
 #include "Util.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-class ConstantMedium : public IHitable
+namespace Core
 {
-public:
+    class ConstantMedium : public IHitable
+    {
+    public:
 
-    ConstantMedium(IHitable* boundary, float density, BaseTexture* tex);
-    virtual ~ConstantMedium();
+        ConstantMedium(IHitable* boundary, float density, BaseTexture* tex);
+        virtual ~ConstantMedium();
 
-    virtual bool Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const;
-    virtual bool BoundingBox(float t0, float t1, AABB& box) const;
+        virtual bool Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const;
+        virtual bool BoundingBox(float t0, float t1, AABB& box) const;
 
-private:
+    private:
 
-    IHitable* Boundary;
-    float     Density;
-    Material* PhaseFunction;
-};
+        IHitable* Boundary;
+        float     Density;
+        Material* PhaseFunction;
+    };
+}

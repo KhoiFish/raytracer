@@ -23,7 +23,7 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-namespace yart
+namespace RealtimeEngine
 {
     class DepthBuffer : public PixelBuffer
     {

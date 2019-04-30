@@ -21,7 +21,7 @@
 #include "CommandContext.h"
 #include <fstream>
 
-using namespace yart;
+using namespace RealtimeEngine;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 

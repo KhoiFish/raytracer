@@ -22,7 +22,7 @@
 #include "Globals.h"
 #include "RenderDevice.h"
 
-namespace yart
+namespace RealtimeEngine
 {
     class RenderInterface : public IDeviceNotify
     {

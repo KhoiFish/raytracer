@@ -19,6 +19,8 @@
 
 #include "ConstantMedium.h"
 
+using namespace Core;
+
 // ----------------------------------------------------------------------------------------------------------------------------
 
 ConstantMedium::ConstantMedium(IHitable* boundary, float density, BaseTexture* tex) : Boundary(boundary), Density(density)
@@ -86,7 +88,7 @@ bool ConstantMedium::Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) c
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-bool ConstantMedium::    BoundingBox(float t0, float t1, AABB& box) const
+bool ConstantMedium::BoundingBox(float t0, float t1, AABB& box) const
 {
     return Boundary->BoundingBox(t0, t1, box);
 }

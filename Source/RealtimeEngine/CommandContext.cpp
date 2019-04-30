@@ -22,7 +22,7 @@
 #include "DepthBuffer.h"
 #include "DescriptorHeap.h"
 
-using namespace yart;
+using namespace RealtimeEngine;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 

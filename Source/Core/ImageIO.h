@@ -24,10 +24,13 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-class ImageIO
+namespace Core
 {
-public:
+    class ImageIO
+    {
+    public:
 
-    static void WriteToPPMFile(const Vec4* buffer, int width, int height, const char* pOutFilename);
-    static void WriteToPNGFile(const Vec4* buffer, int width, int height, const char* pOutFilename);
-};
+        static void WriteToPPMFile(const Vec4* buffer, int width, int height, const char* pOutFilename);
+        static void WriteToPNGFile(const Vec4* buffer, int width, int height, const char* pOutFilename);
+    };
+}

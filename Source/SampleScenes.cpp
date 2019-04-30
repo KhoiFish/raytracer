@@ -27,14 +27,16 @@
 #include "Core/Util.h"
 #include "Core/Material.h"
 #include "Core/BVHNode.h"
-#include "Core/Texture.h"
+#include "Core/CoreTexture.h"
 #include "Core/XYZRect.h"
 #include "Core/FlipNormals.h"
 #include "Core/HitableBox.h"
 #include "Core/HitableTransform.h"
 #include "Core/ConstantMedium.h"
-#include "Core/Triangle.h"
+#include "Core/CoreTriangle.h"
 #include "Core/TriMesh.h"
+
+using namespace Core;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 

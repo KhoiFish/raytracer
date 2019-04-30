@@ -20,6 +20,8 @@
 #include "Perlin.h"
 #include <ctime>
 
+using namespace Core;
+
 class SeedRandom
 {
 public:

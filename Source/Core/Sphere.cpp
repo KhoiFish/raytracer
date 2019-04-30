@@ -21,6 +21,8 @@
 #include "OrthoNormalBasis.h"
 #include "Material.h"
 
+using namespace Core;
+
 // ----------------------------------------------------------------------------------------------------------------------------
 
 Sphere::Sphere(Vec4 cen, float r, Material* mat, bool isLightShape /*= false*/) : IHitable(isLightShape), Center(cen), Radius(r), Mat(mat)

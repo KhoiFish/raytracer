@@ -19,6 +19,8 @@
 
 #include "HitableTransform.h"
 
+using namespace Core;
+
 // ----------------------------------------------------------------------------------------------------------------------------
 
 HitableTranslate::~HitableTranslate()

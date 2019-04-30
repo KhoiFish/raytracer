@@ -25,34 +25,37 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-class BVHNode : public IHitable
+namespace Core
 {
-public:
-
-    BVHNode(IHitable** list, int n, float time0, float time1);
-    virtual ~BVHNode();
-
-    virtual bool Hit(const Ray& ray, float tMin, float tMax, HitRecord& rec) const;
-    virtual bool BoundingBox(float t0, float t1, AABB& box) const;
-
-    const IHitable* GetLeft()  const { return Left; }
-    const IHitable* GetRight() const { return Right; }
-
-private:
-
-    enum ECompareMode
+    class BVHNode : public IHitable
     {
-        CompareX, CompareY, CompareZ
+    public:
+
+        BVHNode(IHitable** list, int n, float time0, float time1);
+        virtual ~BVHNode();
+
+        virtual bool Hit(const Ray& ray, float tMin, float tMax, HitRecord& rec) const;
+        virtual bool BoundingBox(float t0, float t1, AABB& box) const;
+
+        const IHitable* GetLeft()  const { return Left; }
+        const IHitable* GetRight() const { return Right; }
+
+    private:
+
+        enum ECompareMode
+        {
+            CompareX, CompareY, CompareZ
+        };
+
+        static int boxCompare(const void* a, const void* b, ECompareMode mode);
+        static int boxXCompare(const void* a, const void* b);
+        static int boxYCompare(const void* a, const void* b);
+        static int boxZCompare(const void* a, const void* b);
+
+    private:
+
+        IHitable* Left;
+        IHitable* Right;
+        AABB      Box;
     };
-
-    static int boxCompare(const void* a, const void* b, ECompareMode mode);
-    static int boxXCompare(const void* a, const void* b);
-    static int boxYCompare(const void* a, const void* b);
-    static int boxZCompare(const void* a, const void* b);
-
-private:
-
-    IHitable* Left;
-    IHitable* Right;
-    AABB      Box;
-};
+}

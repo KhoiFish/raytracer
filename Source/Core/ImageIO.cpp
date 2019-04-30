@@ -25,6 +25,8 @@
 #include <fstream>
 #include <iomanip>
 
+using namespace Core;
+
 // ----------------------------------------------------------------------------------------------------------------------------
 
 void ImageIO::WriteToPPMFile(const Vec4* buffer, int width, int height, const char* pOutFilename)

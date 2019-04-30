@@ -43,6 +43,8 @@
     #include <limits.h>
 #endif
 
+using namespace Core;
+
 // ----------------------------------------------------------------------------------------------------------------------------
 
 void PrintCompletion(const char* otherInfo, double percentage)

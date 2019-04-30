@@ -24,19 +24,21 @@
 #include "AABB.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
-
-class FlipNormals : public IHitable
+namespace Core
 {
-public:
-    
-    inline FlipNormals(IHitable* hitable) : Hitable(hitable) {}
-    virtual ~FlipNormals();
+    class FlipNormals : public IHitable
+    {
+    public:
 
-    virtual bool Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const;
-    virtual bool BoundingBox(float t0, float t1, AABB& box) const;
+        inline FlipNormals(IHitable* hitable) : Hitable(hitable) {}
+        virtual ~FlipNormals();
 
-    const IHitable* GetHitObject() const { return Hitable; }
-private:
+        virtual bool Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const;
+        virtual bool BoundingBox(float t0, float t1, AABB& box) const;
 
-    IHitable* Hitable;
-};
+        const IHitable* GetHitObject() const { return Hitable; }
+    private:
+
+        IHitable* Hitable;
+    };
+}

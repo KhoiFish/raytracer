@@ -27,5 +27,5 @@
 int CALLBACK wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLine, int nCmdShow)
 {
     Renderer renderer(1280, 720);
-    return yart::PlatformApp::Run(&renderer, hInstance, nCmdShow);
+    return RealtimeEngine::PlatformApp::Run(&renderer, hInstance, nCmdShow);
 }

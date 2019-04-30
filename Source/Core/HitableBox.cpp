@@ -19,6 +19,8 @@
 
 #include "HitableBox.h"
 
+using namespace Core;
+
 // ----------------------------------------------------------------------------------------------------------------------------
 
 HitableBox::HitableBox(const Vec4& p0, const Vec4& p1, Material* mat) : Mat(mat)

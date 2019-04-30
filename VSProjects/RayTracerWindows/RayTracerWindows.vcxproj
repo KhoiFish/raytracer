@@ -163,23 +163,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Source\RealtimeEngine\ColorBuffer.h" />
-    <ClInclude Include="..\..\Source\RealtimeEngine\CommandContext.h" />
-    <ClInclude Include="..\..\Source\RealtimeEngine\CommandList.h" />
-    <ClInclude Include="..\..\Source\RealtimeEngine\DepthBuffer.h" />
-    <ClInclude Include="..\..\Source\RealtimeEngine\DescriptorHeap.h" />
-    <ClInclude Include="..\..\Source\RealtimeEngine\DynamicDescriptorHeap.h" />
-    <ClInclude Include="..\..\Source\RealtimeEngine\Globals.h" />
-    <ClInclude Include="..\..\Source\RealtimeEngine\GpuBuffer.h" />
-    <ClInclude Include="..\..\Source\RealtimeEngine\GPUResource.h" />
-    <ClInclude Include="..\..\Source\RealtimeEngine\LinearAllocator.h" />
-    <ClInclude Include="..\..\Source\RealtimeEngine\PipelineStateObject.h" />
-    <ClInclude Include="..\..\Source\RealtimeEngine\PixelBuffer.h" />
-    <ClInclude Include="..\..\Source\RealtimeEngine\PlatformApp.h" />
-    <ClInclude Include="..\..\Source\RealtimeEngine\RenderDevice.h" />
-    <ClInclude Include="..\..\Source\RealtimeEngine\RenderInterface.h" />
-    <ClInclude Include="..\..\Source\RealtimeEngine\RootSignature.h" />
-    <ClInclude Include="..\..\Source\RealtimeEngine\Texture.h" />
     <ClInclude Include="..\..\Source\Renderer.h" />
     <ClInclude Include="..\..\Source\SampleScenes.h" />
     <ClInclude Include="..\..\Source\Windows\CameraDX12.h">
@@ -195,21 +178,6 @@
     <ClInclude Include="..\..\Source\Windows\Resource.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Source\RealtimeEngine\ColorBuffer.cpp" />
-    <ClCompile Include="..\..\Source\RealtimeEngine\CommandContext.cpp" />
-    <ClCompile Include="..\..\Source\RealtimeEngine\CommandList.cpp" />
-    <ClCompile Include="..\..\Source\RealtimeEngine\DepthBuffer.cpp" />
-    <ClCompile Include="..\..\Source\RealtimeEngine\DescriptorHeap.cpp" />
-    <ClCompile Include="..\..\Source\RealtimeEngine\DynamicDescriptorHeap.cpp" />
-    <ClCompile Include="..\..\Source\RealtimeEngine\Globals.cpp" />
-    <ClCompile Include="..\..\Source\RealtimeEngine\GpuBuffer.cpp" />
-    <ClCompile Include="..\..\Source\RealtimeEngine\LinearAllocator.cpp" />
-    <ClCompile Include="..\..\Source\RealtimeEngine\PipelineStateObject.cpp" />
-    <ClCompile Include="..\..\Source\RealtimeEngine\PixelBuffer.cpp" />
-    <ClCompile Include="..\..\Source\RealtimeEngine\PlatformApp.cpp" />
-    <ClCompile Include="..\..\Source\RealtimeEngine\RenderDevice.cpp" />
-    <ClCompile Include="..\..\Source\RealtimeEngine\RootSignature.cpp" />
-    <ClCompile Include="..\..\Source\RealtimeEngine\Texture.cpp" />
     <ClCompile Include="..\..\Source\Renderer.cpp" />
     <ClCompile Include="..\..\Source\SampleScenes.cpp" />
     <ClCompile Include="..\..\Source\Windows\CameraDX12.cpp">
@@ -304,6 +272,9 @@
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)ShaderBuild\%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)ShaderBuild\%(Filename).cso</ObjectFileOutput>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\RayTracerLib\RayTracerLib.licenseheader" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

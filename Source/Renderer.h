@@ -30,7 +30,7 @@
 #include "RealtimeEngine/ColorBuffer.h"
 
 
-using namespace yart;
+using namespace RealtimeEngine;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -59,7 +59,7 @@ private:
     void                       LoadScene();
     void                       Raytrace(bool enable);
     void                       OnResizeRaytracer();
-    static void                OnRaytraceComplete(Raytracer* tracer, bool actuallyFinished);
+    static void                OnRaytraceComplete(Core::Raytracer* tracer, bool actuallyFinished);
 
 private:
 
@@ -82,8 +82,8 @@ private:
     RenderingMode              RenderMode;
     bool                       WireframeViewEnabled;
 
-    Raytracer*                 TheRaytracer;
-    WorldScene*                Scene;
+    Core::Raytracer*           TheRaytracer;
+    Core::WorldScene*          Scene;
 
     ColorBuffer                CPURaytracerTex;
     RootSignature              MainRootSignature;

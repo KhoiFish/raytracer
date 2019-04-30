@@ -29,7 +29,7 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-using namespace yart;
+using namespace RealtimeEngine;
 using namespace std;
 
 using Microsoft::WRL::ComPtr;
@@ -624,7 +624,7 @@ void RenderDevice::RegisterDeviceNotify(IDeviceNotify* deviceNotify)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-D3D12_CPU_DESCRIPTOR_HANDLE yart::RenderDevice::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE type, uint32_t count /*= 1*/)
+D3D12_CPU_DESCRIPTOR_HANDLE RealtimeEngine::RenderDevice::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE type, uint32_t count /*= 1*/)
 {
     return DescriptorAllocators[type].Allocate(count);
 }

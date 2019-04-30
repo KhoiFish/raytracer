@@ -20,6 +20,8 @@
 #include "HitableList.h"
 #include "Util.h"
 
+using namespace Core;
+
 // ----------------------------------------------------------------------------------------------------------------------------
 
 HitableList::~HitableList()

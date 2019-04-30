@@ -20,119 +20,93 @@
 #pragma once
 
 #include "Vec4.h"
-#include "OrthoNormalBasis.h"
-#include "Util.h"
+#include "Perlin.h"
+#include <string>
+
+// ----------------------------------------------------------------------------------------------------------------------------
 
 namespace Core
 {
-
-    // ----------------------------------------------------------------------------------------------------------------------------
-
-    class Pdf
+    class BaseTexture
     {
     public:
-        virtual ~Pdf() {}
 
-        virtual float Value(const Vec4& direction) const = 0;
-        virtual Vec4  Generate() const = 0;
+        virtual Vec4 Value(float u, float v, const Vec4& p) const = 0;
     };
 
     // ----------------------------------------------------------------------------------------------------------------------------
 
-    class CosinePdf : public Pdf
+    class ConstantTexture : public BaseTexture
     {
     public:
 
-        CosinePdf(const Vec4& w)
-        {
-            UVW.BuildFromW(w);
-        }
+        inline ConstantTexture() {}
+        inline ConstantTexture(const Vec4& color) : Color(color) {}
 
-        virtual float Value(const Vec4& direction) const
-        {
-            float cosine = Dot(UnitVector(direction), UVW.W());
-            if (cosine > 0)
-            {
-                float ret = cosine / RT_PI;
-
-                // HACK. Sometimes pdfs come back zero.
-                // Clamp the value so we get some contribution from the pdf.
-                // This gets rid of "rogue" pixels that are brightly colored.
-                ret = GetMax(ret, 0.05f);
-
-                return ret;
-            }
-            else
-            {
-                return 0;
-            }
-        }
-
-        virtual Vec4 Generate() const
-        {
-            return UVW.Local(RandomCosineDirection());
-        }
+        virtual Vec4 Value(float u, float v, const Vec4& p) const;
 
     private:
 
-        OrthoNormalBasis UVW;
+        Vec4 Color;
     };
 
     // ----------------------------------------------------------------------------------------------------------------------------
 
-    class HitablePdf : public Pdf
+    class CheckerTexture : public BaseTexture
     {
     public:
 
-        HitablePdf(IHitable* hitable, const Vec4& origin) : Hitable(hitable), Origin(origin) {}
+        inline CheckerTexture() {}
+        inline CheckerTexture(BaseTexture* t0, BaseTexture* t1) : Odd(t0), Even(t1) {}
 
-        virtual float Value(const Vec4& direction) const
-        {
-            return Hitable->PdfValue(Origin, direction);
-        }
-
-        virtual Vec4 Generate() const
-        {
-            return Hitable->Random(Origin);
-        }
+        virtual Vec4 Value(float u, float v, const Vec4& p) const;
 
     private:
 
-        IHitable* Hitable;
-        Vec4        Origin;
+        BaseTexture* Odd;
+        BaseTexture* Even;
     };
 
     // ----------------------------------------------------------------------------------------------------------------------------
 
-    class MixturePdf : public Pdf
+    class NoiseTexture : public BaseTexture
     {
     public:
 
-        MixturePdf(Pdf* p0, Pdf* p1)
-        {
-            pdfs[0] = p0;
-            pdfs[1] = p1;
-        }
+        inline NoiseTexture(float scale) : Scale(scale) {}
 
-        virtual float Value(const Vec4& direction) const
-        {
-            return (0.5f * pdfs[0]->Value(direction)) + (0.5f * pdfs[1]->Value(direction));
-        }
-
-        virtual Vec4 Generate() const
-        {
-            if (RandomFloat() < 0.5f)
-            {
-                return pdfs[0]->Generate();
-            }
-            else
-            {
-                return pdfs[1]->Generate();
-            }
-        }
+        virtual Vec4 Value(float u, float v, const Vec4& p) const;
 
     private:
 
-        Pdf* pdfs[2];
+        float Scale;
+    };
+
+    // ----------------------------------------------------------------------------------------------------------------------------
+
+    class ImageTexture : public BaseTexture
+    {
+    public:
+
+        ImageTexture (const unsigned char* pixels, bool hasAlpha, int width, int height);
+        ImageTexture(const char* filePath);
+        ~ImageTexture();
+
+        virtual Vec4   Value(float u, float v, const Vec4& p) const;
+
+        std::string    GetSourceFilename() const { return Filename; }
+        const Vec4*    GetImageFP() const        { return ImageData; }
+        const uint8_t* GetImageRgba8888() const  { return ImageRgba; }
+
+    private:
+
+        void createFromPixelData(const unsigned char* pixels, bool hasAlpha, int width, int height);
+
+    private:
+
+        std::string     Filename;
+        Vec4*           ImageData;
+        uint8_t*        ImageRgba;
+        int             Width, Height;
     };
 }

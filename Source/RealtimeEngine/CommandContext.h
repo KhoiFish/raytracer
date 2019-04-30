@@ -24,7 +24,7 @@
 #include "PipelineStateObject.h"
 #include "RootSignature.h"
 #include "GpuBuffer.h"
-#include "Texture.h"
+#include "RTTexture.h"
 #include "ColorBuffer.h"
 #include "DynamicDescriptorHeap.h"
 #include "LinearAllocator.h"
@@ -42,7 +42,7 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-namespace yart
+namespace RealtimeEngine
 {
     // ----------------------------------------------------------------------------------------------------------------------------
 

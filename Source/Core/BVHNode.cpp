@@ -19,6 +19,8 @@
 
 #include "BVHNode.h"
 
+using namespace Core;
+
 // ----------------------------------------------------------------------------------------------------------------------------
 
 int BVHNode::boxCompare(const void* a, const void* b, ECompareMode mode)

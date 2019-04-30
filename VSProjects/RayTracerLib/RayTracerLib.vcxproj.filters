@@ -4,165 +4,261 @@
     <Filter Include="Core">
       <UniqueIdentifier>{10deea71-2fc4-4b36-8098-d4c0b3ea772e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Core\Headers">
-      <UniqueIdentifier>{f3893b71-f5b0-465c-8b35-303f8a4ba17d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\Implementation">
-      <UniqueIdentifier>{a971e078-5546-438b-a46d-7a2d7bc751ad}</UniqueIdentifier>
-    </Filter>
     <Filter Include="ThirdParty">
       <UniqueIdentifier>{6e9c8515-f5a9-470c-a8e4-0270b8e25331}</UniqueIdentifier>
     </Filter>
     <Filter Include="ThirdParty\StbImage">
       <UniqueIdentifier>{e1dd1b7e-e77f-478f-a59d-68075144350e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Realtime">
+      <UniqueIdentifier>{78308edf-3765-46f3-848c-7791ccd1d25b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Source\Core\AABB.h">
-      <Filter>Core\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Core\BVHNode.h">
-      <Filter>Core\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Core\Camera.h">
-      <Filter>Core\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Core\FlipNormals.h">
-      <Filter>Core\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Core\HitableList.h">
-      <Filter>Core\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Core\HitableBox.h">
-      <Filter>Core\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Core\IHitable.h">
-      <Filter>Core\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Core\Material.h">
-      <Filter>Core\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Core\ImageIO.h">
-      <Filter>Core\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Core\HitableTransform.h">
-      <Filter>Core\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Core\OrthoNormalBasis.h">
-      <Filter>Core\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Core\MovingSphere.h">
-      <Filter>Core\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Core\Quat.h">
-      <Filter>Core\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Core\Perlin.h">
-      <Filter>Core\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Core\Sphere.h">
-      <Filter>Core\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Core\Raytracer.h">
-      <Filter>Core\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Core\Systems.h">
-      <Filter>Core\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Core\ThreadEvent.h">
-      <Filter>Core\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Core\TriMesh.h">
-      <Filter>Core\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Core\XYZRect.h">
-      <Filter>Core\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Core\WorldScene.h">
-      <Filter>Core\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Core\Util.h">
-      <Filter>Core\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Core\Triangle.h">
-      <Filter>Core\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Core\Texture.h">
-      <Filter>Core\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Core\Ray.h">
-      <Filter>Core\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Core\Pdf.h">
-      <Filter>Core\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Core\ConstantMedium.h">
-      <Filter>Core\Headers</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\ThirdParty\StbImage\stb_image.h">
       <Filter>ThirdParty\StbImage</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\ColorBuffer.h">
+      <Filter>Realtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\CommandContext.h">
+      <Filter>Realtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\CommandList.h">
+      <Filter>Realtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\DepthBuffer.h">
+      <Filter>Realtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\DescriptorHeap.h">
+      <Filter>Realtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\DynamicDescriptorHeap.h">
+      <Filter>Realtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\Globals.h">
+      <Filter>Realtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\GpuBuffer.h">
+      <Filter>Realtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\GPUResource.h">
+      <Filter>Realtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\LinearAllocator.h">
+      <Filter>Realtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\PipelineStateObject.h">
+      <Filter>Realtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\PixelBuffer.h">
+      <Filter>Realtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\PlatformApp.h">
+      <Filter>Realtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\RenderDevice.h">
+      <Filter>Realtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\RenderInterface.h">
+      <Filter>Realtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\RootSignature.h">
+      <Filter>Realtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Core\AABB.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Core\BVHNode.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Core\Camera.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Core\ConstantMedium.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Core\FlipNormals.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Core\HitableBox.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Core\HitableList.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Core\HitableTransform.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Core\IHitable.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Core\ImageIO.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Core\Material.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Core\MovingSphere.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Core\OrthoNormalBasis.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Core\Pdf.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Core\Perlin.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Core\Quat.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Core\Ray.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Core\Raytracer.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Core\Sphere.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Core\Systems.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Core\ThreadEvent.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Core\TriMesh.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Core\Util.h">
+      <Filter>Core</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Source\Core\Vec4.h">
-      <Filter>Core\Headers</Filter>
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Core\WorldScene.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Core\XYZRect.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\RTTexture.h">
+      <Filter>Realtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Core\CoreTriangle.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Core\CoreTexture.h">
+      <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Source\Core\XYZRect.cpp">
-      <Filter>Core\Implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Core\BVHNode.cpp">
-      <Filter>Core\Implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Core\Camera.cpp">
-      <Filter>Core\Implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Core\ConstantMedium.cpp">
-      <Filter>Core\Implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Core\FlipNormals.cpp">
-      <Filter>Core\Implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Core\HitableBox.cpp">
-      <Filter>Core\Implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Core\HitableList.cpp">
-      <Filter>Core\Implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Core\HitableTransform.cpp">
-      <Filter>Core\Implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Core\ImageIO.cpp">
-      <Filter>Core\Implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Core\Material.cpp">
-      <Filter>Core\Implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Core\MovingSphere.cpp">
-      <Filter>Core\Implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Core\Perlin.cpp">
-      <Filter>Core\Implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Core\Raytracer.cpp">
-      <Filter>Core\Implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Core\Sphere.cpp">
-      <Filter>Core\Implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Core\Texture.cpp">
-      <Filter>Core\Implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Core\Triangle.cpp">
-      <Filter>Core\Implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Core\TriMesh.cpp">
-      <Filter>Core\Implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Core\Util.cpp">
-      <Filter>Core\Implementation</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\ThirdParty\StbImage\StbImageImpl.cpp">
       <Filter>ThirdParty\StbImage</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\RealtimeEngine\ColorBuffer.cpp">
+      <Filter>Realtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\RealtimeEngine\CommandContext.cpp">
+      <Filter>Realtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\RealtimeEngine\CommandList.cpp">
+      <Filter>Realtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\RealtimeEngine\DepthBuffer.cpp">
+      <Filter>Realtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\RealtimeEngine\DescriptorHeap.cpp">
+      <Filter>Realtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\RealtimeEngine\DynamicDescriptorHeap.cpp">
+      <Filter>Realtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\RealtimeEngine\Globals.cpp">
+      <Filter>Realtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\RealtimeEngine\GpuBuffer.cpp">
+      <Filter>Realtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\RealtimeEngine\LinearAllocator.cpp">
+      <Filter>Realtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\RealtimeEngine\PipelineStateObject.cpp">
+      <Filter>Realtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\RealtimeEngine\PixelBuffer.cpp">
+      <Filter>Realtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\RealtimeEngine\PlatformApp.cpp">
+      <Filter>Realtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\RealtimeEngine\RenderDevice.cpp">
+      <Filter>Realtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\RealtimeEngine\RootSignature.cpp">
+      <Filter>Realtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Core\BVHNode.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Core\Camera.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Core\ConstantMedium.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Core\FlipNormals.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Core\HitableBox.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Core\HitableList.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Core\HitableTransform.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Core\ImageIO.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Core\Material.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Core\MovingSphere.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Core\Perlin.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Core\Raytracer.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Core\Sphere.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Core\TriMesh.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Core\Util.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Core\XYZRect.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\RealtimeEngine\RTTexture.cpp">
+      <Filter>Realtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Core\CoreTriangle.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Core\CoreTexture.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="RayTracerLib.licenseheader" />
   </ItemGroup>
 </Project>

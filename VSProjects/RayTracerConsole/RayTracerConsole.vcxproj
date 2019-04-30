@@ -25,6 +25,9 @@
     <ClCompile Include="..\..\Source\ConsoleMain.cpp" />
     <ClCompile Include="..\..\Source\SampleScenes.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\RayTracerLib\RayTracerLib.licenseheader" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{2AD2BE84-18D5-4F6B-B94E-47D60D4566FB}</ProjectGuid>

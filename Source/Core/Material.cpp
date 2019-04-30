@@ -23,6 +23,8 @@
 #include <iostream>
 #include <fstream>
 
+using namespace Core;
+
 // ----------------------------------------------------------------------------------------------------------------------------
 
 MLambertian::MLambertian(BaseTexture* albedo) : Material(albedo, nullptr)

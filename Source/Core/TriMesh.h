@@ -22,63 +22,66 @@
 #include "IHitable.h"
 #include "Vec4.h"
 #include "Material.h"
-#include "Triangle.h"
+#include "CoreTriangle.h"
 #include "BVHNode.h"
 #include <vector>
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-class TriMesh : public IHitable
+namespace Core
 {
-public:
-
-    struct FaceVertex
+    class TriMesh : public IHitable
     {
-        int VertIndex;
-        int TexCoordIndex;
-        int NormIndex;
+    public:
+
+        struct FaceVertex
+        {
+            int VertIndex;
+            int TexCoordIndex;
+            int NormIndex;
+        };
+
+        struct TexCoord
+        {
+            float UV[2];
+        };
+
+        struct Face
+        {
+            std::vector<FaceVertex> Verts;
+        };
+
+    public:
+
+        static TriMesh*               CreateFromSTLFile(const char* filePath, Material* material, float scale = 1.0f);
+        static TriMesh*               CreateFromOBJFile(const char* filePath, float scale = 1.0f, bool makeMetalMaterial = false, Material* matOverride = nullptr);
+        virtual bool                  BoundingBox(float t0, float t1, AABB& box) const;
+        virtual bool                  Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const;
+
+        void GetTriArray(IHitable**& ppTriArray, int& numTris) const
+        {
+            ppTriArray = TriArray;
+            numTris = NumTriangles;
+        }
+
+        const Material* GetMaterial() const { return Mat; }
+
+    private:
+
+        TriMesh() : TriArray(nullptr), NumTriangles(0), BVHHead(NULL) {}
+        virtual ~TriMesh();
+
+        void        createFromArray(std::vector<Triangle*> triArray);
+        Triangle*   makeNewTriangle(
+            int v0, int v1, int v2, 
+            const std::vector<Vec4>& vertList, const std::vector<Vec4>& vertNormalList, const std::vector<TexCoord>& texCoordList,
+            const Face& face, Material* material);
+
+    private:
+
+        Material*          Mat;
+        IHitable**         TriArray;
+        int                NumTriangles;
+        BVHNode*           BVHHead;
     };
-
-    struct TexCoord
-    {
-        float UV[2];
-    };
-
-    struct Face
-    {
-        std::vector<FaceVertex> Verts;
-    };
-
-public:
-
-    static TriMesh*               CreateFromSTLFile(const char* filePath, Material* material, float scale = 1.0f);
-    static TriMesh*               CreateFromOBJFile(const char* filePath, float scale = 1.0f, bool makeMetalMaterial = false, Material* matOverride = nullptr);
-    virtual bool                  BoundingBox(float t0, float t1, AABB& box) const;
-    virtual bool                  Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const;
-
-    void GetTriArray(IHitable**& ppTriArray, int& numTris) const
-    {
-        ppTriArray = TriArray;
-        numTris = NumTriangles;
-    }
-
-    const Material* GetMaterial() const { return Mat; }
-
-private:
-
-    TriMesh() : TriArray(nullptr), NumTriangles(0), BVHHead(NULL) {}
-    virtual ~TriMesh();
-
-    void        createFromArray(std::vector<Triangle*> triArray);
-    Triangle*   makeNewTriangle(
-        int v0, int v1, int v2, 
-        const std::vector<Vec4>& vertList, const std::vector<Vec4>& vertNormalList, const std::vector<TexCoord>& texCoordList,
-        const Face& face, Material* material);
-
-private:
-
-    Material*          Mat;
-    IHitable**         TriArray;
-    int                NumTriangles;
-    BVHNode*           BVHHead;
-};
+}

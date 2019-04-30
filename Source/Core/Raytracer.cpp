@@ -25,6 +25,8 @@
 #include <vector>
 #include <math.h>
 
+using namespace Core;
+
 // ----------------------------------------------------------------------------------------------------------------------------
 
 Raytracer::Raytracer(int width, int height, int numSamples, int maxDepth, int numThreads, bool pdfEnabled) 

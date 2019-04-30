@@ -21,155 +21,159 @@
 #include "Ray.h"
 #include "IHitable.h"
 #include "Util.h"
-#include "Texture.h"
+#include "CoreTexture.h"
 #include "Pdf.h"
 #include <vector>
 
-// ----------------------------------------------------------------------------------------------------------------------------
-
-class Material
+namespace Core
 {
-public:
+    // ----------------------------------------------------------------------------------------------------------------------------
 
-    struct ScatterRecord
+    class Material
     {
-        ScatterRecord() : IsSpecular(false), Attenuation(0, 0, 0), PdfPtr(nullptr) {}
-        ~ScatterRecord()
+    public:
+
+        struct ScatterRecord
         {
-            // I don't like the asymmetrical allocation/deallocation strategy for pdfs.
-            // But we'll do this for now.
-            if (PdfPtr)
+            ScatterRecord() : IsSpecular(false), Attenuation(0, 0, 0), PdfPtr(nullptr) {}
+            ~ScatterRecord()
             {
-                delete PdfPtr;
-                PdfPtr = nullptr;
+                // I don't like the asymmetrical allocation/deallocation strategy for pdfs.
+                // But we'll do this for now.
+                if (PdfPtr)
+                {
+                    delete PdfPtr;
+                    PdfPtr = nullptr;
+                }
+            }
+
+            Ray   SpecularRay;
+            bool  IsSpecular;
+            Vec4  Attenuation;
+            Ray   ScatteredClassic;
+            Pdf* PdfPtr;
+        };
+
+        Material() : Owner(nullptr), Albedo(nullptr), EmitTex(nullptr) {}
+        Material(BaseTexture* albedo, BaseTexture* emitTex) : Owner(nullptr), Albedo(albedo), EmitTex(emitTex) {}
+
+        virtual ~Material()
+        {
+            if (Albedo != nullptr)
+            {
+                delete Albedo;
+                Albedo = nullptr;
+            }
+
+            if (EmitTex != nullptr)
+            {
+                delete EmitTex;
+                EmitTex = nullptr;
             }
         }
 
-        Ray   SpecularRay;
-        bool  IsSpecular;
-        Vec4  Attenuation;
-        Ray   ScatteredClassic;
-        Pdf*  PdfPtr;
+        virtual bool  Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& scatterRec) const { return false; }
+        virtual float ScatteringPdf(const Ray& rayIn, const HitRecord& rec, Ray& scattered) const { return 1.f; }
+        virtual Vec4  Emitted(const Ray& rayIn, const HitRecord& rec, float u, float v, Vec4& p) const { return Vec4(0, 0, 0); }
+        virtual Vec4  AlbedoValue(float u, float v, const Vec4& p) const { return Vec4(0, 0, 0); }
+
+    public:
+
+        IHitable* Owner;
+
+    protected:
+
+        BaseTexture* Albedo;
+        BaseTexture* EmitTex;
     };
 
-    Material() : Owner(nullptr), Albedo(nullptr), EmitTex(nullptr) {}
-    Material(BaseTexture* albedo, BaseTexture* emitTex) : Owner(nullptr), Albedo(albedo), EmitTex(emitTex) {}
+    // ----------------------------------------------------------------------------------------------------------------------------
 
-    virtual ~Material()
+    class MLambertian : public Material
     {
-        if (Albedo != nullptr)
-        {
-            delete Albedo;
-            Albedo = nullptr;
-        }
+    public:
 
-        if (EmitTex != nullptr)
-        {
-            delete EmitTex;
-            EmitTex = nullptr;
-        }
-    }
+        MLambertian(BaseTexture* albedo);
 
-    virtual bool  Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& scatterRec) const { return false; }
-    virtual float ScatteringPdf(const Ray& rayIn, const HitRecord& rec, Ray& scattered) const { return 1.f; }
-    virtual Vec4  Emitted(const Ray& rayIn, const HitRecord& rec, float u, float v, Vec4& p) const { return Vec4(0, 0, 0); }
-    virtual Vec4  AlbedoValue(float u, float v, const Vec4& p) const { return Vec4(0, 0, 0); }
+        virtual bool  Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& scatterRec) const;
+        virtual float ScatteringPdf(const Ray& rayIn, const HitRecord& rec, Ray& scattered) const;
+        virtual Vec4  AlbedoValue(float u, float v, const Vec4& p) const;
+    };
 
-public:
+    // ----------------------------------------------------------------------------------------------------------------------------
 
-    IHitable*   Owner;
+    class MMetal : public Material
+    {
+    public:
 
-protected:
+        MMetal(BaseTexture* albedo, float fuzz);
 
-    BaseTexture* Albedo;
-    BaseTexture* EmitTex;
-};
+        virtual bool Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& scatterRec) const;
+        virtual Vec4 AlbedoValue(float u, float v, const Vec4& p) const;
 
-// ----------------------------------------------------------------------------------------------------------------------------
+    private:
 
-class MLambertian : public Material
-{
-public:
+        float Fuzz;
+    };
 
-    MLambertian(BaseTexture* albedo);
+    // ----------------------------------------------------------------------------------------------------------------------------
 
-    virtual bool  Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& scatterRec) const;
-    virtual float ScatteringPdf(const Ray& rayIn, const HitRecord& rec, Ray& scattered) const;
-    virtual Vec4  AlbedoValue(float u, float v, const Vec4& p) const;
-};
+    class MDielectric : public Material
+    {
+    public:
 
-// ----------------------------------------------------------------------------------------------------------------------------
+        MDielectric(float ri);
 
-class MMetal : public Material
-{
-public:
+        virtual bool Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& scatterRec) const;
 
-    MMetal(BaseTexture* albedo, float fuzz);
+    private:
 
-    virtual bool Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& scatterRec) const;
-    virtual Vec4 AlbedoValue(float u, float v, const Vec4& p) const;
+        float RefId;
+    };
 
-private:
+    // ----------------------------------------------------------------------------------------------------------------------------
 
-    float Fuzz;
-};
+    class MDiffuseLight : public Material
+    {
+    public:
 
-// ----------------------------------------------------------------------------------------------------------------------------
+        MDiffuseLight(BaseTexture* tex);
 
-class MDielectric : public Material
-{
-public:
+        virtual Vec4 Emitted(const Ray& rayIn, const HitRecord& rec, float u, float v, Vec4& p) const;
+        virtual Vec4 AlbedoValue(float u, float v, const Vec4& p) const;
+    };
 
-    MDielectric(float ri);
+    // ----------------------------------------------------------------------------------------------------------------------------
 
-    virtual bool Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& scatterRec) const;
+    class MIsotropic : public Material
+    {
+    public:
 
-private:
-    
-    float RefId;
-};
+        MIsotropic(BaseTexture* albedo);
 
-// ----------------------------------------------------------------------------------------------------------------------------
+        virtual bool Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& scatterRec) const;
+        virtual Vec4 AlbedoValue(float u, float v, const Vec4& p) const;
+    };
 
-class MDiffuseLight : public Material
-{
-public:
+    // ----------------------------------------------------------------------------------------------------------------------------
 
-    MDiffuseLight(BaseTexture* tex);
+    class MWavefrontObj : public MLambertian
+    {
+    public:
 
-    virtual Vec4 Emitted(const Ray& rayIn, const HitRecord& rec, float u, float v, Vec4& p) const;
-    virtual Vec4 AlbedoValue(float u, float v, const Vec4& p) const;
-};
+        MWavefrontObj(const char* materialFilePath, bool makeMetal = false, float fuzz = 0.5f);
+        virtual ~MWavefrontObj();
 
-// ----------------------------------------------------------------------------------------------------------------------------
+        virtual bool  Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& scatterRec) const;
+        virtual Vec4  AlbedoValue(float u, float v, const Vec4& p) const;
 
-class MIsotropic : public Material
-{
-public:
+        const ImageTexture* GetDiffuseMap() const { return DiffuseMap; }
 
-    MIsotropic(BaseTexture* albedo);
+    private:
 
-    virtual bool Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& scatterRec) const;
-    virtual Vec4 AlbedoValue(float u, float v, const Vec4& p) const;
-};
+        bool          MakeMetal;
+        float         Fuzz;
+        ImageTexture* DiffuseMap;
+    };
 
-// ----------------------------------------------------------------------------------------------------------------------------
-
-class MWavefrontObj : public MLambertian
-{
-public:
-
-    MWavefrontObj(const char* materialFilePath, bool makeMetal = false, float fuzz = 0.5f);
-    virtual ~MWavefrontObj();
-
-    virtual bool  Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& scatterRec) const;
-    virtual Vec4  AlbedoValue(float u, float v, const Vec4& p) const;
-
-    const ImageTexture* GetDiffuseMap() const { return DiffuseMap; }
-
-private:
-
-    bool          MakeMetal;
-    float         Fuzz;
-    ImageTexture* DiffuseMap;
-};
+}

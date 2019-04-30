@@ -24,7 +24,8 @@
 #include "RealtimeEngine/CommandContext.h"
 #include <d3dcompiler.h>
 
-using namespace yart;
+using namespace Core;
+using namespace RealtimeEngine;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 

@@ -48,4 +48,4 @@ constexpr const char* SampleSceneNames[MaxScene] =
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-WorldScene* GetSampleScene(SampleScene sceneType);
+Core::WorldScene* GetSampleScene(SampleScene sceneType);

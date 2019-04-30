@@ -17,7 +17,7 @@
 // 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-#include "Texture.h"
+#include "RTTexture.h"
 #include "RenderDevice.h"
 #include "CommandContext.h"
 #include <map>
@@ -25,7 +25,7 @@
 #include <thread>
 
 using namespace std;
-using namespace yart;
+using namespace RealtimeEngine;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -234,14 +234,14 @@ void Texture::Create(size_t pitch, size_t width, size_t height, DXGI_FORMAT form
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void yart::Texture::Create(size_t width, size_t height, DXGI_FORMAT format, const void* initData)
+void RealtimeEngine::Texture::Create(size_t width, size_t height, DXGI_FORMAT format, const void* initData)
 {
     Create(width, width, height, format, initData);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void yart::Texture::Destroy()
+void RealtimeEngine::Texture::Destroy()
 {
     GpuResource::Destroy();
 
@@ -251,7 +251,7 @@ void yart::Texture::Destroy()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-const D3D12_CPU_DESCRIPTOR_HANDLE& yart::Texture::GetSRV() const
+const D3D12_CPU_DESCRIPTOR_HANDLE& RealtimeEngine::Texture::GetSRV() const
 {
     return CpuDescriptorHandle;
 }
@@ -352,7 +352,7 @@ void ManagedTexture::SetToInvalidTexture()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-bool yart::ManagedTexture::IsValid() const
+bool RealtimeEngine::ManagedTexture::IsValid() const
 {
     return IsValidState;
 }

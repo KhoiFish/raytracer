@@ -26,27 +26,30 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-class HitableBox : public IHitable
+namespace Core
 {
-public:
-
-    HitableBox(const Vec4& p0, const Vec4& p1, Material* mat);
-    virtual ~HitableBox();
-
-    virtual bool BoundingBox(float t0, float t1, AABB& box) const;
-    virtual bool Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const;
-
-    inline void  GetPoints(Vec4& minP, Vec4& maxP) const
+    class HitableBox : public IHitable
     {
-        minP = Pmin;
-        maxP = Pmax;
-    }
+    public:
 
-    inline const Material* GetMaterial() const { return Mat; }
+        HitableBox(const Vec4& p0, const Vec4& p1, Material* mat);
+        virtual ~HitableBox();
 
-private:
+        virtual bool BoundingBox(float t0, float t1, AABB& box) const;
+        virtual bool Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const;
 
-    Vec4      Pmin, Pmax;
-    IHitable* HitList;
-    Material* Mat;
-};
+        inline void  GetPoints(Vec4& minP, Vec4& maxP) const
+        {
+            minP = Pmin;
+            maxP = Pmax;
+        }
+
+        inline const Material* GetMaterial() const { return Mat; }
+
+    private:
+
+        Vec4      Pmin, Pmax;
+        IHitable* HitList;
+        Material* Mat;
+    };
+}

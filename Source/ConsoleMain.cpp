@@ -22,6 +22,8 @@
 #include "SampleScenes.h"
 #include <cstring>
 
+using namespace Core;
+
 // ----------------------------------------------------------------------------------------------------------------------------
 
 struct SceneConfig

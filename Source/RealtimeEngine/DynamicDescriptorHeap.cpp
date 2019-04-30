@@ -23,7 +23,7 @@
 #include "CommandList.h"
 #include "RootSignature.h"
 
-using namespace  yart;
+using namespace  RealtimeEngine;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 

@@ -20,7 +20,7 @@
 #include "CommandList.h"
 #include <algorithm>
 
-using namespace yart;
+using namespace RealtimeEngine;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 

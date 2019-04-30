@@ -18,4 +18,7 @@
       <Filter>Source</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\RayTracerLib\RayTracerLib.licenseheader" />
+  </ItemGroup>
 </Project>

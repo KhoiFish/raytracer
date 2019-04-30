@@ -23,7 +23,7 @@
 #include <thread>
 #include <mutex>
 
-using namespace yart;
+using namespace RealtimeEngine;
 using namespace std;
 using Microsoft::WRL::ComPtr;
 

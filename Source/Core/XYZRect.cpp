@@ -19,6 +19,8 @@
 
 #include "XYZRect.h" 
 
+using namespace Core;
+
 // ----------------------------------------------------------------------------------------------------------------------------
 
 XYZRect::XYZRect(AxisPlane axis, float a0, float a1, float b0, float b1, float k, Material* mat, bool isLightShape /*= false*/) : IHitable(isLightShape)

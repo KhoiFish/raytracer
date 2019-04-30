@@ -22,7 +22,7 @@
 #include "RenderDevice.h"
 #include <thread>
 
-using namespace yart;
+using namespace RealtimeEngine;
 using namespace std;
 
 // ----------------------------------------------------------------------------------------------------------------------------

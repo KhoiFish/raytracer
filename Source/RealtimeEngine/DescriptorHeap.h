@@ -39,7 +39,7 @@ namespace RealtimeEngine
     {
     public:
 
-        DescriptorAllocator(D3D12_DESCRIPTOR_HEAP_TYPE type) : Type(type), CurrentHeap(nullptr) {}
+        DescriptorAllocator(D3D12_DESCRIPTOR_HEAP_TYPE type) : Type(type), DescriptorSize(0), RemainingFreeHandles(0), CurrentHeap(nullptr) {}
 
     public:
 

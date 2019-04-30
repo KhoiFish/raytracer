@@ -204,6 +204,19 @@
     <ClInclude Include="..\..\Source\RealtimeEngine\GpuBuffer.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\GPUResource.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\LinearAllocator.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\Math\BoundingPlane.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\Math\BoundingSphere.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\Math\RealtimeCamera.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\Math\Common.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\Math\Frustum.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\Math\Matrix3.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\Math\Matrix4.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\Math\Quaternion.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\Math\Random.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\Math\Scalar.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\Math\Transform.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\Math\Vector.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\Math\VectorMath.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\PipelineStateObject.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\PixelBuffer.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\PlatformApp.h" />
@@ -241,6 +254,9 @@
     <ClCompile Include="..\..\Source\RealtimeEngine\Globals.cpp" />
     <ClCompile Include="..\..\Source\RealtimeEngine\GpuBuffer.cpp" />
     <ClCompile Include="..\..\Source\RealtimeEngine\LinearAllocator.cpp" />
+    <ClCompile Include="..\..\Source\RealtimeEngine\Math\RealtimeCamera.cpp" />
+    <ClCompile Include="..\..\Source\RealtimeEngine\Math\Frustum.cpp" />
+    <ClCompile Include="..\..\Source\RealtimeEngine\Math\Random.cpp" />
     <ClCompile Include="..\..\Source\RealtimeEngine\PipelineStateObject.cpp" />
     <ClCompile Include="..\..\Source\RealtimeEngine\PixelBuffer.cpp" />
     <ClCompile Include="..\..\Source\RealtimeEngine\PlatformApp.cpp" />
@@ -250,6 +266,7 @@
     <ClCompile Include="..\..\ThirdParty\StbImage\StbImageImpl.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\Source\RealtimeEngine\Math\Functions.inl" />
     <None Include="RayTracerLib.licenseheader" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -37,7 +37,7 @@ static float   sVertFov          = 40.f;
 static int     sSampleScene      = SceneCornellSmoke;
 static float   sClearColor[]     = { 0.2f, 0.2f, 0.2f, 1.0f };
 
-const D3D12_INPUT_ELEMENT_DESC VertexPositionNormalTexture::InputElements[] =
+const D3D12_INPUT_ELEMENT_DESC RenderVertex::InputElements[] =
 {
     { "POSITION",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
     { "NORMAL",     0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
@@ -158,12 +158,6 @@ void Renderer::SetupFullscreenQuadPipeline()
 
     // Full screen pipeline state setup
     {
-        D3D12_INPUT_ELEMENT_DESC vertElem[] =
-        {
-            { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-            { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
-        };
-
         Microsoft::WRL::ComPtr<ID3DBlob> vertexShaderBlob, pixelShaderBlob;
         ThrowIfFailed(D3DReadFileToBlob(SHADERBUILD_DIR L"\\FullscreenQuad_VS.cso", &vertexShaderBlob));
         ThrowIfFailed(D3DReadFileToBlob(SHADERBUILD_DIR L"\\FullscreenQuad_PS.cso", &pixelShaderBlob));
@@ -174,7 +168,7 @@ void Renderer::SetupFullscreenQuadPipeline()
         FullscreenPipelineState.SetRasterizerState(rasterizerDefault);
         FullscreenPipelineState.SetBlendState(blendDisable);
         FullscreenPipelineState.SetDepthStencilState(depthStateReadWrite);
-        FullscreenPipelineState.SetInputLayout(_countof(vertElem), vertElem);
+        FullscreenPipelineState.SetInputLayout(RenderVertex::InputElementCount, RenderVertex::InputElements);
         FullscreenPipelineState.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
         FullscreenPipelineState.SetRenderTargetFormats(_countof(rtFormats), rtFormats, RenderDevice::Get().GetDepthBufferFormat());
         FullscreenPipelineState.SetVertexShader(vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize());
@@ -194,11 +188,22 @@ void Renderer::LoadScene()
         Scene = nullptr;
     }
 
+    for (int i = 0; i < RealtimeSceneList.size(); i++)
+    {
+        delete RealtimeSceneList[i];
+    }
+    RealtimeSceneList.clear();
+
     // Load the selected scene
     Scene = GetSampleScene(SampleScene(sSampleScene));
     Scene->GetCamera().SetAspect((float)RenderDevice::Get().GetBackbufferWidth() / (float)RenderDevice::Get().GetBackbufferHeight());
     Scene->GetCamera().SetFocusDistanceToLookAt();
     sVertFov = Scene->GetCamera().GetVertFov();
+
+    std::vector<DirectX::XMMATRIX>  matrixStack;
+    std::vector<bool>               flipNormalStack;
+    std::vector<SpotLight>          spotLightsList;
+    GenerateRenderListFromWorld(Scene->GetWorld(), nullptr, RealtimeSceneList, spotLightsList, matrixStack, flipNormalStack);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -218,12 +223,12 @@ void Renderer::Raytrace(bool enable)
             OnResizeRaytracer();
         }
 
-        RenderMode = ModeRaytracer;
+        RenderMode = RenderingMode_Cpu;
         TheRaytracer->BeginRaytrace(Scene, OnRaytraceComplete);
     }
     else
     {
-        RenderMode = ModePreview;
+        RenderMode = RenderingMode_Realtime;
     }
 }
 
@@ -274,6 +279,13 @@ void Renderer::OnKeyDown(UINT8 key)
             Raytrace(true);
             break;
         }
+
+        case VK_ESCAPE:
+        {
+            Raytrace(false);
+            PostQuitMessage(0);
+        }
+        break;
     }
 }
 
@@ -315,7 +327,7 @@ void Renderer::OnRender()
             renderContext.SetNullIndexBuffer();
             renderContext.Draw(3);
         }
-    }
+    } 
     renderContext.Finish();
 
     // Present

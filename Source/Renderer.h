@@ -37,17 +37,15 @@ using namespace DirectX;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-struct VertexPositionNormalTexture
+struct RenderVertex
 {
-    VertexPositionNormalTexture() {}
-
-    VertexPositionNormalTexture(const DirectX::XMFLOAT3& position, const DirectX::XMFLOAT3& normal, const DirectX::XMFLOAT2& texCoord)
+    RenderVertex(const DirectX::XMFLOAT3& position, const DirectX::XMFLOAT3& normal, const DirectX::XMFLOAT2& texCoord)
         : Position(position)
         , Normal(normal)
         , TexCoord(texCoord)
     {}
 
-    VertexPositionNormalTexture(DirectX::FXMVECTOR position, DirectX::FXMVECTOR normal, DirectX::FXMVECTOR textureCoordinate)
+    RenderVertex(DirectX::FXMVECTOR position, DirectX::FXMVECTOR normal, DirectX::FXMVECTOR textureCoordinate)
     {
         XMStoreFloat3(&this->Position, position);
         XMStoreFloat3(&this->Normal, normal);
@@ -63,7 +61,7 @@ struct VertexPositionNormalTexture
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-using VertexBuffer = std::vector<VertexPositionNormalTexture>;
+using VertexBuffer = std::vector<RenderVertex>;
 using IndexBuffer  = std::vector<uint32_t>;
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -113,16 +111,16 @@ private:
 
     enum RenderingMode
     {
-        ModePreview = 0,
-        ModeRaytracer,
+        RenderingMode_Realtime = 0,
+        RenderingMode_Cpu,
 
         MaxRenderModes
     };
 
     static constexpr const char* RenderingModeStrings[MaxRenderModes] =
     {
-        "DirectX 12 Render",
-        "Software Tracing",
+        "Realtime Rendering",
+        "CPU Raytracing",
     };
 
     struct UserInputData
@@ -139,14 +137,14 @@ private:
 
 private:
 
-    RenderingMode              RenderMode;
-    Core::Raytracer*           TheRaytracer;
-    Core::WorldScene*          Scene;
-    RenderSceneNode*           RealtimeSceneList;
+    RenderingMode                   RenderMode;
+    Core::Raytracer*                TheRaytracer;
+    Core::WorldScene*               Scene;
+    std::vector< RenderSceneNode*>  RealtimeSceneList;
 
-    ColorBuffer                CPURaytracerTex;
-    RootSignature              FullscreenQuadRootSignature;
-    GraphicsPSO                FullscreenPipelineState;
+    ColorBuffer                     CPURaytracerTex;
+    RootSignature                   FullscreenQuadRootSignature;
+    GraphicsPSO                     FullscreenPipelineState;
 
-    UserInputData              UserInput;
+    UserInputData                   UserInput;
 };

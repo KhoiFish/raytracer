@@ -1,3 +1,22 @@
+// ----------------------------------------------------------------------------------------------------------------------------
+// 
+// Copyright 2019 Khoi Nguyen
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
+// modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+// 
+//    The above copyright notice and this permission notice shall be included in all copies or substantial
+//    portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+// WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+// 
+// ----------------------------------------------------------------------------------------------------------------------------
+
 #include "Core/Util.h"
 #include "Core/IHitable.h"
 #include "Core/Sphere.h"
@@ -72,6 +91,13 @@ static inline XMFLOAT4 ConvertToXMFloat4(const Core::Vec4& vec, bool negateZ = t
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+static inline XMFLOAT3 ConvertToXMFloat3(const Core::Vec4& vec, bool negateZ = true)
+{
+    return DirectX::XMFLOAT3(vec[0], vec[1], negateZ ? -vec[2] : vec[2]);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 static inline Core::Vec4 ConvertToVec4(const XMVECTOR& vec)
 {
     // Negate Z
@@ -82,25 +108,132 @@ static inline Core::Vec4 ConvertToVec4(const XMVECTOR& vec)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static inline void CreateSphere(RenderSceneNode* renderNode, float radius)
+static void CreateSphere(RenderSceneNode* renderNode, float radius, int tessellation)
 {
+    int verticalSegments   = tessellation;
+    int horizontalSegments = tessellation * 2;
+
+    for (int i = 0; i <= verticalSegments; i++)
+    {
+        float v = 1 - (float)i / verticalSegments;
+
+        float latitude = (i * XM_PI / verticalSegments) - XM_PIDIV2;
+        float dy, dxz;
+
+        XMScalarSinCos(&dy, &dxz, latitude);
+
+        for (int j = 0; j <= horizontalSegments; j++)
+        {
+            float u         = (float)j / horizontalSegments;
+            float longitude = j * XM_2PI / horizontalSegments;
+
+            float dx, dz;
+            XMScalarSinCos(&dx, &dz, longitude);
+
+            dx *= dxz;
+            dz *= dxz;
+
+            XMVECTOR normal   = XMVectorSet(dx, dy, dz, 0);
+            XMVECTOR texCoord = XMVectorSet(u, v, 0, 0);
+
+            renderNode->VertexData.push_back(RenderVertex(normal * radius, normal, texCoord));
+        }
+    }
+
+    int stride = horizontalSegments + 1;
+    for (int i = 0; i < verticalSegments; i++)
+    {
+        for (int j = 0; j <= horizontalSegments; j++)
+        {
+            int nextI = i + 1;
+            int nextJ = (j + 1) % stride;
+
+            renderNode->IndexData.push_back(uint32_t(i * stride + j));
+            renderNode->IndexData.push_back(uint32_t(nextI * stride + j));
+            renderNode->IndexData.push_back(uint32_t(i * stride + nextJ));
+
+            renderNode->IndexData.push_back(uint32_t(i * stride + nextJ));
+            renderNode->IndexData.push_back(uint32_t(nextI * stride + j));
+            renderNode->IndexData.push_back(uint32_t(nextI * stride + nextJ));
+        }
+    }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static inline void CreateCube(RenderSceneNode* renderNode, Core::Vec4 sideLengths)
+static void CreateCube(RenderSceneNode* renderNode, Core::Vec4 sideLengths)
 {
+    const int FaceCount = 6;
+
+    static const XMVECTORF32 faceNormals[FaceCount] =
+    {
+        {  0,  0,  1 },
+        {  0,  0, -1 },
+        {  1,  0,  0 },
+        { -1,  0,  0 },
+        {  0,  1,  0 },
+        {  0, -1,  0 },
+    };
+
+    static const XMVECTORF32 textureCoordinates[4] =
+    {
+        { 1, 0 },
+        { 1, 1 },
+        { 0, 1 },
+        { 0, 0 },
+    };
+
+    XMVECTOR halfLengths = XMVectorSet
+    (
+        sideLengths.X() * 0.5f,
+        sideLengths.Y() * 0.5f,
+        sideLengths.Z() * 0.5f,
+        0.f
+    );
+
+    // Create each face in turn.
+    for (int i = 0; i < FaceCount; i++)
+    {
+        XMVECTOR normal = faceNormals[i];
+        XMVECTOR basis  = (i >= 4) ? g_XMIdentityR2 : g_XMIdentityR1;
+        XMVECTOR side1 = XMVector3Cross(normal, basis);
+        XMVECTOR side2 = XMVector3Cross(normal, side1);
+
+        int vbase = (int)renderNode->VertexData.size();
+        renderNode->IndexData.push_back(uint32_t(vbase + 0));
+        renderNode->IndexData.push_back(uint32_t(vbase + 1));
+        renderNode->IndexData.push_back(uint32_t(vbase + 2));
+        renderNode->IndexData.push_back(uint32_t(vbase + 0));
+        renderNode->IndexData.push_back(uint32_t(vbase + 2));
+        renderNode->IndexData.push_back(uint32_t(vbase + 3));
+
+        renderNode->VertexData.push_back(RenderVertex((normal - side1 - side2) * halfLengths, normal, textureCoordinates[0]));
+        renderNode->VertexData.push_back(RenderVertex((normal - side1 + side2) * halfLengths, normal, textureCoordinates[1]));
+        renderNode->VertexData.push_back(RenderVertex((normal + side1 + side2) * halfLengths, normal, textureCoordinates[2]));
+        renderNode->VertexData.push_back(RenderVertex((normal + side1 - side2) * halfLengths, normal, textureCoordinates[3]));
+    }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static inline void CreatePlaneFromPoints(const Core::Vec4* planePoints, const Core::Vec4& normal)
+static void CreatePlaneFromPoints(RenderSceneNode* renderNode, const Core::Vec4* points, const Core::Vec4& normal)
 {
+    renderNode->VertexData.push_back({ ConvertToXMFloat3(points[0]), ConvertToXMFloat3(normal), XMFLOAT2(0.0f, 0.0f) });
+    renderNode->VertexData.push_back({ ConvertToXMFloat3(points[1]), ConvertToXMFloat3(normal), XMFLOAT2(1.0f, 0.0f) });
+    renderNode->VertexData.push_back({ ConvertToXMFloat3(points[2]), ConvertToXMFloat3(normal), XMFLOAT2(1.0f, 1.0f) });
+    renderNode->VertexData.push_back({ ConvertToXMFloat3(points[3]), ConvertToXMFloat3(normal), XMFLOAT2(0.0f, 1.0f) });
+
+    renderNode->IndexData.push_back(0);
+    renderNode->IndexData.push_back(3);
+    renderNode->IndexData.push_back(1);
+    renderNode->IndexData.push_back(1);
+    renderNode->IndexData.push_back(3);
+    renderNode->IndexData.push_back(2);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void GenerateRenderListFromWorld(const Core::IHitable* currentHead, const RealtimeEngine::Texture* defaultTexture, std::vector<RenderSceneNode*>& outSceneList, std::vector<SpotLight>& spotLightsList, std::vector<DirectX::XMMATRIX>& matrixStack, std::vector<bool>& flipNormalStack)
+static void GenerateRenderListFromWorld(const Core::IHitable* currentHead, const RealtimeEngine::Texture* defaultTexture, std::vector<RenderSceneNode*>& outSceneList, std::vector<SpotLight>& spotLightsList, std::vector<DirectX::XMMATRIX>& matrixStack, std::vector<bool>& flipNormalStack)
 {
     const std::type_info& tid = typeid(*currentHead);
 
@@ -154,7 +287,7 @@ void GenerateRenderListFromWorld(const Core::IHitable* currentHead, const Realti
     else if (tid == typeid(Core::Sphere) || tid == typeid(Core::MovingSphere))
     {
         Core::Vec4      offset;
-        float           radius;
+        float           radius  = 0;
         Core::Material* material = nullptr;
         if (tid == typeid(Core::Sphere))
         {
@@ -185,7 +318,7 @@ void GenerateRenderListFromWorld(const Core::IHitable* currentHead, const Realti
             128.0f
         };
 
-        CreateSphere(newNode, radius * 2.f);
+        CreateSphere(newNode, radius, 32);
         newNode->WorldMatrix    = newMatrix;
         newNode->Material       = newMaterial;
         newNode->DiffuseTexture = defaultTexture;
@@ -247,7 +380,7 @@ void GenerateRenderListFromWorld(const Core::IHitable* currentHead, const Realti
                 XMVECTOR normal   = ConvertToXMVector(triVertices[v].Normal);
                 XMVECTOR texCoord = XMVectorSet(s, t, 0, 0);
 
-                vertices.push_back(VertexPositionNormalTexture(position, normal, texCoord));
+                vertices.push_back(RenderVertex(position, normal, texCoord));
                 indices.push_back(uint32_t(vertices.size() - 1));
             }
         }
@@ -301,7 +434,7 @@ void GenerateRenderListFromWorld(const Core::IHitable* currentHead, const Realti
             128.0f
         };
 
-        CreatePlaneFromPoints(planePoints, normal);
+        CreatePlaneFromPoints(newNode, planePoints, normal);
         newNode->WorldMatrix    = newMatrix;
         newNode->Material       = newMaterial;
         newNode->DiffuseTexture = defaultTexture;

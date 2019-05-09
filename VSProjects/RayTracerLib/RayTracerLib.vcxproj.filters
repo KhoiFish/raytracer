@@ -13,9 +13,6 @@
     <Filter Include="Realtime">
       <UniqueIdentifier>{78308edf-3765-46f3-848c-7791ccd1d25b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Realtime\Math">
-      <UniqueIdentifier>{3b097f5a-2bb5-40b3-9e4e-c88d767d957f}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\ThirdParty\StbImage\stb_image.h">
@@ -156,45 +153,6 @@
     <ClInclude Include="..\..\Source\Core\CoreTexture.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\RealtimeEngine\Math\BoundingPlane.h">
-      <Filter>Realtime\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\RealtimeEngine\Math\BoundingSphere.h">
-      <Filter>Realtime\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\RealtimeEngine\Math\Common.h">
-      <Filter>Realtime\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\RealtimeEngine\Math\Frustum.h">
-      <Filter>Realtime\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\RealtimeEngine\Math\Matrix3.h">
-      <Filter>Realtime\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\RealtimeEngine\Math\Matrix4.h">
-      <Filter>Realtime\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\RealtimeEngine\Math\Quaternion.h">
-      <Filter>Realtime\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\RealtimeEngine\Math\Random.h">
-      <Filter>Realtime\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\RealtimeEngine\Math\Scalar.h">
-      <Filter>Realtime\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\RealtimeEngine\Math\Transform.h">
-      <Filter>Realtime\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\RealtimeEngine\Math\Vector.h">
-      <Filter>Realtime\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\RealtimeEngine\Math\VectorMath.h">
-      <Filter>Realtime\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\RealtimeEngine\Math\RealtimeCamera.h">
-      <Filter>Realtime\Math</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\ThirdParty\StbImage\StbImageImpl.cpp">
@@ -299,20 +257,8 @@
     <ClCompile Include="..\..\Source\Core\CoreTexture.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\RealtimeEngine\Math\Frustum.cpp">
-      <Filter>Realtime\Math</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\RealtimeEngine\Math\Random.cpp">
-      <Filter>Realtime\Math</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\RealtimeEngine\Math\RealtimeCamera.cpp">
-      <Filter>Realtime\Math</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="RayTracerLib.licenseheader" />
-    <None Include="..\..\Source\RealtimeEngine\Math\Functions.inl">
-      <Filter>Realtime\Math</Filter>
-    </None>
   </ItemGroup>
 </Project>

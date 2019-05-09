@@ -16,9 +16,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Source\Windows\CameraDX12.h">
-      <Filter>Source\Render</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Source\Windows\RaytracerWindows.h">
       <Filter>Source\Render</Filter>
     </ClInclude>
@@ -35,6 +32,12 @@
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\Windows\SceneConvert.hpp">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Windows\RenderCamera.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RenderScene.h">
       <Filter>Source</Filter>
     </ClInclude>
   </ItemGroup>
@@ -55,9 +58,6 @@
     <ClCompile Include="..\..\Source\Windows\WinMain.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\Windows\CameraDX12.cpp">
-      <Filter>Source\Render</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Source\Windows\RaytracerWindows.cpp">
       <Filter>Source\Render</Filter>
     </ClCompile>
@@ -65,6 +65,9 @@
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Renderer.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Windows\RenderCamera.cpp">
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>

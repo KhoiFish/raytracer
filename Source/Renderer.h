@@ -28,55 +28,11 @@
 #include "RealtimeEngine/RootSignature.h"
 #include "RealtimeEngine/PipelineStateObject.h"
 #include "RealtimeEngine/ColorBuffer.h"
-#include "RealtimeEngine/RTTexture.h"
-#include "Windows/ShaderStructs.h"
-#include <DirectXMath.h>
+#include "Windows/RenderCamera.h"
+#include "RenderScene.h"
 
 using namespace RealtimeEngine;
 using namespace DirectX;
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-struct RenderVertex
-{
-    RenderVertex(const DirectX::XMFLOAT3& position, const DirectX::XMFLOAT3& normal, const DirectX::XMFLOAT2& texCoord)
-        : Position(position)
-        , Normal(normal)
-        , TexCoord(texCoord)
-    {}
-
-    RenderVertex(DirectX::FXMVECTOR position, DirectX::FXMVECTOR normal, DirectX::FXMVECTOR textureCoordinate)
-    {
-        XMStoreFloat3(&this->Position, position);
-        XMStoreFloat3(&this->Normal, normal);
-        XMStoreFloat2(&this->TexCoord, textureCoordinate);
-    }
-
-    static const int                        InputElementCount = 3;
-    static const D3D12_INPUT_ELEMENT_DESC   InputElements[InputElementCount];
-    DirectX::XMFLOAT3                       Position;
-    DirectX::XMFLOAT3                       Normal;
-    DirectX::XMFLOAT2                       TexCoord;
-};
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-using VertexBuffer = std::vector<RenderVertex>;
-using IndexBuffer  = std::vector<uint32_t>;
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-struct RenderSceneNode
-{
-    RenderSceneNode() : Hitable(nullptr), DiffuseTexture(nullptr) {}
-
-    const Core::IHitable*           Hitable;
-    VertexBuffer                    VertexData;
-    IndexBuffer                     IndexData;
-    XMMATRIX                        WorldMatrix;
-    RenderMaterial                  Material;
-    const RealtimeEngine::Texture*  DiffuseTexture;
-};
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -102,6 +58,7 @@ public:
 private:
 
     void                       SetupFullscreenQuadPipeline();
+    void                       SetupRealtimePipeline();
     void                       LoadScene();
     void                       Raytrace(bool enable);
     void                       OnResizeRaytracer();
@@ -135,16 +92,29 @@ private:
         int   MouseDy;
     };
 
+    struct GBuffer
+    {
+        ColorBuffer Position;
+        ColorBuffer Normal;
+        ColorBuffer TexCoord;
+    };
+
 private:
 
     RenderingMode                   RenderMode;
     Core::Raytracer*                TheRaytracer;
-    Core::WorldScene*               Scene;
-    std::vector< RenderSceneNode*>  RealtimeSceneList;
+    Core::WorldScene*               TheWorldScene;
+
+    std::vector<RenderSceneNode*>   TheRealtimeSceneList;
+    RenderCamera                    TheRenderCamera;
 
     ColorBuffer                     CPURaytracerTex;
     RootSignature                   FullscreenQuadRootSignature;
     GraphicsPSO                     FullscreenPipelineState;
+
+    GBuffer                         RealtimeBuffers;
+    RootSignature                   RealtimeRootSignature;
+    GraphicsPSO                     RealtimePSO;
 
     UserInputData                   UserInput;
 };

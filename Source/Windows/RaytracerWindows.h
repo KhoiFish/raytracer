@@ -129,7 +129,7 @@ private:
 
     D3D12_VIEWPORT             Viewport;
     D3D12_RECT                 ScissorRect;
-    CameraDX12                 RenderCamera;
+    RenderCamera                 RenderCamera;
 
     std::vector<SpotLight>     SpotLightsList;
     std::vector<DirLight>      DirLightsList;

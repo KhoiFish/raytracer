@@ -31,6 +31,7 @@
 #include "Core/TriMesh.h"
 
 #include "ShaderStructs.h"
+#include "RenderCamera.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -485,7 +486,7 @@ static void GenerateRenderListFromWorld(const Core::IHitable* currentHead, const
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static void UpdateCameras(float newVertFov, float forwardAmount, float strafeAmount, float upDownAmount, int mouseDx, int mouseDy, Core::Camera& raytracerCamera) //, CameraDX12& renderCamera)
+static void UpdateCameras(float newVertFov, float forwardAmount, float strafeAmount, float upDownAmount, int mouseDx, int mouseDy, Core::Camera& raytracerCamera, RenderCamera& renderCamera)
 {
     // Has mouse moved?
     static int lastMouseDx = mouseDx;
@@ -530,8 +531,8 @@ static void UpdateCameras(float newVertFov, float forwardAmount, float strafeAmo
     XMVECTOR cameraPos    = ConvertToXMVector(lookFrom);
     XMVECTOR cameraTarget = ConvertToXMVector(lookAt);
     XMVECTOR cameraUp     = ConvertToXMVector(up);
-    //renderCamera.set_LookAt(cameraPos, cameraTarget, cameraUp);
-    //renderCamera.set_Projection(newVertFov, aspect, 0.1f, 10000.0f);
+    renderCamera.set_LookAt(cameraPos, cameraTarget, cameraUp);
+    renderCamera.set_Projection(newVertFov, aspect, 0.1f, 10000.0f);
 
     // Print out camera changes
     if (mouseMoved)

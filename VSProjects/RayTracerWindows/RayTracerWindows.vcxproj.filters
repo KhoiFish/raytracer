@@ -31,10 +31,10 @@
     <ClInclude Include="..\..\Source\Windows\Resource.h">
       <Filter>Resource Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Windows\SceneConvert.hpp">
-      <Filter>Source\Render</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Source\Renderer.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Windows\SceneConvert.hpp">
       <Filter>Source</Filter>
     </ClInclude>
   </ItemGroup>

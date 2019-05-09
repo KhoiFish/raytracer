@@ -21,16 +21,64 @@
 
 #include "Core/Raytracer.h"
 #include "Core/Camera.h"
+#include "Core/IHitable.h"
 #include "SampleScenes.h"
-
 #include "RealtimeEngine/Globals.h"
 #include "RealtimeEngine/RenderInterface.h"
 #include "RealtimeEngine/RootSignature.h"
 #include "RealtimeEngine/PipelineStateObject.h"
 #include "RealtimeEngine/ColorBuffer.h"
-
+#include "RealtimeEngine/RTTexture.h"
+#include "Windows/ShaderStructs.h"
+#include <DirectXMath.h>
 
 using namespace RealtimeEngine;
+using namespace DirectX;
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+struct VertexPositionNormalTexture
+{
+    VertexPositionNormalTexture() {}
+
+    VertexPositionNormalTexture(const DirectX::XMFLOAT3& position, const DirectX::XMFLOAT3& normal, const DirectX::XMFLOAT2& texCoord)
+        : Position(position)
+        , Normal(normal)
+        , TexCoord(texCoord)
+    {}
+
+    VertexPositionNormalTexture(DirectX::FXMVECTOR position, DirectX::FXMVECTOR normal, DirectX::FXMVECTOR textureCoordinate)
+    {
+        XMStoreFloat3(&this->Position, position);
+        XMStoreFloat3(&this->Normal, normal);
+        XMStoreFloat2(&this->TexCoord, textureCoordinate);
+    }
+
+    static const int                        InputElementCount = 3;
+    static const D3D12_INPUT_ELEMENT_DESC   InputElements[InputElementCount];
+    DirectX::XMFLOAT3                       Position;
+    DirectX::XMFLOAT3                       Normal;
+    DirectX::XMFLOAT2                       TexCoord;
+};
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+using VertexBuffer = std::vector<VertexPositionNormalTexture>;
+using IndexBuffer  = std::vector<uint32_t>;
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+struct RenderSceneNode
+{
+    RenderSceneNode() : Hitable(nullptr), DiffuseTexture(nullptr) {}
+
+    const Core::IHitable*           Hitable;
+    VertexBuffer                    VertexData;
+    IndexBuffer                     IndexData;
+    XMMATRIX                        WorldMatrix;
+    RenderMaterial                  Material;
+    const RealtimeEngine::Texture*  DiffuseTexture;
+};
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -55,7 +103,7 @@ public:
 
 private:
 
-    void                       SetupRenderPipeline();
+    void                       SetupFullscreenQuadPipeline();
     void                       LoadScene();
     void                       Raytrace(bool enable);
     void                       OnResizeRaytracer();
@@ -77,26 +125,28 @@ private:
         "Software Tracing",
     };
 
+    struct UserInputData
+    {
+        float Forward;
+        float Backward;
+        float Left;
+        float Right;
+        float Up;
+        float Down;
+        int   MouseDx;
+        int   MouseDy;
+    };
+
 private:
 
     RenderingMode              RenderMode;
-    bool                       WireframeViewEnabled;
-
     Core::Raytracer*           TheRaytracer;
     Core::WorldScene*          Scene;
+    RenderSceneNode*           RealtimeSceneList;
 
     ColorBuffer                CPURaytracerTex;
-    RootSignature              MainRootSignature;
+    RootSignature              FullscreenQuadRootSignature;
     GraphicsPSO                FullscreenPipelineState;
-    GraphicsPSO                WireframePreviewPipelineState;
 
-    float                      Forward;
-    float                      Backward;
-    float                      Left;
-    float                      Right;
-    float                      Up;
-    float                      Down;
-    int                        MouseDx;
-    int                        MouseDy;
+    UserInputData              UserInput;
 };
-

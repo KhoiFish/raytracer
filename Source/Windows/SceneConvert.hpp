@@ -1,5 +1,3 @@
-#pragma once
-
 #include "Core/Util.h"
 #include "Core/IHitable.h"
 #include "Core/Sphere.h"
@@ -15,27 +13,6 @@
 
 #include "ShaderStructs.h"
 
-#include <DirectXMath.h>
-using namespace DirectX;
-#include <Mesh.h>
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-struct RenderSceneNode
-{
-    RenderSceneNode() : Hitable(nullptr), DiffuseTexture(nullptr) {}
-
-    // Note we intentionally leak the DiffuseTexture. There's bugs with the texture referencing
-    // in the DX12 library.
-    ~RenderSceneNode() {}
-
-    const IHitable*         Hitable;
-    std::shared_ptr<Mesh>   MeshData;
-    XMMATRIX                WorldMatrix;
-    RenderMaterial          Material;
-    Texture*                DiffuseTexture;
-};
-
 // ----------------------------------------------------------------------------------------------------------------------------
 
 static const RenderMaterial MaterialWhite =
@@ -49,7 +26,7 @@ static const RenderMaterial MaterialWhite =
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static bool FlipFromNormalStack(Vec4& normal, const std::vector<bool>& flipNormalStack)
+static bool FlipFromNormalStack(Core::Vec4& normal, const std::vector<bool>& flipNormalStack)
 {
     bool flipped = false;
     for (int i = 0; i < (int)flipNormalStack.size(); i++)
@@ -80,7 +57,7 @@ static inline XMMATRIX ComputeFinalMatrix(std::vector<DirectX::XMMATRIX>& matrix
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static inline XMVECTOR ConvertToXMVector(const Vec4& vec)
+static inline XMVECTOR ConvertToXMVector(const Core::Vec4& vec)
 {
     // Negate Z
     return XMVectorSet(vec.X(), vec.Y(), -vec.Z(), vec.W());
@@ -88,90 +65,107 @@ static inline XMVECTOR ConvertToXMVector(const Vec4& vec)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static inline XMFLOAT4 ConvertToXMFloat4(const Vec4& vec, bool negateZ = true)
+static inline XMFLOAT4 ConvertToXMFloat4(const Core::Vec4& vec, bool negateZ = true)
 {
     return DirectX::XMFLOAT4(vec[0], vec[1], negateZ ? -vec[2] : vec[2], 1.f);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static inline Vec4 ConvertToVec4(const XMVECTOR& vec)
+static inline Core::Vec4 ConvertToVec4(const XMVECTOR& vec)
 {
     // Negate Z
     XMFLOAT4 v4;
     XMStoreFloat4(&v4, vec);
-    return Vec4(v4.x, v4.y, -v4.z, v4.w);
+    return Core::Vec4(v4.x, v4.y, -v4.z, v4.w);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void GenerateRenderListFromWorld(std::shared_ptr<CommandList> commandList, const IHitable* currentHead, Texture& defaultTexture,
-    std::vector<RenderSceneNode*>& outSceneList, std::vector<SpotLight>& spotLightsList, std::vector<DirectX::XMMATRIX>& matrixStack, std::vector<bool>& flipNormalStack)
+static inline void CreateSphere(RenderSceneNode* renderNode, float radius)
+{
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+static inline void CreateCube(RenderSceneNode* renderNode, Core::Vec4 sideLengths)
+{
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+static inline void CreatePlaneFromPoints(const Core::Vec4* planePoints, const Core::Vec4& normal)
+{
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void GenerateRenderListFromWorld(const Core::IHitable* currentHead, const RealtimeEngine::Texture* defaultTexture, std::vector<RenderSceneNode*>& outSceneList, std::vector<SpotLight>& spotLightsList, std::vector<DirectX::XMMATRIX>& matrixStack, std::vector<bool>& flipNormalStack)
 {
     const std::type_info& tid = typeid(*currentHead);
 
-    if (tid == typeid(HitableList))
+    if (tid == typeid(Core::HitableList))
     {
-        HitableList* hitList = (HitableList*)currentHead;
-
-        IHitable** list = hitList->GetList();
-        const int  listSize = hitList->GetListSize();
+        Core::HitableList* hitList  = (Core::HitableList*)currentHead;
+        Core::IHitable**   list     = hitList->GetList();
+        const int          listSize = hitList->GetListSize();
         for (int i = 0; i < listSize; i++)
         {
-            GenerateRenderListFromWorld(commandList, list[i], defaultTexture, outSceneList, spotLightsList, matrixStack, flipNormalStack);
+            GenerateRenderListFromWorld(list[i], defaultTexture, outSceneList, spotLightsList, matrixStack, flipNormalStack);
         }
     }
-    else if (tid == typeid(BVHNode))
+    else if (tid == typeid(Core::BVHNode))
     {
-        BVHNode* bvhNode = (BVHNode*)currentHead;
+        Core::BVHNode* bvhNode = (Core::BVHNode*)currentHead;
 
-        GenerateRenderListFromWorld(commandList, bvhNode->GetLeft(), defaultTexture, outSceneList, spotLightsList, matrixStack, flipNormalStack);
+        GenerateRenderListFromWorld(bvhNode->GetLeft(), defaultTexture, outSceneList, spotLightsList, matrixStack, flipNormalStack);
         if (bvhNode->GetLeft() != bvhNode->GetRight())
         {
-            GenerateRenderListFromWorld(commandList, bvhNode->GetRight(), defaultTexture, outSceneList, spotLightsList, matrixStack, flipNormalStack);
+            GenerateRenderListFromWorld(bvhNode->GetRight(), defaultTexture, outSceneList, spotLightsList, matrixStack, flipNormalStack);
         }
     }
-    else if (tid == typeid(HitableTranslate))
+    else if (tid == typeid(Core::HitableTranslate))
     {
-        HitableTranslate* translateHitable = (HitableTranslate*)currentHead;
-        Vec4              offset           = translateHitable->GetOffset();
-        XMMATRIX          translation      = XMMatrixTranslation(offset.X(), offset.Y(), -offset.Z());
+        Core::HitableTranslate* translateHitable = (Core::HitableTranslate*)currentHead;
+        Core::Vec4              offset           = translateHitable->GetOffset();
+        XMMATRIX                translation      = XMMatrixTranslation(offset.X(), offset.Y(), -offset.Z());
 
         matrixStack.push_back(translation);
-        GenerateRenderListFromWorld(commandList, translateHitable->GetHitObject(), defaultTexture, outSceneList, spotLightsList, matrixStack, flipNormalStack);
+        GenerateRenderListFromWorld(translateHitable->GetHitObject(), defaultTexture, outSceneList, spotLightsList, matrixStack, flipNormalStack);
         matrixStack.pop_back();
     }
-    else if (tid == typeid(HitableRotateY))
+    else if (tid == typeid(Core::HitableRotateY))
     {
-        HitableRotateY*   rotateYHitable = (HitableRotateY*)currentHead;
-        XMMATRIX          rotation       = XMMatrixRotationY(XMConvertToRadians(-rotateYHitable->GetAngleDegrees()));
+        Core::HitableRotateY*   rotateYHitable = (Core::HitableRotateY*)currentHead;
+        XMMATRIX                rotation       = XMMatrixRotationY(XMConvertToRadians(-rotateYHitable->GetAngleDegrees()));
 
         matrixStack.push_back(rotation);
-        GenerateRenderListFromWorld(commandList, rotateYHitable->GetHitObject(), defaultTexture, outSceneList, spotLightsList, matrixStack, flipNormalStack);
+        GenerateRenderListFromWorld(rotateYHitable->GetHitObject(), defaultTexture, outSceneList, spotLightsList, matrixStack, flipNormalStack);
         matrixStack.pop_back();
     }
-    else if (tid == typeid(FlipNormals))
+    else if (tid == typeid(Core::FlipNormals))
     {
-        FlipNormals* flipNormals = (FlipNormals*)currentHead;
+        Core::FlipNormals* flipNormals = (Core::FlipNormals*)currentHead;
+
         flipNormalStack.push_back(true);
-        GenerateRenderListFromWorld(commandList, flipNormals->GetHitObject(), defaultTexture, outSceneList, spotLightsList, matrixStack, flipNormalStack);
+        GenerateRenderListFromWorld(flipNormals->GetHitObject(), defaultTexture, outSceneList, spotLightsList, matrixStack, flipNormalStack);
         flipNormalStack.pop_back();
     }
-    else if (tid == typeid(Sphere) || tid == typeid(MovingSphere))
+    else if (tid == typeid(Core::Sphere) || tid == typeid(Core::MovingSphere))
     {
-        Vec4  offset;
-        float radius;
-        Material* material = nullptr;
-        if (tid == typeid(Sphere))
+        Core::Vec4      offset;
+        float           radius;
+        Core::Material* material = nullptr;
+        if (tid == typeid(Core::Sphere))
         {
-            Sphere* sphere = (Sphere*)currentHead;
+            Core::Sphere* sphere = (Core::Sphere*)currentHead;
             offset   = sphere->GetCenter();
             radius   = sphere->GetRadius();
             material = sphere->GetMaterial();
         }
-        else if (tid == typeid(MovingSphere))
+        else if (tid == typeid(Core::MovingSphere))
         {
-            MovingSphere* sphere = (MovingSphere*)currentHead;
+            Core::MovingSphere* sphere = (Core::MovingSphere*)currentHead;
             offset   = sphere->Center(1.f);
             radius   = sphere->GetRadius();
             material = sphere->GetMaterial();
@@ -181,7 +175,7 @@ void GenerateRenderListFromWorld(std::shared_ptr<CommandList> commandList, const
         XMMATRIX         newMatrix   = ComputeFinalMatrix(matrixStack, translation);
         RenderSceneNode* newNode     = new RenderSceneNode();
 
-        Vec4 color = material->AlbedoValue(0.5f, 0.5f, Vec4(0, 0, 0));
+        Core::Vec4 color = material->AlbedoValue(0.5f, 0.5f, Core::Vec4(0, 0, 0));
         const RenderMaterial newMaterial =
         {
             { 0.0f, 0.0f, 0.0f, 1.0f },
@@ -191,29 +185,28 @@ void GenerateRenderListFromWorld(std::shared_ptr<CommandList> commandList, const
             128.0f
         };
 
-        newNode->MeshData       = Mesh::CreateSphere(*commandList, radius * 2.f);
+        CreateSphere(newNode, radius * 2.f);
         newNode->WorldMatrix    = newMatrix;
         newNode->Material       = newMaterial;
-        newNode->DiffuseTexture = &defaultTexture;
+        newNode->DiffuseTexture = defaultTexture;
         newNode->Hitable        = currentHead;
         outSceneList.push_back(newNode);
     }
-    else if (tid == typeid(HitableBox))
+    else if (tid == typeid(Core::HitableBox))
     {
-        HitableBox* box = (HitableBox*)currentHead;
+        Core::HitableBox* box = (Core::HitableBox*)currentHead;
 
-        Vec4 minP, maxP;
+        Core::Vec4 minP, maxP;
         box->GetPoints(minP, maxP);
 
-        Vec4             diff        = maxP - minP;
-        Vec4             offset      = minP + (diff * 0.5f);
-        XMMATRIX         translation = XMMatrixTranslation(offset.X(), offset.Y(), -offset.Z());
-        XMMATRIX         newMatrix   = ComputeFinalMatrix(matrixStack, translation);
-        XMFLOAT3         sideLengths = XMFLOAT3(fabs(diff.X()), fabs(diff.Y()), fabs(diff.Z()));
-        RenderSceneNode* newNode     = new RenderSceneNode();
-        const Material*  material    = box->GetMaterial();
+        Core::Vec4             diff        = maxP - minP;
+        Core::Vec4             offset      = minP + (diff * 0.5f);
+        XMMATRIX               translation = XMMatrixTranslation(offset.X(), offset.Y(), -offset.Z());
+        XMMATRIX               newMatrix   = ComputeFinalMatrix(matrixStack, translation);
+        RenderSceneNode*       newNode     = new RenderSceneNode();
+        const Core::Material*  material    = box->GetMaterial();
 
-        Vec4 color = material->AlbedoValue(0.5f, 0.5f, Vec4(0, 0, 0));
+        Core::Vec4 color = material->AlbedoValue(0.5f, 0.5f, Core::Vec4(0, 0, 0));
         const RenderMaterial newMaterial =
         {
             { 0.0f, 0.0f, 0.0f, 1.0f },
@@ -223,28 +216,28 @@ void GenerateRenderListFromWorld(std::shared_ptr<CommandList> commandList, const
             128.0f
         };
 
-        newNode->MeshData       = Mesh::CreateCube(*commandList, sideLengths);
+        CreateCube(newNode, diff);
         newNode->WorldMatrix    = newMatrix;
         newNode->Material       = newMaterial;
-        newNode->DiffuseTexture = &defaultTexture;
+        newNode->DiffuseTexture = defaultTexture;
         newNode->Hitable        = currentHead;
         outSceneList.push_back(newNode);
     }
-    else if (tid == typeid(TriMesh))
+    else if (tid == typeid(Core::TriMesh))
     {
-        TriMesh*         triMesh   = (TriMesh*)currentHead;
-        IHitable**       triArray  = nullptr;
-        int              numTris   = 0;
-        VertexCollection vertices;
-        IndexCollection  indices;
+        Core::TriMesh*    triMesh   = (Core::TriMesh*)currentHead;
+        Core::IHitable**  triArray  = nullptr;
+        int               numTris   = 0;
+        VertexBuffer      vertices;
+        IndexBuffer       indices;
         
         // Walk through all the triangles
         triMesh->GetTriArray(triArray, numTris);
         for (int t = 0; t < numTris; t++)
         {
-            const Triangle* tri = (const Triangle*)triArray[t];
+            const Core::Triangle* tri = (const Core::Triangle*)triArray[t];
 
-            const Triangle::Vertex* triVertices = tri->GetVertices();
+            const Core::Triangle::Vertex* triVertices = tri->GetVertices();
             for (int v = 0; v < 3; v++)
             {
                 float s = 1.f - triVertices[v].UV[0];
@@ -263,49 +256,41 @@ void GenerateRenderListFromWorld(std::shared_ptr<CommandList> commandList, const
         XMMATRIX         newMatrix   = ComputeFinalMatrix(matrixStack, translation);
         RenderSceneNode* newNode     = new RenderSceneNode();
 
-        Texture* newTexture = &defaultTexture;
-        if (typeid(*triMesh->GetMaterial()) == typeid(MWavefrontObj))
+        const RealtimeEngine::Texture* newTexture = defaultTexture;
+        if (typeid(*triMesh->GetMaterial()) == typeid(Core::MWavefrontObj))
         {
-            std::string  fileName = ((MWavefrontObj*)triMesh->GetMaterial())->GetDiffuseMap()->GetSourceFilename().c_str();
-            std::wstring widestr = std::wstring(fileName.begin(), fileName.end());
-            newTexture = new Texture();
-            commandList->LoadTextureFromFile(*newTexture, widestr.c_str());
+            std::string  fileName = ((Core::MWavefrontObj*)triMesh->GetMaterial())->GetDiffuseMap()->GetSourceFilename().c_str();
+            newTexture = RealtimeEngine::TextureManager::LoadFromFile(fileName);
         }
 
-        newNode->MeshData       = Mesh::CreateFromCollection(*commandList, vertices, indices);
+        newNode->VertexData     = vertices;
+        newNode->IndexData      = indices;
         newNode->WorldMatrix    = newMatrix;
         newNode->Material       = MaterialWhite;
         newNode->DiffuseTexture = newTexture;
         newNode->Hitable        = currentHead;
         outSceneList.push_back(newNode);
     }
-    else if (tid == typeid(XYZRect))
+    else if (tid == typeid(Core::XYZRect))
     {
-        XYZRect*  xyzRect = (XYZRect*)currentHead;
-        Vec4      planePoints[4];
-        Vec4      normal;
-        XMFLOAT3  xmPlanePoints[4];
-        XMFLOAT3  xmNormal;
+        Core::XYZRect*  xyzRect = (Core::XYZRect*)currentHead;
+        Core::Vec4      planePoints[4];
+        Core::Vec4      normal;
+
         xyzRect->GetPlaneData(planePoints, normal);
         bool normalFlipped = FlipFromNormalStack(normal, flipNormalStack);
-        for (int i = 0; i < 4; i++)
-        {
-            int dst = normalFlipped ? i : (4 - i - 1);
-            xmPlanePoints[dst] = XMFLOAT3(planePoints[i].X(), planePoints[i].Y(), -planePoints[i].Z());
-        }
-        xmNormal = XMFLOAT3(normal.X(), normal.Y(), -normal.Z());
-        
-        const Material*  material    = xyzRect->GetMaterial();
-        XMMATRIX         translation = XMMatrixIdentity();
-        XMMATRIX         newMatrix   = ComputeFinalMatrix(matrixStack, translation);
-        RenderSceneNode* newNode     = new RenderSceneNode();
+
+        const Core::Material*   material    = xyzRect->GetMaterial();
+        XMMATRIX                translation = XMMatrixIdentity();
+        XMMATRIX                newMatrix   = ComputeFinalMatrix(matrixStack, translation);
+        RenderSceneNode*        newNode     = new RenderSceneNode();
 
         // Clamp colors for lights, since they can overblow the color buffer
-        Vec4 color = material->AlbedoValue(0.5f, 0.5f, Vec4(0, 0, 0));
+        Core::Vec4 color = material->AlbedoValue(0.5f, 0.5f, Core::Vec4(0, 0, 0));
         color.Clamp(0.f, 1.f);
 
         // Light shapes should not get lit, and always show up fully shaded
-        Vec4 em = xyzRect->IsALightShape() ? Vec4(1.f, 1.f, 1.f, 1.f) : Vec4(0.0f, 0.0f, 0.0f, 1.0f);
+        Core::Vec4 em = xyzRect->IsALightShape() ? Core::Vec4(1.f, 1.f, 1.f, 1.f) : Core::Vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
         const RenderMaterial newMaterial =
         {
@@ -316,17 +301,17 @@ void GenerateRenderListFromWorld(std::shared_ptr<CommandList> commandList, const
             128.0f
         };
 
-        newNode->MeshData       = Mesh::CreatePlaneFromPoints(*commandList, xmPlanePoints, xmNormal);
+        CreatePlaneFromPoints(planePoints, normal);
         newNode->WorldMatrix    = newMatrix;
         newNode->Material       = newMaterial;
-        newNode->DiffuseTexture = &defaultTexture;
+        newNode->DiffuseTexture = defaultTexture;
         newNode->Hitable        = currentHead;
         outSceneList.push_back(newNode);
         
         // These can be light shapes too
         if (xyzRect->IsALightShape())
         {
-            if (xyzRect->GetAxisPlane() == XYZRect::AxisPlane::XZ)
+            if (xyzRect->GetAxisPlane() == Core::XYZRect::AxisPlane::XZ)
             {
                 float xValues[2], yValue, zValues[2];
                 xyzRect->GetParams(
@@ -334,18 +319,18 @@ void GenerateRenderListFromWorld(std::shared_ptr<CommandList> commandList, const
                     zValues[0], zValues[1],
                     yValue);
 
-                Vec4 pos(
+                Core::Vec4 pos(
                     (xValues[0] + xValues[1]) * 0.5f,
                     yValue,
                     (zValues[0] + zValues[1]) * 0.5f);
                 
-                Vec4  upDir   = Vec4(1.f, 0.f, 1.f);
-                Vec4  lookAt  = Vec4(pos[0], -yValue, pos[2]);
-                Vec4  dir     = UnitVector(lookAt - pos);
+                Core::Vec4  upDir   = Core::Vec4(1.f, 0.f, 1.f);
+                Core::Vec4  lookAt  = Core::Vec4(pos[0], -yValue, pos[2]);
+                Core::Vec4  dir     = UnitVector(lookAt - pos);
 
                 // Pullback the camera for shadowmap rendering
-                float smapDist = sShadowmapFar - fabs(yValue);
-                Vec4  smapPos  = pos - (dir * smapDist);
+                float smapDist = 1000.f - fabs(yValue);
+                Core::Vec4  smapPos  = pos - (dir * smapDist);
 
                 SpotLight light;
                 light.PositionWS           = ConvertToXMFloat4(pos);
@@ -367,7 +352,7 @@ void GenerateRenderListFromWorld(std::shared_ptr<CommandList> commandList, const
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static void UpdateCameras(float newVertFov, float forwardAmount, float strafeAmount, float upDownAmount, int mouseDx, int mouseDy, Camera& raytracerCamera, CameraDX12& renderCamera)
+static void UpdateCameras(float newVertFov, float forwardAmount, float strafeAmount, float upDownAmount, int mouseDx, int mouseDy, Core::Camera& raytracerCamera) //, CameraDX12& renderCamera)
 {
     // Has mouse moved?
     static int lastMouseDx = mouseDx;
@@ -381,26 +366,26 @@ static void UpdateCameras(float newVertFov, float forwardAmount, float strafeAmo
     }
 
     // Get ray tracer camera params
-    Vec4   lookFrom, lookAt, up;
-    float  vertFov, aspect, aperture, focusDist, t0, t1;
-    Vec4   clearColor;
+    Core::Vec4   lookFrom, lookAt, up;
+    float        vertFov, aspect, aperture, focusDist, t0, t1;
+    Core::Vec4   clearColor;
     raytracerCamera.GetCameraParams(lookFrom, lookAt, up, vertFov, aspect, aperture, focusDist, t0, t1, clearColor);
 
     // Update render camera look at
-    Vec4  diffVec = (lookAt - lookFrom);
-    Vec4  viewDir = diffVec.MakeUnitVector();
-    Vec4  rightDir = Cross(up, viewDir).MakeUnitVector();
+    Core::Vec4  diffVec = (lookAt - lookFrom);
+    Core::Vec4  viewDir = diffVec.MakeUnitVector();
+    Core::Vec4  rightDir = Cross(up, viewDir).MakeUnitVector();
     float upAngle = mouseDx * -.1f;
     float rightAngle = mouseDy * -.1f;
 
     // Rotate around up axis
-    viewDir = Quat::RotateVector(viewDir, up, upAngle);
-    rightDir = Quat::RotateVector(rightDir, up, upAngle);
+    viewDir  = Core::Quat::RotateVector(viewDir, up, upAngle);
+    rightDir = Core::Quat::RotateVector(rightDir, up, upAngle);
 
     // Rotate around right axis
-    viewDir = Quat::RotateVector(viewDir, rightDir, rightAngle);
+    viewDir = Core::Quat::RotateVector(viewDir, rightDir, rightAngle);
 
-    Vec4 cameraTranslate = (viewDir * forwardAmount) + (rightDir * strafeAmount) + (up * upDownAmount);
+    Core::Vec4 cameraTranslate = (viewDir * forwardAmount) + (rightDir * strafeAmount) + (up * upDownAmount);
     lookFrom += cameraTranslate;
     lookAt = lookFrom + (viewDir * diffVec.Length());
 
@@ -409,11 +394,11 @@ static void UpdateCameras(float newVertFov, float forwardAmount, float strafeAmo
     raytracerCamera.SetFocusDistanceToLookAt();
 
     // Set the render camera
-    XMVECTOR cameraPos = ConvertToXMVector(lookFrom);
+    XMVECTOR cameraPos    = ConvertToXMVector(lookFrom);
     XMVECTOR cameraTarget = ConvertToXMVector(lookAt);
-    XMVECTOR cameraUp = ConvertToXMVector(up);
-    renderCamera.set_LookAt(cameraPos, cameraTarget, cameraUp);
-    renderCamera.set_Projection(newVertFov, aspect, 0.1f, 10000.0f);
+    XMVECTOR cameraUp     = ConvertToXMVector(up);
+    //renderCamera.set_LookAt(cameraPos, cameraTarget, cameraUp);
+    //renderCamera.set_Projection(newVertFov, aspect, 0.1f, 10000.0f);
 
     // Print out camera changes
     if (mouseMoved)

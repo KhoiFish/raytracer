@@ -40,10 +40,10 @@ namespace RealtimeEngine
             Data[3] = a;
         }
 
-        const float  R()                         { return Data[0]; }
-        const float  G()                         { return Data[1]; }
-        const float  B()                         { return Data[2]; }
-        const float  A()                         { return Data[3]; }
+        float        R() const                   { return Data[0]; }
+        float        G() const                   { return Data[1]; }
+        float        B() const                   { return Data[2]; }
+        float        A() const                   { return Data[3]; }
         float&       operator[] (uint32_t index) { return Data[index]; }
         const float* GetPtr()                    { return Data; }
 

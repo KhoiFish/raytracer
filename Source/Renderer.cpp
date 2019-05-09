@@ -23,6 +23,7 @@
 #include "RealtimeEngine/CommandList.h"
 #include "RealtimeEngine/CommandContext.h"
 #include <d3dcompiler.h>
+#include "Windows/SceneConvert.hpp"
 
 using namespace Core;
 using namespace RealtimeEngine;
@@ -33,8 +34,15 @@ static int     sNumSamplesPerRay = 500;
 static int     sMaxScatterDepth  = 50;
 static int     sNumThreads       = 4;
 static float   sVertFov          = 40.f;
-static int     sSampleScene      = SceneFinal;
+static int     sSampleScene      = SceneCornellSmoke;
 static float   sClearColor[]     = { 0.2f, 0.2f, 0.2f, 1.0f };
+
+const D3D12_INPUT_ELEMENT_DESC VertexPositionNormalTexture::InputElements[] =
+{
+    { "POSITION",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+    { "NORMAL",     0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+    { "TEXCOORD",   0, DXGI_FORMAT_R32G32_FLOAT,    0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+};
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -76,12 +84,12 @@ void Renderer::OnInit()
 
     RenderDevice::Initialize(PlatformApp::GetHwnd(), Width, Height, this);
     LoadScene();
-    SetupRenderPipeline();
+    SetupFullscreenQuadPipeline();
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::SetupRenderPipeline()
+void Renderer::SetupFullscreenQuadPipeline()
 {
     D3D12_RASTERIZER_DESC rasterizerDefault;
     rasterizerDefault.FillMode                              = D3D12_FILL_MODE_SOLID;
@@ -136,16 +144,16 @@ void Renderer::SetupRenderPipeline()
     defaultSamplerDesc.MinLOD                               = 0.0f;
     defaultSamplerDesc.MaxLOD                               = D3D12_FLOAT32_MAX;
 
-    // Main root signature setup
+    // Fullscreen quad signature setup
     {
-        MainRootSignature.Reset(4, 2);
-        MainRootSignature[0].InitAsConstants(0, 6, D3D12_SHADER_VISIBILITY_ALL);
-        MainRootSignature[1].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 1);
-        MainRootSignature[2].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 0, 4);
-        MainRootSignature[3].InitAsBufferSRV(2, D3D12_SHADER_VISIBILITY_PIXEL);
-        MainRootSignature.InitStaticSampler(0, defaultSamplerDesc, D3D12_SHADER_VISIBILITY_PIXEL);
-        MainRootSignature.InitStaticSampler(1, defaultSamplerDesc, D3D12_SHADER_VISIBILITY_PIXEL);
-        MainRootSignature.Finalize("RaytracerRender", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+        FullscreenQuadRootSignature.Reset(4, 2);
+        FullscreenQuadRootSignature[0].InitAsConstants(0, 6, D3D12_SHADER_VISIBILITY_ALL);
+        FullscreenQuadRootSignature[1].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 0, 1);
+        FullscreenQuadRootSignature[2].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 0, 4);
+        FullscreenQuadRootSignature[3].InitAsBufferSRV(2, D3D12_SHADER_VISIBILITY_PIXEL);
+        FullscreenQuadRootSignature.InitStaticSampler(0, defaultSamplerDesc, D3D12_SHADER_VISIBILITY_PIXEL);
+        FullscreenQuadRootSignature.InitStaticSampler(1, defaultSamplerDesc, D3D12_SHADER_VISIBILITY_PIXEL);
+        FullscreenQuadRootSignature.Finalize("FullscreenQuadRender", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
     }
 
     // Full screen pipeline state setup
@@ -162,7 +170,7 @@ void Renderer::SetupRenderPipeline()
 
         DXGI_FORMAT rtFormats[] { RenderDevice::Get().GetBackBufferFormat() };
 
-        FullscreenPipelineState.SetRootSignature(MainRootSignature);
+        FullscreenPipelineState.SetRootSignature(FullscreenQuadRootSignature);
         FullscreenPipelineState.SetRasterizerState(rasterizerDefault);
         FullscreenPipelineState.SetBlendState(blendDisable);
         FullscreenPipelineState.SetDepthStencilState(depthStateReadWrite);
@@ -282,7 +290,7 @@ void Renderer::OnRender()
 {
     GraphicsContext& renderContext = GraphicsContext::Begin("Renderer::OnRender()");
     {
-        renderContext.SetRootSignature(MainRootSignature);
+        renderContext.SetRootSignature(FullscreenQuadRootSignature);
         renderContext.SetViewport(RenderDevice::Get().GetScreenViewport());
         renderContext.SetScissor(RenderDevice::Get().GetScissorRect());
         renderContext.TransitionResource(RenderDevice::Get().GetRenderTarget(), D3D12_RESOURCE_STATE_RENDER_TARGET, true);
@@ -330,8 +338,7 @@ void Renderer::OnSizeChanged(uint32_t width, uint32_t height, bool minimized)
 
 void Renderer::OnDestroy()
 {
-    // Let GPU finish before releasing D3D resources.
+    // Let GPU finish before releasing D3D resources
     CommandListManager::Get().IdleGPU();
     OnDeviceLost();
 }
-

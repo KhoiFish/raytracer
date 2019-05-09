@@ -47,8 +47,8 @@ namespace Core
 
         inline Quat operator *(const Quat & q) const
         {
-            float scalar = S * q.S - ::Dot(V, q.V);
-            Vec4  imaginary = q.V * S + V * q.S + ::Cross(V, q.V);
+            float scalar = S * q.S - ::Core::Dot(V, q.V);
+            Vec4  imaginary = q.V * S + V * q.S + ::Core::Cross(V, q.V);
 
             return Quat(scalar, imaginary);
         }
@@ -65,12 +65,12 @@ namespace Core
 
         inline float Dot(const Quat & q) const
         {
-            return S * q.S + ::Dot(V, q.V);
+            return S * q.S + ::Core::Dot(V, q.V);
         }
 
         inline float Norm() const
         {
-            return sqrt((S * S) + ::Dot(V, V));
+            return sqrt((S * S) + ::Core::Dot(V, V));
         }
 
         inline Quat Conjugate() const

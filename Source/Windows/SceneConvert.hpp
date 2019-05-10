@@ -137,7 +137,7 @@ static void CreateSphere(RenderSceneNode* renderNode, float radius, int tessella
             XMVECTOR normal   = XMVectorSet(dx, dy, dz, 0);
             XMVECTOR texCoord = XMVectorSet(u, v, 0, 0);
 
-            renderNode->VertexData.push_back(RenderVertex(normal * radius, normal, texCoord));
+            renderNode->Vertices.push_back(RenderVertex(normal * radius, normal, texCoord));
         }
     }
 
@@ -149,13 +149,13 @@ static void CreateSphere(RenderSceneNode* renderNode, float radius, int tessella
             int nextI = i + 1;
             int nextJ = (j + 1) % stride;
 
-            renderNode->IndexData.push_back(uint32_t(i * stride + j));
-            renderNode->IndexData.push_back(uint32_t(nextI * stride + j));
-            renderNode->IndexData.push_back(uint32_t(i * stride + nextJ));
+            renderNode->Indices.push_back(uint32_t(i * stride + j));
+            renderNode->Indices.push_back(uint32_t(nextI * stride + j));
+            renderNode->Indices.push_back(uint32_t(i * stride + nextJ));
 
-            renderNode->IndexData.push_back(uint32_t(i * stride + nextJ));
-            renderNode->IndexData.push_back(uint32_t(nextI * stride + j));
-            renderNode->IndexData.push_back(uint32_t(nextI * stride + nextJ));
+            renderNode->Indices.push_back(uint32_t(i * stride + nextJ));
+            renderNode->Indices.push_back(uint32_t(nextI * stride + j));
+            renderNode->Indices.push_back(uint32_t(nextI * stride + nextJ));
         }
     }
 }
@@ -200,18 +200,18 @@ static void CreateCube(RenderSceneNode* renderNode, Core::Vec4 sideLengths)
         XMVECTOR side1 = XMVector3Cross(normal, basis);
         XMVECTOR side2 = XMVector3Cross(normal, side1);
 
-        int vbase = (int)renderNode->VertexData.size();
-        renderNode->IndexData.push_back(uint32_t(vbase + 0));
-        renderNode->IndexData.push_back(uint32_t(vbase + 1));
-        renderNode->IndexData.push_back(uint32_t(vbase + 2));
-        renderNode->IndexData.push_back(uint32_t(vbase + 0));
-        renderNode->IndexData.push_back(uint32_t(vbase + 2));
-        renderNode->IndexData.push_back(uint32_t(vbase + 3));
+        int vbase = (int)renderNode->Vertices.size();
+        renderNode->Indices.push_back(uint32_t(vbase + 0));
+        renderNode->Indices.push_back(uint32_t(vbase + 1));
+        renderNode->Indices.push_back(uint32_t(vbase + 2));
+        renderNode->Indices.push_back(uint32_t(vbase + 0));
+        renderNode->Indices.push_back(uint32_t(vbase + 2));
+        renderNode->Indices.push_back(uint32_t(vbase + 3));
 
-        renderNode->VertexData.push_back(RenderVertex((normal - side1 - side2) * halfLengths, normal, textureCoordinates[0]));
-        renderNode->VertexData.push_back(RenderVertex((normal - side1 + side2) * halfLengths, normal, textureCoordinates[1]));
-        renderNode->VertexData.push_back(RenderVertex((normal + side1 + side2) * halfLengths, normal, textureCoordinates[2]));
-        renderNode->VertexData.push_back(RenderVertex((normal + side1 - side2) * halfLengths, normal, textureCoordinates[3]));
+        renderNode->Vertices.push_back(RenderVertex((normal - side1 - side2) * halfLengths, normal, textureCoordinates[0]));
+        renderNode->Vertices.push_back(RenderVertex((normal - side1 + side2) * halfLengths, normal, textureCoordinates[1]));
+        renderNode->Vertices.push_back(RenderVertex((normal + side1 + side2) * halfLengths, normal, textureCoordinates[2]));
+        renderNode->Vertices.push_back(RenderVertex((normal + side1 - side2) * halfLengths, normal, textureCoordinates[3]));
     }
 }
 
@@ -219,22 +219,30 @@ static void CreateCube(RenderSceneNode* renderNode, Core::Vec4 sideLengths)
 
 static void CreatePlaneFromPoints(RenderSceneNode* renderNode, const Core::Vec4* points, const Core::Vec4& normal)
 {
-    renderNode->VertexData.push_back({ ConvertToXMFloat3(points[0]), ConvertToXMFloat3(normal), XMFLOAT2(0.0f, 0.0f) });
-    renderNode->VertexData.push_back({ ConvertToXMFloat3(points[1]), ConvertToXMFloat3(normal), XMFLOAT2(1.0f, 0.0f) });
-    renderNode->VertexData.push_back({ ConvertToXMFloat3(points[2]), ConvertToXMFloat3(normal), XMFLOAT2(1.0f, 1.0f) });
-    renderNode->VertexData.push_back({ ConvertToXMFloat3(points[3]), ConvertToXMFloat3(normal), XMFLOAT2(0.0f, 1.0f) });
+    renderNode->Vertices.push_back({ ConvertToXMFloat3(points[0]), ConvertToXMFloat3(normal), XMFLOAT2(0.0f, 0.0f) });
+    renderNode->Vertices.push_back({ ConvertToXMFloat3(points[1]), ConvertToXMFloat3(normal), XMFLOAT2(1.0f, 0.0f) });
+    renderNode->Vertices.push_back({ ConvertToXMFloat3(points[2]), ConvertToXMFloat3(normal), XMFLOAT2(1.0f, 1.0f) });
+    renderNode->Vertices.push_back({ ConvertToXMFloat3(points[3]), ConvertToXMFloat3(normal), XMFLOAT2(0.0f, 1.0f) });
 
-    renderNode->IndexData.push_back(0);
-    renderNode->IndexData.push_back(3);
-    renderNode->IndexData.push_back(1);
-    renderNode->IndexData.push_back(1);
-    renderNode->IndexData.push_back(3);
-    renderNode->IndexData.push_back(2);
+    renderNode->Indices.push_back(0);
+    renderNode->Indices.push_back(3);
+    renderNode->Indices.push_back(1);
+    renderNode->Indices.push_back(1);
+    renderNode->Indices.push_back(3);
+    renderNode->Indices.push_back(2);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static void GenerateRenderListFromWorld(const Core::IHitable* currentHead, const RealtimeEngine::Texture* defaultTexture, std::vector<RenderSceneNode*>& outSceneList, std::vector<SpotLight>& spotLightsList, std::vector<DirectX::XMMATRIX>& matrixStack, std::vector<bool>& flipNormalStack)
+static void CreateResourceViews(RenderSceneNode* renderNode)
+{
+    renderNode->VertexBuffer.Create(L"VertexBuffer", (uint32_t)renderNode->Vertices.size(), sizeof(RenderVertex), &renderNode->Vertices[0]);
+    renderNode->IndexBuffer.Create(L"IndexBuffer", (uint32_t)renderNode->Indices.size(), sizeof(uint32_t), &renderNode->Indices[0]);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+static void GenerateRenderListFromWorld(GraphicsContext& renderContext, const Core::IHitable* currentHead, const RealtimeEngine::Texture* defaultTexture, std::vector<RenderSceneNode*>& outSceneList, std::vector<SpotLight>& spotLightsList, std::vector<DirectX::XMMATRIX>& matrixStack, std::vector<bool>& flipNormalStack)
 {
     const std::type_info& tid = typeid(*currentHead);
 
@@ -245,17 +253,17 @@ static void GenerateRenderListFromWorld(const Core::IHitable* currentHead, const
         const int          listSize = hitList->GetListSize();
         for (int i = 0; i < listSize; i++)
         {
-            GenerateRenderListFromWorld(list[i], defaultTexture, outSceneList, spotLightsList, matrixStack, flipNormalStack);
+            GenerateRenderListFromWorld(renderContext, list[i], defaultTexture, outSceneList, spotLightsList, matrixStack, flipNormalStack);
         }
     }
     else if (tid == typeid(Core::BVHNode))
     {
         Core::BVHNode* bvhNode = (Core::BVHNode*)currentHead;
 
-        GenerateRenderListFromWorld(bvhNode->GetLeft(), defaultTexture, outSceneList, spotLightsList, matrixStack, flipNormalStack);
+        GenerateRenderListFromWorld(renderContext, bvhNode->GetLeft(), defaultTexture, outSceneList, spotLightsList, matrixStack, flipNormalStack);
         if (bvhNode->GetLeft() != bvhNode->GetRight())
         {
-            GenerateRenderListFromWorld(bvhNode->GetRight(), defaultTexture, outSceneList, spotLightsList, matrixStack, flipNormalStack);
+            GenerateRenderListFromWorld(renderContext, bvhNode->GetRight(), defaultTexture, outSceneList, spotLightsList, matrixStack, flipNormalStack);
         }
     }
     else if (tid == typeid(Core::HitableTranslate))
@@ -265,7 +273,7 @@ static void GenerateRenderListFromWorld(const Core::IHitable* currentHead, const
         XMMATRIX                translation      = XMMatrixTranslation(offset.X(), offset.Y(), -offset.Z());
 
         matrixStack.push_back(translation);
-        GenerateRenderListFromWorld(translateHitable->GetHitObject(), defaultTexture, outSceneList, spotLightsList, matrixStack, flipNormalStack);
+        GenerateRenderListFromWorld(renderContext, translateHitable->GetHitObject(), defaultTexture, outSceneList, spotLightsList, matrixStack, flipNormalStack);
         matrixStack.pop_back();
     }
     else if (tid == typeid(Core::HitableRotateY))
@@ -274,7 +282,7 @@ static void GenerateRenderListFromWorld(const Core::IHitable* currentHead, const
         XMMATRIX                rotation       = XMMatrixRotationY(XMConvertToRadians(-rotateYHitable->GetAngleDegrees()));
 
         matrixStack.push_back(rotation);
-        GenerateRenderListFromWorld(rotateYHitable->GetHitObject(), defaultTexture, outSceneList, spotLightsList, matrixStack, flipNormalStack);
+        GenerateRenderListFromWorld(renderContext, rotateYHitable->GetHitObject(), defaultTexture, outSceneList, spotLightsList, matrixStack, flipNormalStack);
         matrixStack.pop_back();
     }
     else if (tid == typeid(Core::FlipNormals))
@@ -282,7 +290,7 @@ static void GenerateRenderListFromWorld(const Core::IHitable* currentHead, const
         Core::FlipNormals* flipNormals = (Core::FlipNormals*)currentHead;
 
         flipNormalStack.push_back(true);
-        GenerateRenderListFromWorld(flipNormals->GetHitObject(), defaultTexture, outSceneList, spotLightsList, matrixStack, flipNormalStack);
+        GenerateRenderListFromWorld(renderContext, flipNormals->GetHitObject(), defaultTexture, outSceneList, spotLightsList, matrixStack, flipNormalStack);
         flipNormalStack.pop_back();
     }
     else if (tid == typeid(Core::Sphere) || tid == typeid(Core::MovingSphere))
@@ -324,6 +332,7 @@ static void GenerateRenderListFromWorld(const Core::IHitable* currentHead, const
         newNode->Material       = newMaterial;
         newNode->DiffuseTexture = defaultTexture;
         newNode->Hitable        = currentHead;
+        CreateResourceViews(newNode);
         outSceneList.push_back(newNode);
     }
     else if (tid == typeid(Core::HitableBox))
@@ -355,6 +364,7 @@ static void GenerateRenderListFromWorld(const Core::IHitable* currentHead, const
         newNode->Material       = newMaterial;
         newNode->DiffuseTexture = defaultTexture;
         newNode->Hitable        = currentHead;
+        CreateResourceViews(newNode);
         outSceneList.push_back(newNode);
     }
     else if (tid == typeid(Core::TriMesh))
@@ -362,8 +372,7 @@ static void GenerateRenderListFromWorld(const Core::IHitable* currentHead, const
         Core::TriMesh*    triMesh   = (Core::TriMesh*)currentHead;
         Core::IHitable**  triArray  = nullptr;
         int               numTris   = 0;
-        VertexBuffer      vertices;
-        IndexBuffer       indices;
+        RenderSceneNode*  newNode   = new RenderSceneNode();
         
         // Walk through all the triangles
         triMesh->GetTriArray(triArray, numTris);
@@ -381,14 +390,13 @@ static void GenerateRenderListFromWorld(const Core::IHitable* currentHead, const
                 XMVECTOR normal   = ConvertToXMVector(triVertices[v].Normal);
                 XMVECTOR texCoord = XMVectorSet(s, t, 0, 0);
 
-                vertices.push_back(RenderVertex(position, normal, texCoord));
-                indices.push_back(uint32_t(vertices.size() - 1));
+                newNode->Vertices.push_back(RenderVertex(position, normal, texCoord));
+                newNode->Indices.push_back(uint32_t(newNode->Vertices.size() - 1));
             }
         }
 
-        XMMATRIX         translation = XMMatrixIdentity();
-        XMMATRIX         newMatrix   = ComputeFinalMatrix(matrixStack, translation);
-        RenderSceneNode* newNode     = new RenderSceneNode();
+        XMMATRIX translation = XMMatrixIdentity();
+        XMMATRIX newMatrix = ComputeFinalMatrix(matrixStack, translation);
 
         const RealtimeEngine::Texture* newTexture = defaultTexture;
         if (typeid(*triMesh->GetMaterial()) == typeid(Core::MWavefrontObj))
@@ -397,12 +405,11 @@ static void GenerateRenderListFromWorld(const Core::IHitable* currentHead, const
             newTexture = RealtimeEngine::TextureManager::LoadFromFile(fileName);
         }
 
-        newNode->VertexData     = vertices;
-        newNode->IndexData      = indices;
         newNode->WorldMatrix    = newMatrix;
         newNode->Material       = MaterialWhite;
         newNode->DiffuseTexture = newTexture;
         newNode->Hitable        = currentHead;
+        CreateResourceViews(newNode);
         outSceneList.push_back(newNode);
     }
     else if (tid == typeid(Core::XYZRect))
@@ -440,6 +447,7 @@ static void GenerateRenderListFromWorld(const Core::IHitable* currentHead, const
         newNode->Material       = newMaterial;
         newNode->DiffuseTexture = defaultTexture;
         newNode->Hitable        = currentHead;
+        CreateResourceViews(newNode);
         outSceneList.push_back(newNode);
         
         // These can be light shapes too

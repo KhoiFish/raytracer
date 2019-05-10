@@ -25,6 +25,7 @@
 #include "Windows/ShaderStructs.h"
 #include "RealtimeEngine/RTTexture.h"
 #include "Core/IHitable.h"
+#include "RealtimeEngine/GpuBuffer.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -52,8 +53,8 @@ struct RenderVertex
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-using VertexBuffer = std::vector<RenderVertex>;
-using IndexBuffer  = std::vector<uint32_t>;
+using VertexData = std::vector<RenderVertex>;
+using IndexData  = std::vector<uint32_t>;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -61,10 +62,12 @@ struct RenderSceneNode
 {
     RenderSceneNode() : Hitable(nullptr), DiffuseTexture(nullptr) {}
 
-    const Core::IHitable*           Hitable;
-    VertexBuffer                    VertexData;
-    IndexBuffer                     IndexData;
-    DirectX::XMMATRIX               WorldMatrix;
-    RenderMaterial                  Material;
-    const RealtimeEngine::Texture*  DiffuseTexture;
+    const Core::IHitable*               Hitable;
+    VertexData                          Vertices;
+    IndexData                           Indices;
+    RealtimeEngine::StructuredBuffer    VertexBuffer;
+    RealtimeEngine::StructuredBuffer    IndexBuffer;
+    DirectX::XMMATRIX                   WorldMatrix;
+    RenderMaterial                      Material;
+    const RealtimeEngine::Texture*      DiffuseTexture;
 };

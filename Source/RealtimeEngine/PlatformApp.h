@@ -42,10 +42,10 @@ namespace RealtimeEngine
 
     private:
 
-        static HWND         Hwnd;
-        static bool         FullscreenMode;
+        static HWND             Hwnd;
+        static bool             FullscreenMode;
         static const uint32_t   WindowStyle = WS_OVERLAPPEDWINDOW;
-        static RECT         WindowRect;
+        static RECT             WindowRect;
     };
 
 }

@@ -50,6 +50,8 @@ public:
 
     virtual void               OnInit();
     virtual void               OnKeyDown(UINT8 key);
+    virtual void               OnMouseMove(uint32_t x, uint32_t y);
+    virtual void               OnLeftButtonDown(uint32_t x, uint32_t y);
     virtual void               OnUpdate();
     virtual void               OnRender();
     virtual void               OnSizeChanged(uint32_t width, uint32_t height, bool minimized);
@@ -63,6 +65,7 @@ private:
     void                       Raytrace(bool enable);
     void                       OnResizeRaytracer();
     static void                OnRaytraceComplete(Core::Raytracer* tracer, bool actuallyFinished);
+    void                       RenderSceneList(GraphicsContext& renderContext, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix);
 
 private:
 
@@ -82,14 +85,16 @@ private:
 
     struct UserInputData
     {
-        float Forward;
-        float Backward;
-        float Left;
-        float Right;
-        float Up;
-        float Down;
-        int   MouseDx;
-        int   MouseDy;
+        UserInputData() : Forward(0), Backward(0), Left(0), Right(0), Up(0), Down(0), MouseDx(0), MouseDy(0) {}
+
+        float   Forward;
+        float   Backward;
+        float   Left;
+        float   Right;
+        float   Up;
+        float   Down;
+        int     MouseDx;
+        int     MouseDy;
     };
 
     struct GBuffer
@@ -114,7 +119,7 @@ private:
 
     GBuffer                         RealtimeBuffers;
     RootSignature                   RealtimeRootSignature;
-    GraphicsPSO                     RealtimePSO;
+    GraphicsPSO                     RealtimeGeometryPassPSO;
 
     UserInputData                   UserInput;
 };

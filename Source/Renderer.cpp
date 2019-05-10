@@ -331,8 +331,7 @@ void Renderer::SetupRealtimePipeline()
         ThrowIfFailed(D3DReadFileToBlob(SHADERBUILD_DIR L"\\ZPrePass_VS.cso", &vertexShaderBlob));
         ThrowIfFailed(D3DReadFileToBlob(SHADERBUILD_DIR L"\\ZPrePass_PS.cso", &pixelShaderBlob));
 
-        // TODO: Find out why we can't use R32 format
-        ZBufferRTType = DXGI_FORMAT_R32_FLOAT; // DXGI_FORMAT_R32G32B32A32_FLOAT; // DXGI_FORMAT_R32_FLOAT;
+        ZBufferRTType = DXGI_FORMAT_R32_FLOAT;
 
         RealtimeZPrePassPSO.SetRootSignature(RealtimeRootSignature);
         RealtimeZPrePassPSO.SetRasterizerState(rasterizerDesc);
@@ -575,38 +574,9 @@ static void XM_CALLCONV ComputeMatrices(FXMMATRIX model, CXMMATRIX view, CXMMATR
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::RenderSceneList(GraphicsContext& renderContext, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix)
+void Renderer::RenderCPUResults()
 {
-    for (int i = 0; i < TheRealtimeSceneList.size(); i++)
-    {
-        // Don't render light shapes
-        if (TheRealtimeSceneList[i]->Hitable->IsALightShape())
-        {
-            continue;
-        }
-
-        RenderMatrices matrices;
-        ComputeMatrices(TheRealtimeSceneList[i]->WorldMatrix, viewMatrix, projectionMatrix, matrices);
-
-        const RealtimeEngine::Texture* diffuseTex = (TheRealtimeSceneList[i]->DiffuseTexture != nullptr) ? TheRealtimeSceneList[i]->DiffuseTexture : nullptr;
-
-        renderContext.SetDynamicConstantBufferView(RealtimeRenderingRootIndex_ConstantBuffer0, sizeof(matrices), &matrices);
-        renderContext.SetDynamicConstantBufferView(RealtimeRenderingRootIndex_ConstantBuffer1, sizeof(matrices), &matrices);
-        //renderContext.SetDynamicDescriptor(FullscreenQuadRootIndex_Texture0, 0, diffuseTex->GetSRV());
-        //commandList->SetGraphicsDynamicConstantBuffer(RootParameters::MaterialCB, RenderSceneList[i]->Material);
-        renderContext.SetVertexBuffer(0, TheRealtimeSceneList[i]->VertexBuffer.VertexBufferView());
-        renderContext.SetIndexBuffer(TheRealtimeSceneList[i]->IndexBuffer.IndexBufferView());
-        renderContext.DrawIndexed((uint32_t)TheRealtimeSceneList[i]->Indices.size());
-    }
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-void Renderer::OnRender()
-{
-    GraphicsContext& renderContext = GraphicsContext::Begin("Renderer::OnRender()");
-
-    if (RenderMode == RenderingMode_Cpu)
+    GraphicsContext& renderContext = GraphicsContext::Begin("RenderCPUResults");
     {
         renderContext.SetRootSignature(FullscreenQuadRootSignature);
         renderContext.SetViewport(RenderDevice::Get().GetScreenViewport());
@@ -620,9 +590,9 @@ void Renderer::OnRender()
         {
             // Update GPU texture with the cpu traced results
             D3D12_SUBRESOURCE_DATA subresource;
-            subresource.RowPitch   = 4 * TheRaytracer->GetOutputWidth();
+            subresource.RowPitch = 4 * TheRaytracer->GetOutputWidth();
             subresource.SlicePitch = subresource.RowPitch * TheRaytracer->GetOutputHeight();
-            subresource.pData      = TheRaytracer->GetOutputBufferRGBA();
+            subresource.pData = TheRaytracer->GetOutputBufferRGBA();
             renderContext.InitializeTexture(CPURaytracerTex, 1, &subresource);
 
             renderContext.TransitionResource(CPURaytracerTex, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
@@ -634,7 +604,14 @@ void Renderer::OnRender()
             renderContext.Draw(3);
         }
     }
-    else if (RenderMode == RenderingMode_Realtime)
+    renderContext.Finish();
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void Renderer::RenderRealtimeResults()
+{
+    GraphicsContext& renderContext = GraphicsContext::Begin("RenderRealtimeResults");
     {
         renderContext.SetRootSignature(RealtimeRootSignature);
         renderContext.SetViewport(RenderDevice::Get().GetScreenViewport());
@@ -680,13 +657,57 @@ void Renderer::OnRender()
 
             RenderSceneList(renderContext, TheRenderCamera.get_ViewMatrix(), TheRenderCamera.get_ProjectionMatrix());
         }
+    }
+    renderContext.Finish();
+}
 
-        renderContext.TransitionResource(RenderDevice::Get().GetRenderTarget(), D3D12_RESOURCE_STATE_RENDER_TARGET, true);
-        renderContext.ClearColor(RenderDevice::Get().GetRenderTarget());
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void Renderer::RenderSceneList(GraphicsContext& renderContext, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix)
+{
+    for (int i = 0; i < TheRealtimeSceneList.size(); i++)
+    {
+        // Don't render light shapes
+        if (TheRealtimeSceneList[i]->Hitable->IsALightShape())
+        {
+            continue;
+        }
+
+        RenderMatrices matrices;
+        ComputeMatrices(TheRealtimeSceneList[i]->WorldMatrix, viewMatrix, projectionMatrix, matrices);
+
+        const RealtimeEngine::Texture* diffuseTex = (TheRealtimeSceneList[i]->DiffuseTexture != nullptr) ? TheRealtimeSceneList[i]->DiffuseTexture : nullptr;
+
+        renderContext.SetDynamicConstantBufferView(RealtimeRenderingRootIndex_ConstantBuffer0, sizeof(matrices), &matrices);
+        renderContext.SetDynamicConstantBufferView(RealtimeRenderingRootIndex_ConstantBuffer1, sizeof(matrices), &matrices);
+        //renderContext.SetDynamicDescriptor(FullscreenQuadRootIndex_Texture0, 0, diffuseTex->GetSRV());
+        //commandList->SetGraphicsDynamicConstantBuffer(RootParameters::MaterialCB, RenderSceneList[i]->Material);
+        renderContext.SetVertexBuffer(0, TheRealtimeSceneList[i]->VertexBuffer.VertexBufferView());
+        renderContext.SetIndexBuffer(TheRealtimeSceneList[i]->IndexBuffer.IndexBufferView());
+        renderContext.DrawIndexed((uint32_t)TheRealtimeSceneList[i]->Indices.size());
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void Renderer::OnRender()
+{
+    // Render the right stuff
+    switch (RenderMode)
+    {
+    case RenderingMode_Cpu:
+        RenderCPUResults();
+        break;
+
+    case RenderingMode_Realtime:
+        RenderRealtimeResults();
+        break;
+
+    default:
+        break;
     }
 
     // Present
-    renderContext.Finish();
     RenderDevice::Get().Present();
 }
 

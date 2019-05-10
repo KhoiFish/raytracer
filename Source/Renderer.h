@@ -61,12 +61,14 @@ private:
 
     void                       SetupFullscreenQuadPipeline();
     void                       SetupRealtimePipeline();
+    void                       SetupRenderBuffers();
     void                       LoadScene();
     void                       Raytrace(bool enable);
     void                       OnResizeRaytracer();
     static void                OnRaytraceComplete(Core::Raytracer* tracer, bool actuallyFinished);
     void                       RenderSceneList(GraphicsContext& renderContext, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix);
-    void                       SetupRenderBuffers();
+    void                       RenderCPUResults();
+    void                       RenderRealtimeResults();
 
 private:
 

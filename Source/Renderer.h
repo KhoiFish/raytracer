@@ -66,6 +66,7 @@ private:
     void                       OnResizeRaytracer();
     static void                OnRaytraceComplete(Core::Raytracer* tracer, bool actuallyFinished);
     void                       RenderSceneList(GraphicsContext& renderContext, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix);
+    void                       SetupRenderBuffers();
 
 private:
 
@@ -97,11 +98,22 @@ private:
         int     MouseDy;
     };
 
-    struct GBuffer
+    enum DeferredBufferType
     {
-        ColorBuffer Position;
-        ColorBuffer Normal;
-        ColorBuffer TexCoord;
+        DeferredBufferType_Position = 0,
+        DeferredBufferType_Normal,
+        DeferredBufferType_TexCoord,
+        DeferredBufferType_Diffuse,
+
+        DeferredBufferType_Num
+    };
+
+    static constexpr const char* DeferredBufferTypeStrings[DeferredBufferType_Num] =
+    {
+        "Position Buffer",
+        "Normal Buffer",
+        "TexCoord Buffer",
+        "Diffuse Buffer",
     };
 
 private:
@@ -109,7 +121,6 @@ private:
     RenderingMode                   RenderMode;
     Core::Raytracer*                TheRaytracer;
     Core::WorldScene*               TheWorldScene;
-
     std::vector<RenderSceneNode*>   TheRealtimeSceneList;
     RenderCamera                    TheRenderCamera;
 
@@ -117,8 +128,12 @@ private:
     RootSignature                   FullscreenQuadRootSignature;
     GraphicsPSO                     FullscreenPipelineState;
 
-    GBuffer                         RealtimeBuffers;
+    DXGI_FORMAT                     DeferredBuffersRTTypes[DeferredBufferType_Num];
+    DXGI_FORMAT                     ZBufferRTType;
+    ColorBuffer                     DeferredBuffers[DeferredBufferType_Num];
+    ColorBuffer                     ZPrePassBuffer;
     RootSignature                   RealtimeRootSignature;
+    GraphicsPSO                     RealtimeZPrePassPSO;
     GraphicsPSO                     RealtimeGeometryPassPSO;
 
     UserInputData                   UserInput;

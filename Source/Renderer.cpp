@@ -66,6 +66,7 @@ enum RealtimeRenderingRootIndex
     RealtimeRenderingRootIndex_Texture0,
     RealtimeRenderingRootIndex_Texture1,
     RealtimeRenderingRootIndex_Texture2,
+    RealtimeRenderingRootIndex_Texture3,
 
     RealtimeRenderingRootIndex_Num
 };
@@ -77,6 +78,7 @@ enum RealtimeRenderingRegisters
     RealtimeRenderingRegisters_Texture0         = 0,
     RealtimeRenderingRegisters_Texture1         = 1,
     RealtimeRenderingRegisters_Texture2         = 2,
+    RealtimeRenderingRegisters_Texture3         = 3,
     RealtimeRenderingRegisters_LinearSampler    = 0,
     RealtimeRenderingRegisters_AnisoSampler     = 1,
 };
@@ -124,7 +126,8 @@ void Renderer::OnDeviceLost()
 
 void Renderer::OnDeviceRestored()
 {
-
+    OnResizeRaytracer();
+    SetupRenderBuffers();
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -142,6 +145,7 @@ void Renderer::OnInit()
     // Setup render pipelines
     SetupFullscreenQuadPipeline();
     SetupRealtimePipeline();
+    SetupRenderBuffers();
 
     // Load the scene data
     LoadScene();
@@ -277,9 +281,69 @@ void Renderer::SetupRealtimePipeline()
         RealtimeRootSignature[RealtimeRenderingRootIndex_Texture0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RealtimeRenderingRegisters_Texture0, 1);
         RealtimeRootSignature[RealtimeRenderingRootIndex_Texture1].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RealtimeRenderingRegisters_Texture1, 1);
         RealtimeRootSignature[RealtimeRenderingRootIndex_Texture2].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RealtimeRenderingRegisters_Texture2, 1);
+        RealtimeRootSignature[RealtimeRenderingRootIndex_Texture3].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RealtimeRenderingRegisters_Texture3, 1);
         RealtimeRootSignature.InitStaticSampler(RealtimeRenderingRegisters_LinearSampler, linearSamplerDesc, D3D12_SHADER_VISIBILITY_PIXEL);
         RealtimeRootSignature.InitStaticSampler(RealtimeRenderingRegisters_AnisoSampler, anisoSamplerDesc, D3D12_SHADER_VISIBILITY_PIXEL);
         RealtimeRootSignature.Finalize("RealtimeRender", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+    }
+
+    // Z pre pass PSO setup
+    {
+        D3D12_RASTERIZER_DESC rasterizerDesc;
+        rasterizerDesc.FillMode                                 = D3D12_FILL_MODE_SOLID;
+        rasterizerDesc.CullMode                                 = D3D12_CULL_MODE_BACK;
+        rasterizerDesc.FrontCounterClockwise                    = TRUE;
+        rasterizerDesc.DepthBias                                = D3D12_DEFAULT_DEPTH_BIAS;
+        rasterizerDesc.DepthBiasClamp                           = D3D12_DEFAULT_DEPTH_BIAS_CLAMP;
+        rasterizerDesc.SlopeScaledDepthBias                     = D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS;
+        rasterizerDesc.DepthClipEnable                          = TRUE;
+        rasterizerDesc.MultisampleEnable                        = FALSE;
+        rasterizerDesc.AntialiasedLineEnable                    = FALSE;
+        rasterizerDesc.ForcedSampleCount                        = 0;
+        rasterizerDesc.ConservativeRaster                       = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
+
+        D3D12_BLEND_DESC blendDisable = {};
+        blendDisable.IndependentBlendEnable                     = FALSE;
+        blendDisable.RenderTarget[0].BlendEnable                = FALSE;
+        blendDisable.RenderTarget[0].SrcBlend                   = D3D12_BLEND_SRC_ALPHA;
+        blendDisable.RenderTarget[0].DestBlend                  = D3D12_BLEND_INV_SRC_ALPHA;
+        blendDisable.RenderTarget[0].BlendOp                    = D3D12_BLEND_OP_ADD;
+        blendDisable.RenderTarget[0].SrcBlendAlpha              = D3D12_BLEND_ONE;
+        blendDisable.RenderTarget[0].DestBlendAlpha             = D3D12_BLEND_INV_SRC_ALPHA;
+        blendDisable.RenderTarget[0].BlendOpAlpha               = D3D12_BLEND_OP_ADD;
+        blendDisable.RenderTarget[0].RenderTargetWriteMask      = 0;
+        blendDisable.RenderTarget[0].RenderTargetWriteMask      = D3D12_COLOR_WRITE_ENABLE_ALL;
+
+        D3D12_DEPTH_STENCIL_DESC depthStateReadWrite;
+        depthStateReadWrite.DepthEnable                         = TRUE;
+        depthStateReadWrite.DepthWriteMask                      = D3D12_DEPTH_WRITE_MASK_ALL;
+        depthStateReadWrite.DepthFunc                           = D3D12_COMPARISON_FUNC_GREATER_EQUAL;
+        depthStateReadWrite.StencilEnable                       = FALSE;
+        depthStateReadWrite.StencilReadMask                     = D3D12_DEFAULT_STENCIL_READ_MASK;
+        depthStateReadWrite.StencilWriteMask                    = D3D12_DEFAULT_STENCIL_WRITE_MASK;
+        depthStateReadWrite.FrontFace.StencilFunc               = D3D12_COMPARISON_FUNC_ALWAYS;
+        depthStateReadWrite.FrontFace.StencilPassOp             = D3D12_STENCIL_OP_KEEP;
+        depthStateReadWrite.FrontFace.StencilFailOp             = D3D12_STENCIL_OP_KEEP;
+        depthStateReadWrite.FrontFace.StencilDepthFailOp        = D3D12_STENCIL_OP_KEEP;
+        depthStateReadWrite.BackFace                            = depthStateReadWrite.FrontFace;
+
+        Microsoft::WRL::ComPtr<ID3DBlob> vertexShaderBlob, pixelShaderBlob;
+        ThrowIfFailed(D3DReadFileToBlob(SHADERBUILD_DIR L"\\ZPrePass_VS.cso", &vertexShaderBlob));
+        ThrowIfFailed(D3DReadFileToBlob(SHADERBUILD_DIR L"\\ZPrePass_PS.cso", &pixelShaderBlob));
+
+        // TODO: Find out why we can't use R32 format
+        ZBufferRTType = DXGI_FORMAT_R32_FLOAT; // DXGI_FORMAT_R32G32B32A32_FLOAT; // DXGI_FORMAT_R32_FLOAT;
+
+        RealtimeZPrePassPSO.SetRootSignature(RealtimeRootSignature);
+        RealtimeZPrePassPSO.SetRasterizerState(rasterizerDesc);
+        RealtimeZPrePassPSO.SetBlendState(blendDisable);
+        RealtimeZPrePassPSO.SetDepthStencilState(depthStateReadWrite);
+        RealtimeZPrePassPSO.SetInputLayout(RenderVertex::InputElementCount, RenderVertex::InputElements);
+        RealtimeZPrePassPSO.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
+        RealtimeZPrePassPSO.SetRenderTargetFormats(1, &ZBufferRTType, RenderDevice::Get().GetDepthBufferFormat());
+        RealtimeZPrePassPSO.SetVertexShader(vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize());
+        RealtimeZPrePassPSO.SetPixelShader(pixelShaderBlob->GetBufferPointer(), pixelShaderBlob->GetBufferSize());
+        RealtimeZPrePassPSO.Finalize();
     }
 
     // Geometry pass PSO setup
@@ -323,10 +387,13 @@ void Renderer::SetupRealtimePipeline()
         depthStateReadWrite.BackFace                            = depthStateReadWrite.FrontFace;
 
         Microsoft::WRL::ComPtr<ID3DBlob> vertexShaderBlob, pixelShaderBlob;
-        ThrowIfFailed(D3DReadFileToBlob(SHADERBUILD_DIR L"\\Preview_VS.cso", &vertexShaderBlob));
-        ThrowIfFailed(D3DReadFileToBlob(SHADERBUILD_DIR L"\\Preview_PS.cso", &pixelShaderBlob));
+        ThrowIfFailed(D3DReadFileToBlob(SHADERBUILD_DIR L"\\GeometryPass_VS.cso", &vertexShaderBlob));
+        ThrowIfFailed(D3DReadFileToBlob(SHADERBUILD_DIR L"\\GeometryPass_PS.cso", &pixelShaderBlob));
 
-        DXGI_FORMAT rtFormats[] { RenderDevice::Get().GetBackBufferFormat() };
+        DeferredBuffersRTTypes[DeferredBufferType_Position] = DXGI_FORMAT_R32G32B32A32_FLOAT;
+        DeferredBuffersRTTypes[DeferredBufferType_Normal]   = DXGI_FORMAT_R32G32B32A32_FLOAT;
+        DeferredBuffersRTTypes[DeferredBufferType_TexCoord] = DXGI_FORMAT_R32G32B32A32_FLOAT;
+        DeferredBuffersRTTypes[DeferredBufferType_Diffuse]  = DXGI_FORMAT_R32G32B32A32_FLOAT;
 
         RealtimeGeometryPassPSO.SetRootSignature(RealtimeRootSignature);
         RealtimeGeometryPassPSO.SetRasterizerState(rasterizerDesc);
@@ -334,11 +401,28 @@ void Renderer::SetupRealtimePipeline()
         RealtimeGeometryPassPSO.SetDepthStencilState(depthStateReadWrite);
         RealtimeGeometryPassPSO.SetInputLayout(RenderVertex::InputElementCount, RenderVertex::InputElements);
         RealtimeGeometryPassPSO.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
-        RealtimeGeometryPassPSO.SetRenderTargetFormats(_countof(rtFormats), rtFormats, RenderDevice::Get().GetDepthBufferFormat());
+        RealtimeGeometryPassPSO.SetRenderTargetFormats(_countof(DeferredBuffersRTTypes), DeferredBuffersRTTypes, RenderDevice::Get().GetDepthBufferFormat());
         RealtimeGeometryPassPSO.SetVertexShader(vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize());
         RealtimeGeometryPassPSO.SetPixelShader(pixelShaderBlob->GetBufferPointer(), pixelShaderBlob->GetBufferSize());
         RealtimeGeometryPassPSO.Finalize();
     }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void Renderer::SetupRenderBuffers()
+{
+    uint32_t width = RenderDevice::Get().GetBackbufferWidth();
+    uint32_t height = RenderDevice::Get().GetBackbufferHeight();
+
+    for (int i = 0; i < DeferredBufferType_Num; i++)
+    {
+        DeferredBuffers[i].Destroy();
+        DeferredBuffers[i].Create(DeferredBufferTypeStrings[i], width, height, 1, DeferredBuffersRTTypes[i]);
+    }
+
+    ZPrePassBuffer.Destroy();
+    ZPrePassBuffer.Create("ZPrePass Buffer", width, height, 1, ZBufferRTType);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -367,11 +451,7 @@ void Renderer::LoadScene()
     std::vector<DirectX::XMMATRIX>  matrixStack;
     std::vector<bool>               flipNormalStack;
     std::vector<SpotLight>          spotLightsList;
-    //GraphicsContext& renderContext = GraphicsContext::Begin("Generate render scene");
-    {
-        GenerateRenderListFromWorld(*(GraphicsContext*)0, TheWorldScene->GetWorld(), nullptr, TheRealtimeSceneList, spotLightsList, matrixStack, flipNormalStack);
-    }
-    //renderContext.Finish(true);
+    GenerateRenderListFromWorld(TheWorldScene->GetWorld(), nullptr, TheRealtimeSceneList, spotLightsList, matrixStack, flipNormalStack);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -476,7 +556,7 @@ void Renderer::OnLeftButtonDown(uint32_t x, uint32_t y)
 void Renderer::OnUpdate()
 {
     float forwardAmount = 0, strafeAmount = 0, upDownAmount = 0;
-    float mouseDx = 0, mouseDy = 0;
+    int mouseDx = 0, mouseDy = 0;
 
     UpdateCameras(sVertFov, forwardAmount, strafeAmount, upDownAmount, mouseDx, mouseDy, TheWorldScene->GetCamera(), TheRenderCamera);
 }
@@ -516,9 +596,7 @@ void Renderer::RenderSceneList(GraphicsContext& renderContext, const XMMATRIX& v
         //commandList->SetGraphicsDynamicConstantBuffer(RootParameters::MaterialCB, RenderSceneList[i]->Material);
         renderContext.SetVertexBuffer(0, TheRealtimeSceneList[i]->VertexBuffer.VertexBufferView());
         renderContext.SetIndexBuffer(TheRealtimeSceneList[i]->IndexBuffer.IndexBufferView());
-        renderContext.DrawIndexed(TheRealtimeSceneList[i]->Indices.size());
-
-        //RenderSceneList[i]->MeshData->Draw(*commandList);
+        renderContext.DrawIndexed((uint32_t)TheRealtimeSceneList[i]->Indices.size());
     }
 }
 
@@ -561,13 +639,50 @@ void Renderer::OnRender()
         renderContext.SetRootSignature(RealtimeRootSignature);
         renderContext.SetViewport(RenderDevice::Get().GetScreenViewport());
         renderContext.SetScissor(RenderDevice::Get().GetScissorRect());
+
+        // Z pre pass
+        {
+            renderContext.TransitionResource(ZPrePassBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
+            renderContext.TransitionResource(RenderDevice::Get().GetDepthStencil(), D3D12_RESOURCE_STATE_DEPTH_WRITE, true);
+            renderContext.ClearDepth(RenderDevice::Get().GetDepthStencil());
+            renderContext.SetPipelineState(RealtimeZPrePassPSO);
+            renderContext.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+            renderContext.SetRenderTarget(ZPrePassBuffer.GetRTV(), RenderDevice::Get().GetDepthStencil().GetDSV());
+            renderContext.ClearColor(ZPrePassBuffer);
+
+            RenderSceneList(renderContext, TheRenderCamera.get_ViewMatrix(), TheRenderCamera.get_ProjectionMatrix());
+        }
+
+        // Geometry pass
+        {
+            for (int i = 0; i < DeferredBufferType_Num; i++)
+            {
+                renderContext.TransitionResource(DeferredBuffers[i], D3D12_RESOURCE_STATE_RENDER_TARGET, true);
+            }
+            renderContext.TransitionResource(RenderDevice::Get().GetDepthStencil(), D3D12_RESOURCE_STATE_DEPTH_READ, true);
+            renderContext.SetPipelineState(RealtimeGeometryPassPSO);
+            renderContext.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+            // Bind gbuffer
+            D3D12_CPU_DESCRIPTOR_HANDLE rtvs[]
+            {
+                DeferredBuffers[DeferredBufferType_Position].GetRTV(),
+                DeferredBuffers[DeferredBufferType_Normal].GetRTV(),
+                DeferredBuffers[DeferredBufferType_TexCoord].GetRTV(),
+                DeferredBuffers[DeferredBufferType_Diffuse].GetRTV()
+            };
+            renderContext.SetRenderTargets(ARRAYSIZE(rtvs), rtvs, RenderDevice::Get().GetDepthStencil().GetDSV());
+
+            for (int i = 0; i < DeferredBufferType_Num; i++)
+            {
+                renderContext.ClearColor(DeferredBuffers[i]);
+            }
+
+            RenderSceneList(renderContext, TheRenderCamera.get_ViewMatrix(), TheRenderCamera.get_ProjectionMatrix());
+        }
+
         renderContext.TransitionResource(RenderDevice::Get().GetRenderTarget(), D3D12_RESOURCE_STATE_RENDER_TARGET, true);
-        renderContext.TransitionResource(RenderDevice::Get().GetDepthStencil(), D3D12_RESOURCE_STATE_DEPTH_WRITE, true);
-        renderContext.ClearDepth(RenderDevice::Get().GetDepthStencil());
-        renderContext.SetRenderTarget(RenderDevice::Get().GetRenderTarget().GetRTV(), RenderDevice::Get().GetDepthStencil().GetDSV());
-        renderContext.SetPipelineState(RealtimeGeometryPassPSO);
-        renderContext.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        RenderSceneList(renderContext, TheRenderCamera.get_ViewMatrix(), TheRenderCamera.get_ProjectionMatrix());
+        renderContext.ClearColor(RenderDevice::Get().GetRenderTarget());
     }
 
     // Present
@@ -585,6 +700,7 @@ void Renderer::OnSizeChanged(uint32_t width, uint32_t height, bool minimized)
     }
 
     OnResizeRaytracer();
+    SetupRenderBuffers();
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

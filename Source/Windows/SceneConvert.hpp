@@ -242,7 +242,7 @@ static void CreateResourceViews(RenderSceneNode* renderNode)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static void GenerateRenderListFromWorld(GraphicsContext& renderContext, const Core::IHitable* currentHead, const RealtimeEngine::Texture* defaultTexture, std::vector<RenderSceneNode*>& outSceneList, std::vector<SpotLight>& spotLightsList, std::vector<DirectX::XMMATRIX>& matrixStack, std::vector<bool>& flipNormalStack)
+static void GenerateRenderListFromWorld(const Core::IHitable* currentHead, const RealtimeEngine::Texture* defaultTexture, std::vector<RenderSceneNode*>& outSceneList, std::vector<SpotLight>& spotLightsList, std::vector<DirectX::XMMATRIX>& matrixStack, std::vector<bool>& flipNormalStack)
 {
     const std::type_info& tid = typeid(*currentHead);
 
@@ -253,17 +253,17 @@ static void GenerateRenderListFromWorld(GraphicsContext& renderContext, const Co
         const int          listSize = hitList->GetListSize();
         for (int i = 0; i < listSize; i++)
         {
-            GenerateRenderListFromWorld(renderContext, list[i], defaultTexture, outSceneList, spotLightsList, matrixStack, flipNormalStack);
+            GenerateRenderListFromWorld(list[i], defaultTexture, outSceneList, spotLightsList, matrixStack, flipNormalStack);
         }
     }
     else if (tid == typeid(Core::BVHNode))
     {
         Core::BVHNode* bvhNode = (Core::BVHNode*)currentHead;
 
-        GenerateRenderListFromWorld(renderContext, bvhNode->GetLeft(), defaultTexture, outSceneList, spotLightsList, matrixStack, flipNormalStack);
+        GenerateRenderListFromWorld(bvhNode->GetLeft(), defaultTexture, outSceneList, spotLightsList, matrixStack, flipNormalStack);
         if (bvhNode->GetLeft() != bvhNode->GetRight())
         {
-            GenerateRenderListFromWorld(renderContext, bvhNode->GetRight(), defaultTexture, outSceneList, spotLightsList, matrixStack, flipNormalStack);
+            GenerateRenderListFromWorld(bvhNode->GetRight(), defaultTexture, outSceneList, spotLightsList, matrixStack, flipNormalStack);
         }
     }
     else if (tid == typeid(Core::HitableTranslate))
@@ -273,7 +273,7 @@ static void GenerateRenderListFromWorld(GraphicsContext& renderContext, const Co
         XMMATRIX                translation      = XMMatrixTranslation(offset.X(), offset.Y(), -offset.Z());
 
         matrixStack.push_back(translation);
-        GenerateRenderListFromWorld(renderContext, translateHitable->GetHitObject(), defaultTexture, outSceneList, spotLightsList, matrixStack, flipNormalStack);
+        GenerateRenderListFromWorld(translateHitable->GetHitObject(), defaultTexture, outSceneList, spotLightsList, matrixStack, flipNormalStack);
         matrixStack.pop_back();
     }
     else if (tid == typeid(Core::HitableRotateY))
@@ -282,7 +282,7 @@ static void GenerateRenderListFromWorld(GraphicsContext& renderContext, const Co
         XMMATRIX                rotation       = XMMatrixRotationY(XMConvertToRadians(-rotateYHitable->GetAngleDegrees()));
 
         matrixStack.push_back(rotation);
-        GenerateRenderListFromWorld(renderContext, rotateYHitable->GetHitObject(), defaultTexture, outSceneList, spotLightsList, matrixStack, flipNormalStack);
+        GenerateRenderListFromWorld(rotateYHitable->GetHitObject(), defaultTexture, outSceneList, spotLightsList, matrixStack, flipNormalStack);
         matrixStack.pop_back();
     }
     else if (tid == typeid(Core::FlipNormals))
@@ -290,7 +290,7 @@ static void GenerateRenderListFromWorld(GraphicsContext& renderContext, const Co
         Core::FlipNormals* flipNormals = (Core::FlipNormals*)currentHead;
 
         flipNormalStack.push_back(true);
-        GenerateRenderListFromWorld(renderContext, flipNormals->GetHitObject(), defaultTexture, outSceneList, spotLightsList, matrixStack, flipNormalStack);
+        GenerateRenderListFromWorld(flipNormals->GetHitObject(), defaultTexture, outSceneList, spotLightsList, matrixStack, flipNormalStack);
         flipNormalStack.pop_back();
     }
     else if (tid == typeid(Core::Sphere) || tid == typeid(Core::MovingSphere))

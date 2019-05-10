@@ -81,12 +81,6 @@
     <FxCompile Include="..\..\Source\Windows\Shaders\Lighting.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="..\..\Source\Windows\Shaders\Preview_PS.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="..\..\Source\Windows\Shaders\Preview_VS.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
     <FxCompile Include="..\..\Source\Windows\Shaders\ShaderStructs.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
@@ -94,6 +88,18 @@
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="..\..\Source\Windows\Shaders\Shadowmap_VS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\Windows\Shaders\GeometryPass_PS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\Windows\Shaders\GeometryPass_VS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\Windows\Shaders\ZPrePass_PS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\Windows\Shaders\ZPrePass_VS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>

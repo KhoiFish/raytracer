@@ -455,32 +455,6 @@ void Renderer::LoadScene()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::Raytrace(bool enable)
-{
-    if (TheRaytracer)
-    {
-        delete TheRaytracer;
-        TheRaytracer = nullptr;
-    }
-
-    if (enable)
-    {
-        if (!TheRaytracer)
-        {
-            OnResizeRaytracer();
-        }
-
-        RenderMode = RenderingMode_Cpu;
-        TheRaytracer->BeginRaytrace(TheWorldScene, OnRaytraceComplete);
-    }
-    else
-    {
-        RenderMode = RenderingMode_Realtime;
-    }
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
 void Renderer::OnResizeRaytracer()
 {
     int backbufferWidth  = RenderDevice::Get().GetBackbufferWidth();
@@ -507,12 +481,24 @@ void Renderer::OnResizeRaytracer()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::OnRaytraceComplete(Raytracer* tracer, bool actuallyFinished)
+void Renderer::OnSizeChanged(uint32_t width, uint32_t height, bool minimized)
 {
-    if (actuallyFinished)
+    if (!RenderDevice::Get().WindowSizeChanged(width, height, minimized))
     {
-        WriteImageAndLog(tracer, "RaytracerWindows");
+        return;
     }
+
+    OnResizeRaytracer();
+    SetupRenderBuffers();
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void Renderer::OnDestroy()
+{
+    // Let GPU finish before releasing D3D resources
+    CommandListManager::Get().IdleGPU();
+    OnDeviceLost();
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -521,18 +507,18 @@ void Renderer::OnKeyDown(UINT8 key)
 {
     switch (key)
     {
-        case VK_SPACE:
-        {
-            Raytrace(true);
-            break;
-        }
-
-        case VK_ESCAPE:
-        {
-            Raytrace(false);
-            PostQuitMessage(0);
-        }
+    case VK_SPACE:
+    {
+        Raytrace(true);
         break;
+    }
+
+    case VK_ESCAPE:
+    {
+        Raytrace(false);
+        PostQuitMessage(0);
+    }
+    break;
     }
 }
 
@@ -558,6 +544,42 @@ void Renderer::OnUpdate()
     int mouseDx = 0, mouseDy = 0;
 
     UpdateCameras(sVertFov, forwardAmount, strafeAmount, upDownAmount, mouseDx, mouseDy, TheWorldScene->GetCamera(), TheRenderCamera);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void Renderer::Raytrace(bool enable)
+{
+    if (TheRaytracer)
+    {
+        delete TheRaytracer;
+        TheRaytracer = nullptr;
+    }
+
+    if (enable)
+    {
+        if (!TheRaytracer)
+        {
+            OnResizeRaytracer();
+        }
+
+        RenderMode = RenderingMode_Cpu;
+        TheRaytracer->BeginRaytrace(TheWorldScene, OnRaytraceComplete);
+    }
+    else
+    {
+        RenderMode = RenderingMode_Realtime;
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void Renderer::OnRaytraceComplete(Raytracer* tracer, bool actuallyFinished)
+{
+    if (actuallyFinished)
+    {
+        WriteImageAndLog(tracer, "RaytracerWindows");
+    }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -709,26 +731,4 @@ void Renderer::OnRender()
 
     // Present
     RenderDevice::Get().Present();
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-void Renderer::OnSizeChanged(uint32_t width, uint32_t height, bool minimized)
-{
-    if (!RenderDevice::Get().WindowSizeChanged(width, height, minimized))
-    {
-        return;
-    }
-
-    OnResizeRaytracer();
-    SetupRenderBuffers();
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-void Renderer::OnDestroy()
-{
-    // Let GPU finish before releasing D3D resources
-    CommandListManager::Get().IdleGPU();
-    OnDeviceLost();
 }

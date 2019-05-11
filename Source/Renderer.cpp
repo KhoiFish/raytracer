@@ -67,6 +67,7 @@ enum RealtimeRenderingRootIndex
     RealtimeRenderingRootIndex_Texture1,
     RealtimeRenderingRootIndex_Texture2,
     RealtimeRenderingRootIndex_Texture3,
+    RealtimeRenderingRootIndex_Texture4,
 
     RealtimeRenderingRootIndex_Num
 };
@@ -79,6 +80,7 @@ enum RealtimeRenderingRegisters
     RealtimeRenderingRegisters_Texture1         = 1,
     RealtimeRenderingRegisters_Texture2         = 2,
     RealtimeRenderingRegisters_Texture3         = 3,
+    RealtimeRenderingRegisters_Texture4         = 4,
     RealtimeRenderingRegisters_LinearSampler    = 0,
     RealtimeRenderingRegisters_AnisoSampler     = 1,
 };
@@ -282,6 +284,7 @@ void Renderer::SetupRealtimePipeline()
         RealtimeRootSignature[RealtimeRenderingRootIndex_Texture1].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RealtimeRenderingRegisters_Texture1, 1);
         RealtimeRootSignature[RealtimeRenderingRootIndex_Texture2].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RealtimeRenderingRegisters_Texture2, 1);
         RealtimeRootSignature[RealtimeRenderingRootIndex_Texture3].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RealtimeRenderingRegisters_Texture3, 1);
+        RealtimeRootSignature[RealtimeRenderingRootIndex_Texture4].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RealtimeRenderingRegisters_Texture4, 1);
         RealtimeRootSignature.InitStaticSampler(RealtimeRenderingRegisters_LinearSampler, linearSamplerDesc, D3D12_SHADER_VISIBILITY_PIXEL);
         RealtimeRootSignature.InitStaticSampler(RealtimeRenderingRegisters_AnisoSampler, anisoSamplerDesc, D3D12_SHADER_VISIBILITY_PIXEL);
         RealtimeRootSignature.Finalize("RealtimeRender", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
@@ -744,13 +747,14 @@ void Renderer::RenderRealtimeResults()
             renderContext.TransitionResource(RenderDevice::Get().GetRenderTarget(), D3D12_RESOURCE_STATE_RENDER_TARGET, true);
             renderContext.TransitionResource(RenderDevice::Get().GetDepthStencil(), D3D12_RESOURCE_STATE_DEPTH_READ, true);
             renderContext.SetRenderTarget(RenderDevice::Get().GetRenderTarget().GetRTV(), RenderDevice::Get().GetDepthStencil().GetDSV());
-
             renderContext.SetPipelineState(RealtimeCompositePassPSO);
             renderContext.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+            renderContext.SetDynamicDescriptor(RealtimeRenderingRootIndex_Texture0, 0, ZPrePassBuffer.GetSRV());
+
             for (int i = 0; i < DeferredBufferType_Num; i++)
             {
                 renderContext.TransitionResource(DeferredBuffers[i], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, true);
-                renderContext.SetDynamicDescriptor(RealtimeRenderingRootIndex_Texture0 + i, 0, DeferredBuffers[i].GetSRV());
+                renderContext.SetDynamicDescriptor(RealtimeRenderingRootIndex_Texture1 + i, 0, DeferredBuffers[i].GetSRV());
             }
 
             renderContext.SetNullVertexBuffer(0);

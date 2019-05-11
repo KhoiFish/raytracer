@@ -568,18 +568,132 @@ void Renderer::OnKeyDown(UINT8 key)
 {
     switch (key)
     {
-    case VK_SPACE:
-    {
-        Raytrace(true);
-        break;
-    }
+        case VK_SPACE:
+        {
+            Raytrace(true);
+            break;
+        }
 
-    case VK_ESCAPE:
-    {
-        Raytrace(false);
-        PostQuitMessage(0);
+        case VK_ESCAPE:
+        {
+            Raytrace(false);
+            PostQuitMessage(0);
+            break;
+        }
+
+        case VK_SHIFT:
+        {
+            UserInput.ShiftKeyPressed = true;
+            break;
+        }
+
+        case VK_UP:
+        case 'W':
+        case 'w':
+        {
+            UserInput.Forward = 1.0f;
+            break;
+        }
+
+        case VK_DOWN:
+        case 'S':
+        case 's':
+        {
+            UserInput.Backward = 1.0f;
+            break;
+        }
+
+        case VK_LEFT:
+        case 'A':
+        case 'a':
+        {
+            UserInput.Left = 1.0f;
+            break;
+        }
+
+        case VK_RIGHT:
+        case 'D':
+        case 'd':
+        {
+            UserInput.Right = 1.0f;
+            break;
+        }
+
+        case 'Q':
+        case 'q':
+        {
+            UserInput.Down = 1.0f;
+            break;
+        }
+        
+
+        case 'E':
+        case 'e':
+        {
+            UserInput.Up = 1.0f;
+            break;
+        }
     }
-    break;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void Renderer::OnKeyUp(uint8_t key)
+{
+    switch (key)
+    {
+        case VK_SHIFT:
+        {
+            UserInput.ShiftKeyPressed = false;
+            break;
+        }
+
+        case VK_UP:
+        case 'W':
+        case 'w':
+        {
+            UserInput.Forward = 0.0f;
+            break;
+        }
+
+        case VK_DOWN:
+        case 'S':
+        case 's':
+        {
+            UserInput.Backward = 0.0f;
+            break;
+        }
+
+        case VK_LEFT:
+        case 'A':
+        case 'a':
+        {
+            UserInput.Left = 0.0f;
+            break;
+        }
+
+        case VK_RIGHT:
+        case 'D':
+        case 'd':
+        {
+            UserInput.Right = 0.0f;
+            break;
+        }
+
+        case 'Q':
+        case 'q':
+        {
+            UserInput.Down = 0.0f;
+            break;
+        }
+
+
+        case 'E':
+        case 'e':
+        {
+            UserInput.Up = 0.0f;
+            break;
+        }
     }
 }
 
@@ -587,24 +701,46 @@ void Renderer::OnKeyDown(UINT8 key)
 
 void Renderer::OnMouseMove(uint32_t x, uint32_t y)
 {
-
+    if (UserInput.LeftMouseButtonPressed)
+    {
+        UserInput.MouseDx    = int(x) - UserInput.PrevMouseX;
+        UserInput.MouseDy    = int(y) - UserInput.PrevMouseY;
+        UserInput.PrevMouseX = x;
+        UserInput.PrevMouseY = y;
+    }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
 void Renderer::OnLeftButtonDown(uint32_t x, uint32_t y)
 {
-    RenderMode = (RenderingMode)(int(RenderMode + 1) % MaxRenderModes);
+    UserInput.LeftMouseButtonPressed = true;
+    UserInput.PrevMouseX             = x;
+    UserInput.PrevMouseY             = y;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void Renderer::OnLeftButtonUp(uint32_t x, uint32_t y)
+{
+    UserInput.LeftMouseButtonPressed = false;
+    UserInput.PrevMouseX             = x;
+    UserInput.PrevMouseY             = y;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
 void Renderer::OnUpdate()
 {
-    float forwardAmount = 0, strafeAmount = 0, upDownAmount = 0;
-    int mouseDx = 0, mouseDy = 0;
+    float speedMultipler = (UserInput.ShiftKeyPressed ? 64.f : 32.0f) * 16.f;
+    float scale          = speedMultipler * 0.001f; // *float(e.ElapsedTime);
+    float forwardAmount  = (UserInput.Forward - UserInput.Backward) * scale;
+    float strafeAmount   = (UserInput.Left    - UserInput.Right)    * scale;
+    float upDownAmount   = (UserInput.Up      - UserInput.Down)     * scale;
 
-    UpdateCameras(sVertFov, forwardAmount, strafeAmount, upDownAmount, mouseDx, mouseDy, TheWorldScene->GetCamera(), TheRenderCamera);
+    UpdateCameras(sVertFov, forwardAmount, strafeAmount, upDownAmount, UserInput.MouseDx, UserInput.MouseDy, TheWorldScene->GetCamera(), TheRenderCamera);
+    UserInput.MouseDx = 0;
+    UserInput.MouseDy = 0;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

@@ -50,8 +50,10 @@ public:
 
     virtual void               OnInit();
     virtual void               OnKeyDown(UINT8 key);
+    virtual void               OnKeyUp(uint8_t key);
     virtual void               OnMouseMove(uint32_t x, uint32_t y);
     virtual void               OnLeftButtonDown(uint32_t x, uint32_t y);
+    virtual void               OnLeftButtonUp(uint32_t x, uint32_t y);
     virtual void               OnUpdate();
     virtual void               OnRender();
     virtual void               OnSizeChanged(uint32_t width, uint32_t height, bool minimized);
@@ -86,20 +88,6 @@ private:
         "CPU Raytracing",
     };
 
-    struct UserInputData
-    {
-        UserInputData() : Forward(0), Backward(0), Left(0), Right(0), Up(0), Down(0), MouseDx(0), MouseDy(0) {}
-
-        float   Forward;
-        float   Backward;
-        float   Left;
-        float   Right;
-        float   Up;
-        float   Down;
-        int     MouseDx;
-        int     MouseDy;
-    };
-
     enum DeferredBufferType
     {
         DeferredBufferType_Position = 0,
@@ -116,6 +104,27 @@ private:
         "Normal Buffer",
         "TexCoord Buffer",
         "Diffuse Buffer",
+    };
+
+    struct UserInputData
+    {
+        UserInputData()
+            : Forward(0), Backward(0), Left(0), Right(0), Up(0), Down(0),
+            MouseDx(0), MouseDy(0), PrevMouseX(0), PrevMouseY(0),
+            ShiftKeyPressed(false), LeftMouseButtonPressed(false) {}
+
+        float   Forward;
+        float   Backward;
+        float   Left;
+        float   Right;
+        float   Up;
+        float   Down;
+        int     PrevMouseX;
+        int     PrevMouseY;
+        int     MouseDx;
+        int     MouseDy;
+        bool    LeftMouseButtonPressed;
+        bool    ShiftKeyPressed;
     };
 
 private:

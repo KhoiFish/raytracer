@@ -85,6 +85,7 @@ Renderer::Renderer(uint32_t width, uint32_t height)
     , RenderMode(RenderingMode_Realtime)
     , TheRaytracer(nullptr)
     , TheWorldScene(nullptr)
+    , TheRenderScene(nullptr)
 {
 }
 
@@ -103,11 +104,11 @@ Renderer::~Renderer()
         TheWorldScene = nullptr;
     }
 
-    for (int i = 0; i < TheRealtimeSceneList.size(); i++)
+    if (TheRenderScene != nullptr)
     {
-        delete TheRealtimeSceneList[i];
+        delete TheRenderScene;
+        TheRenderScene = nullptr;
     }
-    TheRealtimeSceneList.clear();
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -203,7 +204,7 @@ void Renderer::SetupFullscreenQuadPipeline()
 
         D3D12_DEPTH_STENCIL_DESC depthDisabledState;
         depthDisabledState.DepthEnable                          = FALSE;
-        depthDisabledState.DepthWriteMask                       = D3D12_DEPTH_WRITE_MASK_ALL;
+        depthDisabledState.DepthWriteMask                       = D3D12_DEPTH_WRITE_MASK_ZERO;
         depthDisabledState.DepthFunc                            = D3D12_COMPARISON_FUNC_GREATER_EQUAL;
         depthDisabledState.StencilEnable                        = FALSE;
         depthDisabledState.StencilReadMask                      = D3D12_DEFAULT_STENCIL_READ_MASK;
@@ -370,7 +371,7 @@ void Renderer::SetupRealtimePipeline()
 
         D3D12_DEPTH_STENCIL_DESC depthStateReadWrite;
         depthStateReadWrite.DepthEnable                         = TRUE;
-        depthStateReadWrite.DepthWriteMask                      = D3D12_DEPTH_WRITE_MASK_ALL;
+        depthStateReadWrite.DepthWriteMask                      = D3D12_DEPTH_WRITE_MASK_ZERO;
         depthStateReadWrite.DepthFunc                           = D3D12_COMPARISON_FUNC_LESS_EQUAL;
         depthStateReadWrite.StencilEnable                       = FALSE;
         depthStateReadWrite.StencilReadMask                     = D3D12_DEFAULT_STENCIL_READ_MASK;
@@ -431,7 +432,7 @@ void Renderer::SetupRealtimePipeline()
 
         D3D12_DEPTH_STENCIL_DESC depthDisabledState;
         depthDisabledState.DepthEnable                          = FALSE;
-        depthDisabledState.DepthWriteMask                       = D3D12_DEPTH_WRITE_MASK_ALL;
+        depthDisabledState.DepthWriteMask                       = D3D12_DEPTH_WRITE_MASK_ZERO;
         depthDisabledState.DepthFunc                            = D3D12_COMPARISON_FUNC_GREATER_EQUAL;
         depthDisabledState.StencilEnable                        = FALSE;
         depthDisabledState.StencilReadMask                      = D3D12_DEFAULT_STENCIL_READ_MASK;
@@ -489,22 +490,19 @@ void Renderer::LoadScene()
         TheWorldScene = nullptr;
     }
 
-    for (int i = 0; i < TheRealtimeSceneList.size(); i++)
+    if (TheRenderScene != nullptr)
     {
-        delete TheRealtimeSceneList[i];
+        delete TheRenderScene;
+        TheRenderScene = nullptr;
     }
-    TheRealtimeSceneList.clear();
 
     // Load the selected scene
     TheWorldScene = GetSampleScene(SampleScene(sSampleScene));
     TheWorldScene->GetCamera().SetAspect((float)RenderDevice::Get().GetBackbufferWidth() / (float)RenderDevice::Get().GetBackbufferHeight());
     TheWorldScene->GetCamera().SetFocusDistanceToLookAt();
-    sVertFov = TheWorldScene->GetCamera().GetVertFov();
-
-    std::vector<DirectX::XMMATRIX>  matrixStack;
-    std::vector<bool>               flipNormalStack;
-    std::vector<SpotLight>          spotLightsList;
-    GenerateRenderListFromWorld(TheWorldScene->GetWorld(), nullptr, TheRealtimeSceneList, spotLightsList, matrixStack, flipNormalStack);
+    
+    TheRenderScene = new RealtimeEngine::RenderScene(TheWorldScene);
+    sVertFov       = TheWorldScene->GetCamera().GetVertFov();
 
     // Load default texture
     RealtimeEngine::TextureManager::LoadFromFile(DefaultTextureName);
@@ -743,7 +741,7 @@ void Renderer::OnUpdate()
     float strafeAmount   = (UserInput.Left    - UserInput.Right)    * scale;
     float upDownAmount   = (UserInput.Up      - UserInput.Down)     * scale;
 
-    UpdateCameras(sVertFov, forwardAmount, strafeAmount, upDownAmount, UserInput.MouseDx, UserInput.MouseDy, TheWorldScene->GetCamera(), TheRenderCamera);
+    TheRenderScene->UpdateCamera(sVertFov, forwardAmount, strafeAmount, upDownAmount, UserInput.MouseDx, UserInput.MouseDy, TheWorldScene->GetCamera());
     UserInput.MouseDx = 0;
     UserInput.MouseDy = 0;
 }
@@ -852,7 +850,7 @@ void Renderer::RenderRealtimeResults()
             renderContext.SetRenderTarget(ZPrePassBuffer.GetRTV(), RenderDevice::Get().GetDepthStencil().GetDSV());
             renderContext.ClearColor(ZPrePassBuffer);
 
-            RenderSceneList(renderContext, TheRenderCamera.get_ViewMatrix(), TheRenderCamera.get_ProjectionMatrix());
+            RenderSceneList(renderContext, TheRenderScene->GetRenderCamera().get_ViewMatrix(), TheRenderScene->GetRenderCamera().get_ProjectionMatrix());
         }
 
         // Geometry pass
@@ -880,7 +878,7 @@ void Renderer::RenderRealtimeResults()
                 renderContext.ClearColor(DeferredBuffers[i]);
             }
 
-            RenderSceneList(renderContext, TheRenderCamera.get_ViewMatrix(), TheRenderCamera.get_ProjectionMatrix());
+            RenderSceneList(renderContext, TheRenderScene->GetRenderCamera().get_ViewMatrix(), TheRenderScene->GetRenderCamera().get_ProjectionMatrix());
         }
 
         // Composite pass
@@ -910,25 +908,25 @@ void Renderer::RenderRealtimeResults()
 
 void Renderer::RenderSceneList(GraphicsContext& renderContext, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix)
 {
-    for (int i = 0; i < TheRealtimeSceneList.size(); i++)
+    for (int i = 0; i < TheRenderScene->GetRenderSceneList().size(); i++)
     {
         // Don't render light shapes
-        if (TheRealtimeSceneList[i]->Hitable->IsALightShape())
+        if (TheRenderScene->GetRenderSceneList()[i]->Hitable->IsALightShape())
         {
             continue;
         }
 
         RenderMatrices matrices;
-        ComputeMatrices(TheRealtimeSceneList[i]->WorldMatrix, viewMatrix, projectionMatrix, matrices);
+        ComputeMatrices(TheRenderScene->GetRenderSceneList()[i]->WorldMatrix, viewMatrix, projectionMatrix, matrices);
 
         const RealtimeEngine::Texture* defaultTexture = RealtimeEngine::TextureManager::LoadFromFile(DefaultTextureName);
-        const RealtimeEngine::Texture* diffuseTex     = (TheRealtimeSceneList[i]->DiffuseTexture != nullptr) ? TheRealtimeSceneList[i]->DiffuseTexture : defaultTexture;
+        const RealtimeEngine::Texture* diffuseTex     = (TheRenderScene->GetRenderSceneList()[i]->DiffuseTexture != nullptr) ? TheRenderScene->GetRenderSceneList()[i]->DiffuseTexture : defaultTexture;
 
         renderContext.SetDynamicConstantBufferView(RealtimeRenderingRootIndex_ConstantBuffer0, sizeof(matrices), &matrices);
         renderContext.SetDynamicDescriptor(RealtimeRenderingRootIndex_Texture0, 0, diffuseTex->GetSRV());
-        renderContext.SetVertexBuffer(0, TheRealtimeSceneList[i]->VertexBuffer.VertexBufferView());
-        renderContext.SetIndexBuffer(TheRealtimeSceneList[i]->IndexBuffer.IndexBufferView());
-        renderContext.DrawIndexed((uint32_t)TheRealtimeSceneList[i]->Indices.size());
+        renderContext.SetVertexBuffer(0, TheRenderScene->GetRenderSceneList()[i]->VertexBuffer.VertexBufferView());
+        renderContext.SetIndexBuffer(TheRenderScene->GetRenderSceneList()[i]->IndexBuffer.IndexBufferView());
+        renderContext.DrawIndexed((uint32_t)TheRenderScene->GetRenderSceneList()[i]->Indices.size());
     }
 }
 

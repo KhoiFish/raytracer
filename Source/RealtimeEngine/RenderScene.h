@@ -25,56 +25,78 @@
 #include "RealtimeEngine/RTTexture.h"
 #include "Core/IHitable.h"
 #include "Core/Camera.h"
+#include "Core/WorldScene.h"
 #include "RealtimeEngine/GpuBuffer.h"
 #include "RenderCamera.h"
 #include "ShaderStructs.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-struct RenderVertex
+namespace RealtimeEngine
 {
-    RenderVertex(const DirectX::XMFLOAT3& position, const DirectX::XMFLOAT3& normal, const DirectX::XMFLOAT2& texCoord)
-        : Position(position)
-        , Normal(normal)
-        , TexCoord(texCoord)
-    {}
+    // ----------------------------------------------------------------------------------------------------------------------------
 
-    RenderVertex(DirectX::FXMVECTOR position, DirectX::FXMVECTOR normal, DirectX::FXMVECTOR textureCoordinate)
+    struct RenderVertex
     {
-        XMStoreFloat3(&this->Position, position);
-        XMStoreFloat3(&this->Normal, normal);
-        XMStoreFloat2(&this->TexCoord, textureCoordinate);
-    }
+        RenderVertex(const DirectX::XMFLOAT3& position, const DirectX::XMFLOAT3& normal, const DirectX::XMFLOAT2& texCoord)
+            : Position(position)
+            , Normal(normal)
+            , TexCoord(texCoord)
+        {}
 
-    static const int                        InputElementCount = 3;
-    static const D3D12_INPUT_ELEMENT_DESC   InputElements[InputElementCount];
-    DirectX::XMFLOAT3                       Position;
-    DirectX::XMFLOAT3                       Normal;
-    DirectX::XMFLOAT2                       TexCoord;
-};
+        RenderVertex(DirectX::FXMVECTOR position, DirectX::FXMVECTOR normal, DirectX::FXMVECTOR textureCoordinate)
+        {
+            XMStoreFloat3(&this->Position, position);
+            XMStoreFloat3(&this->Normal, normal);
+            XMStoreFloat2(&this->TexCoord, textureCoordinate);
+        }
 
-// ----------------------------------------------------------------------------------------------------------------------------
+        static const int                        InputElementCount = 3;
+        static const D3D12_INPUT_ELEMENT_DESC   InputElements[InputElementCount];
+        DirectX::XMFLOAT3                       Position;
+        DirectX::XMFLOAT3                       Normal;
+        DirectX::XMFLOAT2                       TexCoord;
+    };
 
-using VertexData = std::vector<RenderVertex>;
-using IndexData  = std::vector<uint32_t>;
+    // ----------------------------------------------------------------------------------------------------------------------------
 
-// ----------------------------------------------------------------------------------------------------------------------------
+    struct RenderSceneNode
+    {
+        RenderSceneNode() : Hitable(nullptr), DiffuseTexture(nullptr) {}
+        ~RenderSceneNode() {}
 
-struct RenderSceneNode
-{
-    RenderSceneNode() : Hitable(nullptr), DiffuseTexture(nullptr) {}
+        const Core::IHitable*                   Hitable;
+        std::vector<RenderVertex>               Vertices;
+        std::vector<uint32_t>                   Indices;
+        RealtimeEngine::StructuredBuffer        VertexBuffer;
+        RealtimeEngine::StructuredBuffer        IndexBuffer;
+        DirectX::XMMATRIX                       WorldMatrix;
+        RenderMaterial                          Material;
+        const RealtimeEngine::Texture*          DiffuseTexture;
+    };
 
-    const Core::IHitable*               Hitable;
-    VertexData                          Vertices;
-    IndexData                           Indices;
-    RealtimeEngine::StructuredBuffer    VertexBuffer;
-    RealtimeEngine::StructuredBuffer    IndexBuffer;
-    DirectX::XMMATRIX                   WorldMatrix;
-    RenderMaterial                      Material;
-    const RealtimeEngine::Texture*      DiffuseTexture;
-};
+    // ----------------------------------------------------------------------------------------------------------------------------
 
-// ----------------------------------------------------------------------------------------------------------------------------
+    class RenderScene
+    {
+    public:
 
-void GenerateRenderListFromWorld(const Core::IHitable* currentHead, const RealtimeEngine::Texture* defaultTexture, std::vector<RenderSceneNode*>& outSceneList, std::vector<SpotLight>& spotLightsList, std::vector<DirectX::XMMATRIX>& matrixStack, std::vector<bool>& flipNormalStack);
-void UpdateCameras(float newVertFov, float forwardAmount, float strafeAmount, float upDownAmount, int mouseDx, int mouseDy, Core::Camera& raytracerCamera, RenderCamera& renderCamera);
+        RenderScene(Core::WorldScene* worldScene);
+        ~RenderScene();
+
+        void                            UpdateCamera(float newVertFov, float forwardAmount, float strafeAmount, float upDownAmount, int mouseDx, int mouseDy, Core::Camera& worldCamera);
+        std::vector<RenderSceneNode*>&  GetRenderSceneList();
+        RenderCamera&                   GetRenderCamera();
+
+    private:
+
+        void                            GenerateRenderListFromWorld(const Core::IHitable* currentHead, const RealtimeEngine::Texture* defaultTexture, std::vector<RenderSceneNode*>& outSceneList, 
+                                            std::vector<SpotLight>& spotLightsList, std::vector<DirectX::XMMATRIX>& matrixStack, std::vector<bool>& flipNormalStack);
+
+    private:
+
+        RenderCamera                    TheRenderCamera;
+        std::vector<RenderSceneNode*>   RenderSceneList;
+        std::vector<SpotLight>          SpotLightsList;
+    };
+}

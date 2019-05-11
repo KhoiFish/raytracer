@@ -105,9 +105,9 @@ namespace Core
             return Create(camera, hitablesList, 1, lightShapesList, 1);
         }
 
-        inline HitableList* GetWorld() { return World; }
-        inline HitableList* GetLightShapes() { return LightShapes; }
-        inline Camera& GetCamera() { return TheCamera; }
+        inline HitableList* GetWorld()          { return World; }
+        inline HitableList* GetLightShapes()    { return LightShapes; }
+        inline Camera&      GetCamera()         { return TheCamera; }
 
     private:
 

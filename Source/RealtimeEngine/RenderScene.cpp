@@ -35,6 +35,7 @@
 #include "RenderScene.h"
 
 using namespace DirectX;
+using namespace RealtimeEngine;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -250,7 +251,7 @@ static void CreateResourceViews(RenderSceneNode* renderNode)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void GenerateRenderListFromWorld(const Core::IHitable* currentHead, const RealtimeEngine::Texture* defaultTexture, std::vector<RenderSceneNode*>& outSceneList, std::vector<SpotLight>& spotLightsList, std::vector<DirectX::XMMATRIX>& matrixStack, std::vector<bool>& flipNormalStack)
+void RenderScene::GenerateRenderListFromWorld(const Core::IHitable* currentHead, const RealtimeEngine::Texture* defaultTexture, std::vector<RenderSceneNode*>& outSceneList, std::vector<SpotLight>& spotLightsList, std::vector<DirectX::XMMATRIX>& matrixStack, std::vector<bool>& flipNormalStack)
 {
     const std::type_info& tid = typeid(*currentHead);
 
@@ -502,24 +503,13 @@ void GenerateRenderListFromWorld(const Core::IHitable* currentHead, const Realti
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void UpdateCameras(float newVertFov, float forwardAmount, float strafeAmount, float upDownAmount, int mouseDx, int mouseDy, Core::Camera& raytracerCamera, RenderCamera& renderCamera)
+void RenderScene::UpdateCamera(float newVertFov, float forwardAmount, float strafeAmount, float upDownAmount, int mouseDx, int mouseDy, Core::Camera& worldCamera)
 {
-    // Has mouse moved?
-    static int lastMouseDx = mouseDx;
-    static int lastMouseDy = mouseDy;
-    bool mouseMoved = false;
-    if (mouseDx != lastMouseDx || mouseDy != lastMouseDy)
-    {
-        mouseMoved = true;
-        lastMouseDx = mouseDx;
-        lastMouseDy = mouseDy;
-    }
-
     // Get ray tracer camera params
     Core::Vec4   lookFrom, lookAt, up;
     float        vertFov, aspect, aperture, focusDist, t0, t1;
     Core::Vec4   clearColor;
-    raytracerCamera.GetCameraParams(lookFrom, lookAt, up, vertFov, aspect, aperture, focusDist, t0, t1, clearColor);
+    worldCamera.GetCameraParams(lookFrom, lookAt, up, vertFov, aspect, aperture, focusDist, t0, t1, clearColor);
 
     // Update render camera look at
     Core::Vec4  diffVec = (lookAt - lookFrom);
@@ -540,24 +530,72 @@ void UpdateCameras(float newVertFov, float forwardAmount, float strafeAmount, fl
     lookAt = lookFrom + (viewDir * diffVec.Length());
 
     // Update raytracer camera
-    raytracerCamera.Setup(lookFrom, lookAt, up, newVertFov, aspect, aperture, focusDist, t0, t1, clearColor);
-    raytracerCamera.SetFocusDistanceToLookAt();
+    worldCamera.Setup(lookFrom, lookAt, up, newVertFov, aspect, aperture, focusDist, t0, t1, clearColor);
+    worldCamera.SetFocusDistanceToLookAt();
 
     // Set the render camera
     XMVECTOR cameraPos    = ConvertToXMVector(lookFrom);
     XMVECTOR cameraTarget = ConvertToXMVector(lookAt);
     XMVECTOR cameraUp     = ConvertToXMVector(up);
-    renderCamera.set_LookAt(cameraPos, cameraTarget, cameraUp);
-    renderCamera.set_Projection(newVertFov, aspect, 0.1f, 10000.0f);
+    TheRenderCamera.set_LookAt(cameraPos, cameraTarget, cameraUp);
+    TheRenderCamera.set_Projection(newVertFov, aspect, 0.1f, 10000.0f);
 
-    // Print out camera changes
-    if (mouseMoved)
+    #if 0
+        // Has mouse moved?
+        static int lastMouseDx = mouseDx;
+        static int lastMouseDy = mouseDy;
+        bool mouseMoved = false;
+        if (mouseDx != lastMouseDx || mouseDy != lastMouseDy)
+        {
+            mouseMoved = true;
+            lastMouseDx = mouseDx;
+            lastMouseDy = mouseDy;
+        }
+
+        // Print out camera changes
+        if (mouseMoved)
+        {
+            DEBUG_PRINTF("lookFrom:(%f, %f, %f)  lookAt:(%f, %f, %f)  up:(%f, %f, %f)  vertFov:%f  aspect:%f  aperture:%f  focusDist:%f\n",
+                lookFrom[0], lookFrom[1], lookFrom[2],
+                lookAt[0], lookAt[1], lookAt[2],
+                up[0], up[1], up[2],
+                newVertFov, aspect, aperture, focusDist
+            );
+        }
+    #endif
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+RealtimeEngine::RenderScene::RenderScene(Core::WorldScene* worldScene)
+{
+    std::vector<DirectX::XMMATRIX>  matrixStack;
+    std::vector<bool>               flipNormalStack;
+    std::vector<SpotLight>          spotLightsList;
+    GenerateRenderListFromWorld(worldScene->GetWorld(), nullptr, RenderSceneList, spotLightsList, matrixStack, flipNormalStack);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+RealtimeEngine::RenderScene::~RenderScene()
+{
+    for (int i = 0; i < RenderSceneList.size(); i++)
     {
-        DEBUG_PRINTF("lookFrom:(%f, %f, %f)  lookAt:(%f, %f, %f)  up:(%f, %f, %f)  vertFov:%f  aspect:%f  aperture:%f  focusDist:%f\n",
-            lookFrom[0], lookFrom[1], lookFrom[2],
-            lookAt[0], lookAt[1], lookAt[2],
-            up[0], up[1], up[2],
-            newVertFov, aspect, aperture, focusDist
-        );
+        delete RenderSceneList[i];
     }
+    RenderSceneList.clear();
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+std::vector<RenderSceneNode*>& RealtimeEngine::RenderScene::GetRenderSceneList()
+{
+    return RenderSceneList;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+RenderCamera& RealtimeEngine::RenderScene::GetRenderCamera()
+{
+    return TheRenderCamera;
 }

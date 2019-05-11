@@ -29,6 +29,7 @@
 #include "RealtimeEngine/PipelineStateObject.h"
 #include "RealtimeEngine/ColorBuffer.h"
 #include "RealtimeEngine/RenderCamera.h"
+#include "RealtimeEngine/RenderScene.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -137,8 +138,7 @@ private:
     RenderingMode                   RenderMode;
     Core::Raytracer*                TheRaytracer;
     Core::WorldScene*               TheWorldScene;
-    std::vector<RenderSceneNode*>   TheRealtimeSceneList;
-    RenderCamera                    TheRenderCamera;
+    RealtimeEngine::RenderScene*    TheRenderScene;
 
     ColorBuffer                     CPURaytracerTex;
     RootSignature                   FullscreenQuadRootSignature;

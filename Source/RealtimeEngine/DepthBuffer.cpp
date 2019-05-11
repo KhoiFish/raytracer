@@ -44,6 +44,7 @@ void DepthBuffer::Create( const string_t& name, uint32_t width, uint32_t height,
     D3D12_RESOURCE_DESC resourceDesc = DescribeTex2D(width, height, 1, 1, format, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
 
     D3D12_CLEAR_VALUE clearValue = {};
+    clearValue.Color[0] = clearValue.Color[1] = clearValue.Color[2] = clearValue.Color[3] = ClearDepth;
     clearValue.Format = format;
 
     CreateTextureResource(RenderDevice::Get().GetD3DDevice(), name, resourceDesc, clearValue, vidMemPtr);
@@ -58,6 +59,7 @@ void DepthBuffer::Create(const string_t& name, uint32_t width, uint32_t height, 
     resourceDesc.SampleDesc.Count = samples;
 
     D3D12_CLEAR_VALUE clearValue = {};
+    clearValue.Color[0] = clearValue.Color[1] = clearValue.Color[2] = clearValue.Color[3] = ClearDepth;
     clearValue.Format = format;
 
     CreateTextureResource(RenderDevice::Get().GetD3DDevice(), name, resourceDesc, clearValue, vidMemPtr);

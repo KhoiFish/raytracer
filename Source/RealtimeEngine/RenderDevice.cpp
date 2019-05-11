@@ -54,7 +54,7 @@ static inline DXGI_FORMAT NoSRGB(DXGI_FORMAT fmt)
 // ----------------------------------------------------------------------------------------------------------------------------
 
 void RenderDevice::Initialize(HWND window, int width, int height, IDeviceNotify* deviceNotify,
-    DXGI_FORMAT backBufferFormat, DXGI_FORMAT depthBufferFormat, uint32_t backBufferCount, D3D_FEATURE_LEVEL minFeatureLevel, uint32_t flags, uint32_t adapterIDoverride)
+    DXGI_FORMAT backBufferFormat, DXGI_FORMAT depthBufferFormat, uint32_t backBufferCount, D3D_FEATURE_LEVEL minFeatureLevel, uint32_t flags, uint32_t adapterIDoverride, float depthClearValue)
 {
     if (sRenderDevicePtr == nullptr)
     {
@@ -66,7 +66,8 @@ void RenderDevice::Initialize(HWND window, int width, int height, IDeviceNotify*
             backBufferCount,
             minFeatureLevel,
             RequireTearingSupport,
-            adapterIDoverride
+            adapterIDoverride,
+            depthClearValue
         );
 
         sRenderDevicePtr->RegisterDeviceNotify(deviceNotify);
@@ -123,9 +124,10 @@ RenderDevice& RenderDevice::Get()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-RenderDevice::RenderDevice(DXGI_FORMAT backBufferFormat, DXGI_FORMAT depthBufferFormat, uint32_t backBufferCount, D3D_FEATURE_LEVEL minFeatureLevel, uint32_t flags, uint32_t adapterIDoverride) :
+RenderDevice::RenderDevice(DXGI_FORMAT backBufferFormat, DXGI_FORMAT depthBufferFormat, uint32_t backBufferCount, D3D_FEATURE_LEVEL minFeatureLevel, uint32_t flags, uint32_t adapterIDoverride, float depthClearValue) :
     BackBufferFormat(backBufferFormat),
     DepthBufferFormat(depthBufferFormat),
+    DepthStencil(depthClearValue),
     BackBufferIndex(0),
     ScreenViewport{},
     ScissorRect{},

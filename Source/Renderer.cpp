@@ -838,7 +838,6 @@ void Renderer::RenderRealtimeResults()
         renderContext.SetRootSignature(RealtimeRootSignature);
         renderContext.SetViewport(RenderDevice::Get().GetScreenViewport());
         renderContext.SetScissor(RenderDevice::Get().GetScissorRect());
-        RenderDevice::Get().GetDepthStencil().SetClearDepthValue(1.0f);
 
         // Z pre pass
         {

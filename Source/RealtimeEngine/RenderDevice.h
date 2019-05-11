@@ -60,7 +60,8 @@ namespace RealtimeEngine
                                                                 uint32_t backBufferCount = 2,
                                                                 D3D_FEATURE_LEVEL minFeatureLevel = D3D_FEATURE_LEVEL_12_1,
                                                                 uint32_t flags = 0,
-                                                                uint32_t adapterIDoverride = UINT_MAX);
+                                                                uint32_t adapterIDoverride = UINT_MAX,
+                                                                float depthClearValue = 1.0f);
 
         static void                                         Shutdown();
         static RenderDevice&                                Get();
@@ -105,7 +106,7 @@ namespace RealtimeEngine
 
     private:
 
-        RenderDevice(DXGI_FORMAT backBufferFormat, DXGI_FORMAT depthBufferFormat, uint32_t backBufferCount, D3D_FEATURE_LEVEL minFeatureLevel, uint32_t flags, uint32_t adapterIDoverride);
+        RenderDevice(DXGI_FORMAT backBufferFormat, DXGI_FORMAT depthBufferFormat, uint32_t backBufferCount, D3D_FEATURE_LEVEL minFeatureLevel, uint32_t flags, uint32_t adapterIDoverride, float depthClearValue);
         ~RenderDevice();
 
         void                                                SetupDevice();

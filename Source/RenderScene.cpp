@@ -32,6 +32,9 @@
 
 #include "ShaderStructs.h"
 #include "RenderCamera.h"
+#include "RenderScene.h"
+
+using namespace DirectX;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -240,7 +243,7 @@ static void CreateResourceViews(RenderSceneNode* renderNode)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static void GenerateRenderListFromWorld(const Core::IHitable* currentHead, const RealtimeEngine::Texture* defaultTexture, std::vector<RenderSceneNode*>& outSceneList, std::vector<SpotLight>& spotLightsList, std::vector<DirectX::XMMATRIX>& matrixStack, std::vector<bool>& flipNormalStack)
+void GenerateRenderListFromWorld(const Core::IHitable* currentHead, const RealtimeEngine::Texture* defaultTexture, std::vector<RenderSceneNode*>& outSceneList, std::vector<SpotLight>& spotLightsList, std::vector<DirectX::XMMATRIX>& matrixStack, std::vector<bool>& flipNormalStack)
 {
     const std::type_info& tid = typeid(*currentHead);
 
@@ -492,7 +495,7 @@ static void GenerateRenderListFromWorld(const Core::IHitable* currentHead, const
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static void UpdateCameras(float newVertFov, float forwardAmount, float strafeAmount, float upDownAmount, int mouseDx, int mouseDy, Core::Camera& raytracerCamera, RenderCamera& renderCamera)
+void UpdateCameras(float newVertFov, float forwardAmount, float strafeAmount, float upDownAmount, int mouseDx, int mouseDy, Core::Camera& raytracerCamera, RenderCamera& renderCamera)
 {
     // Has mouse moved?
     static int lastMouseDx = mouseDx;

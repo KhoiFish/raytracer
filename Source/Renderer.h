@@ -28,11 +28,14 @@
 #include "RealtimeEngine/RootSignature.h"
 #include "RealtimeEngine/PipelineStateObject.h"
 #include "RealtimeEngine/ColorBuffer.h"
-#include "Windows/RenderCamera.h"
-#include "RenderScene.h"
+#include "RenderCamera.h"
+
+// ----------------------------------------------------------------------------------------------------------------------------
 
 using namespace RealtimeEngine;
 using namespace DirectX;
+
+struct RenderSceneNode;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -105,6 +108,8 @@ private:
         "TexCoord Buffer",
         "Diffuse Buffer",
     };
+
+    static constexpr const char* DefaultTextureName = "RuntimeData/guitar.jpg";
 
     struct UserInputData
     {

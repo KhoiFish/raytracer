@@ -22,10 +22,12 @@
 #include <DirectXMath.h>
 #include <DX12/d3d12.h>
 #include <vector>
-#include "Windows/ShaderStructs.h"
 #include "RealtimeEngine/RTTexture.h"
 #include "Core/IHitable.h"
+#include "Core/Camera.h"
 #include "RealtimeEngine/GpuBuffer.h"
+#include "RenderCamera.h"
+#include "ShaderStructs.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -71,3 +73,8 @@ struct RenderSceneNode
     RenderMaterial                      Material;
     const RealtimeEngine::Texture*      DiffuseTexture;
 };
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void GenerateRenderListFromWorld(const Core::IHitable* currentHead, const RealtimeEngine::Texture* defaultTexture, std::vector<RenderSceneNode*>& outSceneList, std::vector<SpotLight>& spotLightsList, std::vector<DirectX::XMMATRIX>& matrixStack, std::vector<bool>& flipNormalStack);
+void UpdateCameras(float newVertFov, float forwardAmount, float strafeAmount, float upDownAmount, int mouseDx, int mouseDy, Core::Camera& raytracerCamera, RenderCamera& renderCamera);

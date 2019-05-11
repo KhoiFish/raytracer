@@ -18,19 +18,15 @@
 // ----------------------------------------------------------------------------------------------------------------------------
 
 #include "Renderer.h"
+#include "RenderScene.h"
 #include "RealtimeEngine/RenderDevice.h"
 #include "RealtimeEngine/PlatformApp.h"
 #include "RealtimeEngine/CommandList.h"
 #include "RealtimeEngine/CommandContext.h"
 #include <d3dcompiler.h>
-#include "Windows/SceneConvert.hpp"
 
 using namespace Core;
 using namespace RealtimeEngine;
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-#define DEFAULT_TEXTURE_FILENAME    "RuntimeData/guitar.jpg"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -518,7 +514,7 @@ void Renderer::LoadScene()
     GenerateRenderListFromWorld(TheWorldScene->GetWorld(), nullptr, TheRealtimeSceneList, spotLightsList, matrixStack, flipNormalStack);
 
     // Load default texture
-    RealtimeEngine::TextureManager::LoadFromFile(DEFAULT_TEXTURE_FILENAME);
+    RealtimeEngine::TextureManager::LoadFromFile(DefaultTextureName);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -817,8 +813,7 @@ void Renderer::RenderCPUResults()
         renderContext.SetViewport(RenderDevice::Get().GetScreenViewport());
         renderContext.SetScissor(RenderDevice::Get().GetScissorRect());
         renderContext.TransitionResource(RenderDevice::Get().GetRenderTarget(), D3D12_RESOURCE_STATE_RENDER_TARGET, true);
-        renderContext.TransitionResource(RenderDevice::Get().GetDepthStencil(), D3D12_RESOURCE_STATE_DEPTH_WRITE, true);
-        renderContext.ClearDepth(RenderDevice::Get().GetDepthStencil());
+        renderContext.TransitionResource(RenderDevice::Get().GetDepthStencil(), D3D12_RESOURCE_STATE_DEPTH_READ, true);
         renderContext.SetRenderTarget(RenderDevice::Get().GetRenderTarget().GetRTV(), RenderDevice::Get().GetDepthStencil().GetDSV());
         renderContext.ClearColor(RenderDevice::Get().GetRenderTarget());
 
@@ -933,7 +928,7 @@ void Renderer::RenderSceneList(GraphicsContext& renderContext, const XMMATRIX& v
         RenderMatrices matrices;
         ComputeMatrices(TheRealtimeSceneList[i]->WorldMatrix, viewMatrix, projectionMatrix, matrices);
 
-        const RealtimeEngine::Texture* defaultTexture = RealtimeEngine::TextureManager::LoadFromFile(DEFAULT_TEXTURE_FILENAME);
+        const RealtimeEngine::Texture* defaultTexture = RealtimeEngine::TextureManager::LoadFromFile(DefaultTextureName);
         const RealtimeEngine::Texture* diffuseTex     = (TheRealtimeSceneList[i]->DiffuseTexture != nullptr) ? TheRealtimeSceneList[i]->DiffuseTexture : defaultTexture;
 
         renderContext.SetDynamicConstantBufferView(RealtimeRenderingRootIndex_ConstantBuffer0, sizeof(matrices), &matrices);

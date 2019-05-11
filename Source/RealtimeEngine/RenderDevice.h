@@ -129,7 +129,7 @@ namespace RealtimeEngine
         Microsoft::WRL::ComPtr<IDXGIAdapter1>               Adapter;
         uint32_t                                            AdapterID;
         std::wstring                                        AdapterDescription;
-        Microsoft::WRL::ComPtr<ID3D12Device>                D3DDevice;
+        Microsoft::WRL::ComPtr<ID3D12Device5>               D3DDevice;
         Microsoft::WRL::ComPtr<IDXGIFactory4>               DXGIFactory;
         Microsoft::WRL::ComPtr<IDXGISwapChain3>             SwapChain;
 

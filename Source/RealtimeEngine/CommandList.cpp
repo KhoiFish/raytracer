@@ -224,7 +224,7 @@ uint64_t CommandQueue::ExecuteCommandList(ID3D12CommandList* list)
 {
     std::lock_guard<std::mutex> lockGuard(FenceMutex);
 
-    ASSERT_SUCCEEDED(((ID3D12GraphicsCommandList*)list)->Close());
+    ASSERT_SUCCEEDED(((ID3D12GraphicsCommandList4*)list)->Close());
 
     // Kickoff the command list
     TheCommandQueue->ExecuteCommandLists(1, &list);
@@ -359,7 +359,7 @@ ID3D12CommandQueue* CommandListManager::GetCommandQueue()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void CommandListManager::CreateNewCommandList( D3D12_COMMAND_LIST_TYPE type, ID3D12GraphicsCommandList** list, ID3D12CommandAllocator** allocator)
+void CommandListManager::CreateNewCommandList(D3D12_COMMAND_LIST_TYPE type, ID3D12GraphicsCommandList4** list, ID3D12CommandAllocator** allocator)
 {
     ASSERT(type != D3D12_COMMAND_LIST_TYPE_BUNDLE, "Bundles are not yet supported");
     switch (type)

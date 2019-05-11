@@ -70,18 +70,18 @@ void DynamicDescriptorHeap::ParseComputeRootSignature(const RootSignature& rootS
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void DynamicDescriptorHeap::CommitGraphicsRootDescriptorTables(ID3D12GraphicsCommandList* cmdList)
+void DynamicDescriptorHeap::CommitGraphicsRootDescriptorTables(ID3D12GraphicsCommandList4* cmdList)
 {
     if (GraphicsHandleCache.StaleRootParamsBitMap != 0)
-        CopyAndBindStagedTables(GraphicsHandleCache, cmdList, &ID3D12GraphicsCommandList::SetGraphicsRootDescriptorTable);
+        CopyAndBindStagedTables(GraphicsHandleCache, cmdList, &ID3D12GraphicsCommandList4::SetGraphicsRootDescriptorTable);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void DynamicDescriptorHeap::CommitComputeRootDescriptorTables(ID3D12GraphicsCommandList* cmdList)
+void DynamicDescriptorHeap::CommitComputeRootDescriptorTables(ID3D12GraphicsCommandList4* cmdList)
 {
     if (ComputeHandleCache.StaleRootParamsBitMap != 0)
-        CopyAndBindStagedTables(ComputeHandleCache, cmdList, &ID3D12GraphicsCommandList::SetComputeRootDescriptorTable);
+        CopyAndBindStagedTables(ComputeHandleCache, cmdList, &ID3D12GraphicsCommandList4::SetComputeRootDescriptorTable);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -239,8 +239,8 @@ uint32_t DynamicDescriptorHeap::DescriptorHandleCache::ComputeStagedSize()
 
 void DynamicDescriptorHeap::DescriptorHandleCache::CopyAndBindStaleTables(
     D3D12_DESCRIPTOR_HEAP_TYPE type, uint32_t descriptorSize,
-    DescriptorHandle destHandleStart, ID3D12GraphicsCommandList* cmdList,
-    void (STDMETHODCALLTYPE ID3D12GraphicsCommandList::*setFunc)(uint32_t, D3D12_GPU_DESCRIPTOR_HANDLE))
+    DescriptorHandle destHandleStart, ID3D12GraphicsCommandList4* cmdList,
+    void (STDMETHODCALLTYPE ID3D12GraphicsCommandList4::*setFunc)(uint32_t, D3D12_GPU_DESCRIPTOR_HANDLE))
 {
     uint32_t staleParamCount = 0;
     uint32_t tableSize[DescriptorHandleCache::kMaxNumDescriptorTables];
@@ -340,8 +340,8 @@ void DynamicDescriptorHeap::DescriptorHandleCache::CopyAndBindStaleTables(
 
     // ----------------------------------------------------------------------------------------------------------------------------
     
-void DynamicDescriptorHeap::CopyAndBindStagedTables(DescriptorHandleCache& handleCache, ID3D12GraphicsCommandList* cmdList,
-    void (STDMETHODCALLTYPE ID3D12GraphicsCommandList::*setFunc)(uint32_t, D3D12_GPU_DESCRIPTOR_HANDLE))
+void DynamicDescriptorHeap::CopyAndBindStagedTables(DescriptorHandleCache& handleCache, ID3D12GraphicsCommandList4* cmdList,
+    void (STDMETHODCALLTYPE ID3D12GraphicsCommandList4::*setFunc)(uint32_t, D3D12_GPU_DESCRIPTOR_HANDLE))
 {
     uint32_t neededSize = handleCache.ComputeStagedSize();
     if (!HasSpace(neededSize))

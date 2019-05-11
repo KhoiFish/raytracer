@@ -47,8 +47,8 @@ namespace RealtimeEngine
         void                            ParseGraphicsRootSignature(const RootSignature& rootSig);
         void                            ParseComputeRootSignature(const RootSignature& rootSig);
 
-        void                            CommitGraphicsRootDescriptorTables(ID3D12GraphicsCommandList* cmdList);
-        void                            CommitComputeRootDescriptorTables(ID3D12GraphicsCommandList * cmdList);
+        void                            CommitGraphicsRootDescriptorTables(ID3D12GraphicsCommandList4* cmdList);
+        void                            CommitComputeRootDescriptorTables(ID3D12GraphicsCommandList4* cmdList);
 
         D3D12_GPU_DESCRIPTOR_HANDLE     UploadDirect(D3D12_CPU_DESCRIPTOR_HANDLE handles);
 
@@ -82,7 +82,7 @@ namespace RealtimeEngine
             }
 
             uint32_t                    ComputeStagedSize();
-            void                        CopyAndBindStaleTables(D3D12_DESCRIPTOR_HEAP_TYPE type, uint32_t descriptorSize, DescriptorHandle destHandleStart, ID3D12GraphicsCommandList* cmdList, void (STDMETHODCALLTYPE ID3D12GraphicsCommandList::* setFunc)(uint32_t, D3D12_GPU_DESCRIPTOR_HANDLE));
+            void                        CopyAndBindStaleTables(D3D12_DESCRIPTOR_HEAP_TYPE type, uint32_t descriptorSize, DescriptorHandle destHandleStart, ID3D12GraphicsCommandList4* cmdList, void (STDMETHODCALLTYPE ID3D12GraphicsCommandList4::* setFunc)(uint32_t, D3D12_GPU_DESCRIPTOR_HANDLE));
             void                        StageDescriptorHandles(uint32_t rootIndex, uint32_t Offset, uint32_t numHandles, const D3D12_CPU_DESCRIPTOR_HANDLE handles[]);
             void                        ParseRootSignature(D3D12_DESCRIPTOR_HEAP_TYPE type, const RootSignature& rootSig);
             void                        UnbindAllValid();
@@ -108,7 +108,7 @@ namespace RealtimeEngine
         void                            RetireUsedHeaps(uint64_t fenceValue);
         ID3D12DescriptorHeap*           GetHeapPointer();
         DescriptorHandle                Allocate(uint32_t count);
-        void                            CopyAndBindStagedTables(DescriptorHandleCache& handleCache, ID3D12GraphicsCommandList* cmdList, void (STDMETHODCALLTYPE ID3D12GraphicsCommandList::* setFunc)(uint32_t, D3D12_GPU_DESCRIPTOR_HANDLE));
+        void                            CopyAndBindStagedTables(DescriptorHandleCache& handleCache, ID3D12GraphicsCommandList4* cmdList, void (STDMETHODCALLTYPE ID3D12GraphicsCommandList4::* setFunc)(uint32_t, D3D12_GPU_DESCRIPTOR_HANDLE));
         void                            UnbindAllValid();
 
     private:

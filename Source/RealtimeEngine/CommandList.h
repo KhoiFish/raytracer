@@ -125,7 +125,7 @@ namespace RealtimeEngine
         CommandQueue&               GetQueue(D3D12_COMMAND_LIST_TYPE type = D3D12_COMMAND_LIST_TYPE_DIRECT);
         ID3D12CommandQueue*         GetCommandQueue();
 
-        void                        CreateNewCommandList(D3D12_COMMAND_LIST_TYPE type, ID3D12GraphicsCommandList** list, ID3D12CommandAllocator** allocator);
+        void                        CreateNewCommandList(D3D12_COMMAND_LIST_TYPE type, ID3D12GraphicsCommandList4** list, ID3D12CommandAllocator** allocator);
         bool                        IsFenceComplete(uint64_t fenceValue);
         void                        WaitForFence(uint64_t fenceValue);
         void                        IdleGPU();

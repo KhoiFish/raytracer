@@ -35,8 +35,6 @@ namespace RealtimeEngine
 
         void                                Create(size_t pitch, size_t width, size_t height, DXGI_FORMAT Format, const void* initData);
         void                                Create(size_t width, size_t height, DXGI_FORMAT format, const void* initData);
-        void                                CreateTGAFromMemory(const void* memBuffer, size_t fileSize, bool sRGB);
-        void                                CreatePIXImageFromMemory(const void* memBuffer, size_t fileSize);
         virtual void                        Destroy() override;
         const D3D12_CPU_DESCRIPTOR_HANDLE&  GetSRV() const;
 
@@ -44,7 +42,11 @@ namespace RealtimeEngine
 
     protected:
 
-        D3D12_CPU_DESCRIPTOR_HANDLE CpuDescriptorHandle;
+        friend class TextureManager;
+
+        D3D12_CPU_DESCRIPTOR_HANDLE     CpuDescriptorHandle;
+        int32_t                         Width;
+        int32_t                         Height;
     };
 
     // ----------------------------------------------------------------------------------------------------------------------------
@@ -76,8 +78,6 @@ namespace RealtimeEngine
         static void                   Initialize(const string_t& textureLibRoot);
         static void                   Shutdown();
         static const ManagedTexture*  LoadFromFile(const string_t& fileName, bool sRGB = false);
-        static const ManagedTexture*  LoadTGAFromFile(const string_t& fileName, bool sRGB = false);
-        static const ManagedTexture*  LoadPIXImageFromFile(const string_t& fileName);
         static const Texture&         GetBlackTex2D();
         static const Texture&         GetWhiteTex2D();
         static const Texture&         GetMagentaTex2D();

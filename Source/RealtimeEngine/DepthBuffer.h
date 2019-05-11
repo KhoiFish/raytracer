@@ -33,14 +33,17 @@ namespace RealtimeEngine
         void                                Create(const string_t& name, uint32_t width, uint32_t height, DXGI_FORMAT format, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN);
         void                                Create(const string_t& name, uint32_t width, uint32_t height, uint32_t numSamples, DXGI_FORMAT format, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN);
 
-        const D3D12_CPU_DESCRIPTOR_HANDLE&  GetDSV() const                  { return DSVHandle[0]; }
-        const D3D12_CPU_DESCRIPTOR_HANDLE&  GetDSV_DepthReadOnly() const    { return DSVHandle[1]; }
-        const D3D12_CPU_DESCRIPTOR_HANDLE&  GetDSV_StencilReadOnly() const  { return DSVHandle[2]; }
-        const D3D12_CPU_DESCRIPTOR_HANDLE&  GetDSV_ReadOnly() const         { return DSVHandle[3]; }
-        const D3D12_CPU_DESCRIPTOR_HANDLE&  GetDepthSRV() const             { return DepthSRVHandle; }
-        const D3D12_CPU_DESCRIPTOR_HANDLE&  GetStencilSRV() const           { return StencilSRVHandle; }
-        float                               GetClearDepth() const           { return ClearDepth; }
-        uint8_t                             GetClearStencil() const         { return ClearStencil; }
+        const D3D12_CPU_DESCRIPTOR_HANDLE&  GetDSV() const                      { return DSVHandle[0]; }
+        const D3D12_CPU_DESCRIPTOR_HANDLE&  GetDSV_DepthReadOnly() const        { return DSVHandle[1]; }
+        const D3D12_CPU_DESCRIPTOR_HANDLE&  GetDSV_StencilReadOnly() const      { return DSVHandle[2]; }
+        const D3D12_CPU_DESCRIPTOR_HANDLE&  GetDSV_ReadOnly() const             { return DSVHandle[3]; }
+        const D3D12_CPU_DESCRIPTOR_HANDLE&  GetDepthSRV() const                 { return DepthSRVHandle; }
+        const D3D12_CPU_DESCRIPTOR_HANDLE&  GetStencilSRV() const               { return StencilSRVHandle; }
+        float                               GetClearDepth() const               { return ClearDepth; }
+        uint8_t                             GetClearStencil() const             { return ClearStencil; }
+
+        void                                SetClearDepthValue(float value)     { ClearDepth = value; }
+        void                                SetClearStencilValue(uint8_t value) { ClearStencil = value; }
 
     private:
 

@@ -20,6 +20,7 @@
 #include "RTTexture.h"
 #include "RenderDevice.h"
 #include "CommandContext.h"
+#include "StbImage/stb_image.h"
 #include <map>
 #include <mutex>
 #include <thread>
@@ -258,80 +259,6 @@ const D3D12_CPU_DESCRIPTOR_HANDLE& RealtimeEngine::Texture::GetSRV() const
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void Texture::CreateTGAFromMemory(const void* filePtr, size_t, bool sRGB)
-{
-    const uint8_t* fileRunner = (const uint8_t*)filePtr;
-
-    // Skip first two bytes
-    fileRunner += 2;
-
-    /*uint8_t imageTypeCode =*/ *fileRunner++;
-
-    // Ignore another 9 bytes
-    fileRunner += 9;
-
-    uint16_t imageWidth = *(uint16_t*)fileRunner;
-    fileRunner += sizeof(uint16_t);
-    uint16_t imageHeight = *(uint16_t*)fileRunner;
-    fileRunner += sizeof(uint16_t);
-    uint8_t bitCount = *fileRunner++;
-
-    // Ignore another byte
-    fileRunner++;
-
-    uint32_t* formattedData = new uint32_t[imageWidth * imageHeight];
-    uint32_t* iter = formattedData;
-
-    uint8_t numChannels = bitCount / 8;
-    uint32_t numBytes = imageWidth * imageHeight * numChannels;
-
-    switch (numChannels)
-    {
-    default:
-        break;
-
-    case 3:
-        for (uint32_t byteIdx = 0; byteIdx < numBytes; byteIdx += 3)
-        {
-            *iter++ = 0xff000000 | fileRunner[0] << 16 | fileRunner[1] << 8 | fileRunner[2];
-            fileRunner += 3;
-        }
-        break;
-
-    case 4:
-        for (uint32_t byteIdx = 0; byteIdx < numBytes; byteIdx += 4)
-        {
-            *iter++ = fileRunner[3] << 24 | fileRunner[0] << 16 | fileRunner[1] << 8 | fileRunner[2];
-            fileRunner += 4;
-        }
-        break;
-    }
-
-    Create(imageWidth, imageHeight, sRGB ? DXGI_FORMAT_R8G8B8A8_UNORM_SRGB : DXGI_FORMAT_R8G8B8A8_UNORM, formattedData);
-
-    delete[] formattedData;
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-void Texture::CreatePIXImageFromMemory(const void* memBuffer, size_t fileSize)
-{
-    struct Header
-    {
-        DXGI_FORMAT Format;
-        uint32_t Pitch;
-        uint32_t Width;
-        uint32_t Height;
-    };
-    const Header& header = *(Header*)memBuffer;
-
-    ASSERT(fileSize >= header.Pitch * BytesPerPixel(header.Format) * header.Height + sizeof(Header), "Raw PIX image dump has an invalid file size");
-
-    Create(header.Pitch, header.Width, header.Height, header.Format, (uint8_t*)memBuffer + sizeof(Header));
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
 void ManagedTexture::WaitForLoad() const
 {
     volatile D3D12_CPU_DESCRIPTOR_HANDLE&  volHandle = (volatile D3D12_CPU_DESCRIPTOR_HANDLE&)CpuDescriptorHandle;
@@ -456,17 +383,6 @@ const Texture& TextureManager::GetMagentaTex2D()
 
 const ManagedTexture* TextureManager::LoadFromFile(const string_t & fileName, bool sRGB)
 {
-    string_t              catPath = fileName;
-    const ManagedTexture* tex     = LoadTGAFromFile(catPath + ".tga", sRGB);
-
-    return tex;
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-const ManagedTexture * TextureManager::LoadTGAFromFile(const string_t & fileName, bool sRGB)
-{
-#if 0
     auto            managedTex   = FindOrLoadTexture(fileName);
     ManagedTexture* manTex       = managedTex.first;
     const bool      requestsLoad = managedTex.second;
@@ -476,53 +392,20 @@ const ManagedTexture * TextureManager::LoadTGAFromFile(const string_t & fileName
         return manTex;
     }
 
-    Utility::ByteArray ba = Utility::ReadFileSync(sRootPath + fileName);
-    if (ba->size() > 0)
+    int comp;
+    unsigned char* pixelData = stbi_load(fileName.c_str(), &manTex->Width, &manTex->Height, &comp, STBI_rgb_alpha);
+    if (pixelData != nullptr)
     {
-        manTex->CreateTGAFromMemory(ba->data(), ba->size(), sRGB);
+        manTex->Create(manTex->Width, manTex->Height, sRGB ? DXGI_FORMAT_R8G8B8A8_UNORM_SRGB : DXGI_FORMAT_R8G8B8A8_UNORM, pixelData);
         manTex->GetResource()->SetName(MakeWStr(fileName).c_str());
+        free(pixelData);
+        pixelData = nullptr;
     }
     else
     {
+        DEBUG_PRINTF("%s\n", stbi_failure_reason());
         manTex->SetToInvalidTexture();
     }
 
     return manTex;
-#endif
-
-    assert(false);
-    return nullptr;
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-const ManagedTexture* TextureManager::LoadPIXImageFromFile(const string_t & fileName)
-{
-#if 0
-    auto            managedTex   = FindOrLoadTexture(fileName);
-    ManagedTexture* manTex       = managedTex.first;
-    const bool      requestsLoad = managedTex.second;
-
-    if (!requestsLoad)
-    {
-        manTex->WaitForLoad();
-        return manTex;
-    }
-
-    Utility::ByteArray ba = Utility::ReadFileSync(sRootPath + fileName);
-    if (ba->size() > 0)
-    {
-        manTex->CreatePIXImageFromMemory(ba->data(), ba->size());
-        manTex->GetResource()->SetName(MakeWStr(fileName).c_str());
-    }
-    else
-    {
-        manTex->SetToInvalidTexture();
-    }
-
-    return manTex;
-#endif
-
-    assert(false);
-    return nullptr;
 }

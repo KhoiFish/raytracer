@@ -317,7 +317,7 @@ void Renderer::SetupRealtimePipeline()
         D3D12_DEPTH_STENCIL_DESC depthStateReadWrite;
         depthStateReadWrite.DepthEnable                         = TRUE;
         depthStateReadWrite.DepthWriteMask                      = D3D12_DEPTH_WRITE_MASK_ALL;
-        depthStateReadWrite.DepthFunc                           = D3D12_COMPARISON_FUNC_GREATER_EQUAL;
+        depthStateReadWrite.DepthFunc                           = D3D12_COMPARISON_FUNC_LESS_EQUAL;
         depthStateReadWrite.StencilEnable                       = FALSE;
         depthStateReadWrite.StencilReadMask                     = D3D12_DEFAULT_STENCIL_READ_MASK;
         depthStateReadWrite.StencilWriteMask                    = D3D12_DEFAULT_STENCIL_WRITE_MASK;
@@ -375,7 +375,7 @@ void Renderer::SetupRealtimePipeline()
         D3D12_DEPTH_STENCIL_DESC depthStateReadWrite;
         depthStateReadWrite.DepthEnable                         = TRUE;
         depthStateReadWrite.DepthWriteMask                      = D3D12_DEPTH_WRITE_MASK_ALL;
-        depthStateReadWrite.DepthFunc                           = D3D12_COMPARISON_FUNC_GREATER_EQUAL;
+        depthStateReadWrite.DepthFunc                           = D3D12_COMPARISON_FUNC_LESS_EQUAL;
         depthStateReadWrite.StencilEnable                       = FALSE;
         depthStateReadWrite.StencilReadMask                     = D3D12_DEFAULT_STENCIL_READ_MASK;
         depthStateReadWrite.StencilWriteMask                    = D3D12_DEFAULT_STENCIL_WRITE_MASK;
@@ -638,6 +638,7 @@ void Renderer::RenderRealtimeResults()
         renderContext.SetRootSignature(RealtimeRootSignature);
         renderContext.SetViewport(RenderDevice::Get().GetScreenViewport());
         renderContext.SetScissor(RenderDevice::Get().GetScissorRect());
+        RenderDevice::Get().GetDepthStencil().SetClearDepthValue(1.0f);
 
         // Z pre pass
         {
@@ -698,12 +699,10 @@ void Renderer::RenderSceneList(GraphicsContext& renderContext, const XMMATRIX& v
         RenderMatrices matrices;
         ComputeMatrices(TheRealtimeSceneList[i]->WorldMatrix, viewMatrix, projectionMatrix, matrices);
 
-        const RealtimeEngine::Texture* diffuseTex = (TheRealtimeSceneList[i]->DiffuseTexture != nullptr) ? TheRealtimeSceneList[i]->DiffuseTexture : nullptr;
+        const RealtimeEngine::Texture* diffuseTex = (TheRealtimeSceneList[i]->DiffuseTexture != nullptr) ? TheRealtimeSceneList[i]->DiffuseTexture : &RealtimeEngine::TextureManager::GetWhiteTex2D();
 
         renderContext.SetDynamicConstantBufferView(RealtimeRenderingRootIndex_ConstantBuffer0, sizeof(matrices), &matrices);
-        renderContext.SetDynamicConstantBufferView(RealtimeRenderingRootIndex_ConstantBuffer1, sizeof(matrices), &matrices);
-        //renderContext.SetDynamicDescriptor(FullscreenQuadRootIndex_Texture0, 0, diffuseTex->GetSRV());
-        //commandList->SetGraphicsDynamicConstantBuffer(RootParameters::MaterialCB, RenderSceneList[i]->Material);
+        renderContext.SetDynamicDescriptor(RealtimeRenderingRootIndex_Texture0, 0, diffuseTex->GetSRV());
         renderContext.SetVertexBuffer(0, TheRealtimeSceneList[i]->VertexBuffer.VertexBufferView());
         renderContext.SetIndexBuffer(TheRealtimeSceneList[i]->IndexBuffer.IndexBufferView());
         renderContext.DrawIndexed((uint32_t)TheRealtimeSceneList[i]->Indices.size());

@@ -153,6 +153,9 @@
     <ClInclude Include="..\..\Source\Core\CoreTexture.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\RenderScene.h">
+      <Filter>Realtime</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\ThirdParty\StbImage\StbImageImpl.cpp">
@@ -256,6 +259,9 @@
     </ClCompile>
     <ClCompile Include="..\..\Source\Core\CoreTexture.cpp">
       <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\RealtimeEngine\RenderScene.cpp">
+      <Filter>Realtime</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

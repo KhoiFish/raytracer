@@ -31,9 +31,6 @@
     <ClInclude Include="..\..\Source\Windows\RenderCamera.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\RenderScene.h">
-      <Filter>Source</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Source\ShaderStructs.h">
       <Filter>Shaders</Filter>
     </ClInclude>
@@ -62,9 +59,6 @@
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Renderer.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\RenderScene.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\RenderCamera.cpp">

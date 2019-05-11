@@ -209,6 +209,7 @@
     <ClInclude Include="..\..\Source\RealtimeEngine\PlatformApp.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\RenderDevice.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\RenderInterface.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\RenderScene.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\RootSignature.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\RTTexture.h" />
     <ClInclude Include="..\..\ThirdParty\StbImage\stb_image.h" />
@@ -245,6 +246,7 @@
     <ClCompile Include="..\..\Source\RealtimeEngine\PixelBuffer.cpp" />
     <ClCompile Include="..\..\Source\RealtimeEngine\PlatformApp.cpp" />
     <ClCompile Include="..\..\Source\RealtimeEngine\RenderDevice.cpp" />
+    <ClCompile Include="..\..\Source\RealtimeEngine\RenderScene.cpp" />
     <ClCompile Include="..\..\Source\RealtimeEngine\RootSignature.cpp" />
     <ClCompile Include="..\..\Source\RealtimeEngine\RTTexture.cpp" />
     <ClCompile Include="..\..\ThirdParty\StbImage\StbImageImpl.cpp" />

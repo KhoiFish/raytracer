@@ -87,7 +87,7 @@ enum RealtimeRenderingRegisters
 
 Renderer::Renderer(uint32_t width, uint32_t height)
     : RenderInterface(width, height)
-    , RenderMode(RenderingMode_Cpu)
+    , RenderMode(RenderingMode_Realtime)
     , TheRaytracer(nullptr)
     , TheWorldScene(nullptr)
 {
@@ -206,18 +206,18 @@ void Renderer::SetupFullscreenQuadPipeline()
         blendDisable.RenderTarget[0].RenderTargetWriteMask      = 0;
         blendDisable.RenderTarget[0].RenderTargetWriteMask      = D3D12_COLOR_WRITE_ENABLE_ALL;
 
-        D3D12_DEPTH_STENCIL_DESC depthStateReadWrite;
-        depthStateReadWrite.DepthEnable                         = FALSE;
-        depthStateReadWrite.DepthWriteMask                      = D3D12_DEPTH_WRITE_MASK_ALL;
-        depthStateReadWrite.DepthFunc                           = D3D12_COMPARISON_FUNC_GREATER_EQUAL;
-        depthStateReadWrite.StencilEnable                       = FALSE;
-        depthStateReadWrite.StencilReadMask                     = D3D12_DEFAULT_STENCIL_READ_MASK;
-        depthStateReadWrite.StencilWriteMask                    = D3D12_DEFAULT_STENCIL_WRITE_MASK;
-        depthStateReadWrite.FrontFace.StencilFunc               = D3D12_COMPARISON_FUNC_ALWAYS;
-        depthStateReadWrite.FrontFace.StencilPassOp             = D3D12_STENCIL_OP_KEEP;
-        depthStateReadWrite.FrontFace.StencilFailOp             = D3D12_STENCIL_OP_KEEP;
-        depthStateReadWrite.FrontFace.StencilDepthFailOp        = D3D12_STENCIL_OP_KEEP;
-        depthStateReadWrite.BackFace                            = depthStateReadWrite.FrontFace;
+        D3D12_DEPTH_STENCIL_DESC depthDisabledState;
+        depthDisabledState.DepthEnable                          = FALSE;
+        depthDisabledState.DepthWriteMask                       = D3D12_DEPTH_WRITE_MASK_ALL;
+        depthDisabledState.DepthFunc                            = D3D12_COMPARISON_FUNC_GREATER_EQUAL;
+        depthDisabledState.StencilEnable                        = FALSE;
+        depthDisabledState.StencilReadMask                      = D3D12_DEFAULT_STENCIL_READ_MASK;
+        depthDisabledState.StencilWriteMask                     = D3D12_DEFAULT_STENCIL_WRITE_MASK;
+        depthDisabledState.FrontFace.StencilFunc                = D3D12_COMPARISON_FUNC_ALWAYS;
+        depthDisabledState.FrontFace.StencilPassOp              = D3D12_STENCIL_OP_KEEP;
+        depthDisabledState.FrontFace.StencilFailOp              = D3D12_STENCIL_OP_KEEP;
+        depthDisabledState.FrontFace.StencilDepthFailOp         = D3D12_STENCIL_OP_KEEP;
+        depthDisabledState.BackFace                             = depthDisabledState.FrontFace;
 
         Microsoft::WRL::ComPtr<ID3DBlob> vertexShaderBlob, pixelShaderBlob;
         ThrowIfFailed(D3DReadFileToBlob(SHADERBUILD_DIR L"\\FullscreenQuad_VS.cso", &vertexShaderBlob));
@@ -228,7 +228,7 @@ void Renderer::SetupFullscreenQuadPipeline()
         FullscreenPipelineState.SetRootSignature(FullscreenQuadRootSignature);
         FullscreenPipelineState.SetRasterizerState(rasterizerDesc);
         FullscreenPipelineState.SetBlendState(blendDisable);
-        FullscreenPipelineState.SetDepthStencilState(depthStateReadWrite);
+        FullscreenPipelineState.SetDepthStencilState(depthDisabledState);
         FullscreenPipelineState.SetInputLayout(RenderVertex::InputElementCount, RenderVertex::InputElements);
         FullscreenPipelineState.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
         FullscreenPipelineState.SetRenderTargetFormats(_countof(rtFormats), rtFormats, RenderDevice::Get().GetDepthBufferFormat());
@@ -404,6 +404,64 @@ void Renderer::SetupRealtimePipeline()
         RealtimeGeometryPassPSO.SetVertexShader(vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize());
         RealtimeGeometryPassPSO.SetPixelShader(pixelShaderBlob->GetBufferPointer(), pixelShaderBlob->GetBufferSize());
         RealtimeGeometryPassPSO.Finalize();
+    }
+
+    // Composite pass PSO setup
+    {
+        D3D12_RASTERIZER_DESC rasterizerDesc;
+        rasterizerDesc.FillMode                                 = D3D12_FILL_MODE_SOLID;
+        rasterizerDesc.CullMode                                 = D3D12_CULL_MODE_BACK;
+        rasterizerDesc.FrontCounterClockwise                    = TRUE;
+        rasterizerDesc.DepthBias                                = D3D12_DEFAULT_DEPTH_BIAS;
+        rasterizerDesc.DepthBiasClamp                           = D3D12_DEFAULT_DEPTH_BIAS_CLAMP;
+        rasterizerDesc.SlopeScaledDepthBias                     = D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS;
+        rasterizerDesc.DepthClipEnable                          = TRUE;
+        rasterizerDesc.MultisampleEnable                        = FALSE;
+        rasterizerDesc.AntialiasedLineEnable                    = FALSE;
+        rasterizerDesc.ForcedSampleCount                        = 0;
+        rasterizerDesc.ConservativeRaster                       = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
+
+        D3D12_BLEND_DESC blendDisable = {};
+        blendDisable.IndependentBlendEnable                     = FALSE;
+        blendDisable.RenderTarget[0].BlendEnable                = FALSE;
+        blendDisable.RenderTarget[0].SrcBlend                   = D3D12_BLEND_SRC_ALPHA;
+        blendDisable.RenderTarget[0].DestBlend                  = D3D12_BLEND_INV_SRC_ALPHA;
+        blendDisable.RenderTarget[0].BlendOp                    = D3D12_BLEND_OP_ADD;
+        blendDisable.RenderTarget[0].SrcBlendAlpha              = D3D12_BLEND_ONE;
+        blendDisable.RenderTarget[0].DestBlendAlpha             = D3D12_BLEND_INV_SRC_ALPHA;
+        blendDisable.RenderTarget[0].BlendOpAlpha               = D3D12_BLEND_OP_ADD;
+        blendDisable.RenderTarget[0].RenderTargetWriteMask      = 0;
+        blendDisable.RenderTarget[0].RenderTargetWriteMask      = D3D12_COLOR_WRITE_ENABLE_ALL;
+
+        D3D12_DEPTH_STENCIL_DESC depthDisabledState;
+        depthDisabledState.DepthEnable                          = FALSE;
+        depthDisabledState.DepthWriteMask                       = D3D12_DEPTH_WRITE_MASK_ALL;
+        depthDisabledState.DepthFunc                            = D3D12_COMPARISON_FUNC_GREATER_EQUAL;
+        depthDisabledState.StencilEnable                        = FALSE;
+        depthDisabledState.StencilReadMask                      = D3D12_DEFAULT_STENCIL_READ_MASK;
+        depthDisabledState.StencilWriteMask                     = D3D12_DEFAULT_STENCIL_WRITE_MASK;
+        depthDisabledState.FrontFace.StencilFunc                = D3D12_COMPARISON_FUNC_ALWAYS;
+        depthDisabledState.FrontFace.StencilPassOp              = D3D12_STENCIL_OP_KEEP;
+        depthDisabledState.FrontFace.StencilFailOp              = D3D12_STENCIL_OP_KEEP;
+        depthDisabledState.FrontFace.StencilDepthFailOp         = D3D12_STENCIL_OP_KEEP;
+        depthDisabledState.BackFace                             = depthDisabledState.FrontFace;
+
+        Microsoft::WRL::ComPtr<ID3DBlob> vertexShaderBlob, pixelShaderBlob;
+        ThrowIfFailed(D3DReadFileToBlob(SHADERBUILD_DIR L"\\CompositePass_VS.cso", &vertexShaderBlob));
+        ThrowIfFailed(D3DReadFileToBlob(SHADERBUILD_DIR L"\\CompositePass_PS.cso", &pixelShaderBlob));
+
+        DXGI_FORMAT rtFormats[] { RenderDevice::Get().GetBackBufferFormat() };
+
+        RealtimeCompositePassPSO.SetRootSignature(RealtimeRootSignature);
+        RealtimeCompositePassPSO.SetRasterizerState(rasterizerDesc);
+        RealtimeCompositePassPSO.SetBlendState(blendDisable);
+        RealtimeCompositePassPSO.SetDepthStencilState(depthDisabledState);
+        RealtimeCompositePassPSO.SetInputLayout(RenderVertex::InputElementCount, RenderVertex::InputElements);
+        RealtimeCompositePassPSO.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
+        RealtimeCompositePassPSO.SetRenderTargetFormats(_countof(rtFormats), rtFormats, RenderDevice::Get().GetDepthBufferFormat());
+        RealtimeCompositePassPSO.SetVertexShader(vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize());
+        RealtimeCompositePassPSO.SetPixelShader(pixelShaderBlob->GetBufferPointer(), pixelShaderBlob->GetBufferSize());
+        RealtimeCompositePassPSO.Finalize();
     }
 }
 
@@ -679,6 +737,25 @@ void Renderer::RenderRealtimeResults()
             }
 
             RenderSceneList(renderContext, TheRenderCamera.get_ViewMatrix(), TheRenderCamera.get_ProjectionMatrix());
+        }
+
+        // Composite pass
+        {
+            renderContext.TransitionResource(RenderDevice::Get().GetRenderTarget(), D3D12_RESOURCE_STATE_RENDER_TARGET, true);
+            renderContext.TransitionResource(RenderDevice::Get().GetDepthStencil(), D3D12_RESOURCE_STATE_DEPTH_READ, true);
+            renderContext.SetRenderTarget(RenderDevice::Get().GetRenderTarget().GetRTV(), RenderDevice::Get().GetDepthStencil().GetDSV());
+
+            renderContext.SetPipelineState(RealtimeCompositePassPSO);
+            renderContext.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+            for (int i = 0; i < DeferredBufferType_Num; i++)
+            {
+                renderContext.TransitionResource(DeferredBuffers[i], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, true);
+                renderContext.SetDynamicDescriptor(RealtimeRenderingRootIndex_Texture0 + i, 0, DeferredBuffers[i].GetSRV());
+            }
+
+            renderContext.SetNullVertexBuffer(0);
+            renderContext.SetNullIndexBuffer();
+            renderContext.Draw(3);
         }
     }
     renderContext.Finish();

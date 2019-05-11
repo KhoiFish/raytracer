@@ -96,6 +96,12 @@
     <FxCompile Include="..\..\Source\Windows\Shaders\ZPrePass_VS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="..\..\Source\Windows\Shaders\CompositePass_PS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\Windows\Shaders\CompositePass_VS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\RayTracerLib\RayTracerLib.licenseheader" />

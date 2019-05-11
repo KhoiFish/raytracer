@@ -137,6 +137,7 @@ private:
     RootSignature                   RealtimeRootSignature;
     GraphicsPSO                     RealtimeZPrePassPSO;
     GraphicsPSO                     RealtimeGeometryPassPSO;
+    GraphicsPSO                     RealtimeCompositePassPSO;
 
     UserInputData                   UserInput;
 };

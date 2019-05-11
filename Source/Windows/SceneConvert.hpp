@@ -383,7 +383,7 @@ static void GenerateRenderListFromWorld(const Core::IHitable* currentHead, const
             const Core::Triangle::Vertex* triVertices = tri->GetVertices();
             for (int v = 0; v < 3; v++)
             {
-                float s = 1.f - triVertices[v].UV[0];
+                float s = triVertices[v].UV[0];
                 float t = 1.f - triVertices[v].UV[1];
 
                 XMVECTOR position = ConvertToXMVector(triVertices[v].Vert);

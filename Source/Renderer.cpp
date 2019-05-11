@@ -30,6 +30,10 @@ using namespace RealtimeEngine;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+#define DEFAULT_TEXTURE_FILENAME    "RuntimeData/guitar.jpg"
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 static int     sNumSamplesPerRay = 500;
 static int     sMaxScatterDepth  = 50;
 static int     sNumThreads       = 4;
@@ -295,7 +299,7 @@ void Renderer::SetupRealtimePipeline()
         D3D12_RASTERIZER_DESC rasterizerDesc;
         rasterizerDesc.FillMode                                 = D3D12_FILL_MODE_SOLID;
         rasterizerDesc.CullMode                                 = D3D12_CULL_MODE_BACK;
-        rasterizerDesc.FrontCounterClockwise                    = TRUE;
+        rasterizerDesc.FrontCounterClockwise                    = FALSE;
         rasterizerDesc.DepthBias                                = D3D12_DEFAULT_DEPTH_BIAS;
         rasterizerDesc.DepthBiasClamp                           = D3D12_DEFAULT_DEPTH_BIAS_CLAMP;
         rasterizerDesc.SlopeScaledDepthBias                     = D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS;
@@ -353,7 +357,7 @@ void Renderer::SetupRealtimePipeline()
         D3D12_RASTERIZER_DESC rasterizerDesc;
         rasterizerDesc.FillMode                                 = D3D12_FILL_MODE_SOLID;
         rasterizerDesc.CullMode                                 = D3D12_CULL_MODE_BACK;
-        rasterizerDesc.FrontCounterClockwise                    = TRUE;
+        rasterizerDesc.FrontCounterClockwise                    = FALSE;
         rasterizerDesc.DepthBias                                = D3D12_DEFAULT_DEPTH_BIAS;
         rasterizerDesc.DepthBiasClamp                           = D3D12_DEFAULT_DEPTH_BIAS_CLAMP;
         rasterizerDesc.SlopeScaledDepthBias                     = D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS;
@@ -512,6 +516,9 @@ void Renderer::LoadScene()
     std::vector<bool>               flipNormalStack;
     std::vector<SpotLight>          spotLightsList;
     GenerateRenderListFromWorld(TheWorldScene->GetWorld(), nullptr, TheRealtimeSceneList, spotLightsList, matrixStack, flipNormalStack);
+
+    // Load default texture
+    RealtimeEngine::TextureManager::LoadFromFile(DEFAULT_TEXTURE_FILENAME);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -707,6 +714,8 @@ void Renderer::OnMouseMove(uint32_t x, uint32_t y)
         UserInput.MouseDy    = int(y) - UserInput.PrevMouseY;
         UserInput.PrevMouseX = x;
         UserInput.PrevMouseY = y;
+
+        Raytrace(false);
     }
 }
 
@@ -916,7 +925,8 @@ void Renderer::RenderSceneList(GraphicsContext& renderContext, const XMMATRIX& v
         RenderMatrices matrices;
         ComputeMatrices(TheRealtimeSceneList[i]->WorldMatrix, viewMatrix, projectionMatrix, matrices);
 
-        const RealtimeEngine::Texture* diffuseTex = (TheRealtimeSceneList[i]->DiffuseTexture != nullptr) ? TheRealtimeSceneList[i]->DiffuseTexture : &RealtimeEngine::TextureManager::GetWhiteTex2D();
+        const RealtimeEngine::Texture* defaultTexture = RealtimeEngine::TextureManager::LoadFromFile(DEFAULT_TEXTURE_FILENAME);
+        const RealtimeEngine::Texture* diffuseTex     = (TheRealtimeSceneList[i]->DiffuseTexture != nullptr) ? TheRealtimeSceneList[i]->DiffuseTexture : defaultTexture;
 
         renderContext.SetDynamicConstantBufferView(RealtimeRenderingRootIndex_ConstantBuffer0, sizeof(matrices), &matrices);
         renderContext.SetDynamicDescriptor(RealtimeRenderingRootIndex_Texture0, 0, diffuseTex->GetSRV());

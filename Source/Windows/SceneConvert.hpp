@@ -79,32 +79,30 @@ static inline XMMATRIX ComputeFinalMatrix(std::vector<DirectX::XMMATRIX>& matrix
 
 static inline XMVECTOR ConvertToXMVector(const Core::Vec4& vec)
 {
-    // Negate Z
-    return XMVectorSet(vec.X(), vec.Y(), -vec.Z(), vec.W());
+    return XMVectorSet(vec.X(), vec.Y(), vec.Z(), vec.W());
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static inline XMFLOAT4 ConvertToXMFloat4(const Core::Vec4& vec, bool negateZ = true)
+static inline XMFLOAT4 ConvertToXMFloat4(const Core::Vec4& vec)
 {
-    return DirectX::XMFLOAT4(vec[0], vec[1], negateZ ? -vec[2] : vec[2], 1.f);
+    return DirectX::XMFLOAT4(vec[0], vec[1], vec[2], 1.f);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static inline XMFLOAT3 ConvertToXMFloat3(const Core::Vec4& vec, bool negateZ = true)
+static inline XMFLOAT3 ConvertToXMFloat3(const Core::Vec4& vec)
 {
-    return DirectX::XMFLOAT3(vec[0], vec[1], negateZ ? -vec[2] : vec[2]);
+    return DirectX::XMFLOAT3(vec[0], vec[1], vec[2]);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
 static inline Core::Vec4 ConvertToVec4(const XMVECTOR& vec)
 {
-    // Negate Z
     XMFLOAT4 v4;
     XMStoreFloat4(&v4, vec);
-    return Core::Vec4(v4.x, v4.y, -v4.z, v4.w);
+    return Core::Vec4(v4.x, v4.y, v4.z, v4.w);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -270,7 +268,7 @@ static void GenerateRenderListFromWorld(const Core::IHitable* currentHead, const
     {
         Core::HitableTranslate* translateHitable = (Core::HitableTranslate*)currentHead;
         Core::Vec4              offset           = translateHitable->GetOffset();
-        XMMATRIX                translation      = XMMatrixTranslation(offset.X(), offset.Y(), -offset.Z());
+        XMMATRIX                translation      = XMMatrixTranslation(offset.X(), offset.Y(), offset.Z());
 
         matrixStack.push_back(translation);
         GenerateRenderListFromWorld(translateHitable->GetHitObject(), defaultTexture, outSceneList, spotLightsList, matrixStack, flipNormalStack);
@@ -279,7 +277,7 @@ static void GenerateRenderListFromWorld(const Core::IHitable* currentHead, const
     else if (tid == typeid(Core::HitableRotateY))
     {
         Core::HitableRotateY*   rotateYHitable = (Core::HitableRotateY*)currentHead;
-        XMMATRIX                rotation       = XMMatrixRotationY(XMConvertToRadians(-rotateYHitable->GetAngleDegrees()));
+        XMMATRIX                rotation       = XMMatrixRotationY(XMConvertToRadians(rotateYHitable->GetAngleDegrees()));
 
         matrixStack.push_back(rotation);
         GenerateRenderListFromWorld(rotateYHitable->GetHitObject(), defaultTexture, outSceneList, spotLightsList, matrixStack, flipNormalStack);
@@ -313,7 +311,7 @@ static void GenerateRenderListFromWorld(const Core::IHitable* currentHead, const
             material = sphere->GetMaterial();
         }
 
-        XMMATRIX         translation = XMMatrixTranslation(offset.X(), offset.Y(), -offset.Z());
+        XMMATRIX         translation = XMMatrixTranslation(offset.X(), offset.Y(), offset.Z());
         XMMATRIX         newMatrix   = ComputeFinalMatrix(matrixStack, translation);
         RenderSceneNode* newNode     = new RenderSceneNode();
 
@@ -344,7 +342,7 @@ static void GenerateRenderListFromWorld(const Core::IHitable* currentHead, const
 
         Core::Vec4             diff        = maxP - minP;
         Core::Vec4             offset      = minP + (diff * 0.5f);
-        XMMATRIX               translation = XMMatrixTranslation(offset.X(), offset.Y(), -offset.Z());
+        XMMATRIX               translation = XMMatrixTranslation(offset.X(), offset.Y(), offset.Z());
         XMMATRIX               newMatrix   = ComputeFinalMatrix(matrixStack, translation);
         RenderSceneNode*       newNode     = new RenderSceneNode();
         const Core::Material*  material    = box->GetMaterial();
@@ -381,7 +379,7 @@ static void GenerateRenderListFromWorld(const Core::IHitable* currentHead, const
             const Core::Triangle* tri = (const Core::Triangle*)triArray[t];
 
             const Core::Triangle::Vertex* triVertices = tri->GetVertices();
-            for (int v = 0; v < 3; v++)
+            for (int v = 2; v >= 0; v--)
             {
                 float s = triVertices[v].UV[0];
                 float t = 1.f - triVertices[v].UV[1];
@@ -484,7 +482,7 @@ static void GenerateRenderListFromWorld(const Core::IHitable* currentHead, const
                 light.ConstantAttenuation  = 1.f;
                 light.LinearAttenuation    = 0.00f;
                 light.QuadraticAttenuation = 0.f;
-                light.Color                = ConvertToXMFloat4(color, false);
+                light.Color                = ConvertToXMFloat4(color);
 
                 spotLightsList.push_back(light);
             }

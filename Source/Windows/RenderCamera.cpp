@@ -43,7 +43,7 @@ RenderCamera::~RenderCamera()
 
 void XM_CALLCONV RenderCamera::set_LookAt( FXMVECTOR eye, FXMVECTOR target, FXMVECTOR up )
 {
-    pData->m_ViewMatrix = XMMatrixLookAtLH( eye, target, up );
+    pData->m_ViewMatrix = XMMatrixLookAtRH( eye, target, up );
 
     pData->m_Translation = eye;
     pData->m_Rotation = XMQuaternionRotationMatrix( XMMatrixTranspose(pData->m_ViewMatrix) );
@@ -194,7 +194,7 @@ void RenderCamera::UpdateInverseViewMatrix() const
 
 void RenderCamera::UpdateProjectionMatrix() const
 {
-    pData->m_ProjectionMatrix = XMMatrixPerspectiveFovLH( XMConvertToRadians(m_vFoV), m_AspectRatio, m_zNear, m_zFar );
+    pData->m_ProjectionMatrix = XMMatrixPerspectiveFovRH( XMConvertToRadians(m_vFoV), m_AspectRatio, m_zNear, m_zFar );
 
     m_ProjectionDirty = false;
     m_InverseProjectionDirty = true;

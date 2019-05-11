@@ -701,6 +701,13 @@ void Renderer::OnKeyUp(uint8_t key)
             UserInput.Up = 0.0f;
             break;
         }
+
+        case 'R':
+        case 'r':
+        {
+            RenderMode = (RenderingMode)(((int)RenderMode + 1) % (int)MaxRenderModes);
+            break;
+        }
     }
 }
 
@@ -813,6 +820,7 @@ void Renderer::RenderCPUResults()
         renderContext.TransitionResource(RenderDevice::Get().GetDepthStencil(), D3D12_RESOURCE_STATE_DEPTH_WRITE, true);
         renderContext.ClearDepth(RenderDevice::Get().GetDepthStencil());
         renderContext.SetRenderTarget(RenderDevice::Get().GetRenderTarget().GetRTV(), RenderDevice::Get().GetDepthStencil().GetDSV());
+        renderContext.ClearColor(RenderDevice::Get().GetRenderTarget());
 
         if (TheRaytracer != nullptr)
         {

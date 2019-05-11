@@ -28,7 +28,7 @@
 #include "RealtimeEngine/RootSignature.h"
 #include "RealtimeEngine/PipelineStateObject.h"
 #include "RealtimeEngine/ColorBuffer.h"
-#include "RenderCamera.h"
+#include "RealtimeEngine/RenderCamera.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 

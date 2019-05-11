@@ -165,8 +165,6 @@
   <ItemGroup>
     <ClInclude Include="..\..\Source\Renderer.h" />
     <ClInclude Include="..\..\Source\SampleScenes.h" />
-    <ClInclude Include="..\..\Source\Windows\RenderCamera.h" />
-    <ClInclude Include="..\..\Source\ShaderStructs.h" />
     <ClInclude Include="..\..\Source\Windows\Resource.h" />
     <ClInclude Include="..\..\Source\Windows\RaytracerWindows.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -176,7 +174,6 @@
   <ItemGroup>
     <ClCompile Include="..\..\Source\Renderer.cpp" />
     <ClCompile Include="..\..\Source\SampleScenes.cpp" />
-    <ClCompile Include="..\..\Source\RenderCamera.cpp" />
     <ClCompile Include="..\..\Source\Windows\WinMain.cpp" />
     <ClCompile Include="..\..\Source\Windows\RaytracerWindows.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>

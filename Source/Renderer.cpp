@@ -37,13 +37,6 @@ static float   sVertFov          = 40.f;
 static int     sSampleScene      = SceneMesh;
 static float   sClearColor[]     = { 0.2f, 0.2f, 0.2f, 1.0f };
 
-const D3D12_INPUT_ELEMENT_DESC RenderVertex::InputElements[] =
-{
-    { "POSITION",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-    { "NORMAL",     0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-    { "TEXCOORD",   0, DXGI_FORMAT_R32G32_FLOAT,    0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-};
-
 // ----------------------------------------------------------------------------------------------------------------------------
 
 enum FullscreenQuadRootIndex

@@ -156,6 +156,12 @@
     <ClInclude Include="..\..\Source\RealtimeEngine\RenderScene.h">
       <Filter>Realtime</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\RenderCamera.h">
+      <Filter>Realtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\ShaderStructs.h">
+      <Filter>Realtime</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\ThirdParty\StbImage\StbImageImpl.cpp">
@@ -261,6 +267,9 @@
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\RealtimeEngine\RenderScene.cpp">
+      <Filter>Realtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\RealtimeEngine\RenderCamera.cpp">
       <Filter>Realtime</Filter>
     </ClCompile>
   </ItemGroup>

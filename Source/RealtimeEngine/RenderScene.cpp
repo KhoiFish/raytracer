@@ -569,7 +569,7 @@ void RenderScene::UpdateCamera(float newVertFov, float forwardAmount, float stra
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-RealtimeEngine::RenderScene::RenderScene(Core::WorldScene* worldScene)
+RenderScene::RenderScene(Core::WorldScene* worldScene)
 {
     // Generate the scene objects from the world scene
     std::vector<DirectX::XMMATRIX>  matrixStack;
@@ -583,7 +583,7 @@ RealtimeEngine::RenderScene::RenderScene(Core::WorldScene* worldScene)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-RealtimeEngine::RenderScene::~RenderScene()
+RenderScene::~RenderScene()
 {
     for (int i = 0; i < RenderSceneList.size(); i++)
     {
@@ -594,21 +594,21 @@ RealtimeEngine::RenderScene::~RenderScene()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-std::vector<RenderSceneNode*>& RealtimeEngine::RenderScene::GetRenderSceneList()
+std::vector<RenderSceneNode*>& RenderScene::GetRenderSceneList()
 {
     return RenderSceneList;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-RenderCamera& RealtimeEngine::RenderScene::GetRenderCamera()
+RenderCamera& RenderScene::GetRenderCamera()
 {
     return TheRenderCamera;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RealtimeEngine::RenderScene::SetupForRaytracing()
+void RenderScene::SetupForRaytracing()
 {
     // A single BLAS for the entire scene
     const int numBottomLevels = 1;
@@ -674,6 +674,7 @@ void RealtimeEngine::RenderScene::SetupForRaytracing()
             trianglesDesc.Transform3x4                  = TransformDataBuffer->GetGpuVirtualAddress();
         }
 
+        // Gather prebuild info on blas
         for (UINT i = 0; i < numBottomLevels; i++)
         {
             D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC&   blasDesc   = blasDescs[i];

@@ -46,6 +46,8 @@ namespace RealtimeEngine
         static bool             FullscreenMode;
         static const uint32_t   WindowStyle = WS_OVERLAPPEDWINDOW;
         static RECT             WindowRect;
+        static double           PCFreq;
+        static __int64          PrevCounter;
     };
 
 }

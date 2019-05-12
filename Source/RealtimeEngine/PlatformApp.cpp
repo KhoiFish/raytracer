@@ -26,9 +26,11 @@ using namespace RealtimeEngine;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-HWND PlatformApp::Hwnd = nullptr;
-bool PlatformApp::FullscreenMode = false;
-RECT PlatformApp::WindowRect;
+HWND    PlatformApp::Hwnd = nullptr;
+bool    PlatformApp::FullscreenMode = false;
+RECT    PlatformApp::WindowRect;
+double  PlatformApp::PCFreq = 0;
+__int64 PlatformApp::PrevCounter = 0;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -36,6 +38,17 @@ int PlatformApp::Run(RenderInterface* pRenderInterface, HINSTANCE hInstance, int
 {
     try
     {
+        // Init performance counter
+        {
+            LARGE_INTEGER li;
+
+            QueryPerformanceFrequency(&li);
+            PCFreq = double(li.QuadPart);
+
+            QueryPerformanceCounter(&li);
+            PrevCounter = li.QuadPart;
+        }
+
         // Parse the command line parameters
         /*int argc;
         LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
@@ -240,7 +253,16 @@ LRESULT CALLBACK PlatformApp::WindowProc(HWND hWnd, uint32_t message, WPARAM wPa
     case WM_PAINT:
         if (pRenderInterface)
         {
-            pRenderInterface->OnUpdate();
+            // Get delta time
+            float dtSeconds;
+            {
+                LARGE_INTEGER li;
+                QueryPerformanceCounter(&li);
+                dtSeconds   = float(double(li.QuadPart - PrevCounter) / PCFreq);
+                PrevCounter = li.QuadPart;
+            }
+
+            pRenderInterface->OnUpdate(dtSeconds);
             pRenderInterface->OnRender();
         }
         return 0;

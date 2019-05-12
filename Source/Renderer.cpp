@@ -206,10 +206,10 @@ void Renderer::OnDestroy()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::OnUpdate()
+void Renderer::OnUpdate(float dtSeconds)
 {
     float speedMultipler = (UserInput.ShiftKeyPressed ? 64.f : 32.0f) * 16.f;
-    float scale          = speedMultipler * 0.001f; // *float(e.ElapsedTime);
+    float scale          = speedMultipler * dtSeconds;
     float forwardAmount  = (UserInput.Forward - UserInput.Backward) * scale;
     float strafeAmount   = (UserInput.Left    - UserInput.Right)    * scale;
     float upDownAmount   = (UserInput.Up      - UserInput.Down)     * scale;

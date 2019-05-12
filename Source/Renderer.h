@@ -58,7 +58,7 @@ public:
     virtual void               OnMouseMove(uint32_t x, uint32_t y);
     virtual void               OnLeftButtonDown(uint32_t x, uint32_t y);
     virtual void               OnLeftButtonUp(uint32_t x, uint32_t y);
-    virtual void               OnUpdate();
+    virtual void               OnUpdate(float dtSeconds);
     virtual void               OnRender();
     virtual void               OnSizeChanged(uint32_t width, uint32_t height, bool minimized);
     virtual void               OnDestroy();

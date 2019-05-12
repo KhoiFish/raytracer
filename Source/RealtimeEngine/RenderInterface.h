@@ -42,7 +42,7 @@ namespace RealtimeEngine
     public:
 
         virtual void                   OnInit() = 0;
-        virtual void                   OnUpdate() = 0;
+        virtual void                   OnUpdate(float dtSeconds) = 0;
         virtual void                   OnRender() = 0;
         virtual void                   OnSizeChanged(uint32_t width, uint32_t height, bool minimized) = 0;
         virtual void                   OnDestroy() = 0;

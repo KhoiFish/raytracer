@@ -21,192 +21,197 @@
 
 using namespace DirectX;
 
+// ----------------------------------------------------------------------------------------------------------------------------
+
 RenderCamera::RenderCamera()
-    : m_ViewDirty( true )
-    , m_InverseViewDirty( true )
-    , m_ProjectionDirty( true )
-    , m_InverseProjectionDirty( true )
-    , m_vFoV( 45.0f )
-    , m_AspectRatio( 1.0f )
-    , m_zNear( 0.1f )
-    , m_zFar( 100.0f )
+    : ViewDirty( true )
+    , InverseViewDirty( true )
+    , ProjectionDirty( true )
+    , InverseProjectionDirty( true )
+    , VertFov( 45.0f )
+    , AspectRatio( 1.0f )
+    , ZNear( 0.1f )
+    , ZFar( 100.0f )
 {
-    pData = (AlignedData*)_aligned_malloc( sizeof(AlignedData), 16 );
-    pData->m_Translation = XMVectorZero();
-    pData->m_Rotation = XMQuaternionIdentity();
+    TheCameraData = new CameraData();
+    TheCameraData->Translation = XMVectorZero();
+    TheCameraData->Rotation    = XMQuaternionIdentity();
 }
+
+// ----------------------------------------------------------------------------------------------------------------------------
 
 RenderCamera::~RenderCamera()
 {
-    _aligned_free(pData);
+    delete TheCameraData;
+    TheCameraData = nullptr;
 }
 
-void XM_CALLCONV RenderCamera::set_LookAt( FXMVECTOR eye, FXMVECTOR target, FXMVECTOR up )
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void RenderCamera::SetLookAt(FXMVECTOR eye, FXMVECTOR target, FXMVECTOR up)
 {
-    pData->m_ViewMatrix = XMMatrixLookAtRH( eye, target, up );
+    TheCameraData->ViewMatrix  = XMMatrixLookAtRH( eye, target, up );
+    TheCameraData->Translation = eye;
+    TheCameraData->Rotation    = XMQuaternionRotationMatrix( XMMatrixTranspose(TheCameraData->ViewMatrix) );
 
-    pData->m_Translation = eye;
-    pData->m_Rotation = XMQuaternionRotationMatrix( XMMatrixTranspose(pData->m_ViewMatrix) );
-
-    m_InverseViewDirty = true;
-    m_ViewDirty = false;
+    InverseViewDirty = true;
+    ViewDirty        = false;
 }
 
-XMMATRIX RenderCamera::get_ViewMatrix() const
+// ----------------------------------------------------------------------------------------------------------------------------
+
+XMMATRIX RenderCamera::GetViewMatrix()
 {
-    if ( m_ViewDirty )
+    if (ViewDirty)
     {
         UpdateViewMatrix();
     }
-    return pData->m_ViewMatrix;
+
+    return TheCameraData->ViewMatrix;
 }
 
-XMMATRIX RenderCamera::get_InverseViewMatrix() const
+// ----------------------------------------------------------------------------------------------------------------------------
+
+XMMATRIX RenderCamera::GetInverseViewMatrix()
 {
-    if ( m_InverseViewDirty )
+    if (InverseViewDirty)
     {
-        pData->m_InverseViewMatrix = XMMatrixInverse( nullptr, pData->m_ViewMatrix );
-        m_InverseViewDirty = false;
+        TheCameraData->InverseViewMatrix = XMMatrixInverse( nullptr, TheCameraData->ViewMatrix );
+        InverseViewDirty = false;
     }
 
-    return pData->m_InverseViewMatrix;
+    return TheCameraData->InverseViewMatrix;
 }
 
-void RenderCamera::set_Projection( float fovy, float aspect, float zNear, float zFar )
-{
-    m_vFoV = fovy;
-    m_AspectRatio = aspect;
-    m_zNear = zNear;
-    m_zFar = zFar;
+// ----------------------------------------------------------------------------------------------------------------------------
 
-    m_ProjectionDirty = true;
-    m_InverseProjectionDirty = true;
+void RenderCamera::SetProjection(float fovy, float aspect, float zNear, float zFar)
+{
+    VertFov                = fovy;
+    AspectRatio            = aspect;
+    ZNear                  = zNear;
+    ZFar                   = zFar;
+    ProjectionDirty        = true;
+    InverseProjectionDirty = true;
 }
 
-XMMATRIX RenderCamera::get_ProjectionMatrix() const
+// ----------------------------------------------------------------------------------------------------------------------------
+
+XMMATRIX RenderCamera::GetProjectionMatrix()
 {
-    if ( m_ProjectionDirty )
+    if ( ProjectionDirty )
     {
         UpdateProjectionMatrix();
     }
 
-    return pData->m_ProjectionMatrix;
+    return TheCameraData->ProjectionMatrix;
 }
 
-XMMATRIX RenderCamera::get_InverseProjectionMatrix() const
+// ----------------------------------------------------------------------------------------------------------------------------
+
+XMMATRIX RenderCamera::GetInverseProjectionMatrix()
 {
-    if ( m_InverseProjectionDirty )
+    if ( InverseProjectionDirty )
     {
         UpdateInverseProjectionMatrix();
     }
 
-    return pData->m_InverseProjectionMatrix;
+    return TheCameraData->InverseProjectionMatrix;
 }
 
-void RenderCamera::set_FoV(float fovy)
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void RenderCamera::SetVertFov(float fovy)
 {
-    if (m_vFoV != fovy)
+    if (VertFov != fovy)
     {
-        m_vFoV = fovy;
-        m_ProjectionDirty = true;
-        m_InverseProjectionDirty = true;
+        VertFov                = fovy;
+        ProjectionDirty        = true;
+        InverseProjectionDirty = true;
     }
 }
 
-float RenderCamera::get_FoV() const
+// ----------------------------------------------------------------------------------------------------------------------------
+
+float RenderCamera::GetVertFov()
 {
-    return m_vFoV;
+    return VertFov;
 }
 
+// ----------------------------------------------------------------------------------------------------------------------------
 
-void XM_CALLCONV RenderCamera::set_Translation( FXMVECTOR translation )
+void RenderCamera::SetTranslation(FXMVECTOR translation)
 {
-    pData->m_Translation = translation;
-    m_ViewDirty = true;
+    TheCameraData->Translation = translation;
+    ViewDirty = true;
 }
 
-XMVECTOR RenderCamera::get_Translation() const
+// ----------------------------------------------------------------------------------------------------------------------------
+
+XMVECTOR RenderCamera::GetTranslation()
 {
-    return pData->m_Translation;
+    return TheCameraData->Translation;
 }
 
-void RenderCamera::set_Rotation( FXMVECTOR rotation )
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void RenderCamera::SetRotation(FXMVECTOR rotation)
 {
-    pData->m_Rotation = rotation;
+    TheCameraData->Rotation = rotation;
 }
 
-XMVECTOR RenderCamera::get_Rotation() const
+// ----------------------------------------------------------------------------------------------------------------------------
+
+XMVECTOR RenderCamera::GetRotation()
 {
-    return pData->m_Rotation;
+    return TheCameraData->Rotation;
 }
 
-void XM_CALLCONV RenderCamera::Translate( FXMVECTOR translation, Space space )
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void RenderCamera::UpdateViewMatrix()
 {
-    switch ( space )
-    {
-    case Space::Local:
-        {
-            pData->m_Translation += XMVector3Rotate( translation, pData->m_Rotation );
-        }
-        break;
-    case Space::World:
-        {
-            pData->m_Translation += translation;
-        }
-        break;
-    }
+    XMMATRIX rotationMatrix    = XMMatrixTranspose(XMMatrixRotationQuaternion( TheCameraData->Rotation ));
+    XMMATRIX translationMatrix = XMMatrixTranslationFromVector( -(TheCameraData->Translation) );
 
-    pData->m_Translation = XMVectorSetW( pData->m_Translation, 1.0f );
+    TheCameraData->ViewMatrix = translationMatrix * rotationMatrix;
 
-    m_ViewDirty = true;
-    m_InverseViewDirty = true;
+    InverseViewDirty = true;
+    ViewDirty        = false;
 }
 
-void RenderCamera::Rotate( FXMVECTOR quaternion )
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void RenderCamera::UpdateInverseViewMatrix()
 {
-    pData->m_Rotation = XMQuaternionMultiply( pData->m_Rotation, quaternion );
-
-    m_ViewDirty = true;
-    m_InverseViewDirty = true;
-}
-
-void RenderCamera::UpdateViewMatrix() const
-{
-    XMMATRIX rotationMatrix = XMMatrixTranspose(XMMatrixRotationQuaternion( pData->m_Rotation ));
-    XMMATRIX translationMatrix = XMMatrixTranslationFromVector( -(pData->m_Translation) );
-
-    pData->m_ViewMatrix = translationMatrix * rotationMatrix;
-
-    m_InverseViewDirty = true;
-    m_ViewDirty = false;
-}
-
-void RenderCamera::UpdateInverseViewMatrix() const
-{
-    if ( m_ViewDirty )
+    if ( ViewDirty )
     {
         UpdateViewMatrix();
     }
 
-    pData->m_InverseViewMatrix = XMMatrixInverse( nullptr, pData->m_ViewMatrix );
-    m_InverseViewDirty = false;
+    TheCameraData->InverseViewMatrix = XMMatrixInverse( nullptr, TheCameraData->ViewMatrix );
+    InverseViewDirty = false;
 }
 
-void RenderCamera::UpdateProjectionMatrix() const
-{
-    pData->m_ProjectionMatrix = XMMatrixPerspectiveFovRH( XMConvertToRadians(m_vFoV), m_AspectRatio, m_zNear, m_zFar );
+// ----------------------------------------------------------------------------------------------------------------------------
 
-    m_ProjectionDirty = false;
-    m_InverseProjectionDirty = true;
+void RenderCamera::UpdateProjectionMatrix()
+{
+    TheCameraData->ProjectionMatrix = XMMatrixPerspectiveFovRH( XMConvertToRadians(VertFov), AspectRatio, ZNear, ZFar );
+
+    ProjectionDirty        = false;
+    InverseProjectionDirty = true;
 }
 
-void RenderCamera::UpdateInverseProjectionMatrix() const
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void RenderCamera::UpdateInverseProjectionMatrix()
 {
-    if ( m_ProjectionDirty )
+    if ( ProjectionDirty )
     {
         UpdateProjectionMatrix();
     }
 
-    pData->m_InverseProjectionMatrix = XMMatrixInverse( nullptr, pData->m_ProjectionMatrix );
-    m_InverseProjectionDirty = false;
+    TheCameraData->InverseProjectionMatrix = XMMatrixInverse( nullptr, TheCameraData->ProjectionMatrix );
+    InverseProjectionDirty = false;
 }

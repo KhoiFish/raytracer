@@ -208,8 +208,7 @@ void Renderer::OnDestroy()
 
 void Renderer::OnUpdate(float dtSeconds)
 {
-    float speedMultipler = (UserInput.ShiftKeyPressed ? 64.f : 32.0f) * 16.f;
-    float scale          = speedMultipler * dtSeconds;
+    float scale          = (UserInput.ShiftKeyPressed ? 64.f : 32.0f) * 16.f * dtSeconds;
     float forwardAmount  = (UserInput.Forward - UserInput.Backward) * scale;
     float strafeAmount   = (UserInput.Left    - UserInput.Right)    * scale;
     float upDownAmount   = (UserInput.Up      - UserInput.Down)     * scale;
@@ -322,7 +321,7 @@ void Renderer::RenderRealtimeResults()
             renderContext.SetRenderTarget(ZPrePassBuffer.GetRTV(), RenderDevice::Get().GetDepthStencil().GetDSV());
             renderContext.ClearColor(ZPrePassBuffer);
 
-            RenderSceneList(renderContext, TheRenderScene->GetRenderCamera().get_ViewMatrix(), TheRenderScene->GetRenderCamera().get_ProjectionMatrix());
+            RenderSceneList(renderContext, TheRenderScene->GetRenderCamera().GetViewMatrix(), TheRenderScene->GetRenderCamera().GetProjectionMatrix());
         }
 
         // Geometry pass
@@ -350,7 +349,7 @@ void Renderer::RenderRealtimeResults()
                 renderContext.ClearColor(DeferredBuffers[i]);
             }
 
-            RenderSceneList(renderContext, TheRenderScene->GetRenderCamera().get_ViewMatrix(), TheRenderScene->GetRenderCamera().get_ProjectionMatrix());
+            RenderSceneList(renderContext, TheRenderScene->GetRenderCamera().GetViewMatrix(), TheRenderScene->GetRenderCamera().GetProjectionMatrix());
         }
 
         // Composite pass

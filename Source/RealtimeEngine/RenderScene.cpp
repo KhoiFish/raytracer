@@ -539,8 +539,8 @@ void RenderScene::UpdateCamera(float newVertFov, float forwardAmount, float stra
     XMVECTOR cameraPos    = ConvertToXMVector(lookFrom);
     XMVECTOR cameraTarget = ConvertToXMVector(lookAt);
     XMVECTOR cameraUp     = ConvertToXMVector(up);
-    TheRenderCamera.set_LookAt(cameraPos, cameraTarget, cameraUp);
-    TheRenderCamera.set_Projection(newVertFov, aspect, 0.1f, 10000.0f);
+    TheRenderCamera.SetLookAt(cameraPos, cameraTarget, cameraUp);
+    TheRenderCamera.SetProjection(newVertFov, aspect, 0.1f, 10000.0f);
 
     #if 0
         // Has mouse moved?

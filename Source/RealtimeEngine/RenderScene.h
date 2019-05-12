@@ -105,5 +105,6 @@ namespace RealtimeEngine
         std::vector<GpuBuffer*>         BLASBuffers;
         WrappedGPUPointer               TLASPointer;
         GpuBuffer*                      ScratchBuffer;
+        ByteAddressBuffer               InstanceDataBuffer;
     };
 }

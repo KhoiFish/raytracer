@@ -611,7 +611,7 @@ RenderCamera& RealtimeEngine::RenderScene::GetRenderCamera()
 void RealtimeEngine::RenderScene::SetupForRaytracing()
 {
     // A single BLAS for the entire scene
-    const int numBottomLevels         = 1;
+    const int numBottomLevels = 1;
 
     // Gather info on TLAS
     D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO tlasPrebuildInfo;
@@ -677,7 +677,7 @@ void RealtimeEngine::RenderScene::SetupForRaytracing()
     scratchBuffer.Create(L"Acceleration Structure Scratch Buffer", (UINT)scratchBufferSizeNeeded, 1);
 
     // Allocate TLAS buffer
-    TLASBuffer = new NoViewBuffer();
+    TLASBuffer = new StructuredBuffer();
     TLASBuffer->Create(L"TLAS Buffer", 1, (uint32_t)tlasPrebuildInfo.ResultDataMaxSizeInBytes, nullptr, D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE);
 
     // Point TLAS description to the allocated buffers
@@ -690,7 +690,7 @@ void RealtimeEngine::RenderScene::SetupForRaytracing()
     for (UINT i = 0; i < blasDescs.size(); i++)
     {
         // Allocate buffer
-        BLASBuffers[i] = new NoViewBuffer();
+        BLASBuffers[i] = new StructuredBuffer();
         BLASBuffers[i]->Create(L"BLAS Buffer", 1, (uint32_t)blasSizes[i], nullptr, D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE);
 
         // Point to buffers
@@ -710,31 +710,24 @@ void RealtimeEngine::RenderScene::SetupForRaytracing()
         instanceDesc.InstanceContributionToHitGroupIndex    = i;
     }
 
-    // Create instance data buffer
-    ByteAddressBuffer instanceDataBuffer;
-    instanceDataBuffer.Create(L"Instance Data Buffer", numBottomLevels, sizeof(RaytracingInstanceDesc), instanceDescs.data());
-
-    // Point to instance descriptions
-    tlasDesc.Inputs.InstanceDescs = instanceDataBuffer.GetGpuVirtualAddress();
+    // Allocate instance data buffer and update TLAS desc
+    InstanceDataBuffer.Create(L"Instance Data Buffer", numBottomLevels, sizeof(RaytracingInstanceDesc), instanceDescs.data());
+    tlasDesc.Inputs.InstanceDescs = InstanceDataBuffer.GetGpuVirtualAddress();
     tlasDesc.Inputs.DescsLayout   = D3D12_ELEMENTS_LAYOUT_ARRAY;
 
     // Finally, build the acceleration structures
-    GraphicsContext&            gfxContext   = GraphicsContext::Begin("Create Acceleration Structure");
-    ID3D12GraphicsCommandList4* pCommandList = gfxContext.GetCommandList();
+    GraphicsContext& context = GraphicsContext::Begin("Create Acceleration Structure");
     {
-        //ID3D12DescriptorHeap* descriptorHeaps[] = { &g_pRaytracingDescriptorHeap->GetDescriptorHeap() };
-        //pCommandList->SetDescriptorHeaps(ARRAYSIZE(descriptorHeaps), descriptorHeaps);
-
-        CD3DX12_RESOURCE_BARRIER uavBarrier = CD3DX12_RESOURCE_BARRIER::UAV(nullptr);
+        ID3D12GraphicsCommandList4* pCommandList = context.GetCommandList();
+        auto                        uavBarrier   = CD3DX12_RESOURCE_BARRIER::UAV(nullptr);
         for (UINT i = 0; i < blasDescs.size(); i++)
         {
             pCommandList->BuildRaytracingAccelerationStructure(&blasDescs[i], 0, nullptr);
         }
-
         pCommandList->ResourceBarrier(1, &uavBarrier);
         pCommandList->BuildRaytracingAccelerationStructure(&tlasDesc, 0, nullptr);
+
         TLASPointer = WrappedGPUPointer::FromGpuVA(TLASBuffer->GetGpuVirtualAddress());
     }
-    gfxContext.Finish(true);
-    pCommandList = nullptr;
+    context.Finish(true);
 }

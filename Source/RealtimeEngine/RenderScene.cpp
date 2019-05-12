@@ -631,6 +631,26 @@ void RealtimeEngine::RenderScene::SetupForRaytracing()
     std::vector<D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC> blasDescs(numBottomLevels);
     UINT64                                                          scratchBufferSizeNeeded = tlasPrebuildInfo.ScratchDataSizeInBytes;
     {
+        // Allocate memory for transforms
+        {
+            const uint32_t sizeOfOneTransform = sizeof(DirectX::XMMATRIX);
+            uint32_t       bufferSize         = sizeOfOneTransform * (uint32_t)RenderSceneList.size();
+
+            // Copy all matrix data to temporary buffer
+            uint8_t* pTempBuffer = new uint8_t[bufferSize];
+            uint8_t* pRunner     = pTempBuffer;
+            for (int i = 0; i < (int)RenderSceneList.size(); i++)
+            {
+                memcpy(pRunner, &RenderSceneList[i]->WorldMatrix, sizeOfOneTransform);
+                pRunner += sizeOfOneTransform;
+            }
+
+            TransformDataBuffer = new NoViewBuffer();
+            TransformDataBuffer->Create(L"Transform Data", 1, bufferSize, pTempBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+            delete[] pTempBuffer;
+            pTempBuffer = nullptr;
+        }
+
         // Fill in the geometry descriptions
         std::vector<D3D12_RAYTRACING_GEOMETRY_DESC> geometryDescs(RenderSceneList.size());
         for (int i = 0; i < (int)RenderSceneList.size(); i++)
@@ -651,7 +671,7 @@ void RealtimeEngine::RenderScene::SetupForRaytracing()
             trianglesDesc.IndexFormat                   = DXGI_FORMAT_R32_UINT;
             trianglesDesc.IndexCount                    = (UINT)pRenderNode->Indices.size();
             trianglesDesc.IndexBuffer                   = pRenderNode->IndexBuffer.GetGpuVirtualAddress() + offsetToIndex;
-            trianglesDesc.Transform3x4                  = 0; // TODO
+            trianglesDesc.Transform3x4                  = TransformDataBuffer->GetGpuVirtualAddress();
         }
 
         for (UINT i = 0; i < numBottomLevels; i++)

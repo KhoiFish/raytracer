@@ -116,3 +116,38 @@ void Renderer::SetupFullscreenQuadPipeline()
         FullscreenPipelineState.Finalize();
     }
 }
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void Renderer::RenderCPUResults()
+{
+    GraphicsContext& renderContext = GraphicsContext::Begin("RenderCPUResults");
+    {
+        renderContext.SetRootSignature(FullscreenQuadRootSignature);
+        renderContext.SetViewport(RenderDevice::Get().GetScreenViewport());
+        renderContext.SetScissor(RenderDevice::Get().GetScissorRect());
+        renderContext.TransitionResource(RenderDevice::Get().GetRenderTarget(), D3D12_RESOURCE_STATE_RENDER_TARGET, true);
+        renderContext.TransitionResource(RenderDevice::Get().GetDepthStencil(), D3D12_RESOURCE_STATE_DEPTH_READ, true);
+        renderContext.SetRenderTarget(RenderDevice::Get().GetRenderTarget().GetRTV(), RenderDevice::Get().GetDepthStencil().GetDSV());
+        renderContext.ClearColor(RenderDevice::Get().GetRenderTarget());
+
+        if (TheRaytracer != nullptr)
+        {
+            // Update GPU texture with the cpu traced results
+            D3D12_SUBRESOURCE_DATA subresource;
+            subresource.RowPitch = 4 * TheRaytracer->GetOutputWidth();
+            subresource.SlicePitch = subresource.RowPitch * TheRaytracer->GetOutputHeight();
+            subresource.pData = TheRaytracer->GetOutputBufferRGBA();
+            renderContext.InitializeTexture(CPURaytracerTex, 1, &subresource);
+
+            renderContext.TransitionResource(CPURaytracerTex, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+            renderContext.SetPipelineState(FullscreenPipelineState);
+            renderContext.SetDynamicDescriptor(FullscreenQuadRootIndex_Texture0, 0, CPURaytracerTex.GetSRV());
+            renderContext.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+            renderContext.SetNullVertexBuffer(0);
+            renderContext.SetNullIndexBuffer();
+            renderContext.Draw(3);
+        }
+    }
+    renderContext.Finish();
+}

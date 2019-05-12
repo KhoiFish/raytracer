@@ -28,7 +28,7 @@ public:
     RenderCamera();
     virtual ~RenderCamera();
 
-    void                SetLookAt( DirectX::FXMVECTOR eye, DirectX::FXMVECTOR target, DirectX::FXMVECTOR up );
+    void                SetLookAt(DirectX::FXMVECTOR eye, DirectX::FXMVECTOR target, DirectX::FXMVECTOR up);
     void                SetProjection(float fovy, float aspect, float zNear, float zFar);
     void                SetVertFov(float fovy);
     void                SetTranslation(DirectX::FXMVECTOR translation);

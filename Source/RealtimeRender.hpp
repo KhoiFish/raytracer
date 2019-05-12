@@ -270,3 +270,77 @@ void Renderer::SetupRealtimePipeline()
         RealtimeCompositePassPSO.Finalize();
     }
 }
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void Renderer::RenderRealtimeResults()
+{
+    GraphicsContext& renderContext = GraphicsContext::Begin("RenderRealtimeResults");
+    {
+        renderContext.SetRootSignature(RealtimeRootSignature);
+        renderContext.SetViewport(RenderDevice::Get().GetScreenViewport());
+        renderContext.SetScissor(RenderDevice::Get().GetScissorRect());
+
+        // Z pre pass
+        {
+            renderContext.TransitionResource(ZPrePassBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
+            renderContext.TransitionResource(RenderDevice::Get().GetDepthStencil(), D3D12_RESOURCE_STATE_DEPTH_WRITE, true);
+            renderContext.ClearDepth(RenderDevice::Get().GetDepthStencil());
+            renderContext.SetPipelineState(RealtimeZPrePassPSO);
+            renderContext.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+            renderContext.SetRenderTarget(ZPrePassBuffer.GetRTV(), RenderDevice::Get().GetDepthStencil().GetDSV());
+            renderContext.ClearColor(ZPrePassBuffer);
+
+            RenderSceneList(renderContext, TheRenderScene->GetRenderCamera().GetViewMatrix(), TheRenderScene->GetRenderCamera().GetProjectionMatrix());
+        }
+
+        // Geometry pass
+        {
+            for (int i = 0; i < DeferredBufferType_Num; i++)
+            {
+                renderContext.TransitionResource(DeferredBuffers[i], D3D12_RESOURCE_STATE_RENDER_TARGET, true);
+            }
+            renderContext.TransitionResource(RenderDevice::Get().GetDepthStencil(), D3D12_RESOURCE_STATE_DEPTH_READ, true);
+            renderContext.SetPipelineState(RealtimeGeometryPassPSO);
+            renderContext.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+            // Bind gbuffer
+            D3D12_CPU_DESCRIPTOR_HANDLE rtvs[]
+            {
+                DeferredBuffers[DeferredBufferType_Position].GetRTV(),
+                DeferredBuffers[DeferredBufferType_Normal].GetRTV(),
+                DeferredBuffers[DeferredBufferType_TexCoord].GetRTV(),
+                DeferredBuffers[DeferredBufferType_Diffuse].GetRTV()
+            };
+            renderContext.SetRenderTargets(ARRAYSIZE(rtvs), rtvs, RenderDevice::Get().GetDepthStencil().GetDSV());
+
+            for (int i = 0; i < DeferredBufferType_Num; i++)
+            {
+                renderContext.ClearColor(DeferredBuffers[i]);
+            }
+
+            RenderSceneList(renderContext, TheRenderScene->GetRenderCamera().GetViewMatrix(), TheRenderScene->GetRenderCamera().GetProjectionMatrix());
+        }
+
+        // Composite pass
+        {
+            renderContext.TransitionResource(RenderDevice::Get().GetRenderTarget(), D3D12_RESOURCE_STATE_RENDER_TARGET, true);
+            renderContext.TransitionResource(RenderDevice::Get().GetDepthStencil(), D3D12_RESOURCE_STATE_DEPTH_READ, true);
+            renderContext.SetRenderTarget(RenderDevice::Get().GetRenderTarget().GetRTV(), RenderDevice::Get().GetDepthStencil().GetDSV());
+            renderContext.SetPipelineState(RealtimeCompositePassPSO);
+            renderContext.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+            renderContext.SetDynamicDescriptor(RealtimeRenderingRootIndex_Texture0, 0, ZPrePassBuffer.GetSRV());
+
+            for (int i = 0; i < DeferredBufferType_Num; i++)
+            {
+                renderContext.TransitionResource(DeferredBuffers[i], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, true);
+                renderContext.SetDynamicDescriptor(RealtimeRenderingRootIndex_Texture1 + i, 0, DeferredBuffers[i].GetSRV());
+            }
+
+            renderContext.SetNullVertexBuffer(0);
+            renderContext.SetNullIndexBuffer();
+            renderContext.Draw(3);
+        }
+    }
+    renderContext.Finish();
+}

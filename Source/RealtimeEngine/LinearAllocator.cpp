@@ -153,7 +153,7 @@ LinearAllocationPage* LinearAllocatorPageManager::CreateNewPage(size_t pageSize)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void LinearAllocator::CleanupUsedPages( uint64_t fenceID )
+void LinearAllocator::CleanupUsedPages(uint64_t fenceID)
 {
     if (CurPage != nullptr)
     {

@@ -28,8 +28,8 @@
 using namespace Core;
 using namespace RealtimeEngine;
 
-#include "FullscreenPSOSetup.hpp"
-#include "RealtimePSOSetup.hpp"
+#include "FullscreenRender.hpp"
+#include "RealtimeRender.hpp"
 #include "HandleInput.hpp"
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -114,7 +114,7 @@ void Renderer::OnInit()
 
 void Renderer::SetupRenderBuffers()
 {
-    uint32_t width = RenderDevice::Get().GetBackbufferWidth();
+    uint32_t width  = RenderDevice::Get().GetBackbufferWidth();
     uint32_t height = RenderDevice::Get().GetBackbufferHeight();
 
     for (int i = 0; i < DeferredBufferType_Num; i++)
@@ -206,20 +206,6 @@ void Renderer::OnDestroy()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::OnUpdate(float dtSeconds)
-{
-    float scale          = (UserInput.ShiftKeyPressed ? 64.f : 32.0f) * 16.f * dtSeconds;
-    float forwardAmount  = (UserInput.Forward - UserInput.Backward) * scale;
-    float strafeAmount   = (UserInput.Left    - UserInput.Right)    * scale;
-    float upDownAmount   = (UserInput.Up      - UserInput.Down)     * scale;
-
-    TheRenderScene->UpdateCamera(sVertFov, forwardAmount, strafeAmount, upDownAmount, UserInput.MouseDx, UserInput.MouseDy, TheWorldScene->GetCamera());
-    UserInput.MouseDx = 0;
-    UserInput.MouseDy = 0;
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
 void Renderer::Raytrace(bool enable)
 {
     if (TheRaytracer)
@@ -256,7 +242,7 @@ void Renderer::OnRaytraceComplete(Raytracer* tracer, bool actuallyFinished)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static void XM_CALLCONV ComputeMatrices(FXMMATRIX model, CXMMATRIX view, CXMMATRIX projection, RenderMatrices& mat)
+static void ComputeMatrices(FXMMATRIX model, CXMMATRIX view, CXMMATRIX projection, RenderMatrices& mat)
 {
     XMStoreFloat4x4(&mat.ModelMatrix, XMMatrixTranspose(model));
     XMStoreFloat4x4(&mat.ViewMatrix, XMMatrixTranspose(view));
@@ -264,115 +250,6 @@ static void XM_CALLCONV ComputeMatrices(FXMMATRIX model, CXMMATRIX view, CXMMATR
     XMStoreFloat4x4(&mat.ModelViewMatrix, XMMatrixTranspose(model * view));
     XMStoreFloat4x4(&mat.InverseTransposeModelViewMatrix, XMMatrixTranspose(XMMatrixTranspose(XMMatrixInverse(nullptr, model * view))));
     XMStoreFloat4x4(&mat.ModelViewProjectionMatrix, XMMatrixTranspose(model * view * projection));
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-void Renderer::RenderCPUResults()
-{
-    GraphicsContext& renderContext = GraphicsContext::Begin("RenderCPUResults");
-    {
-        renderContext.SetRootSignature(FullscreenQuadRootSignature);
-        renderContext.SetViewport(RenderDevice::Get().GetScreenViewport());
-        renderContext.SetScissor(RenderDevice::Get().GetScissorRect());
-        renderContext.TransitionResource(RenderDevice::Get().GetRenderTarget(), D3D12_RESOURCE_STATE_RENDER_TARGET, true);
-        renderContext.TransitionResource(RenderDevice::Get().GetDepthStencil(), D3D12_RESOURCE_STATE_DEPTH_READ, true);
-        renderContext.SetRenderTarget(RenderDevice::Get().GetRenderTarget().GetRTV(), RenderDevice::Get().GetDepthStencil().GetDSV());
-        renderContext.ClearColor(RenderDevice::Get().GetRenderTarget());
-
-        if (TheRaytracer != nullptr)
-        {
-            // Update GPU texture with the cpu traced results
-            D3D12_SUBRESOURCE_DATA subresource;
-            subresource.RowPitch = 4 * TheRaytracer->GetOutputWidth();
-            subresource.SlicePitch = subresource.RowPitch * TheRaytracer->GetOutputHeight();
-            subresource.pData = TheRaytracer->GetOutputBufferRGBA();
-            renderContext.InitializeTexture(CPURaytracerTex, 1, &subresource);
-
-            renderContext.TransitionResource(CPURaytracerTex, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-            renderContext.SetPipelineState(FullscreenPipelineState);
-            renderContext.SetDynamicDescriptor(FullscreenQuadRootIndex_Texture0, 0, CPURaytracerTex.GetSRV());
-            renderContext.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-            renderContext.SetNullVertexBuffer(0);
-            renderContext.SetNullIndexBuffer();
-            renderContext.Draw(3);
-        }
-    }
-    renderContext.Finish();
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-void Renderer::RenderRealtimeResults()
-{
-    GraphicsContext& renderContext = GraphicsContext::Begin("RenderRealtimeResults");
-    {
-        renderContext.SetRootSignature(RealtimeRootSignature);
-        renderContext.SetViewport(RenderDevice::Get().GetScreenViewport());
-        renderContext.SetScissor(RenderDevice::Get().GetScissorRect());
-
-        // Z pre pass
-        {
-            renderContext.TransitionResource(ZPrePassBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
-            renderContext.TransitionResource(RenderDevice::Get().GetDepthStencil(), D3D12_RESOURCE_STATE_DEPTH_WRITE, true);
-            renderContext.ClearDepth(RenderDevice::Get().GetDepthStencil());
-            renderContext.SetPipelineState(RealtimeZPrePassPSO);
-            renderContext.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-            renderContext.SetRenderTarget(ZPrePassBuffer.GetRTV(), RenderDevice::Get().GetDepthStencil().GetDSV());
-            renderContext.ClearColor(ZPrePassBuffer);
-
-            RenderSceneList(renderContext, TheRenderScene->GetRenderCamera().GetViewMatrix(), TheRenderScene->GetRenderCamera().GetProjectionMatrix());
-        }
-
-        // Geometry pass
-        {
-            for (int i = 0; i < DeferredBufferType_Num; i++)
-            {
-                renderContext.TransitionResource(DeferredBuffers[i], D3D12_RESOURCE_STATE_RENDER_TARGET, true);
-            }
-            renderContext.TransitionResource(RenderDevice::Get().GetDepthStencil(), D3D12_RESOURCE_STATE_DEPTH_READ, true);
-            renderContext.SetPipelineState(RealtimeGeometryPassPSO);
-            renderContext.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-            // Bind gbuffer
-            D3D12_CPU_DESCRIPTOR_HANDLE rtvs[]
-            {
-                DeferredBuffers[DeferredBufferType_Position].GetRTV(),
-                DeferredBuffers[DeferredBufferType_Normal].GetRTV(),
-                DeferredBuffers[DeferredBufferType_TexCoord].GetRTV(),
-                DeferredBuffers[DeferredBufferType_Diffuse].GetRTV()
-            };
-            renderContext.SetRenderTargets(ARRAYSIZE(rtvs), rtvs, RenderDevice::Get().GetDepthStencil().GetDSV());
-
-            for (int i = 0; i < DeferredBufferType_Num; i++)
-            {
-                renderContext.ClearColor(DeferredBuffers[i]);
-            }
-
-            RenderSceneList(renderContext, TheRenderScene->GetRenderCamera().GetViewMatrix(), TheRenderScene->GetRenderCamera().GetProjectionMatrix());
-        }
-
-        // Composite pass
-        {
-            renderContext.TransitionResource(RenderDevice::Get().GetRenderTarget(), D3D12_RESOURCE_STATE_RENDER_TARGET, true);
-            renderContext.TransitionResource(RenderDevice::Get().GetDepthStencil(), D3D12_RESOURCE_STATE_DEPTH_READ, true);
-            renderContext.SetRenderTarget(RenderDevice::Get().GetRenderTarget().GetRTV(), RenderDevice::Get().GetDepthStencil().GetDSV());
-            renderContext.SetPipelineState(RealtimeCompositePassPSO);
-            renderContext.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-            renderContext.SetDynamicDescriptor(RealtimeRenderingRootIndex_Texture0, 0, ZPrePassBuffer.GetSRV());
-
-            for (int i = 0; i < DeferredBufferType_Num; i++)
-            {
-                renderContext.TransitionResource(DeferredBuffers[i], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, true);
-                renderContext.SetDynamicDescriptor(RealtimeRenderingRootIndex_Texture1 + i, 0, DeferredBuffers[i].GetSRV());
-            }
-
-            renderContext.SetNullVertexBuffer(0);
-            renderContext.SetNullIndexBuffer();
-            renderContext.Draw(3);
-        }
-    }
-    renderContext.Finish();
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -399,6 +276,20 @@ void Renderer::RenderSceneList(GraphicsContext& renderContext, const XMMATRIX& v
         renderContext.SetIndexBuffer(TheRenderScene->GetRenderSceneList()[i]->IndexBuffer.IndexBufferView());
         renderContext.DrawIndexed((uint32_t)TheRenderScene->GetRenderSceneList()[i]->Indices.size());
     }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void Renderer::OnUpdate(float dtSeconds)
+{
+    float scale          = (UserInput.ShiftKeyPressed ? 64.f : 32.0f) * 16.f * dtSeconds;
+    float forwardAmount  = (UserInput.Forward - UserInput.Backward) * scale;
+    float strafeAmount   = (UserInput.Left    - UserInput.Right)    * scale;
+    float upDownAmount   = (UserInput.Up      - UserInput.Down)     * scale;
+
+    TheRenderScene->UpdateCamera(sVertFov, forwardAmount, strafeAmount, upDownAmount, UserInput.MouseDx, UserInput.MouseDy, TheWorldScene->GetCamera());
+    UserInput.MouseDx = 0;
+    UserInput.MouseDy = 0;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

@@ -44,14 +44,14 @@ GpuBuffer::~GpuBuffer()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void GpuBuffer::Create(const std::wstring& name, uint32_t numElements, uint32_t elementSize, const void* initialData)
+void GpuBuffer::Create(const std::wstring& name, uint32_t numElements, uint32_t elementSize, const void* initialData, D3D12_RESOURCE_STATES usageState)
 {
     Destroy();
 
     ElementCount = numElements;
     ElementSize  = elementSize;
     BufferSize   = numElements * elementSize;
-    UsageState     = D3D12_RESOURCE_STATE_COMMON;
+    UsageState   = usageState;
 
     D3D12_HEAP_PROPERTIES HeapProps;
     HeapProps.Type                 = D3D12_HEAP_TYPE_DEFAULT;

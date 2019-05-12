@@ -93,10 +93,17 @@ namespace RealtimeEngine
         void                            GenerateRenderListFromWorld(const Core::IHitable* currentHead, const RealtimeEngine::Texture* defaultTexture, std::vector<RenderSceneNode*>& outSceneList, 
                                             std::vector<SpotLight>& spotLightsList, std::vector<DirectX::XMMATRIX>& matrixStack, std::vector<bool>& flipNormalStack);
 
+        void                            SetupForRaytracing();
+
     private:
 
         RenderCamera                    TheRenderCamera;
         std::vector<RenderSceneNode*>   RenderSceneList;
         std::vector<SpotLight>          SpotLightsList;
+
+        GpuBuffer*                      TLASBuffer;
+        std::vector<GpuBuffer*>         BLASBuffers;
+        WrappedGPUPointer               TLASPointer;
+        GpuBuffer*                      ScratchBuffer;
     };
 }

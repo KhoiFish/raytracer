@@ -75,7 +75,7 @@ namespace RealtimeEngine
     public:
 
         IDXGIAdapter1*                                      GetAdapter()                     { return Adapter.Get(); }
-        ID3D12Device*                                       GetD3DDevice()                   { return D3DDevice.Get(); }
+        ID3D12Device5*                                      GetD3DDevice()                   { return D3DDevice.Get(); }
         IDXGIFactory4*                                      GetDXGIFactory()                 { return DXGIFactory.Get(); }
         IDXGISwapChain3*                                    GetSwapChain()                   { return SwapChain.Get(); }
         ColorBuffer&                                        GetRenderTarget()                { return RenderTargets[BackBufferIndex]; }

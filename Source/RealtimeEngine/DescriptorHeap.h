@@ -151,4 +151,26 @@ namespace RealtimeEngine
         DescriptorHandle                              FirstHandle;
         DescriptorHandle                              NextFreeHandle;
     };
+
+    // ----------------------------------------------------------------------------------------------------------------------------
+
+    class DescriptorHeapStack
+    {
+    public:
+
+        DescriptorHeapStack(UINT numDescriptors, D3D12_DESCRIPTOR_HEAP_TYPE type, UINT nodeMask);
+
+        void                        AllocateDescriptor(_Out_ D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle, _Out_ UINT& descriptorHeapIndex);
+        UINT                        AllocateBufferSrv(_In_ ID3D12Resource& resource);
+        UINT                        AllocateBufferUav(_In_ ID3D12Resource& resource);
+        ID3D12DescriptorHeap&       GetDescriptorHeap();
+        D3D12_GPU_DESCRIPTOR_HANDLE GetGpuHandle(UINT descriptorIndex);
+
+    private:
+
+        CComPtr<ID3D12DescriptorHeap>   DescriptorHeap;
+        UINT                            DescriptorsAllocated = 0;
+        UINT                            DescriptorSize;
+        D3D12_CPU_DESCRIPTOR_HANDLE     DescriptorHeapCpuBase;
+    };
 }

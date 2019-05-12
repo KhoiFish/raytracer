@@ -52,7 +52,7 @@ void RenderCamera::SetLookAt(FXMVECTOR eye, FXMVECTOR target, FXMVECTOR up)
 {
     TheCameraData->ViewMatrix  = XMMatrixLookAtRH( eye, target, up );
     TheCameraData->Translation = eye;
-    TheCameraData->Rotation    = XMQuaternionRotationMatrix( XMMatrixTranspose(TheCameraData->ViewMatrix) );
+    TheCameraData->Rotation    = XMQuaternionRotationMatrix(XMMatrixTranspose(TheCameraData->ViewMatrix));
 
     InverseViewDirty = true;
     ViewDirty        = false;
@@ -76,7 +76,7 @@ XMMATRIX RenderCamera::GetInverseViewMatrix()
 {
     if (InverseViewDirty)
     {
-        TheCameraData->InverseViewMatrix = XMMatrixInverse( nullptr, TheCameraData->ViewMatrix );
+        TheCameraData->InverseViewMatrix = XMMatrixInverse(nullptr, TheCameraData->ViewMatrix);
         InverseViewDirty = false;
     }
 
@@ -99,7 +99,7 @@ void RenderCamera::SetProjection(float fovy, float aspect, float zNear, float zF
 
 XMMATRIX RenderCamera::GetProjectionMatrix()
 {
-    if ( ProjectionDirty )
+    if (ProjectionDirty)
     {
         UpdateProjectionMatrix();
     }
@@ -111,7 +111,7 @@ XMMATRIX RenderCamera::GetProjectionMatrix()
 
 XMMATRIX RenderCamera::GetInverseProjectionMatrix()
 {
-    if ( InverseProjectionDirty )
+    if (InverseProjectionDirty)
     {
         UpdateInverseProjectionMatrix();
     }
@@ -171,8 +171,8 @@ XMVECTOR RenderCamera::GetRotation()
 
 void RenderCamera::UpdateViewMatrix()
 {
-    XMMATRIX rotationMatrix    = XMMatrixTranspose(XMMatrixRotationQuaternion( TheCameraData->Rotation ));
-    XMMATRIX translationMatrix = XMMatrixTranslationFromVector( -(TheCameraData->Translation) );
+    XMMATRIX rotationMatrix    = XMMatrixTranspose(XMMatrixRotationQuaternion(TheCameraData->Rotation));
+    XMMATRIX translationMatrix = XMMatrixTranslationFromVector(-(TheCameraData->Translation));
 
     TheCameraData->ViewMatrix = translationMatrix * rotationMatrix;
 
@@ -184,12 +184,12 @@ void RenderCamera::UpdateViewMatrix()
 
 void RenderCamera::UpdateInverseViewMatrix()
 {
-    if ( ViewDirty )
+    if (ViewDirty)
     {
         UpdateViewMatrix();
     }
 
-    TheCameraData->InverseViewMatrix = XMMatrixInverse( nullptr, TheCameraData->ViewMatrix );
+    TheCameraData->InverseViewMatrix = XMMatrixInverse(nullptr, TheCameraData->ViewMatrix);
     InverseViewDirty = false;
 }
 
@@ -197,7 +197,7 @@ void RenderCamera::UpdateInverseViewMatrix()
 
 void RenderCamera::UpdateProjectionMatrix()
 {
-    TheCameraData->ProjectionMatrix = XMMatrixPerspectiveFovRH( XMConvertToRadians(VertFov), AspectRatio, ZNear, ZFar );
+    TheCameraData->ProjectionMatrix = XMMatrixPerspectiveFovRH(XMConvertToRadians(VertFov), AspectRatio, ZNear, ZFar);
 
     ProjectionDirty        = false;
     InverseProjectionDirty = true;
@@ -207,11 +207,11 @@ void RenderCamera::UpdateProjectionMatrix()
 
 void RenderCamera::UpdateInverseProjectionMatrix()
 {
-    if ( ProjectionDirty )
+    if (ProjectionDirty)
     {
         UpdateProjectionMatrix();
     }
 
-    TheCameraData->InverseProjectionMatrix = XMMatrixInverse( nullptr, TheCameraData->ProjectionMatrix );
+    TheCameraData->InverseProjectionMatrix = XMMatrixInverse(nullptr, TheCameraData->ProjectionMatrix);
     InverseProjectionDirty = false;
 }

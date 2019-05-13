@@ -32,15 +32,15 @@ enum RealtimeRenderingRootIndex
 
 enum RealtimeRenderingRegisters
 {
-    RealtimeRenderingRegisters_ConstantBuffer0 = 0,
-    RealtimeRenderingRegisters_ConstantBuffer1 = 1,
-    RealtimeRenderingRegisters_Texture0 = 0,
-    RealtimeRenderingRegisters_Texture1 = 1,
-    RealtimeRenderingRegisters_Texture2 = 2,
-    RealtimeRenderingRegisters_Texture3 = 3,
-    RealtimeRenderingRegisters_Texture4 = 4,
-    RealtimeRenderingRegisters_LinearSampler = 0,
-    RealtimeRenderingRegisters_AnisoSampler = 1,
+    RealtimeRenderingRegisters_ConstantBuffer0  = 0,
+    RealtimeRenderingRegisters_ConstantBuffer1  = 1,
+    RealtimeRenderingRegisters_Texture0         = 0,
+    RealtimeRenderingRegisters_Texture1         = 1,
+    RealtimeRenderingRegisters_Texture2         = 2,
+    RealtimeRenderingRegisters_Texture3         = 3,
+    RealtimeRenderingRegisters_Texture4         = 4,
+    RealtimeRenderingRegisters_LinearSampler    = 0,
+    RealtimeRenderingRegisters_AnisoSampler     = 1,
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -343,4 +343,42 @@ void Renderer::RenderRealtimeResults()
         }
     }
     renderContext.Finish();
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+static void ComputeMatrices(FXMMATRIX model, CXMMATRIX view, CXMMATRIX projection, SceneConstantBuffer& mat)
+{
+    XMStoreFloat4x4(&mat.ModelMatrix, XMMatrixTranspose(model));
+    XMStoreFloat4x4(&mat.ViewMatrix, XMMatrixTranspose(view));
+    XMStoreFloat4x4(&mat.ProjectionMatrix, XMMatrixTranspose(projection));
+    XMStoreFloat4x4(&mat.ModelViewMatrix, XMMatrixTranspose(model * view));
+    XMStoreFloat4x4(&mat.InverseTransposeModelViewMatrix, XMMatrixTranspose(XMMatrixTranspose(XMMatrixInverse(nullptr, model * view))));
+    XMStoreFloat4x4(&mat.ModelViewProjectionMatrix, XMMatrixTranspose(model * view * projection));
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void Renderer::RenderSceneList(GraphicsContext& renderContext, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix)
+{
+    for (int i = 0; i < TheRenderScene->GetRenderSceneList().size(); i++)
+    {
+        // Don't render light shapes
+        if (TheRenderScene->GetRenderSceneList()[i]->Hitable->IsALightShape())
+        {
+            continue;
+        }
+
+        SceneConstantBuffer matrices;
+        ComputeMatrices(TheRenderScene->GetRenderSceneList()[i]->WorldMatrix, viewMatrix, projectionMatrix, matrices);
+
+        const RealtimeEngine::Texture* defaultTexture = RealtimeEngine::TextureManager::LoadFromFile(DefaultTextureName);
+        const RealtimeEngine::Texture* diffuseTex = (TheRenderScene->GetRenderSceneList()[i]->DiffuseTexture != nullptr) ? TheRenderScene->GetRenderSceneList()[i]->DiffuseTexture : defaultTexture;
+
+        renderContext.SetDynamicConstantBufferView(RealtimeRenderingRootIndex_ConstantBuffer0, sizeof(matrices), &matrices);
+        renderContext.SetDynamicDescriptor(RealtimeRenderingRootIndex_Texture0, 0, diffuseTex->GetSRV());
+        renderContext.SetVertexBuffer(0, TheRenderScene->GetRenderSceneList()[i]->VertexBuffer.VertexBufferView());
+        renderContext.SetIndexBuffer(TheRenderScene->GetRenderSceneList()[i]->IndexBuffer.IndexBufferView());
+        renderContext.DrawIndexed((uint32_t)TheRenderScene->GetRenderSceneList()[i]->Indices.size());
+    }
 }

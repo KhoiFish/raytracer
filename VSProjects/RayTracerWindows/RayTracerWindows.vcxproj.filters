@@ -37,6 +37,9 @@
     <ClInclude Include="..\..\Source\RealtimeRender.hpp">
       <Filter>Source</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\RaytracingSetup.hpp">
+      <Filter>Source</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="RayTracerWindows.rc">
@@ -87,17 +90,20 @@
     <FxCompile Include="..\..\Source\Shaders\Lighting.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="..\..\Source\Shaders\ShaderStructs.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
     <FxCompile Include="..\..\Source\Shaders\ZPrePass_PS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="..\..\Source\Shaders\ZPrePass_VS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="..\..\Source\Shaders\Raytracing.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\RayTracerLib\RayTracerLib.licenseheader" />
+    <None Include="..\..\Source\Shaders\RaytracingHelpers.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

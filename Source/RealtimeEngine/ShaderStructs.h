@@ -17,94 +17,165 @@
 // 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-#pragma once
-
-#include <wrl.h>
-#include <d3dcompiler.h>
-#include <DirectXColors.h>
-#include <stdint.h>
+#ifndef SHADERSTRUCTS_H
+#define SHADERSTRUCTS_H
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-#pragma pack(push, 16)
-struct RenderMatrices
+#define MAX_RAY_RECURSION_DEPTH     3
+
+#ifdef HLSL
+    typedef float2      XMFLOAT2;
+    typedef float3      XMFLOAT3;
+    typedef float4      XMFLOAT4;
+    typedef float4      XMVECTOR;
+    typedef float4x4    XMMATRIX;
+    typedef float4x4    XMFLOAT4X4;
+    typedef uint        UINT;
+
+    #define ALIGN_BEGIN(alignValue)
+    #define ALIGN_END
+#else
+    #include <wrl.h>
+    #include <d3dcompiler.h>
+    #include <DirectXColors.h>
+    #include <stdint.h>
+
+    #define ALIGN_BEGIN(alignValue) __pragma(pack(push, alignValue))
+    #define ALIGN_END               __pragma(pack(pop))
+
+    using namespace DirectX;
+#endif
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+ALIGN_BEGIN(16)
+struct SceneConstantBuffer
 {
-    DirectX::XMFLOAT4X4 ModelMatrix;
-    DirectX::XMFLOAT4X4 ViewMatrix;
-    DirectX::XMFLOAT4X4 ProjectionMatrix;
-    DirectX::XMFLOAT4X4 ModelViewMatrix;
-    DirectX::XMFLOAT4X4 InverseTransposeModelViewMatrix;
-    DirectX::XMFLOAT4X4 ModelViewProjectionMatrix;
-    DirectX::XMFLOAT4X4 ShadowViewProj;
+    XMFLOAT4    CameraPosition;
+    XMFLOAT4X4  ModelMatrix;
+    XMFLOAT4X4  ViewMatrix;
+    XMFLOAT4X4  ProjectionMatrix;
+    XMFLOAT4X4  ModelViewMatrix;
+    XMFLOAT4X4  InverseTransposeModelViewMatrix;
+    XMFLOAT4X4  ModelViewProjectionMatrix;
+    XMFLOAT4X4  InverseViewProjectionMatrix;
+    XMFLOAT4X4  ShadowViewProj;
 };
-#pragma pack(pop)
+ALIGN_END
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-#pragma pack(push, 16)
+struct SceneVertex
+{
+    XMFLOAT3   Position;
+    XMFLOAT3   Normal;
+    XMFLOAT2   TexCoord;
+};
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+ALIGN_BEGIN(16)
 struct RenderMaterial
 {
-    RenderMaterial(
-        DirectX::XMFLOAT4 emissive = { 0.0f, 0.0f, 0.0f, 1.0f },
-        DirectX::XMFLOAT4 ambient = { 0.1f, 0.1f, 0.1f, 1.0f },
-        DirectX::XMFLOAT4 diffuse = { 1.0f, 1.0f, 1.0f, 1.0f },
-        DirectX::XMFLOAT4 specular = { 1.0f, 1.0f, 1.0f, 1.0f },
-        float specularPower = 128.0f
-    )
-        : Emissive(emissive)
-        , Ambient(ambient)
-        , Diffuse(diffuse)
-        , Specular(specular)
-        , SpecularPower(specularPower) {}
-
-    DirectX::XMFLOAT4   Emissive;
-    DirectX::XMFLOAT4   Ambient;
-    DirectX::XMFLOAT4   Diffuse;
-    DirectX::XMFLOAT4   Specular;
-    float               SpecularPower;
+    XMFLOAT4   Emissive;
+    XMFLOAT4   Ambient;
+    XMFLOAT4   Diffuse;
+    XMFLOAT4   Specular;
+    float      SpecularPower;
 };
-#pragma pack(pop)
+ALIGN_END
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-#pragma pack(push, 16)
+ALIGN_BEGIN(16)
 struct SpotLight
 {
-    DirectX::XMFLOAT4    PositionWS;
-    DirectX::XMFLOAT4    PositionVS;
-    DirectX::XMFLOAT4    DirectionWS;
-    DirectX::XMFLOAT4    DirectionVS;
-    DirectX::XMFLOAT4    LookAtWS;
-    DirectX::XMFLOAT4    UpWS;
-    DirectX::XMFLOAT4    SmapWS;
-    DirectX::XMFLOAT4    Color;
-    float                SpotAngle;
-    float                ConstantAttenuation;
-    float                LinearAttenuation;
-    float                QuadraticAttenuation;
-    int                  ShadowmapId;
+    XMFLOAT4    PositionWS;
+    XMFLOAT4    PositionVS;
+    XMFLOAT4    DirectionWS;
+    XMFLOAT4    DirectionVS;
+    XMFLOAT4    LookAtWS;
+    XMFLOAT4    UpWS;
+    XMFLOAT4    SmapWS;
+    XMFLOAT4    Color;
+    float       SpotAngle;
+    float       ConstantAttenuation;
+    float       LinearAttenuation;
+    float       QuadraticAttenuation;
+    int         ShadowmapId;
 };
-#pragma pack(pop)
+ALIGN_END
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-#pragma pack(push, 16)
+ALIGN_BEGIN(16)
 struct DirLight
 {
-    DirectX::XMFLOAT4    DirectionWS;
-    DirectX::XMFLOAT4    DirectionVS;
-    DirectX::XMFLOAT4    Color;
-    int                  ShadowmapId;
+    XMFLOAT4    DirectionWS;
+    XMFLOAT4    DirectionVS;
+    XMFLOAT4    Color;
+    int         ShadowmapId;
 };
-#pragma pack(pop)
+ALIGN_END
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-#pragma pack(push, 16)
+ALIGN_BEGIN(16)
 struct GlobalData
 {
     int   NumSpotLights;
     int   NumDirLights;
     float ShadowmapDepth;
 };
-#pragma pack(pop)
+ALIGN_END
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+ALIGN_BEGIN(16)
+struct RayPayload
+{
+    XMFLOAT4 Color;
+    UINT     RecursionDepth;
+};
+ALIGN_END
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+namespace RayType
+{
+    enum Enum
+    {
+        Radiance = 0,   // ~ Primary, reflected camera/view rays calculating color for each hit.
+        Shadow,         // ~ Shadow/visibility rays, only testing for occlusion
+        Count
+    };
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+namespace TraceRayParameters
+{
+    static const UINT InstanceMask = ~0;   // Everything is visible.
+    namespace HitGroup
+    {
+        static const UINT Offset[RayType::Count] =
+        {
+            0, // Radiance ray
+            1  // Shadow ray
+        };
+
+        static const UINT GeometryStride = RayType::Count;
+    }
+
+    namespace MissShader
+    {
+        static const UINT Offset[RayType::Count] =
+        {
+            0, // Radiance ray
+            1  // Shadow ray
+        };
+    }
+}
+
+#endif

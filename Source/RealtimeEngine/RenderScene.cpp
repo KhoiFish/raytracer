@@ -629,6 +629,7 @@ void RenderScene::SetupForRaytracing()
     // Gather info on BLAS
     std::vector<UINT64>                                             blasSizes(numBottomLevels);
     std::vector<D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC> blasDescs(numBottomLevels);
+    std::vector<D3D12_RAYTRACING_GEOMETRY_DESC>                     geometryDescs(RenderSceneList.size());
     UINT64                                                          scratchBufferSizeNeeded = tlasPrebuildInfo.ScratchDataSizeInBytes;
     {
         // Allocate memory for transforms
@@ -652,7 +653,6 @@ void RenderScene::SetupForRaytracing()
         }
 
         // Fill in the geometry descriptions
-        std::vector<D3D12_RAYTRACING_GEOMETRY_DESC> geometryDescs(RenderSceneList.size());
         for (int i = 0; i < (int)RenderSceneList.size(); i++)
         {
             RenderSceneNode*    pRenderNode      = RenderSceneList[i];

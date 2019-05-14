@@ -34,6 +34,7 @@
 #include <DX12/d3d12.h>
 #include <DX12/d3dx12.h>
 #include <dxgidebug.h>
+#include <comdef.h>
 
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -54,6 +55,25 @@
 // ----------------------------------------------------------------------------------------------------------------------------
 
 typedef std::string                                    string_t;
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+// Common DX12 definitions
+#define MAKE_SMART_COM_PTR(_a) _COM_SMARTPTR_TYPEDEF(_a, __uuidof(_a))
+MAKE_SMART_COM_PTR(ID3D12Device5);
+MAKE_SMART_COM_PTR(ID3D12GraphicsCommandList4);
+MAKE_SMART_COM_PTR(ID3D12CommandQueue);
+MAKE_SMART_COM_PTR(IDXGISwapChain3);
+MAKE_SMART_COM_PTR(IDXGIFactory4);
+MAKE_SMART_COM_PTR(IDXGIAdapter1);
+MAKE_SMART_COM_PTR(ID3D12Fence);
+MAKE_SMART_COM_PTR(ID3D12CommandAllocator);
+MAKE_SMART_COM_PTR(ID3D12Resource);
+MAKE_SMART_COM_PTR(ID3D12DescriptorHeap);
+MAKE_SMART_COM_PTR(ID3D12Debug);
+MAKE_SMART_COM_PTR(ID3D12StateObject);
+MAKE_SMART_COM_PTR(ID3D12RootSignature);
+MAKE_SMART_COM_PTR(ID3DBlob);
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -102,8 +122,8 @@ inline void ThrowIfFalse(bool value, const wchar_t* msg)
 }
 
 
-inline void Print(const char* msg) { printf("%s", msg); }
-inline void Print(const wchar_t* msg) { wprintf(L"%ws", msg); }
+inline void Print(const char* msg) { printf("%s", msg); OutputDebugStringA(msg); }
+inline void Print(const wchar_t* msg) { wprintf(L"%ws", msg); OutputDebugString(msg); }
 
 inline void GlobalPrint(const char* format, ...)
 {
@@ -159,6 +179,7 @@ inline void GlobalPrintSubMessage(const wchar_t* format, ...)
 
 #define ASSERT_SUCCEEDED( hr, ... ) \
         if (FAILED(hr)) { \
+            GlobalPrint("HRESULT: %#016x\n", hr); \
             __debugbreak(); \
         }
 

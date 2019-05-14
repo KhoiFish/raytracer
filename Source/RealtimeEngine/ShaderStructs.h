@@ -22,8 +22,6 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-#define MAX_RAY_RECURSION_DEPTH     3
-
 #ifdef HLSL
     typedef float2      XMFLOAT2;
     typedef float3      XMFLOAT3;
@@ -49,7 +47,20 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-ALIGN_BEGIN(16)
+#define MAX_RAY_RECURSION_DEPTH  3
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+static const XMFLOAT4   ChromiumReflectance = XMFLOAT4(0.549f, 0.556f, 0.554f, 1.0f);
+static const XMFLOAT4   BackgroundColor     = XMFLOAT4(0.8f, 0.9f, 1.0f, 1.0f);
+static const float      InShadowRadiance    = 0.35f;
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+ALIGN_BEGIN(16) // Align the following structs to 16 bytes
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 struct SceneConstantBuffer
 {
     XMFLOAT4    CameraPosition;
@@ -57,12 +68,12 @@ struct SceneConstantBuffer
     XMFLOAT4X4  ViewMatrix;
     XMFLOAT4X4  ProjectionMatrix;
     XMFLOAT4X4  ModelViewMatrix;
-    XMFLOAT4X4  InverseTransposeModelViewMatrix;
+    XMFLOAT4X4  ViewProjectionMatrix;
     XMFLOAT4X4  ModelViewProjectionMatrix;
+    XMFLOAT4X4  InverseTransposeModelViewMatrix;
     XMFLOAT4X4  InverseViewProjectionMatrix;
     XMFLOAT4X4  ShadowViewProj;
 };
-ALIGN_END
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -75,7 +86,6 @@ struct SceneVertex
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-ALIGN_BEGIN(16)
 struct RenderMaterial
 {
     XMFLOAT4   Emissive;
@@ -84,11 +94,9 @@ struct RenderMaterial
     XMFLOAT4   Specular;
     float      SpecularPower;
 };
-ALIGN_END
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-ALIGN_BEGIN(16)
 struct SpotLight
 {
     XMFLOAT4    PositionWS;
@@ -105,11 +113,9 @@ struct SpotLight
     float       QuadraticAttenuation;
     int         ShadowmapId;
 };
-ALIGN_END
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-ALIGN_BEGIN(16)
 struct DirLight
 {
     XMFLOAT4    DirectionWS;
@@ -117,28 +123,23 @@ struct DirLight
     XMFLOAT4    Color;
     int         ShadowmapId;
 };
-ALIGN_END
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-ALIGN_BEGIN(16)
 struct GlobalData
 {
-    int   NumSpotLights;
-    int   NumDirLights;
-    float ShadowmapDepth;
+    int         NumSpotLights;
+    int         NumDirLights;
+    float       ShadowmapDepth;
 };
-ALIGN_END
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-ALIGN_BEGIN(16)
 struct RayPayload
 {
-    XMFLOAT4 Color;
-    UINT     RecursionDepth;
+    XMFLOAT4    Color;
+    UINT        RecursionDepth;
 };
-ALIGN_END
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -177,5 +178,37 @@ namespace TraceRayParameters
         };
     }
 }
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+struct PrimitiveConstantBuffer
+{
+    XMFLOAT4    Albedo;
+    float       ReflectanceCoef;
+    float       DiffuseCoef;
+    float       SpecularCoef;
+    float       SpecularPower;
+    float       StepScale;
+};
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+struct PrimitiveInstanceConstantBuffer
+{
+    UINT        InstanceIndex;
+    UINT        PrimitiveType;
+};
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+struct PrimitiveInstancePerFrameBuffer
+{
+    XMMATRIX    LocalSpaceToBottomLevelAS;
+    XMMATRIX    BottomLevelASToLocalSpace;
+};
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+ALIGN_END
 
 #endif

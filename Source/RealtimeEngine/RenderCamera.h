@@ -40,6 +40,8 @@ public:
     DirectX::XMMATRIX   GetInverseProjectionMatrix();
     DirectX::XMVECTOR   GetTranslation();
     DirectX::XMVECTOR   GetRotation();
+    DirectX::XMVECTOR   GetEye();
+    DirectX::XMVECTOR   GetTarget();
     float               GetVertFov();
 
 private:
@@ -53,6 +55,8 @@ private:
 
     struct CameraData
     {
+        DirectX::XMVECTOR Eye;
+        DirectX::XMVECTOR Target;
         DirectX::XMVECTOR Translation;
         DirectX::XMVECTOR Rotation;
         DirectX::XMMATRIX ViewMatrix;

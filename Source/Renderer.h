@@ -66,6 +66,7 @@ public:
 private:
 
     void                       SetupFullscreenQuadPipeline();
+    void                       SetupRealtimeRaytracingPipeline();
     void                       SetupRealtimePipeline();
     void                       SetupRenderBuffers();
     void                       LoadScene();
@@ -140,18 +141,24 @@ private:
     Core::WorldScene*               TheWorldScene;
     RealtimeEngine::RenderScene*    TheRenderScene;
 
+    DXGI_FORMAT                     DeferredBuffersRTTypes[DeferredBufferType_Num];
+    DXGI_FORMAT                     ZBufferRTType;
+
     ColorBuffer                     CPURaytracerTex;
+    ColorBuffer                     DeferredBuffers[DeferredBufferType_Num];
+    ColorBuffer                     ZPrePassBuffer;
+
     RootSignature                   FullscreenQuadRootSignature;
     GraphicsPSO                     FullscreenPipelineState;
 
-    DXGI_FORMAT                     DeferredBuffersRTTypes[DeferredBufferType_Num];
-    DXGI_FORMAT                     ZBufferRTType;
-    ColorBuffer                     DeferredBuffers[DeferredBufferType_Num];
-    ColorBuffer                     ZPrePassBuffer;
     RootSignature                   RealtimeRootSignature;
     GraphicsPSO                     RealtimeZPrePassPSO;
     GraphicsPSO                     RealtimeGeometryPassPSO;
     GraphicsPSO                     RealtimeCompositePassPSO;
+
+    RaytracingPSO                   RealtimeRaytracingPSO;
+    RootSignature                   RaygenLocalRootSig;
+    RootSignature                   HitMissLocalRootSig;
 
     UserInputData                   UserInput;
 };

@@ -17,60 +17,153 @@
 // 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-#if 0
-struct RaytracingDispatchRayInputs
+#define SizeOfInUint32(obj) ((sizeof(obj) - 1) / sizeof(UINT32) + 1)
+#define ArraySize(a) (sizeof(a)/sizeof(a[0]))
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+namespace RaytracingGlobalRootSigSlot
 {
-    RaytracingDispatchRayInputs() {}
-    RaytracingDispatchRayInputs(
-        ID3D12RaytracingFallbackDevice& device,
-        ID3D12RaytracingFallbackStateObject* pPSO,
-        void* pHitGroupShaderTable,
-        UINT HitGroupStride,
-        UINT HitGroupTableSize,
-        LPCWSTR rayGenExportName,
-        LPCWSTR missExportName) : m_pPSO(pPSO)
+    enum EnumTypes
     {
-        const UINT shaderTableSize = device.GetShaderIdentifierSize();
-        void* pRayGenShaderData = pPSO->GetShaderIdentifier(rayGenExportName);
-        void* pMissShaderData = pPSO->GetShaderIdentifier(missExportName);
+        OutputView = 0,
+        AccelerationStructure,
+        VertexBuffer,
+        IndexBuffer,
+        SceneConstant,
 
-        m_HitGroupStride = HitGroupStride;
+        Num
+    };
 
-        // MiniEngine requires that all initial data be aligned to 16 bytes
-        UINT alignment = 16;
-        std::vector<BYTE> alignedShaderTableData(shaderTableSize + alignment - 1);
-        BYTE * pAlignedShaderTableData = alignedShaderTableData.data() + ((UINT64)alignedShaderTableData.data() % alignment);
-        memcpy(pAlignedShaderTableData, pRayGenShaderData, shaderTableSize);
-        m_RayGenShaderTable.Create(L"Ray Gen Shader Table", 1, shaderTableSize, alignedShaderTableData.data());
+    enum IndexTypes
+    {
+        Register = 0,
+        Count
+    };
 
-        memcpy(pAlignedShaderTableData, pMissShaderData, shaderTableSize);
-        m_MissShaderTable.Create(L"Miss Shader Table", 1, shaderTableSize, alignedShaderTableData.data());
+    // [register, count]
+    static UINT Range[RaytracingGlobalRootSigSlot::Num][2] =
+    {
+        { 0, 1 },
+        { 1, 0 },
+        { 2, 0 },
+        { 3, 0 },
+        { 0, 0 },
+    };
+}
 
-        m_HitShaderTable.Create(L"Hit Shader Table", 1, HitGroupTableSize, pHitGroupShaderTable);
+namespace RaytracingLocalRootSigSlot
+{
+    enum Enum
+    {
+        MaterialConstant = 0,
+
+        Num
+    };
+
+    enum IndexTypes
+    {
+        Register = 0,
+        Count
+    };
+
+    // [register, count]
+    static UINT Range[RaytracingLocalRootSigSlot::Num][2] =
+    {
+        { 1, SizeOfInUint32(PrimitiveConstantBuffer) },
+    };
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void Renderer::SetupRealtimeRaytracingPipeline()
+{
+    static const wchar_t* sRaygenShaderName     = L"RayGenerationShader";
+    static const wchar_t* sMissShaderName       = L"MissShader";
+    static const wchar_t* sClosestHitShaderName = L"ClosestHitShader";
+    static const wchar_t* sHitGroupName         = L"HitGroup";
+    static const wchar_t* sDxilLibEntryPoints[] = { sRaygenShaderName, sMissShaderName, sClosestHitShaderName };
+    static const wchar_t* sMissHitExportName[]  = { sMissShaderName, sClosestHitShaderName };
+
+    // Global root sig
+    {
+        RootSignature& globalRootSig = RealtimeRaytracingPSO.GetGlobalRootSignature();
+
+        globalRootSig.Reset(RaytracingGlobalRootSigSlot::Num, 0);
+
+        globalRootSig[RaytracingGlobalRootSigSlot::OutputView].InitAsDescriptorRange(
+            D3D12_DESCRIPTOR_RANGE_TYPE_UAV,
+            RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::OutputView][RaytracingGlobalRootSigSlot::Register],
+            RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::OutputView][RaytracingGlobalRootSigSlot::Count],
+            D3D12_SHADER_VISIBILITY_ALL);
+
+        globalRootSig[RaytracingGlobalRootSigSlot::AccelerationStructure].InitAsBufferSRV(
+            RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::AccelerationStructure][RaytracingGlobalRootSigSlot::Register],
+            D3D12_SHADER_VISIBILITY_ALL);
+
+        globalRootSig[RaytracingGlobalRootSigSlot::VertexBuffer].InitAsBufferSRV(
+            RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::VertexBuffer][RaytracingGlobalRootSigSlot::Register],
+            D3D12_SHADER_VISIBILITY_ALL);
+
+        globalRootSig[RaytracingGlobalRootSigSlot::IndexBuffer].InitAsBufferSRV(
+            RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::IndexBuffer][RaytracingGlobalRootSigSlot::Register],
+            D3D12_SHADER_VISIBILITY_ALL);
+
+        globalRootSig[RaytracingGlobalRootSigSlot::SceneConstant].InitAsConstantBuffer(
+            RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::SceneConstant][RaytracingGlobalRootSigSlot::Register],
+            D3D12_SHADER_VISIBILITY_ALL);
+
+        globalRootSig.Finalize("RealtimeRaytracingGlobalRoot", D3D12_ROOT_SIGNATURE_FLAG_NONE);
     }
 
-    D3D12_DISPATCH_RAYS_DESC GetDispatchRayDesc(UINT DispatchWidth, UINT DispatchHeight)
+    // Raygen local root sig setup
     {
-        D3D12_DISPATCH_RAYS_DESC dispatchRaysDesc = {};
+        RaygenLocalRootSig.Reset(RaytracingLocalRootSigSlot::Num, 0);
 
-        dispatchRaysDesc.RayGenerationShaderRecord.StartAddress = m_RayGenShaderTable.GetGpuVirtualAddress();
-        dispatchRaysDesc.RayGenerationShaderRecord.SizeInBytes = m_RayGenShaderTable.GetBufferSize();
-        dispatchRaysDesc.HitGroupTable.StartAddress = m_HitShaderTable.GetGpuVirtualAddress();
-        dispatchRaysDesc.HitGroupTable.SizeInBytes = m_HitShaderTable.GetBufferSize();
-        dispatchRaysDesc.HitGroupTable.StrideInBytes = m_HitGroupStride;
-        dispatchRaysDesc.MissShaderTable.StartAddress = m_MissShaderTable.GetGpuVirtualAddress();
-        dispatchRaysDesc.MissShaderTable.SizeInBytes = m_MissShaderTable.GetBufferSize();
-        dispatchRaysDesc.MissShaderTable.StrideInBytes = dispatchRaysDesc.MissShaderTable.SizeInBytes; // Only one entry
-        dispatchRaysDesc.Width = DispatchWidth;
-        dispatchRaysDesc.Height = DispatchHeight;
-        dispatchRaysDesc.Depth = 1;
-        return dispatchRaysDesc;
+        RaygenLocalRootSig[RaytracingLocalRootSigSlot::MaterialConstant].InitAsConstants(
+            RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::MaterialConstant][RaytracingLocalRootSigSlot::Register],
+            RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::MaterialConstant][RaytracingLocalRootSigSlot::Count],
+            D3D12_SHADER_VISIBILITY_ALL);
+
+        RaygenLocalRootSig.Finalize("RaygenLocalRootSig", D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE);
+        RealtimeRaytracingPSO.AddLocalRootSignature("RaygenLocalRootSig", &RaygenLocalRootSig);
     }
 
-    UINT m_HitGroupStride;
-    CComPtr<ID3D12RaytracingFallbackStateObject> m_pPSO;
-    ByteAddressBuffer   m_RayGenShaderTable;
-    ByteAddressBuffer   m_MissShaderTable;
-    ByteAddressBuffer   m_HitShaderTable;
-};
-#endif
+    // Hit miss local root sig setup
+    {
+        HitMissLocalRootSig.Reset(0, 0);
+        HitMissLocalRootSig.Finalize("HitMissLocalRootSig", D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE);
+        RealtimeRaytracingPSO.AddLocalRootSignature("HitMissLocalRootSig", &HitMissLocalRootSig);
+    }
+
+    // Build the rest of the raytracing PSO
+    {
+        // Setup dxlib
+        {
+            ID3DBlobPtr pDxilLib;
+            ThrowIfFailed(D3DReadFileToBlob(SHADERBUILD_DIR L"\\Raytracing.cso", &pDxilLib));
+            RealtimeRaytracingPSO.SetDxilLibrary(pDxilLib, sDxilLibEntryPoints, ArraySize(sDxilLibEntryPoints));
+        }
+
+        // Setup hit program
+        RealtimeRaytracingPSO.SetHitProgram(nullptr, sClosestHitShaderName, sHitGroupName);
+
+        // Associate ray gen shader with local root signature
+        RealtimeRaytracingPSO.AddExportAssociationWithLocalRootSignature(&sRaygenShaderName, 1, "RaygenLocalRootSig");
+
+        // Associate miss and closet hit shader with the local root signature
+        RealtimeRaytracingPSO.AddExportAssociationWithLocalRootSignature(sMissHitExportName, ArraySize(sMissHitExportName), "HitMissLocalRootSig");
+
+        // Shader config
+        RealtimeRaytracingPSO.SetShaderConfig(D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES, sizeof(RayPayload));
+
+        // Associate shaders with shader config
+        RealtimeRaytracingPSO.AddExportAssociationWithShaderConfig(sDxilLibEntryPoints, ArraySize(sDxilLibEntryPoints));
+
+        // Pipeline config
+        RealtimeRaytracingPSO.SetPipelineConfig(MAX_RAY_RECURSION_DEPTH);
+
+        // Done, finalize
+        RealtimeRaytracingPSO.Finalize();
+    }
+}

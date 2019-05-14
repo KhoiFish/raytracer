@@ -47,6 +47,7 @@ float CalculateAnimationInterpolant(in float elapsedTime, in float cycleDuration
 {
     float curLinearCycleTime = fmod(elapsedTime, cycleDuration) / cycleDuration;
     curLinearCycleTime = (curLinearCycleTime <= 0.5f) ? 2 * curLinearCycleTime : 1 - 2 * (curLinearCycleTime - 0.5f);
+
     return smoothstep(0, 1, curLinearCycleTime);
 }
 
@@ -186,5 +187,55 @@ void CalculateRayDifferentials(out float2 ddx_uv, out float2 ddy_uv, in float2 u
 float3 FresnelReflectanceSchlick(in float3 I, in float3 N, in float3 f0)
 {
     float cosi = saturate(dot(-I, N));
+
     return f0 + (1 - f0) * pow(1 - cosi, 5);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+float CalculateDiffuseCoefficient(in float3 hitPosition, in float3 incidentLightRay, in float3 normal)
+{
+    float fNDotL = saturate(dot(-incidentLightRay, normal));
+    return fNDotL;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+float4 CalculateSpecularCoefficient(in float3 hitPosition, in float3 incidentLightRay, in float3 normal, in float specularPower)
+{
+    float3 reflectedLightRay = normalize(reflect(incidentLightRay, normal));
+    return pow(saturate(dot(reflectedLightRay, normalize(-WorldRayDirection()))), specularPower);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+float4 CalculatePhongLighting(in float4 albedo, in float3 normal, in bool isInShadow, 
+    in float3 lightPosition, in float4 lightDiffuseColor, in float4 lightAmbientColor,
+    in float diffuseCoef = 1.0, in float specularCoef = 1.0, in float specularPower = 50)
+{
+    float3 hitPosition      = HitWorldPosition();
+    float  shadowFactor     = isInShadow ? InShadowRadiance : 1.0;
+    float3 incidentLightRay = normalize(hitPosition - lightPosition);
+
+    // Diffuse component.
+    float  Kd           = CalculateDiffuseCoefficient(hitPosition, incidentLightRay, normal);
+    float4 diffuseColor = shadowFactor * diffuseCoef * Kd * lightDiffuseColor * albedo;
+
+    // Specular component.
+    float4 specularColor = float4(0, 0, 0, 0);
+    if (!isInShadow)
+    {
+        float4 lightSpecularColor = float4(1, 1, 1, 1);
+        float4 Ks                 = CalculateSpecularCoefficient(hitPosition, incidentLightRay, normal, specularPower);
+        specularColor             = specularCoef * Ks * lightSpecularColor;
+    }
+
+    // Ambient component.
+    // Fake AO: Darken faces with normal facing downwards/away from the sky a little bit.
+    float4 ambientColorMin = lightAmbientColor - 0.1;
+    float4 ambientColorMax = lightAmbientColor;
+    float  a               = 1 - saturate(dot(normal, float3(0, -1, 0)));
+    float4 ambientColor    = albedo * lerp(ambientColorMin, ambientColorMax, a);
+
+    return ambientColor + diffuseColor + specularColor;
 }

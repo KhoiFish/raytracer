@@ -238,3 +238,156 @@ ComputePSO::ComputePSO()
     ZeroMemory(&PSODesc, sizeof(PSODesc));
     PSODesc.NodeMask = 1;
 }
+
+// ----------------------------------------------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------------------------------
+
+RaytracingPSO::RaytracingPSO()
+{
+
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+int32_t RaytracingPSO::AddSuboject(D3D12_STATE_SUBOBJECT_TYPE type, const void* pDesc)
+{
+    RTL_ASSERT(NumSubobjects < MAX_SUBOBJECTS);
+    D3D12_STATE_SUBOBJECT& stateObject = Subobjects[NumSubobjects++];
+    stateObject.Type  = type;
+    stateObject.pDesc = pDesc;
+
+    return int32_t(NumSubobjects - 1);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void RaytracingPSO::SetDxilLibrary(ID3DBlobPtr pBlob, const WCHAR* entryPoint[], uint32_t entryPointCount)
+{
+    DxilLibShaderBlob   = pBlob;
+    DxilLibDesc         = {};
+
+    DxilLibExportDesc.resize(entryPointCount);
+    DxilLibExportName.resize(entryPointCount);
+    if (pBlob)
+    {
+        DxilLibDesc.DXILLibrary.pShaderBytecode = pBlob->GetBufferPointer();
+        DxilLibDesc.DXILLibrary.BytecodeLength  = pBlob->GetBufferSize();
+        DxilLibDesc.NumExports                  = entryPointCount;
+        DxilLibDesc.pExports                    = DxilLibExportDesc.data();
+
+        for (uint32_t i = 0; i < entryPointCount; i++)
+        {
+            DxilLibExportName[i] = entryPoint[i];
+
+            DxilLibExportDesc[i].Name           = DxilLibExportName[i].c_str();
+            DxilLibExportDesc[i].Flags          = D3D12_EXPORT_FLAG_NONE;
+            DxilLibExportDesc[i].ExportToRename = nullptr;
+        }
+    }
+
+    RTL_ASSERT(DxilStateIndex == -1);
+    DxilStateIndex = AddSuboject(D3D12_STATE_SUBOBJECT_TYPE_DXIL_LIBRARY, &DxilLibDesc);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void RaytracingPSO::SetHitProgram(LPCWSTR ahsExport, LPCWSTR chsExport, const std::wstring& name)
+{
+    HitProgramExportName = name;
+
+    HitProgramDesc = {};
+    HitProgramDesc.AnyHitShaderImport = ahsExport;
+    HitProgramDesc.ClosestHitShaderImport = chsExport;
+    HitProgramDesc.HitGroupExport = HitProgramExportName.c_str();
+
+    RTL_ASSERT(HitProgramStateIndex == -1);
+    HitProgramStateIndex = AddSuboject(D3D12_STATE_SUBOBJECT_TYPE_HIT_GROUP, &HitProgramDesc);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+RootSignature& RaytracingPSO::GetGlobalRootSignature()
+{
+    return GlobalRootSignature;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void RaytracingPSO::SetShaderConfig(uint32_t maxAttributeSizeInBytes, uint32_t maxPayloadSizeInBytes)
+{
+    ShaderConfig.MaxAttributeSizeInBytes = maxAttributeSizeInBytes;
+    ShaderConfig.MaxPayloadSizeInBytes   = maxPayloadSizeInBytes;
+
+    RTL_ASSERT(ShaderConfigStateIndex == -1);
+    ShaderConfigStateIndex = AddSuboject(D3D12_STATE_SUBOBJECT_TYPE_RAYTRACING_SHADER_CONFIG, &ShaderConfig);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void RaytracingPSO::SetPipelineConfig(uint32_t maxTraceRecursionDepth)
+{
+    PipelineConfig.MaxTraceRecursionDepth = maxTraceRecursionDepth;
+
+    RTL_ASSERT(PipelineConfigStateIndex == -1);
+    PipelineConfigStateIndex = AddSuboject(D3D12_STATE_SUBOBJECT_TYPE_RAYTRACING_PIPELINE_CONFIG, &PipelineConfig);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void RaytracingPSO::AddLocalRootSignature(const std::string& localRootKeyName, RootSignature* pLocalRootSignature)
+{
+    LocalRootSignatureData* pData = new LocalRootSignatureData();
+    pData->LocalRootSignature             = pLocalRootSignature;
+    pData->LocalRootSignatureInterfacePtr = pLocalRootSignature->GetSignature();
+    pData->LocalRootSignatureStateIndex   = AddSuboject(D3D12_STATE_SUBOBJECT_TYPE_LOCAL_ROOT_SIGNATURE, &pData->LocalRootSignatureInterfacePtr);
+
+    LocalRootSignatureDataList[localRootKeyName] = pData;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void RaytracingPSO::AddExportAssociationWithLocalRootSignature(const WCHAR* exportNames[], uint32_t exportCount, const std::string& localRootKeyName)
+{
+    AddExportAssociation(exportNames, exportCount, &Subobjects[LocalRootSignatureDataList[localRootKeyName]->LocalRootSignatureStateIndex]);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void RaytracingPSO::AddExportAssociationWithShaderConfig(const WCHAR* exportNames[], uint32_t exportCount)
+{
+    AddExportAssociation(exportNames, exportCount, &Subobjects[ShaderConfigStateIndex]);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void RaytracingPSO::AddExportAssociation(const WCHAR* exportNames[], uint32_t exportCount, D3D12_STATE_SUBOBJECT* pSubobjectState)
+{
+    D3D12_SUBOBJECT_TO_EXPORTS_ASSOCIATION* pExportsAssociation = new D3D12_SUBOBJECT_TO_EXPORTS_ASSOCIATION;
+    pExportsAssociation->NumExports             = exportCount;
+    pExportsAssociation->pExports               = exportNames;
+    pExportsAssociation->pSubobjectToAssociate  = pSubobjectState;
+
+    ExportAssoicationsList.push_back(pExportsAssociation);
+   
+    AddSuboject(D3D12_STATE_SUBOBJECT_TYPE_SUBOBJECT_TO_EXPORTS_ASSOCIATION, pExportsAssociation);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void RaytracingPSO::Finalize()
+{
+    // Create subobject state for global signature
+    {
+        GlobalRootSignatureInterfacePtr = GlobalRootSignature.GetSignature();
+        GlobalRootSignatureStateIndex   = AddSuboject(D3D12_STATE_SUBOBJECT_TYPE_GLOBAL_ROOT_SIGNATURE, &GlobalRootSignatureInterfacePtr);
+    }
+
+    // Create the state
+    D3D12_STATE_OBJECT_DESC desc;
+    desc.NumSubobjects  = NumSubobjects;
+    desc.pSubobjects    = Subobjects;
+    desc.Type           = D3D12_STATE_OBJECT_TYPE_RAYTRACING_PIPELINE;
+
+    ASSERT_SUCCEEDED(RenderDevice::Get().GetD3DDevice()->CreateStateObject(&desc, IID_PPV_ARGS(&RaytracingPipelineStateObject)));
+}

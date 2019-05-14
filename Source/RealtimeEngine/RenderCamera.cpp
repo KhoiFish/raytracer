@@ -50,9 +50,11 @@ RenderCamera::~RenderCamera()
 
 void RenderCamera::SetLookAt(FXMVECTOR eye, FXMVECTOR target, FXMVECTOR up)
 {
-    TheCameraData->ViewMatrix  = XMMatrixLookAtRH( eye, target, up );
+    TheCameraData->ViewMatrix  = XMMatrixLookAtRH(eye, target, up);
     TheCameraData->Translation = eye;
     TheCameraData->Rotation    = XMQuaternionRotationMatrix(XMMatrixTranspose(TheCameraData->ViewMatrix));
+    TheCameraData->Eye         = eye;
+    TheCameraData->Target      = target;
 
     InverseViewDirty = true;
     ViewDirty        = false;
@@ -165,6 +167,20 @@ void RenderCamera::SetRotation(FXMVECTOR rotation)
 XMVECTOR RenderCamera::GetRotation()
 {
     return TheCameraData->Rotation;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+XMVECTOR RenderCamera::GetEye()
+{
+    return TheCameraData->Eye;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+XMVECTOR RenderCamera::GetTarget()
+{
+    return TheCameraData->Target;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

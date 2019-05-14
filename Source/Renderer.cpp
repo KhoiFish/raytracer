@@ -28,8 +28,8 @@
 using namespace Core;
 using namespace RealtimeEngine;
 
-#include "FullscreenRender.hpp"
 #include "RaytracingSetup.hpp"
+#include "FullscreenRender.hpp"
 #include "RealtimeRender.hpp"
 #include "HandleInput.hpp"
 
@@ -79,7 +79,7 @@ Renderer::~Renderer()
 
 void Renderer::OnDeviceLost()
 {
-
+    ;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -104,6 +104,7 @@ void Renderer::OnInit()
 
     // Setup render pipelines
     SetupFullscreenQuadPipeline();
+    SetupRealtimeRaytracingPipeline();
     SetupRealtimePipeline();
     SetupRenderBuffers();
 

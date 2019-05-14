@@ -213,7 +213,7 @@
     <ClInclude Include="..\..\Source\RealtimeEngine\RenderScene.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\RootSignature.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\RTTexture.h" />
-    <ClInclude Include="..\..\Source\RealtimeEngine\ShaderStructs.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\RenderSceneShader.h" />
     <ClInclude Include="..\..\ThirdParty\StbImage\stb_image.h" />
   </ItemGroup>
   <ItemGroup>

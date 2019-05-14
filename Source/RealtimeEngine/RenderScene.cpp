@@ -30,7 +30,7 @@
 #include "Core/Quat.h"
 #include "Core/TriMesh.h"
 
-#include "ShaderStructs.h"
+#include "RenderSceneShader.h"
 #include "RenderCamera.h"
 #include "RenderScene.h"
 #include "RenderDevice.h"

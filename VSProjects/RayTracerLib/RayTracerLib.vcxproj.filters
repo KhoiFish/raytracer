@@ -159,7 +159,7 @@
     <ClInclude Include="..\..\Source\RealtimeEngine\RenderCamera.h">
       <Filter>Realtime</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\RealtimeEngine\ShaderStructs.h">
+    <ClInclude Include="..\..\Source\RealtimeEngine\RenderSceneShader.h">
       <Filter>Realtime</Filter>
     </ClInclude>
   </ItemGroup>

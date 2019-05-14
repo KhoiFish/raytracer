@@ -41,7 +41,7 @@ using namespace RealtimeEngine;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-const D3D12_INPUT_ELEMENT_DESC RenderVertex::InputElements[] =
+const D3D12_INPUT_ELEMENT_DESC RenderSceneVertexEx::InputElements[] =
 {
     { "POSITION",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
     { "NORMAL",     0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
@@ -148,7 +148,7 @@ static void CreateSphere(RenderSceneNode* renderNode, float radius, int tessella
             XMVECTOR normal   = XMVectorSet(dx, dy, dz, 0);
             XMVECTOR texCoord = XMVectorSet(u, v, 0, 0);
 
-            renderNode->Vertices.push_back(RenderVertex(normal * radius, normal, texCoord));
+            renderNode->Vertices.push_back(RenderSceneVertexEx(normal * radius, normal, texCoord));
         }
     }
 
@@ -219,10 +219,10 @@ static void CreateCube(RenderSceneNode* renderNode, Core::Vec4 sideLengths)
         renderNode->Indices.push_back(uint32_t(vbase + 2));
         renderNode->Indices.push_back(uint32_t(vbase + 3));
 
-        renderNode->Vertices.push_back(RenderVertex((normal - side1 - side2) * halfLengths, normal, textureCoordinates[0]));
-        renderNode->Vertices.push_back(RenderVertex((normal - side1 + side2) * halfLengths, normal, textureCoordinates[1]));
-        renderNode->Vertices.push_back(RenderVertex((normal + side1 + side2) * halfLengths, normal, textureCoordinates[2]));
-        renderNode->Vertices.push_back(RenderVertex((normal + side1 - side2) * halfLengths, normal, textureCoordinates[3]));
+        renderNode->Vertices.push_back(RenderSceneVertexEx((normal - side1 - side2) * halfLengths, normal, textureCoordinates[0]));
+        renderNode->Vertices.push_back(RenderSceneVertexEx((normal - side1 + side2) * halfLengths, normal, textureCoordinates[1]));
+        renderNode->Vertices.push_back(RenderSceneVertexEx((normal + side1 + side2) * halfLengths, normal, textureCoordinates[2]));
+        renderNode->Vertices.push_back(RenderSceneVertexEx((normal + side1 - side2) * halfLengths, normal, textureCoordinates[3]));
     }
 }
 
@@ -247,7 +247,7 @@ static void CreatePlaneFromPoints(RenderSceneNode* renderNode, const Core::Vec4*
 
 static void CreateResourceViews(RenderSceneNode* renderNode)
 {
-    renderNode->VertexBuffer.Create(L"VertexBuffer", (uint32_t)renderNode->Vertices.size(), sizeof(RenderVertex), &renderNode->Vertices[0]);
+    renderNode->VertexBuffer.Create(L"VertexBuffer", (uint32_t)renderNode->Vertices.size(), sizeof(RenderSceneVertexEx), &renderNode->Vertices[0]);
     renderNode->IndexBuffer.Create(L"IndexBuffer", (uint32_t)renderNode->Indices.size(), sizeof(uint32_t), &renderNode->Indices[0]);
 }
 
@@ -401,7 +401,7 @@ void RenderScene::GenerateRenderListFromWorld(const Core::IHitable* currentHead,
                 XMVECTOR normal   = ConvertToXMVector(triVertices[v].Normal);
                 XMVECTOR texCoord = XMVectorSet(s, t, 0, 0);
 
-                newNode->Vertices.push_back(RenderVertex(position, normal, texCoord));
+                newNode->Vertices.push_back(RenderSceneVertexEx(position, normal, texCoord));
                 newNode->Indices.push_back(uint32_t(newNode->Vertices.size() - 1));
             }
         }

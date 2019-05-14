@@ -18,7 +18,9 @@
 // ----------------------------------------------------------------------------------------------------------------------------
 
 #define HLSL
+#include "../RealtimeEngine/RenderSceneVertex.h"
 #include "../RealtimeEngine/RenderSceneShader.h"
+#include "../RaytracingShader.h"
 #include "RaytracingHelpers.hlsli"
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -27,7 +29,7 @@ RWTexture2D<float4>                 gRenderTarget : register(u0);
 //ConstantBuffer<SceneConstantBuffer> gSceneCB      : register(b0);
 RaytracingAccelerationStructure     gScene        : register(t1, space0);
 ByteAddressBuffer                   gIndices      : register(t2, space0);
-StructuredBuffer<SceneVertex>       gVertices     : register(t3, space0);
+StructuredBuffer<RenderSceneVertex> gVertices     : register(t3, space0);
 
 // ----------------------------------------------------------------------------------------------------------------------------
 

@@ -17,81 +17,93 @@
 // 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-#ifndef RENDERSCENESHADER_H
-#define RENDERSCENESHADER_H
+#ifndef RAYTRACINGSHADER_H
+#define RAYTRACINGSHADER_H
 
-#include "ShaderCompat.h"
-
-// Align the following structs to 16 bytes
-ALIGN_BEGIN(16)
+#include "RealtimeEngine/ShaderCompat.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-struct SceneConstantBuffer
-{
-    XMFLOAT4    CameraPosition;
-    XMFLOAT4X4  ModelMatrix;
-    XMFLOAT4X4  ViewMatrix;
-    XMFLOAT4X4  ProjectionMatrix;
-    XMFLOAT4X4  ModelViewMatrix;
-    XMFLOAT4X4  ViewProjectionMatrix;
-    XMFLOAT4X4  ModelViewProjectionMatrix;
-    XMFLOAT4X4  InverseTransposeModelViewMatrix;
-    XMFLOAT4X4  InverseViewProjectionMatrix;
-    XMFLOAT4X4  ShadowViewProj;
-};
+#define MAX_RAY_RECURSION_DEPTH  3
+
+static const XMFLOAT4   ChromiumReflectance = XMFLOAT4(0.549f, 0.556f, 0.554f, 1.0f);
+static const XMFLOAT4   BackgroundColor     = XMFLOAT4(0.8f, 0.9f, 1.0f, 1.0f);
+static const float      InShadowRadiance    = 0.35f;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-struct RenderMaterial
+struct RayPayload
 {
-    XMFLOAT4   Emissive;
-    XMFLOAT4   Ambient;
-    XMFLOAT4   Diffuse;
-    XMFLOAT4   Specular;
-    float      SpecularPower;
-};
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-struct SpotLight
-{
-    XMFLOAT4    PositionWS;
-    XMFLOAT4    PositionVS;
-    XMFLOAT4    DirectionWS;
-    XMFLOAT4    DirectionVS;
-    XMFLOAT4    LookAtWS;
-    XMFLOAT4    UpWS;
-    XMFLOAT4    SmapWS;
     XMFLOAT4    Color;
-    float       SpotAngle;
-    float       ConstantAttenuation;
-    float       LinearAttenuation;
-    float       QuadraticAttenuation;
-    int         ShadowmapId;
+    UINT        RecursionDepth;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-struct DirLight
+namespace RayType
 {
-    XMFLOAT4    DirectionWS;
-    XMFLOAT4    DirectionVS;
-    XMFLOAT4    Color;
-    int         ShadowmapId;
-};
+    enum Enum
+    {
+        Radiance = 0,   // ~ Primary, reflected camera/view rays calculating color for each hit.
+        Shadow,         // ~ Shadow/visibility rays, only testing for occlusion
+        Count
+    };
+}
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-struct GlobalData
+namespace TraceRayParameters
 {
-    int         NumSpotLights;
-    int         NumDirLights;
-    float       ShadowmapDepth;
+    static const UINT InstanceMask = ~0;   // Everything is visible.
+    namespace HitGroup
+    {
+        static const UINT Offset[RayType::Count] =
+        {
+            0, // Radiance ray
+            1  // Shadow ray
+        };
+
+        static const UINT GeometryStride = RayType::Count;
+    }
+
+    namespace MissShader
+    {
+        static const UINT Offset[RayType::Count] =
+        {
+            0, // Radiance ray
+            1  // Shadow ray
+        };
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+struct PrimitiveConstantBuffer
+{
+    XMFLOAT4    Albedo;
+    float       ReflectanceCoef;
+    float       DiffuseCoef;
+    float       SpecularCoef;
+    float       SpecularPower;
+    float       StepScale;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-ALIGN_END
+struct PrimitiveInstanceConstantBuffer
+{
+    UINT        InstanceIndex;
+    UINT        PrimitiveType;
+};
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+struct PrimitiveInstancePerFrameBuffer
+{
+    XMMATRIX    LocalSpaceToBottomLevelAS;
+    XMMATRIX    BottomLevelASToLocalSpace;
+};
+
+// ----------------------------------------------------------------------------------------------------------------------------
 
 #endif

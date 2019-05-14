@@ -211,9 +211,11 @@
     <ClInclude Include="..\..\Source\RealtimeEngine\RenderDevice.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\RenderInterface.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\RenderScene.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\RenderSceneVertex.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\RootSignature.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\RTTexture.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\RenderSceneShader.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\ShaderCompat.h" />
     <ClInclude Include="..\..\ThirdParty\StbImage\stb_image.h" />
   </ItemGroup>
   <ItemGroup>

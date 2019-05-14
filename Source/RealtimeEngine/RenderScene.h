@@ -29,6 +29,7 @@
 #include "RealtimeEngine/GpuBuffer.h"
 #include "RenderCamera.h"
 #include "RenderSceneShader.h"
+#include "RenderSceneVertex.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -36,15 +37,17 @@ namespace RealtimeEngine
 {
     // ----------------------------------------------------------------------------------------------------------------------------
 
-    struct RenderVertex
+    ALIGN_BEGIN(16)
+    struct RenderSceneVertexEx : public RenderSceneVertex
     {
-        RenderVertex(const DirectX::XMFLOAT3& position, const DirectX::XMFLOAT3& normal, const DirectX::XMFLOAT2& texCoord)
-            : Position(position)
-            , Normal(normal)
-            , TexCoord(texCoord)
-        {}
+        RenderSceneVertexEx(const DirectX::XMFLOAT3& position, const DirectX::XMFLOAT3& normal, const DirectX::XMFLOAT2& texCoord)
+        {
+            Position = position;
+            Normal   = normal;
+            TexCoord = texCoord;
+        }
 
-        RenderVertex(DirectX::FXMVECTOR position, DirectX::FXMVECTOR normal, DirectX::FXMVECTOR textureCoordinate)
+        RenderSceneVertexEx(DirectX::FXMVECTOR position, DirectX::FXMVECTOR normal, DirectX::FXMVECTOR textureCoordinate)
         {
             XMStoreFloat3(&this->Position, position);
             XMStoreFloat3(&this->Normal, normal);
@@ -53,10 +56,8 @@ namespace RealtimeEngine
 
         static const int                        InputElementCount = 3;
         static const D3D12_INPUT_ELEMENT_DESC   InputElements[InputElementCount];
-        DirectX::XMFLOAT3                       Position;
-        DirectX::XMFLOAT3                       Normal;
-        DirectX::XMFLOAT2                       TexCoord;
     };
+    ALIGN_END
 
     // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -66,7 +67,7 @@ namespace RealtimeEngine
         ~RenderSceneNode() {}
 
         const Core::IHitable*                   Hitable;
-        std::vector<RenderVertex>               Vertices;
+        std::vector<RenderSceneVertexEx>        Vertices;
         std::vector<uint32_t>                   Indices;
         RealtimeEngine::StructuredBuffer        VertexBuffer;
         RealtimeEngine::StructuredBuffer        IndexBuffer;

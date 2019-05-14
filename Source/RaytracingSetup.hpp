@@ -17,6 +17,8 @@
 // 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+#include "RaytracingShader.h"
+
 #define SizeOfInUint32(obj) ((sizeof(obj) - 1) / sizeof(UINT32) + 1)
 #define ArraySize(a) (sizeof(a)/sizeof(a[0]))
 

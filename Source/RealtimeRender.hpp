@@ -143,7 +143,7 @@ void Renderer::SetupRealtimePipeline()
         RealtimeZPrePassPSO.SetRasterizerState(rasterizerDesc);
         RealtimeZPrePassPSO.SetBlendState(blendDisable);
         RealtimeZPrePassPSO.SetDepthStencilState(depthStateReadWrite);
-        RealtimeZPrePassPSO.SetInputLayout(RenderVertex::InputElementCount, RenderVertex::InputElements);
+        RealtimeZPrePassPSO.SetInputLayout(RenderSceneVertexEx::InputElementCount, RenderSceneVertexEx::InputElements);
         RealtimeZPrePassPSO.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
         RealtimeZPrePassPSO.SetRenderTargetFormats(1, &ZBufferRTType, RenderDevice::Get().GetDepthBufferFormat());
         RealtimeZPrePassPSO.SetVertexShader(vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize());
@@ -204,7 +204,7 @@ void Renderer::SetupRealtimePipeline()
         RealtimeGeometryPassPSO.SetRasterizerState(rasterizerDesc);
         RealtimeGeometryPassPSO.SetBlendState(blendDisable);
         RealtimeGeometryPassPSO.SetDepthStencilState(depthStateReadWrite);
-        RealtimeGeometryPassPSO.SetInputLayout(RenderVertex::InputElementCount, RenderVertex::InputElements);
+        RealtimeGeometryPassPSO.SetInputLayout(RenderSceneVertexEx::InputElementCount, RenderSceneVertexEx::InputElements);
         RealtimeGeometryPassPSO.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
         RealtimeGeometryPassPSO.SetRenderTargetFormats(_countof(DeferredBuffersRTTypes), DeferredBuffersRTTypes, RenderDevice::Get().GetDepthBufferFormat());
         RealtimeGeometryPassPSO.SetVertexShader(vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize());
@@ -262,7 +262,7 @@ void Renderer::SetupRealtimePipeline()
         RealtimeCompositePassPSO.SetRasterizerState(rasterizerDesc);
         RealtimeCompositePassPSO.SetBlendState(blendDisable);
         RealtimeCompositePassPSO.SetDepthStencilState(depthDisabledState);
-        RealtimeCompositePassPSO.SetInputLayout(RenderVertex::InputElementCount, RenderVertex::InputElements);
+        RealtimeCompositePassPSO.SetInputLayout(RenderSceneVertexEx::InputElementCount, RenderSceneVertexEx::InputElements);
         RealtimeCompositePassPSO.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
         RealtimeCompositePassPSO.SetRenderTargetFormats(_countof(rtFormats), rtFormats, RenderDevice::Get().GetDepthBufferFormat());
         RealtimeCompositePassPSO.SetVertexShader(vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize());

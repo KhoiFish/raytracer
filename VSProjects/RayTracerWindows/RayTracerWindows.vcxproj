@@ -166,6 +166,7 @@
     <ClInclude Include="..\..\Source\FullscreenRender.hpp" />
     <ClInclude Include="..\..\Source\HandleInput.hpp" />
     <ClInclude Include="..\..\Source\RaytracingSetup.hpp" />
+    <ClInclude Include="..\..\Source\RaytracingShader.h" />
     <ClInclude Include="..\..\Source\RealtimeRender.hpp" />
     <ClInclude Include="..\..\Source\Renderer.h" />
     <ClInclude Include="..\..\Source\SampleScenes.h" />

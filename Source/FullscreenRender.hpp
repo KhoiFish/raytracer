@@ -108,7 +108,7 @@ void Renderer::SetupFullscreenQuadPipeline()
         FullscreenPipelineState.SetRasterizerState(rasterizerDesc);
         FullscreenPipelineState.SetBlendState(blendDisable);
         FullscreenPipelineState.SetDepthStencilState(depthDisabledState);
-        FullscreenPipelineState.SetInputLayout(RenderVertex::InputElementCount, RenderVertex::InputElements);
+        FullscreenPipelineState.SetInputLayout(RenderSceneVertexEx::InputElementCount, RenderSceneVertexEx::InputElements);
         FullscreenPipelineState.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
         FullscreenPipelineState.SetRenderTargetFormats(_countof(rtFormats), rtFormats, RenderDevice::Get().GetDepthBufferFormat());
         FullscreenPipelineState.SetVertexShader(vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize());

@@ -162,6 +162,12 @@
     <ClInclude Include="..\..\Source\RealtimeEngine\RenderSceneShader.h">
       <Filter>Realtime</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\ShaderCompat.h">
+      <Filter>Realtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\RenderSceneVertex.h">
+      <Filter>Realtime</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\ThirdParty\StbImage\StbImageImpl.cpp">

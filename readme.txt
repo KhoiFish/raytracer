@@ -11,7 +11,7 @@ This project initially grew from working through the great "Raytracing in a Week
 has grown beyond it. I have more planned, so please stay tuned.
 
 // ----------------------------------------------------------------------------------------------------------------------------
-// Giving Credit Where Credit Is Due
+// Credit Where Credit Is Due
 // ----------------------------------------------------------------------------------------------------------------------------
 
 As cliche as it sounds, this statement still holds true today: we stand upon the shoulders of giants. 
@@ -22,7 +22,7 @@ tutorial and sample code from great developers from Microsoft, Stb and even form
 Most of the realtime core engine code was copied, stripped of features we didn't need and modified to match the style and
 spirit of this project. I've included unadulterated copies of this software under the ThirdParty folder. Long story short,
 if you see a similarity to something you've seen somewhere else, your hunches are correct: it's going to be code from
-the gracious programmers aforementioned. So, feel free to use the code in this package and kindly also credit the following
+the gracious programmers aforementioned. So, feel free to use the code in this package and also kindly credit the following
 individuals and/or organizations:
 
 Microsoft

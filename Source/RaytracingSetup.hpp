@@ -128,14 +128,12 @@ void Renderer::SetupRealtimeRaytracingPipeline()
             D3D12_SHADER_VISIBILITY_ALL);
 
         RaygenLocalRootSig.Finalize("RaygenLocalRootSig", D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE);
-        RealtimeRaytracingPSO.AddLocalRootSignature("RaygenLocalRootSig", &RaygenLocalRootSig);
     }
 
     // Hit miss local root sig setup
     {
         HitMissLocalRootSig.Reset(0, 0);
         HitMissLocalRootSig.Finalize("HitMissLocalRootSig", D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE);
-        RealtimeRaytracingPSO.AddLocalRootSignature("HitMissLocalRootSig", &HitMissLocalRootSig);
     }
 
     // Build the rest of the raytracing PSO
@@ -150,11 +148,15 @@ void Renderer::SetupRealtimeRaytracingPipeline()
         // Setup hit program
         RealtimeRaytracingPSO.SetHitProgram(nullptr, sClosestHitShaderName, sHitGroupName);
 
+        // Add local root signatures
+        RealtimeRaytracingPSO.AddLocalRootSignature(&RaygenLocalRootSig);
+        RealtimeRaytracingPSO.AddLocalRootSignature(&HitMissLocalRootSig);
+
         // Associate ray gen shader with local root signature
-        RealtimeRaytracingPSO.AddExportAssociationWithLocalRootSignature(&sRaygenShaderName, 1, "RaygenLocalRootSig");
+        RealtimeRaytracingPSO.AddExportAssociationWithLocalRootSignature(&sRaygenShaderName, 1, &RaygenLocalRootSig);
 
         // Associate miss and closet hit shader with the local root signature
-        RealtimeRaytracingPSO.AddExportAssociationWithLocalRootSignature(sMissHitExportName, ArraySize(sMissHitExportName), "HitMissLocalRootSig");
+        RealtimeRaytracingPSO.AddExportAssociationWithLocalRootSignature(sMissHitExportName, ArraySize(sMissHitExportName), &HitMissLocalRootSig);
 
         // Shader config
         RealtimeRaytracingPSO.SetShaderConfig(D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES, sizeof(RayPayload));

@@ -109,6 +109,8 @@ void RootSignature::Finalize(const string_t & name, D3D12_ROOT_SIGNATURE_FLAGS f
         return;
     }
 
+    Name = name;
+
     size_t hashCode;
     D3D12_ROOT_SIGNATURE_DESC rootDesc;
     {
@@ -222,6 +224,13 @@ void RootSignature::Reset(uint32_t numRootParams, uint32_t numStaticSamplers)
     NumParameters                = numRootParams;
     NumSamplers                  = numStaticSamplers;
     NumInitializedStaticSamplers = 0;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+const string_t& RootSignature::GetName() const
+{
+    return Name;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

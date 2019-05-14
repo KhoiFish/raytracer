@@ -78,10 +78,11 @@ namespace RealtimeEngine
 
     public:
 
-        static void  DestroyAll();
-        void         Reset(uint32_t numRootParams, uint32_t numStaticSamplers = 0);
-        void         InitStaticSampler(uint32_t reg, const D3D12_SAMPLER_DESC& nonStaticSamplerDesc, D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL);
-        void         Finalize(const string_t& name, D3D12_ROOT_SIGNATURE_FLAGS flags = D3D12_ROOT_SIGNATURE_FLAG_NONE);
+        static void     DestroyAll();
+        void            Reset(uint32_t numRootParams, uint32_t numStaticSamplers = 0);
+        void            InitStaticSampler(uint32_t reg, const D3D12_SAMPLER_DESC& nonStaticSamplerDesc, D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL);
+        void            Finalize(const string_t& name, D3D12_ROOT_SIGNATURE_FLAGS flags = D3D12_ROOT_SIGNATURE_FLAG_NONE);
+        const string_t& GetName() const;
 
     public:
 
@@ -107,6 +108,7 @@ namespace RealtimeEngine
     protected:
 
         bool                                          Finalized;
+        string_t                                      Name;
         uint32_t                                      NumParameters;
         uint32_t                                      NumSamplers;
         uint32_t                                      NumInitializedStaticSamplers;

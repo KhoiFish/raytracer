@@ -117,8 +117,8 @@ namespace RealtimeEngine
         void            SetHitProgram(LPCWSTR ahsExport, LPCWSTR chsExport, const std::wstring& name);
         void            SetShaderConfig(uint32_t maxAttributeSizeInBytes, uint32_t maxPayloadSizeInBytes);
         void            SetPipelineConfig(uint32_t maxTraceRecursionDepth);
-        void            AddLocalRootSignature(const std::string& localRootKeyName, RootSignature* pLocalRootSignature);
-        void            AddExportAssociationWithLocalRootSignature(const WCHAR* exportNames[], uint32_t exportCount, const std::string& localRootKeyName);
+        void            AddLocalRootSignature(RootSignature* pLocalRootSignature);
+        void            AddExportAssociationWithLocalRootSignature(const WCHAR* exportNames[], uint32_t exportCount, RootSignature* pLocalRootSignature);
         void            AddExportAssociationWithShaderConfig(const WCHAR* exportNames[], uint32_t exportCount);
         RootSignature&  GetGlobalRootSignature();        
         void            Finalize() override;

@@ -335,21 +335,21 @@ void RaytracingPSO::SetPipelineConfig(uint32_t maxTraceRecursionDepth)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RaytracingPSO::AddLocalRootSignature(const std::string& localRootKeyName, RootSignature* pLocalRootSignature)
+void RaytracingPSO::AddLocalRootSignature(RootSignature* pLocalRootSignature)
 {
     LocalRootSignatureData* pData = new LocalRootSignatureData();
     pData->LocalRootSignature             = pLocalRootSignature;
     pData->LocalRootSignatureInterfacePtr = pLocalRootSignature->GetSignature();
     pData->LocalRootSignatureStateIndex   = AddSuboject(D3D12_STATE_SUBOBJECT_TYPE_LOCAL_ROOT_SIGNATURE, &pData->LocalRootSignatureInterfacePtr);
 
-    LocalRootSignatureDataList[localRootKeyName] = pData;
+    LocalRootSignatureDataList[pLocalRootSignature->GetName()] = pData;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RaytracingPSO::AddExportAssociationWithLocalRootSignature(const WCHAR* exportNames[], uint32_t exportCount, const std::string& localRootKeyName)
+void RaytracingPSO::AddExportAssociationWithLocalRootSignature(const WCHAR* exportNames[], uint32_t exportCount, RootSignature* pLocalRootSignature)
 {
-    AddExportAssociation(exportNames, exportCount, &Subobjects[LocalRootSignatureDataList[localRootKeyName]->LocalRootSignatureStateIndex]);
+    AddExportAssociation(exportNames, exportCount, &Subobjects[LocalRootSignatureDataList[pLocalRootSignature->GetName()]->LocalRootSignatureStateIndex]);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

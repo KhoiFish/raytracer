@@ -364,6 +364,14 @@ void ComputeContext::SetPipelineState(const ComputePSO& pso)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+void ComputeContext::SetPipelineState(RaytracingPSO& pso)
+{
+    RaytracingPSOPtr = &pso;
+    TheCommandList->SetPipelineState1(pso.GetRaytracingPipelineStateObject());
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 void ComputeContext::SetConstantArray(uint32_t rootEntry, uint32_t numConstants, const void* pConstants)
 {
     TheCommandList->SetComputeRoot32BitConstants(rootEntry, numConstants, pConstants, 0);
@@ -455,6 +463,20 @@ void ComputeContext::SetBufferUAV(uint32_t rootIndex, const GpuBuffer& uav, UINT
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+void ComputeContext::SetBufferSRV(uint32_t rootIndex, D3D12_GPU_VIRTUAL_ADDRESS gpuAddr, UINT64 offset)
+{
+    TheCommandList->SetComputeRootShaderResourceView(rootIndex, gpuAddr + offset);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void ComputeContext::SetBufferUAV(uint32_t rootIndex, D3D12_GPU_VIRTUAL_ADDRESS gpuAddr, UINT64 offset)
+{
+    TheCommandList->SetComputeRootUnorderedAccessView(rootIndex, gpuAddr + offset);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 void ComputeContext::Dispatch(size_t groupCountX, size_t groupCountY, size_t groupCountZ)
 {
     FlushResourceBarriers();
@@ -487,6 +509,29 @@ void ComputeContext::Dispatch3D(size_t threadCountX, size_t threadCountY, size_t
         DivideByMultiple(threadCountX, groupSizeX),
         DivideByMultiple(threadCountY, groupSizeY),
         DivideByMultiple(threadCountZ, groupSizeZ));
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void ComputeContext::DispatchRays(uint32_t width, uint32_t height)
+{
+    FlushResourceBarriers();
+
+    D3D12_DISPATCH_RAYS_DESC raytraceDesc = {};
+    raytraceDesc.Width                                  = width;
+    raytraceDesc.Height                                 = height;
+    raytraceDesc.Depth                                  = 1;
+    raytraceDesc.RayGenerationShaderRecord.StartAddress = RaytracingPSOPtr->GetRaygenShaderTable().ShaderTableBuffer.GetGpuVirtualAddress();
+    raytraceDesc.RayGenerationShaderRecord.SizeInBytes  = RaytracingPSOPtr->GetRaygenShaderTable().ShaderTableBuffer.GetBufferSize();
+    raytraceDesc.MissShaderTable.StartAddress           = RaytracingPSOPtr->GetMissShaderTable().ShaderTableBuffer.GetGpuVirtualAddress();
+    raytraceDesc.MissShaderTable.StrideInBytes          = RaytracingPSOPtr->GetMissShaderTable().ShaderEntryStride;
+    raytraceDesc.MissShaderTable.SizeInBytes            = RaytracingPSOPtr->GetMissShaderTable().ShaderTableBuffer.GetBufferSize();
+    raytraceDesc.HitGroupTable.StartAddress             = RaytracingPSOPtr->GetHitGroupShaderTable().ShaderTableBuffer.GetGpuVirtualAddress();
+    raytraceDesc.HitGroupTable.StrideInBytes            = RaytracingPSOPtr->GetHitGroupShaderTable().ShaderEntryStride;
+    raytraceDesc.HitGroupTable.SizeInBytes              = RaytracingPSOPtr->GetHitGroupShaderTable().ShaderTableBuffer.GetBufferSize();
+
+    // Dispatch
+    TheCommandList->DispatchRays(&raytraceDesc);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

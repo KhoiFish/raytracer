@@ -264,6 +264,7 @@ namespace RealtimeEngine
         void ClearUAV(ColorBuffer& target);
         void SetRootSignature(const RootSignature& rootSig);
         void SetPipelineState(const ComputePSO& pso);
+        void SetPipelineState(RaytracingPSO& pso);
         void SetConstantArray(uint32_t rootIndex, uint32_t numConstants, const void* pConstants);
         void SetConstant(uint32_t rootIndex, DWParam val, uint32_t offset = 0);
         void SetConstants(uint32_t rootIndex, DWParam x);
@@ -275,6 +276,8 @@ namespace RealtimeEngine
         void SetDynamicSRV(uint32_t rootIndex, size_t bufferSize, const void* bufferData);
         void SetBufferSRV(uint32_t rootIndex, const GpuBuffer& SRV, UINT64 offset = 0);
         void SetBufferUAV(uint32_t rootIndex, const GpuBuffer& UAV, UINT64 offset = 0);
+        void SetBufferSRV(uint32_t rootIndex, D3D12_GPU_VIRTUAL_ADDRESS gpuAddr, UINT64 offset = 0);
+        void SetBufferUAV(uint32_t rootIndex, D3D12_GPU_VIRTUAL_ADDRESS gpuAddr, UINT64 offset = 0);
         void SetDescriptorTable(uint32_t rootIndex, D3D12_GPU_DESCRIPTOR_HANDLE firstHandle);
 
         void SetDynamicDescriptor(uint32_t rootIndex, uint32_t offset, D3D12_CPU_DESCRIPTOR_HANDLE handle);
@@ -287,5 +290,10 @@ namespace RealtimeEngine
         void Dispatch2D(size_t threadCountX, size_t threadCountY, size_t groupSizeX = 8, size_t groupSizeY = 8);
         void Dispatch3D(size_t threadCountX, size_t threadCountY, size_t threadCountZ, size_t groupSizeX, size_t groupSizeY, size_t groupSizeZ);
         void DispatchIndirect(GpuBuffer& argumentBuffer, uint64_t argumentBufferOffset = 0);
+        void DispatchRays(uint32_t width, uint32_t height);
+
+    private:
+
+        RaytracingPSO* RaytracingPSOPtr;
     };
 }

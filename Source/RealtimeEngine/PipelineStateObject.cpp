@@ -316,9 +316,9 @@ void RaytracingPSO::SetHitProgram(LPCWSTR ahsExport, LPCWSTR chsExport, const st
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-RootSignature& RaytracingPSO::GetGlobalRootSignature()
+ID3D12StateObjectPtr RealtimeEngine::RaytracingPSO::GetRaytracingPipelineStateObject() const
 {
-    return GlobalRootSignature;
+    return RaytracingPipelineStateObject.GetInterfacePtr();
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -388,7 +388,7 @@ void RaytracingPSO::Finalize()
 {
     // Create subobject state for global signature
     {
-        GlobalRootSignatureInterfacePtr = GlobalRootSignature.GetSignature();
+        GlobalRootSignatureInterfacePtr = RootSig->GetSignature();
         GlobalRootSignatureStateIndex   = AddSuboject(D3D12_STATE_SUBOBJECT_TYPE_GLOBAL_ROOT_SIGNATURE, &GlobalRootSignatureInterfacePtr);
     }
 
@@ -457,7 +457,7 @@ struct RaytracingPSO::ShaderTable::ShaderRecordData
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-RaytracingPSO::ShaderTable::ShaderTable()
+RaytracingPSO::ShaderTable::ShaderTable() : ShaderEntryStride(0), FirstDataRecordSize(0)
 {
     ;
 }
@@ -478,6 +478,12 @@ RaytracingPSO::ShaderTable::~ShaderTable()
 
 void RaytracingPSO::ShaderTable::AddShaderRecordData(const void* pData, uint32_t dataSize)
 {
+    if (FirstDataRecordSize == 0)
+    {
+        FirstDataRecordSize = dataSize;
+    }
+    ASSERT(FirstDataRecordSize == dataSize);
+
     ShaderRecordData* pNewBlob = new ShaderRecordData(pData, dataSize);
     ShaderDataList.push_back(pNewBlob);
 }
@@ -519,6 +525,8 @@ void RaytracingPSO::ShaderTable::Build(ID3D12StateObjectPtr pPipelineState)
                 pRunner += ShaderDataList[i]->ShaderTableEntrySize;
             }
         }
+
+        ShaderEntryStride = ShaderDataList[0]->ShaderTableEntrySize;
     }
     else
     {
@@ -526,6 +534,8 @@ void RaytracingPSO::ShaderTable::Build(ID3D12StateObjectPtr pPipelineState)
         totalBufferSize = ALIGN(D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES, D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT);
         pTempBuffer     = _aligned_malloc(totalBufferSize, D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT);
         memcpy(pTempBuffer, pShaderIdentifier, D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
+
+        ShaderEntryStride = totalBufferSize;
     }
    
     // Allocate GPU buffer and copy with the temp buffer

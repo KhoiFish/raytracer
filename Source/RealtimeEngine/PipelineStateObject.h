@@ -123,8 +123,9 @@ namespace RealtimeEngine
 
         private:
 
-            struct ShaderRecordData;
             friend class RaytracingPSO;
+            friend class ComputeContext;
+            struct ShaderRecordData;            
 
             ShaderTable();
             ~ShaderTable();
@@ -136,6 +137,8 @@ namespace RealtimeEngine
             std::wstring                    ShaderName;
             std::vector<ShaderRecordData*>  ShaderDataList;
             ByteAddressBuffer               ShaderTableBuffer;
+            uint32_t                        ShaderEntryStride;
+            uint32_t                        FirstDataRecordSize;
         };
 
     public:
@@ -143,26 +146,27 @@ namespace RealtimeEngine
         RaytracingPSO();
         ~RaytracingPSO();
 
-        void                    SetDxilLibrary(ID3DBlobPtr pBlob, const WCHAR* entryPoint[], uint32_t entryPointCount);
-        void                    SetHitProgram(LPCWSTR ahsExport, LPCWSTR chsExport, const std::wstring& name);
-        void                    SetShaderConfig(uint32_t maxAttributeSizeInBytes, uint32_t maxPayloadSizeInBytes);
-        void                    SetPipelineConfig(uint32_t maxTraceRecursionDepth);
+        void                            SetDxilLibrary(ID3DBlobPtr pBlob, const WCHAR* entryPoint[], uint32_t entryPointCount);
+        void                            SetHitProgram(LPCWSTR ahsExport, LPCWSTR chsExport, const std::wstring& name);
+        void                            SetShaderConfig(uint32_t maxAttributeSizeInBytes, uint32_t maxPayloadSizeInBytes);
+        void                            SetPipelineConfig(uint32_t maxTraceRecursionDepth);
 
-        void                    AddLocalRootSignature(RootSignature* pLocalRootSignature);
-        void                    AddExportAssociationWithLocalRootSignature(const WCHAR* exportNames[], uint32_t exportCount, RootSignature* pLocalRootSignature);
-        void                    AddExportAssociationWithShaderConfig(const WCHAR* exportNames[], uint32_t exportCount);
+        void                            AddLocalRootSignature(RootSignature* pLocalRootSignature);
+        void                            AddExportAssociationWithLocalRootSignature(const WCHAR* exportNames[], uint32_t exportCount, RootSignature* pLocalRootSignature);
+        void                            AddExportAssociationWithShaderConfig(const WCHAR* exportNames[], uint32_t exportCount);
 
-        RootSignature&          GetGlobalRootSignature();
-        ShaderTable&            GetRaygenShaderTable();
-        ShaderTable&            GetMissShaderTable();
-        ShaderTable&            GetHitGroupShaderTable();
+        ShaderTable&                    GetRaygenShaderTable();
+        ShaderTable&                    GetMissShaderTable();
+        ShaderTable&                    GetHitGroupShaderTable();
 
-        void                    Finalize() override;
+        virtual ID3D12StateObjectPtr    GetRaytracingPipelineStateObject() const;
+
+        void                            Finalize() override;
 
     private:
 
-        int32_t                 AddSuboject(D3D12_STATE_SUBOBJECT_TYPE type, const void* pDesc);
-        void                    AddExportAssociation(const WCHAR* exportNames[], uint32_t exportCount, D3D12_STATE_SUBOBJECT* pSubobjectState);
+        int32_t                         AddSuboject(D3D12_STATE_SUBOBJECT_TYPE type, const void* pDesc);
+        void                            AddExportAssociation(const WCHAR* exportNames[], uint32_t exportCount, D3D12_STATE_SUBOBJECT* pSubobjectState);
 
     private:
 
@@ -197,7 +201,6 @@ namespace RealtimeEngine
         D3D12_HIT_GROUP_DESC                                    HitProgramDesc;
        
         int32_t                                                 GlobalRootSignatureStateIndex = -1;
-        RootSignature                                           GlobalRootSignature;
         ID3D12RootSignature*                                    GlobalRootSignatureInterfacePtr;
 
         int32_t                                                 ShaderConfigStateIndex = -1;

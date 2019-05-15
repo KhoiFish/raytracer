@@ -77,6 +77,7 @@ private:
     void                       RenderSceneList(GraphicsContext& renderContext, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix);
     void                       RenderCPUResults();
     void                       RenderRealtimeResults();
+    void                       ComputeRaytracingResults();
 
 private:
 
@@ -159,6 +160,7 @@ private:
     GraphicsPSO                     RealtimeGeometryPassPSO;
     GraphicsPSO                     RealtimeCompositePassPSO;
 
+    RootSignature                   RaytracingGlobalRootSig;
     RootSignature                   RaygenLocalRootSig;
     RootSignature                   HitMissLocalRootSig;
     RaytracingPSO                   RealtimeRaytracingPSO;

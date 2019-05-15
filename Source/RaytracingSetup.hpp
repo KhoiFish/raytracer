@@ -91,35 +91,33 @@ void Renderer::SetupRealtimeRaytracingPipeline()
 
     // Global root sig
     {
-        RootSignature& globalRootSig = RealtimeRaytracingPSO.GetGlobalRootSignature();
+        //RaytracingGlobalRootSig.Reset(RaytracingGlobalRootSigSlot::Num, 0);
+        RaytracingGlobalRootSig.Reset(2, 0);
 
-        //globalRootSig.Reset(RaytracingGlobalRootSigSlot::Num, 0);
-        globalRootSig.Reset(2, 0);
-
-        globalRootSig[RaytracingGlobalRootSigSlot::OutputView].InitAsDescriptorRange(
+        RaytracingGlobalRootSig[RaytracingGlobalRootSigSlot::OutputView].InitAsDescriptorRange(
             D3D12_DESCRIPTOR_RANGE_TYPE_UAV,
             RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::OutputView][RaytracingGlobalRootSigSlot::Register],
             RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::OutputView][RaytracingGlobalRootSigSlot::Count],
             D3D12_SHADER_VISIBILITY_ALL);
 
-        globalRootSig[RaytracingGlobalRootSigSlot::AccelerationStructure].InitAsBufferSRV(
+        RaytracingGlobalRootSig[RaytracingGlobalRootSigSlot::AccelerationStructure].InitAsBufferSRV(
             RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::AccelerationStructure][RaytracingGlobalRootSigSlot::Register],
             D3D12_SHADER_VISIBILITY_ALL);
 #if 0
-        globalRootSig[RaytracingGlobalRootSigSlot::VertexBuffer].InitAsBufferSRV(
+        RaytracingGlobalRootSig[RaytracingGlobalRootSigSlot::VertexBuffer].InitAsBufferSRV(
             RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::VertexBuffer][RaytracingGlobalRootSigSlot::Register],
             D3D12_SHADER_VISIBILITY_ALL);
 
-        globalRootSig[RaytracingGlobalRootSigSlot::IndexBuffer].InitAsBufferSRV(
+        RaytracingGlobalRootSig[RaytracingGlobalRootSigSlot::IndexBuffer].InitAsBufferSRV(
             RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::IndexBuffer][RaytracingGlobalRootSigSlot::Register],
             D3D12_SHADER_VISIBILITY_ALL);
 
-        globalRootSig[RaytracingGlobalRootSigSlot::SceneConstant].InitAsConstantBuffer(
+        RaytracingGlobalRootSig[RaytracingGlobalRootSigSlot::SceneConstant].InitAsConstantBuffer(
             RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::SceneConstant][RaytracingGlobalRootSigSlot::Register],
             D3D12_SHADER_VISIBILITY_ALL);
 #endif
 
-        globalRootSig.Finalize("RealtimeRaytracingGlobalRoot", D3D12_ROOT_SIGNATURE_FLAG_NONE);
+        RaytracingGlobalRootSig.Finalize("RealtimeRaytracingGlobalRoot", D3D12_ROOT_SIGNATURE_FLAG_NONE);
     }
 
     // Raygen local root sig setup
@@ -157,6 +155,7 @@ void Renderer::SetupRealtimeRaytracingPipeline()
         RealtimeRaytracingPSO.SetHitProgram(nullptr, sClosestHitShaderName, sHitGroupName);
 
         // Add local root signatures
+        RealtimeRaytracingPSO.SetRootSignature(RaytracingGlobalRootSig);
         RealtimeRaytracingPSO.AddLocalRootSignature(&RaygenLocalRootSig);
         RealtimeRaytracingPSO.AddLocalRootSignature(&HitMissLocalRootSig);
 
@@ -189,3 +188,19 @@ void Renderer::SetupRealtimeRaytracingPipeline()
     // Done, finalize
     RealtimeRaytracingPSO.Finalize();
 }
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void Renderer::ComputeRaytracingResults()
+{
+    ComputeContext& computeContext = ComputeContext::Begin("Raytracing");
+    {
+        computeContext.SetRootSignature(RaytracingGlobalRootSig);
+        computeContext.SetPipelineState(RealtimeRaytracingPSO);
+        computeContext.SetDynamicDescriptor(RaytracingGlobalRootSigSlot::OutputView, 0, RaytracingOutputBuffer.GetUAV());
+        computeContext.SetBufferSRV(RaytracingGlobalRootSigSlot::AccelerationStructure, TheRenderScene->GetTopLevelAccelerationStructurePointer().GpuVA);
+        computeContext.DispatchRays(Width, Height);
+    }
+    computeContext.Finish();
+}
+

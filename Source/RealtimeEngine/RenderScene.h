@@ -88,6 +88,7 @@ namespace RealtimeEngine
         void                            UpdateCamera(float newVertFov, float forwardAmount, float strafeAmount, float upDownAmount, int mouseDx, int mouseDy, Core::Camera& worldCamera);
         std::vector<RenderSceneNode*>&  GetRenderSceneList();
         RenderCamera&                   GetRenderCamera();
+        WrappedGPUPointer&              GetTopLevelAccelerationStructurePointer() { return TLASPointer; }
 
     private:
 

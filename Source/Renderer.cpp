@@ -271,6 +271,7 @@ void Renderer::OnRender()
         break;
 
     case RenderingMode_Realtime:
+        ComputeRaytracingResults();
         RenderRealtimeResults();
         break;
 

@@ -26,10 +26,10 @@
 // ----------------------------------------------------------------------------------------------------------------------------
 
 RWTexture2D<float4>                 gRenderTarget : register(u0);
+RaytracingAccelerationStructure     gScene        : register(t0, space0);
 //ConstantBuffer<SceneConstantBuffer> gSceneCB      : register(b0);
-RaytracingAccelerationStructure     gScene        : register(t1, space0);
-ByteAddressBuffer                   gIndices      : register(t2, space0);
-StructuredBuffer<RenderSceneVertex> gVertices     : register(t3, space0);
+//ByteAddressBuffer                   gIndices      : register(t2, space0);
+//StructuredBuffer<RenderSceneVertex> gVertices     : register(t3, space0);
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -90,6 +90,7 @@ void RayGenerationShader()
 [shader("closesthit")]
 void ClosestHitShader(inout RayPayload rayPayload, in BuiltInTriangleIntersectionAttributes attr)
 {
+#if 0
     // Get the base index of the triangle's first 16 bit index.
     uint indexSizeInBytes = 2;
     uint indicesPerTriangle = 3;
@@ -104,7 +105,7 @@ void ClosestHitShader(inout RayPayload rayPayload, in BuiltInTriangleIntersectio
 
     // PERFORMANCE TIP: it is recommended to avoid values carry over across TraceRay() calls. 
     // Therefore, in cases like retrieving HitWorldPosition(), it is recomputed every time.
-#if 0
+
     // Shadow component.
     // Trace a shadow ray.
     //float3 hitPosition = HitWorldPosition();

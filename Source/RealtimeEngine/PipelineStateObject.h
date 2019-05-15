@@ -21,8 +21,9 @@
 
 #include "Globals.h"
 #include "RootSignature.h"
+#include "DescriptorHeap.h"
+#include "GpuBuffer.h"
 #include <map>
-#include <array>
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -111,22 +112,57 @@ namespace RealtimeEngine
     {
     public:
 
-        RaytracingPSO();
+        class ShaderTable
+        {
+        public:
 
-        void            SetDxilLibrary(ID3DBlobPtr pBlob, const WCHAR* entryPoint[], uint32_t entryPointCount);
-        void            SetHitProgram(LPCWSTR ahsExport, LPCWSTR chsExport, const std::wstring& name);
-        void            SetShaderConfig(uint32_t maxAttributeSizeInBytes, uint32_t maxPayloadSizeInBytes);
-        void            SetPipelineConfig(uint32_t maxTraceRecursionDepth);
-        void            AddLocalRootSignature(RootSignature* pLocalRootSignature);
-        void            AddExportAssociationWithLocalRootSignature(const WCHAR* exportNames[], uint32_t exportCount, RootSignature* pLocalRootSignature);
-        void            AddExportAssociationWithShaderConfig(const WCHAR* exportNames[], uint32_t exportCount);
-        RootSignature&  GetGlobalRootSignature();        
-        void            Finalize() override;
+            void SetShaderName(const std::wstring& name);
+            
+            // One shader instance will run per data blob added here
+            void AddShaderRecordData(const void* pData, uint32_t dataSize);
+
+        private:
+
+            struct ShaderRecordData;
+            friend class RaytracingPSO;
+
+            ShaderTable();
+            ~ShaderTable();
+
+            void Build(ID3D12StateObjectPtr pPipelineState);
+
+        private:
+
+            std::wstring                    ShaderName;
+            std::vector<ShaderRecordData*>  ShaderDataList;
+            ByteAddressBuffer               ShaderTableBuffer;
+        };
+
+    public:
+
+        RaytracingPSO();
+        ~RaytracingPSO();
+
+        void                    SetDxilLibrary(ID3DBlobPtr pBlob, const WCHAR* entryPoint[], uint32_t entryPointCount);
+        void                    SetHitProgram(LPCWSTR ahsExport, LPCWSTR chsExport, const std::wstring& name);
+        void                    SetShaderConfig(uint32_t maxAttributeSizeInBytes, uint32_t maxPayloadSizeInBytes);
+        void                    SetPipelineConfig(uint32_t maxTraceRecursionDepth);
+
+        void                    AddLocalRootSignature(RootSignature* pLocalRootSignature);
+        void                    AddExportAssociationWithLocalRootSignature(const WCHAR* exportNames[], uint32_t exportCount, RootSignature* pLocalRootSignature);
+        void                    AddExportAssociationWithShaderConfig(const WCHAR* exportNames[], uint32_t exportCount);
+
+        RootSignature&          GetGlobalRootSignature();
+        ShaderTable&            GetRaygenShaderTable();
+        ShaderTable&            GetMissShaderTable();
+        ShaderTable&            GetHitGroupShaderTable();
+
+        void                    Finalize() override;
 
     private:
 
-        int32_t         AddSuboject(D3D12_STATE_SUBOBJECT_TYPE type, const void* pDesc);
-        void            AddExportAssociation(const WCHAR* exportNames[], uint32_t exportCount, D3D12_STATE_SUBOBJECT* pSubobjectState);
+        int32_t                 AddSuboject(D3D12_STATE_SUBOBJECT_TYPE type, const void* pDesc);
+        void                    AddExportAssociation(const WCHAR* exportNames[], uint32_t exportCount, D3D12_STATE_SUBOBJECT* pSubobjectState);
 
     private:
 
@@ -169,5 +205,9 @@ namespace RealtimeEngine
 
         int32_t                                                 PipelineConfigStateIndex = -1;
         D3D12_RAYTRACING_PIPELINE_CONFIG                        PipelineConfig;
+
+        ShaderTable                                             RaygenShaderTable;
+        ShaderTable                                             MissShaderTable;
+        ShaderTable                                             HitGroupShaderTable;
     };
 }

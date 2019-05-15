@@ -160,9 +160,9 @@ namespace RealtimeEngine
 
         DescriptorHeapStack(UINT numDescriptors, D3D12_DESCRIPTOR_HEAP_TYPE type, UINT nodeMask);
 
-        void                        AllocateDescriptor(_Out_ D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle, _Out_ UINT& descriptorHeapIndex);
-        UINT                        AllocateBufferSrv(_In_ ID3D12Resource& resource);
-        UINT                        AllocateBufferUav(_In_ ID3D12Resource& resource);
+        void                        AllocateDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle, UINT& descriptorHeapIndex);
+        UINT                        AllocateBufferSrv(ID3D12Resource& resource);
+        UINT                        AllocateBufferUav(ID3D12Resource& resource);
         ID3D12DescriptorHeap&       GetDescriptorHeap();
         D3D12_GPU_DESCRIPTOR_HANDLE GetGpuHandle(UINT descriptorIndex);
 

@@ -30,6 +30,7 @@
 #include "RealtimeEngine/ColorBuffer.h"
 #include "RealtimeEngine/RenderCamera.h"
 #include "RealtimeEngine/RenderScene.h"
+#include "RealtimeEngine/DescriptorHeap.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -143,10 +144,12 @@ private:
 
     DXGI_FORMAT                     DeferredBuffersRTTypes[DeferredBufferType_Num];
     DXGI_FORMAT                     ZBufferRTType;
+    DXGI_FORMAT                     RaytracingBufferType;
 
     ColorBuffer                     CPURaytracerTex;
     ColorBuffer                     DeferredBuffers[DeferredBufferType_Num];
     ColorBuffer                     ZPrePassBuffer;
+    ColorBuffer                     RaytracingOutputBuffer;
 
     RootSignature                   FullscreenQuadRootSignature;
     GraphicsPSO                     FullscreenPipelineState;
@@ -156,9 +159,10 @@ private:
     GraphicsPSO                     RealtimeGeometryPassPSO;
     GraphicsPSO                     RealtimeCompositePassPSO;
 
-    RaytracingPSO                   RealtimeRaytracingPSO;
     RootSignature                   RaygenLocalRootSig;
     RootSignature                   HitMissLocalRootSig;
+    RaytracingPSO                   RealtimeRaytracingPSO;
+    DescriptorHeapStack*            RaytracingDescriptorHeap;
 
     UserInputData                   UserInput;
 };

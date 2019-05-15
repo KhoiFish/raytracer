@@ -127,6 +127,9 @@ void Renderer::SetupRenderBuffers()
 
     ZPrePassBuffer.Destroy();
     ZPrePassBuffer.Create("ZPrePass Buffer", width, height, 1, ZBufferRTType);
+
+    RaytracingOutputBuffer.Destroy();
+    RaytracingOutputBuffer.Create("Raytracing Buffer", width, height, 1, RaytracingBufferType);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

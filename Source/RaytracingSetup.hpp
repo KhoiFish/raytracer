@@ -47,7 +47,7 @@ namespace RaytracingGlobalRootSigSlot
     static UINT Range[RaytracingGlobalRootSigSlot::Num][2] =
     {
         { 0, 1 },
-        { 1, 0 },
+        { 0, 0 },
         { 2, 0 },
         { 3, 0 },
         { 0, 0 },
@@ -87,11 +87,14 @@ void Renderer::SetupRealtimeRaytracingPipeline()
     static const wchar_t* sDxilLibEntryPoints[] = { sRaygenShaderName, sMissShaderName, sClosestHitShaderName };
     static const wchar_t* sMissHitExportName[]  = { sMissShaderName, sClosestHitShaderName };
 
+    RaytracingBufferType = DXGI_FORMAT_R8G8B8A8_UNORM;
+
     // Global root sig
     {
         RootSignature& globalRootSig = RealtimeRaytracingPSO.GetGlobalRootSignature();
 
-        globalRootSig.Reset(RaytracingGlobalRootSigSlot::Num, 0);
+        //globalRootSig.Reset(RaytracingGlobalRootSigSlot::Num, 0);
+        globalRootSig.Reset(2, 0);
 
         globalRootSig[RaytracingGlobalRootSigSlot::OutputView].InitAsDescriptorRange(
             D3D12_DESCRIPTOR_RANGE_TYPE_UAV,
@@ -102,7 +105,7 @@ void Renderer::SetupRealtimeRaytracingPipeline()
         globalRootSig[RaytracingGlobalRootSigSlot::AccelerationStructure].InitAsBufferSRV(
             RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::AccelerationStructure][RaytracingGlobalRootSigSlot::Register],
             D3D12_SHADER_VISIBILITY_ALL);
-
+#if 0
         globalRootSig[RaytracingGlobalRootSigSlot::VertexBuffer].InitAsBufferSRV(
             RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::VertexBuffer][RaytracingGlobalRootSigSlot::Register],
             D3D12_SHADER_VISIBILITY_ALL);
@@ -114,12 +117,16 @@ void Renderer::SetupRealtimeRaytracingPipeline()
         globalRootSig[RaytracingGlobalRootSigSlot::SceneConstant].InitAsConstantBuffer(
             RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::SceneConstant][RaytracingGlobalRootSigSlot::Register],
             D3D12_SHADER_VISIBILITY_ALL);
+#endif
 
         globalRootSig.Finalize("RealtimeRaytracingGlobalRoot", D3D12_ROOT_SIGNATURE_FLAG_NONE);
     }
 
     // Raygen local root sig setup
     {
+        RaygenLocalRootSig.Reset(0, 0);
+        RaygenLocalRootSig.Finalize("RaygenLocalRootSig", D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE);
+#if 0
         RaygenLocalRootSig.Reset(RaytracingLocalRootSigSlot::Num, 0);
 
         RaygenLocalRootSig[RaytracingLocalRootSigSlot::MaterialConstant].InitAsConstants(
@@ -128,6 +135,7 @@ void Renderer::SetupRealtimeRaytracingPipeline()
             D3D12_SHADER_VISIBILITY_ALL);
 
         RaygenLocalRootSig.Finalize("RaygenLocalRootSig", D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE);
+#endif
     }
 
     // Hit miss local root sig setup
@@ -136,7 +144,7 @@ void Renderer::SetupRealtimeRaytracingPipeline()
         HitMissLocalRootSig.Finalize("HitMissLocalRootSig", D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE);
     }
 
-    // Build the rest of the raytracing PSO
+    // Setup shaders and configs for the PSO
     {
         // Setup dxlib
         {
@@ -167,7 +175,17 @@ void Renderer::SetupRealtimeRaytracingPipeline()
         // Pipeline config
         RealtimeRaytracingPSO.SetPipelineConfig(MAX_RAY_RECURSION_DEPTH);
 
-        // Done, finalize
-        RealtimeRaytracingPSO.Finalize();
+        // Set shader names for the shader tables
+        RealtimeRaytracingPSO.GetRaygenShaderTable().SetShaderName(sRaygenShaderName);
+        RealtimeRaytracingPSO.GetHitGroupShaderTable().SetShaderName(sHitGroupName);
+        RealtimeRaytracingPSO.GetMissShaderTable().SetShaderName(sMissShaderName);
     }
+
+    // Setup resource views
+    {
+
+    }
+
+    // Done, finalize
+    RealtimeRaytracingPSO.Finalize();
 }

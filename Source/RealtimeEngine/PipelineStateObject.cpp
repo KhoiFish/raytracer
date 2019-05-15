@@ -28,6 +28,8 @@ using Microsoft::WRL::ComPtr;
 using namespace std;
 using namespace RealtimeEngine;
 
+#define ALIGN(num, alignment) ((((num) + alignment - 1) / alignment) * alignment)
+
 // ----------------------------------------------------------------------------------------------------------------------------
 
 static map< size_t, ComPtr<ID3D12PipelineState> > sGraphicsPSOHashMap;
@@ -245,7 +247,14 @@ ComputePSO::ComputePSO()
 
 RaytracingPSO::RaytracingPSO()
 {
+    ;
+}
 
+// ----------------------------------------------------------------------------------------------------------------------------
+
+RaytracingPSO::~RaytracingPSO()
+{
+    ;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -390,4 +399,144 @@ void RaytracingPSO::Finalize()
     desc.Type           = D3D12_STATE_OBJECT_TYPE_RAYTRACING_PIPELINE;
 
     ASSERT_SUCCEEDED(RenderDevice::Get().GetD3DDevice()->CreateStateObject(&desc, IID_PPV_ARGS(&RaytracingPipelineStateObject)));
+
+    // Build the shader tables
+    RaygenShaderTable.Build(RaytracingPipelineStateObject);
+    MissShaderTable.Build(RaytracingPipelineStateObject);
+    HitGroupShaderTable.Build(RaytracingPipelineStateObject);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+RaytracingPSO::ShaderTable& RaytracingPSO::GetRaygenShaderTable()
+{
+    return RaygenShaderTable;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+RaytracingPSO::ShaderTable& RaytracingPSO::GetMissShaderTable()
+{
+    return MissShaderTable;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+RaytracingPSO::ShaderTable& RaytracingPSO::GetHitGroupShaderTable()
+{
+    return HitGroupShaderTable;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+struct RaytracingPSO::ShaderTable::ShaderRecordData
+{
+    ShaderRecordData(const void* pData, uint32_t dataSize)
+    {
+        DataSize             = dataSize;
+        ShaderTableEntrySize = ALIGN(D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES + DataSize, D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT);
+        Data                 = new uint8_t[ShaderTableEntrySize];
+
+        // Copy data after shader identifier
+        memcpy((Data + D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES), pData, dataSize);
+    }
+
+    ~ShaderRecordData()
+    {
+        if (Data != nullptr)
+        {
+            delete Data;
+            Data = nullptr;
+        }
+    }
+
+    uint8_t*    Data;
+    uint32_t    DataSize;
+    uint32_t    ShaderTableEntrySize;
+};
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+RaytracingPSO::ShaderTable::ShaderTable()
+{
+    ;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+RaytracingPSO::ShaderTable::~ShaderTable()
+{
+    for (int i = 0; i < (int)ShaderDataList.size(); i++)
+    {
+        delete ShaderDataList[i];
+        ShaderDataList[i] = nullptr;
+    }
+    ShaderDataList.clear();
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void RaytracingPSO::ShaderTable::AddShaderRecordData(const void* pData, uint32_t dataSize)
+{
+    ShaderRecordData* pNewBlob = new ShaderRecordData(pData, dataSize);
+    ShaderDataList.push_back(pNewBlob);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void RaytracingPSO::ShaderTable::Build(ID3D12StateObjectPtr pPipelineState)
+{
+    // Get shader identifer
+    void* pShaderIdentifier;
+    {
+        MAKE_SMART_COM_PTR(ID3D12StateObjectProperties);
+        ID3D12StateObjectPropertiesPtr pRtsoProps;
+        pPipelineState->QueryInterface(IID_PPV_ARGS(&pRtsoProps));
+        pShaderIdentifier = pRtsoProps->GetShaderIdentifier(ShaderName.c_str());
+    }
+
+    // Compute total buffer size
+    uint32_t totalBufferSize = 0;
+    void*    pTempBuffer = nullptr;
+    if (ShaderDataList.size() > 0)
+    {
+        for (int i = 0; i < (int)ShaderDataList.size(); i++)
+        {
+            totalBufferSize += ShaderDataList[i]->ShaderTableEntrySize;
+        }
+
+        // Allocate temporary buffer and copy contents
+        void* pTempBuffer = _aligned_malloc(totalBufferSize, D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT);
+        {
+            uint8_t* pRunner = (uint8_t*)pTempBuffer;
+            for (int i = 0; i < (int)ShaderDataList.size(); i++)
+            {
+                // Copy shader identifier into the shader record
+                memcpy(ShaderDataList[i]->Data, pShaderIdentifier, D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
+
+                // Now copy to the record to the temp buffer
+                memcpy(pRunner, ShaderDataList[i]->Data, ShaderDataList[i]->ShaderTableEntrySize);
+                pRunner += ShaderDataList[i]->ShaderTableEntrySize;
+            }
+        }
+    }
+    else
+    {
+        // There were no shader data found. Just add a single shader record with no data.
+        totalBufferSize = ALIGN(D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES, D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT);
+        pTempBuffer     = _aligned_malloc(totalBufferSize, D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT);
+        memcpy(pTempBuffer, pShaderIdentifier, D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
+    }
+   
+    // Allocate GPU buffer and copy with the temp buffer
+    ShaderTableBuffer.Create(L"Shadertable", 1, totalBufferSize, pTempBuffer);
+    _aligned_free(pTempBuffer);
+    pTempBuffer = nullptr;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void RaytracingPSO::ShaderTable::SetShaderName(const std::wstring& name)
+{
+    ShaderName = name;
 }

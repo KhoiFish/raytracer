@@ -366,7 +366,6 @@ void ComputeContext::SetPipelineState(const ComputePSO& pso)
 
 void ComputeContext::SetPipelineState(RaytracingPSO& pso)
 {
-    RaytracingPSOPtr = &pso;
     TheCommandList->SetPipelineState1(pso.GetRaytracingPipelineStateObject());
 }
 
@@ -513,7 +512,7 @@ void ComputeContext::Dispatch3D(size_t threadCountX, size_t threadCountY, size_t
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void ComputeContext::DispatchRays(uint32_t width, uint32_t height)
+void ComputeContext::DispatchRays(RaytracingPSO& pso, uint32_t width, uint32_t height)
 {
     FlushResourceBarriers();
 
@@ -521,14 +520,14 @@ void ComputeContext::DispatchRays(uint32_t width, uint32_t height)
     raytraceDesc.Width                                  = width;
     raytraceDesc.Height                                 = height;
     raytraceDesc.Depth                                  = 1;
-    raytraceDesc.RayGenerationShaderRecord.StartAddress = RaytracingPSOPtr->GetRaygenShaderTable().ShaderTableBuffer.GetGpuVirtualAddress();
-    raytraceDesc.RayGenerationShaderRecord.SizeInBytes  = RaytracingPSOPtr->GetRaygenShaderTable().ShaderTableBuffer.GetBufferSize();
-    raytraceDesc.MissShaderTable.StartAddress           = RaytracingPSOPtr->GetMissShaderTable().ShaderTableBuffer.GetGpuVirtualAddress();
-    raytraceDesc.MissShaderTable.StrideInBytes          = RaytracingPSOPtr->GetMissShaderTable().ShaderEntryStride;
-    raytraceDesc.MissShaderTable.SizeInBytes            = RaytracingPSOPtr->GetMissShaderTable().ShaderTableBuffer.GetBufferSize();
-    raytraceDesc.HitGroupTable.StartAddress             = RaytracingPSOPtr->GetHitGroupShaderTable().ShaderTableBuffer.GetGpuVirtualAddress();
-    raytraceDesc.HitGroupTable.StrideInBytes            = RaytracingPSOPtr->GetHitGroupShaderTable().ShaderEntryStride;
-    raytraceDesc.HitGroupTable.SizeInBytes              = RaytracingPSOPtr->GetHitGroupShaderTable().ShaderTableBuffer.GetBufferSize();
+    raytraceDesc.RayGenerationShaderRecord.StartAddress = pso.GetRaygenShaderTable().ShaderTableBuffer.GetGpuVirtualAddress();
+    raytraceDesc.RayGenerationShaderRecord.SizeInBytes  = pso.GetRaygenShaderTable().ShaderTableBuffer.GetBufferSize();
+    raytraceDesc.MissShaderTable.StartAddress           = pso.GetMissShaderTable().ShaderTableBuffer.GetGpuVirtualAddress();
+    raytraceDesc.MissShaderTable.StrideInBytes          = pso.GetMissShaderTable().ShaderEntryStride;
+    raytraceDesc.MissShaderTable.SizeInBytes            = pso.GetMissShaderTable().ShaderTableBuffer.GetBufferSize();
+    raytraceDesc.HitGroupTable.StartAddress             = pso.GetHitGroupShaderTable().ShaderTableBuffer.GetGpuVirtualAddress();
+    raytraceDesc.HitGroupTable.StrideInBytes            = pso.GetHitGroupShaderTable().ShaderEntryStride;
+    raytraceDesc.HitGroupTable.SizeInBytes              = pso.GetHitGroupShaderTable().ShaderTableBuffer.GetBufferSize();
 
     // Dispatch
     TheCommandList->DispatchRays(&raytraceDesc);

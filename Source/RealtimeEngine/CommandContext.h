@@ -290,10 +290,6 @@ namespace RealtimeEngine
         void Dispatch2D(size_t threadCountX, size_t threadCountY, size_t groupSizeX = 8, size_t groupSizeY = 8);
         void Dispatch3D(size_t threadCountX, size_t threadCountY, size_t threadCountZ, size_t groupSizeX, size_t groupSizeY, size_t groupSizeZ);
         void DispatchIndirect(GpuBuffer& argumentBuffer, uint64_t argumentBufferOffset = 0);
-        void DispatchRays(uint32_t width, uint32_t height);
-
-    private:
-
-        RaytracingPSO* RaytracingPSOPtr;
+        void DispatchRays(RaytracingPSO& pso, uint32_t width, uint32_t height);
     };
 }

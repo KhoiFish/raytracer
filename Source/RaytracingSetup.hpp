@@ -199,8 +199,8 @@ void Renderer::ComputeRaytracingResults()
         computeContext.SetPipelineState(RealtimeRaytracingPSO);
         computeContext.SetDynamicDescriptor(RaytracingGlobalRootSigSlot::OutputView, 0, RaytracingOutputBuffer.GetUAV());
         computeContext.SetBufferSRV(RaytracingGlobalRootSigSlot::AccelerationStructure, TheRenderScene->GetTopLevelAccelerationStructurePointer().GpuVA);
-        computeContext.DispatchRays(Width, Height);
+        computeContext.DispatchRays(RealtimeRaytracingPSO, Width, Height);
     }
-    computeContext.Finish();
+    computeContext.Finish(true);
 }
 

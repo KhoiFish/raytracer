@@ -136,7 +136,7 @@ namespace RealtimeEngine
 
             std::wstring                    ShaderName;
             std::vector<ShaderRecordData*>  ShaderDataList;
-            ByteAddressBuffer               ShaderTableBuffer;
+            UploadBuffer                    ShaderTableBuffer;
             uint32_t                        ShaderEntryStride;
             uint32_t                        FirstDataRecordSize;
         };

@@ -129,7 +129,7 @@ void Renderer::SetupRenderBuffers()
     ZPrePassBuffer.Create("ZPrePass Buffer", width, height, 1, ZBufferRTType);
 
     RaytracingOutputBuffer.Destroy();
-    RaytracingOutputBuffer.Create("Raytracing Buffer", width, height, 1, RaytracingBufferType);
+    RaytracingOutputBuffer.CreateEx("Raytracing Buffer", width, height, 1, RaytracingBufferType, nullptr, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

@@ -104,7 +104,10 @@ void ColorBuffer::CreateDerivedViews(ID3D12Device* device, DXGI_FORMAT format, u
     ID3D12Resource* Resource = ResourcePtr.Get();
 
     // Create the render target view
-    device->CreateRenderTargetView(Resource, &rtvDesc, RTVHandle);
+    if (ResourceFlags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET)
+    {
+        device->CreateRenderTargetView(Resource, &rtvDesc, RTVHandle);
+    }
 
     // Create the shader resource view
     device->CreateShaderResourceView(Resource, &srvDesc, SRVHandle);
@@ -154,8 +157,26 @@ void ColorBuffer::Create(const string_t& name, uint32_t width, uint32_t height, 
     clearValue.Color[2] = ClearColor.B();
     clearValue.Color[3] = ClearColor.A();
 
-    CreateTextureResource(RenderDevice::Get().GetD3DDevice(), name, resourceDesc, clearValue, vidMemPtr);
+    CreateTextureResource(RenderDevice::Get().GetD3DDevice(), name, resourceDesc, &clearValue, vidMemPtr);
     CreateDerivedViews(RenderDevice::Get().GetD3DDevice(), format, 1, numMips);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void RealtimeEngine::ColorBuffer::CreateEx(const string_t& name, uint32_t width, uint32_t height, uint32_t numMips, DXGI_FORMAT format, D3D12_CLEAR_VALUE* clearValue, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr, D3D12_RESOURCE_FLAGS resourceFlags, D3D12_RESOURCE_STATES usageStates, bool createViews)
+{
+    numMips = (numMips == 0 ? ComputeNumMips(width, height) : numMips);
+
+    D3D12_RESOURCE_DESC resourceDesc = DescribeTex2D(width, height, 1, numMips, format, resourceFlags);
+    resourceDesc.SampleDesc.Count = FragmentCount;
+    resourceDesc.SampleDesc.Quality = 0;
+
+    CreateTextureResource(RenderDevice::Get().GetD3DDevice(), name, resourceDesc, clearValue, vidMemPtr, usageStates);
+
+    if (createViews)
+    {
+        CreateDerivedViews(RenderDevice::Get().GetD3DDevice(), format, 1, numMips);
+    }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -171,7 +192,7 @@ void ColorBuffer::CreateArray(const string_t& name, uint32_t width, uint32_t hei
     clearValue.Color[2] = ClearColor.B();
     clearValue.Color[3] = ClearColor.A();
 
-    CreateTextureResource(RenderDevice::Get().GetD3DDevice(), name, resourceDesc, clearValue, vidMemPtr);
+    CreateTextureResource(RenderDevice::Get().GetD3DDevice(), name, resourceDesc, &clearValue, vidMemPtr);
     CreateDerivedViews(RenderDevice::Get().GetD3DDevice(), format, arrayCount, 1);
 }
 

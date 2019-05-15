@@ -342,18 +342,19 @@ void PixelBuffer::AssociateWithResource(ID3D12Device* device, const string_t& na
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-D3D12_RESOURCE_DESC PixelBuffer::DescribeTex2D(uint32_t width, uint32_t height, uint32_t depthOrArraySize, uint32_t numMips, DXGI_FORMAT format, uint32_t flags)
+D3D12_RESOURCE_DESC PixelBuffer::DescribeTex2D(uint32_t width, uint32_t height, uint32_t depthOrArraySize, uint32_t numMips, DXGI_FORMAT format, D3D12_RESOURCE_FLAGS resourceFlags)
 {
-    Width     = width;
-    Height    = height;
-    ArraySize = depthOrArraySize;
-    Format    = format;
+    Width           = width;
+    Height          = height;
+    ArraySize       = depthOrArraySize;
+    Format          = format;
+    ResourceFlags   = resourceFlags;
 
     D3D12_RESOURCE_DESC desc = {};
     desc.Alignment          = 0;
     desc.DepthOrArraySize   = (UINT16)depthOrArraySize;
     desc.Dimension          = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-    desc.Flags              = (D3D12_RESOURCE_FLAGS)flags;
+    desc.Flags              = ResourceFlags;
     desc.Format             = GetBaseFormat(format);
     desc.Height             = (uint32_t)Height;
     desc.Layout             = D3D12_TEXTURE_LAYOUT_UNKNOWN;
@@ -367,14 +368,14 @@ D3D12_RESOURCE_DESC PixelBuffer::DescribeTex2D(uint32_t width, uint32_t height, 
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void PixelBuffer::CreateTextureResource(ID3D12Device* device, const string_t& name, const D3D12_RESOURCE_DESC& resourceDesc, D3D12_CLEAR_VALUE clearValue, D3D12_GPU_VIRTUAL_ADDRESS /*VidMemPtr*/)
+void PixelBuffer::CreateTextureResource(ID3D12Device* device, const string_t& name, const D3D12_RESOURCE_DESC& resourceDesc, D3D12_CLEAR_VALUE* clearValue, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr, D3D12_RESOURCE_STATES usageStates)
 {
     Destroy();
 
     CD3DX12_HEAP_PROPERTIES HeapProps(D3D12_HEAP_TYPE_DEFAULT);
-    ASSERT_SUCCEEDED( device->CreateCommittedResource( &HeapProps, D3D12_HEAP_FLAG_NONE, &resourceDesc, D3D12_RESOURCE_STATE_COMMON, &clearValue, IID_PPV_ARGS(&ResourcePtr) ));
+    ASSERT_SUCCEEDED(device->CreateCommittedResource( &HeapProps, D3D12_HEAP_FLAG_NONE, &resourceDesc, usageStates, clearValue, IID_PPV_ARGS(&ResourcePtr)));
 
-    UsageState        = D3D12_RESOURCE_STATE_COMMON;
+    UsageState        = usageStates;
     GpuVirtualAddress = D3D12_GPU_VIRTUAL_ADDRESS_NULL;
 
     #ifndef RELEASE

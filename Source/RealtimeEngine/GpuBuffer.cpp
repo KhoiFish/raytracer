@@ -33,6 +33,37 @@ GpuBuffer::GpuBuffer()
     ResourceFlags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
     UAV.ptr       = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN;
     SRV.ptr       = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN;
+
+    HeapProps.Type                 = D3D12_HEAP_TYPE_DEFAULT;
+    HeapProps.CPUPageProperty      = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+    HeapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+    HeapProps.CreationNodeMask     = 0;
+    HeapProps.VisibleNodeMask      = 0;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+UploadBuffer::UploadBuffer()
+{
+    HeapProps.Type                 = D3D12_HEAP_TYPE_UPLOAD;
+    HeapProps.CPUPageProperty      = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+    HeapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+    HeapProps.CreationNodeMask     = 0;
+    HeapProps.VisibleNodeMask      = 0;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void UploadBuffer::Map(void** ppBuffer)
+{
+    ResourcePtr->Map(0, nullptr, ppBuffer);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void UploadBuffer::Unmap()
+{
+    ResourcePtr->Unmap(0, nullptr);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -44,21 +75,15 @@ GpuBuffer::~GpuBuffer()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void GpuBuffer::Create(const std::wstring& name, uint32_t numElements, uint32_t elementSize, const void* initialData, D3D12_RESOURCE_STATES usageState)
+void GpuBuffer::Create(const std::wstring& name, uint32_t numElements, uint32_t elementSize, const void* initialData, D3D12_RESOURCE_STATES usageState, D3D12_RESOURCE_FLAGS resourceFlags)
 {
     Destroy();
 
-    ElementCount = numElements;
-    ElementSize  = elementSize;
-    BufferSize   = numElements * elementSize;
-    UsageState   = usageState;
-
-    D3D12_HEAP_PROPERTIES HeapProps;
-    HeapProps.Type                 = D3D12_HEAP_TYPE_DEFAULT;
-    HeapProps.CPUPageProperty      = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-    HeapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-    HeapProps.CreationNodeMask     = 1;
-    HeapProps.VisibleNodeMask      = 1;
+    ElementCount  = numElements;
+    ElementSize   = elementSize;
+    BufferSize    = numElements * elementSize;
+    UsageState    = usageState;
+    ResourceFlags = resourceFlags;
 
     D3D12_RESOURCE_DESC ResourceDesc = DescribeBuffer();
     ASSERT_SUCCEEDED( 

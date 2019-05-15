@@ -47,7 +47,7 @@ void DepthBuffer::Create( const string_t& name, uint32_t width, uint32_t height,
     clearValue.Color[0] = clearValue.Color[1] = clearValue.Color[2] = clearValue.Color[3] = ClearDepth;
     clearValue.Format = format;
 
-    CreateTextureResource(RenderDevice::Get().GetD3DDevice(), name, resourceDesc, clearValue, vidMemPtr);
+    CreateTextureResource(RenderDevice::Get().GetD3DDevice(), name, resourceDesc, &clearValue, vidMemPtr);
     CreateDerivedViews(RenderDevice::Get().GetD3DDevice(), format);
 }
 
@@ -62,7 +62,7 @@ void DepthBuffer::Create(const string_t& name, uint32_t width, uint32_t height, 
     clearValue.Color[0] = clearValue.Color[1] = clearValue.Color[2] = clearValue.Color[3] = ClearDepth;
     clearValue.Format = format;
 
-    CreateTextureResource(RenderDevice::Get().GetD3DDevice(), name, resourceDesc, clearValue, vidMemPtr);
+    CreateTextureResource(RenderDevice::Get().GetD3DDevice(), name, resourceDesc, &clearValue, vidMemPtr);
     CreateDerivedViews(RenderDevice::Get().GetD3DDevice(), format);
 }
 

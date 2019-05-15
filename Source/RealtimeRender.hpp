@@ -280,7 +280,7 @@ void Renderer::RenderRealtimeResults()
         renderContext.SetRootSignature(RealtimeRootSignature);
         renderContext.SetViewport(RenderDevice::Get().GetScreenViewport());
         renderContext.SetScissor(RenderDevice::Get().GetScissorRect());
-
+#if  0
         // Z pre pass
         {
             renderContext.TransitionResource(ZPrePassBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
@@ -340,6 +340,12 @@ void Renderer::RenderRealtimeResults()
             renderContext.SetNullVertexBuffer(0);
             renderContext.SetNullIndexBuffer();
             renderContext.Draw(3);
+        }
+#endif
+
+        // Temporary for testing: copy contents of raytracing results directly to the render target
+        {
+            renderContext.CopyBuffer(RenderDevice::Get().GetRenderTarget(), RaytracingOutputBuffer);
         }
     }
     renderContext.Finish();

@@ -25,45 +25,20 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-RWTexture2D<float4>                 gRenderTarget : register(u0);
-RaytracingAccelerationStructure     gScene        : register(t0, space0);
-//ConstantBuffer<SceneConstantBuffer> gSceneCB      : register(b0);
-//ByteAddressBuffer                   gIndices      : register(t2, space0);
-//StructuredBuffer<RenderSceneVertex> gVertices     : register(t3, space0);
+RWTexture2D<float4>                 gOutput  : register(u0);
+RaytracingAccelerationStructure     gScene   : register(t0);
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-float4 TraceRadianceRay(in Ray ray, in UINT currentRayRecursionDepth)
+float3 linearToSrgb(float3 c)
 {
-    if (currentRayRecursionDepth >= MAX_RAY_RECURSION_DEPTH)
-    {
-        return float4(0, 0, 0, 0);
-    }
+    // Based on http://chilliant.blogspot.com/2012/08/srgb-approximations-for-hlsl.html
+    float3 sq1  = sqrt(c);
+    float3 sq2  = sqrt(sq1);
+    float3 sq3  = sqrt(sq2);
+    float3 srgb = 0.662002687 * sq1 + 0.684122060 * sq2 - 0.323583601 * sq3 - 0.0225411470 * c;
 
-    // Set the ray's extents.
-    // Set TMin to a zero value to avoid aliasing artifacts along contact areas.
-    // Note: make sure to enable face culling so as to avoid surface face fighting.
-    RayDesc rayDesc;
-    rayDesc.Origin    = ray.origin;
-    rayDesc.Direction = ray.direction;
-    rayDesc.TMin      = 0;
-    rayDesc.TMax      = 10000;
-
-    RayPayload rayPayload = { float4(0, 0, 0, 0), currentRayRecursionDepth + 1 };
-
-    // Trae the ray
-    TraceRay
-    (
-        gScene,
-        RAY_FLAG_CULL_BACK_FACING_TRIANGLES,
-        TraceRayParameters::InstanceMask,
-        TraceRayParameters::HitGroup::Offset[RayType::Radiance],
-        TraceRayParameters::HitGroup::GeometryStride,
-        TraceRayParameters::MissShader::Offset[RayType::Radiance],
-        rayDesc, rayPayload
-    );
-
-    return rayPayload.Color;
+    return srgb;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -71,18 +46,10 @@ float4 TraceRadianceRay(in Ray ray, in UINT currentRayRecursionDepth)
 [shader("raygeneration")]
 void RayGenerationShader()
 {
-    // Generate a ray for a camera pixel corresponding to an index from the dispatched 2D grid.
-    //Ray ray = GenerateCameraRay(DispatchRaysIndex().xy, gSceneCB.CameraPosition.xyz, gSceneCB.InverseViewProjectionMatrix);
+    uint3  launchIndex = DispatchRaysIndex();
+    float3 col         = linearToSrgb(float3(0.4, 0.6, 0.2));
 
-    float4x4 mat;
-    Ray ray = GenerateCameraRay(DispatchRaysIndex().xy, float3(0, 0, 0), mat);
-
-    // Cast a ray into the scene and retrieve a shaded color.
-    UINT   currentRecursionDepth = 0;
-    float4 color                 = TraceRadianceRay(ray, currentRecursionDepth);
-
-    // Write the raytraced color to the output texture.
-    gRenderTarget[DispatchRaysIndex().xy] = color;
+    gOutput[launchIndex.xy] = float4(col, 1); //float4(1, 0, 0, 1); //float4(col, 1);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -90,56 +57,7 @@ void RayGenerationShader()
 [shader("closesthit")]
 void ClosestHitShader(inout RayPayload rayPayload, in BuiltInTriangleIntersectionAttributes attr)
 {
-#if 0
-    // Get the base index of the triangle's first 16 bit index.
-    uint indexSizeInBytes = 2;
-    uint indicesPerTriangle = 3;
-    uint triangleIndexStride = indicesPerTriangle * indexSizeInBytes;
-    uint baseIndex = PrimitiveIndex() * triangleIndexStride;
-
-    // Load up three 16 bit indices for the triangle.
-    const uint3 indices = Load3x16BitIndices(baseIndex, gIndices);
-
-    // Retrieve corresponding vertex normals for the triangle vertices.
-    float3 triangleNormal = gVertices[indices[0]].Normal;
-
-    // PERFORMANCE TIP: it is recommended to avoid values carry over across TraceRay() calls. 
-    // Therefore, in cases like retrieving HitWorldPosition(), it is recomputed every time.
-
-    // Shadow component.
-    // Trace a shadow ray.
-    //float3 hitPosition = HitWorldPosition();
-    //Ray shadowRay = { hitPosition, normalize(gSceneCB.LightPosition.xyz - hitPosition) };
-    //bool shadowRayHit = TraceShadowRayAndReportIfHit(shadowRay, rayPayload.recursionDepth);
-    bool shadowRayHit = false;
-
-    //float checkers = AnalyticalCheckersTexture(HitWorldPosition(), triangleNormal, gSceneCB.CameraPosition.xyz, gSceneCB.InverseViewProjectionMatrix);
-    float checkers = 1.f;
-
-    // Reflected component.
-    float4 reflectedColor = float4(0, 0, 0, 0);
-    if (l_materialCB.reflectanceCoef > 0.001)
-    {
-        // Trace a reflection ray.
-        Ray reflectionRay = { HitWorldPosition(), reflect(WorldRayDirection(), triangleNormal) };
-        float4 reflectionColor = TraceRadianceRay(reflectionRay, rayPayload.recursionDepth);
-
-        float3 fresnelR = FresnelReflectanceSchlick(WorldRayDirection(), triangleNormal, l_materialCB.albedo.xyz);
-        reflectedColor = l_materialCB.reflectanceCoef * float4(fresnelR, 1) * reflectionColor;
-    }
-
-    // Calculate final color.
-    float4 phongColor = CalculatePhongLighting(l_materialCB.albedo, triangleNormal, shadowRayHit, l_materialCB.diffuseCoef, l_materialCB.specularCoef, l_materialCB.specularPower);
-    float4 color = checkers * (phongColor + reflectedColor);
-
-    // Apply visibility falloff.
-    float t = RayTCurrent();
-    color = lerp(color, BackgroundColor, 1.0 - exp(-0.000002 * t * t * t));
-
-    rayPayload.color = color;
-#endif
-
-    rayPayload.Color = float4(1, 0, 0, 1);
+    rayPayload.RecursionDepth = 1;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -147,6 +65,5 @@ void ClosestHitShader(inout RayPayload rayPayload, in BuiltInTriangleIntersectio
 [shader("miss")]
 void MissShader(inout RayPayload rayPayload)
 {
-    float4 backgroundColor = float4(BackgroundColor);
-    rayPayload.Color = backgroundColor;
+    rayPayload.RecursionDepth = 0;
 }

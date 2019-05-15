@@ -511,10 +511,14 @@ void RaytracingPSO::ShaderTable::Build(ID3D12StateObjectPtr pPipelineState)
             totalBufferSize += ShaderDataList[i]->ShaderTableEntrySize;
         }
 
-        // Allocate temporary buffer and copy contents
-        void* pTempBuffer = _aligned_malloc(totalBufferSize, D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT);
+        // Allocate
+        ShaderTableBuffer.Create(L"Shadertable", 1, totalBufferSize, nullptr, D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_FLAG_NONE);
+
+        // Copy to buffer
+        void* pBuffer = nullptr;
+        ShaderTableBuffer.Map(&pBuffer);
         {
-            uint8_t* pRunner = (uint8_t*)pTempBuffer;
+            uint8_t* pRunner = (uint8_t*)pBuffer;
             for (int i = 0; i < (int)ShaderDataList.size(); i++)
             {
                 // Copy shader identifier into the shader record
@@ -525,6 +529,7 @@ void RaytracingPSO::ShaderTable::Build(ID3D12StateObjectPtr pPipelineState)
                 pRunner += ShaderDataList[i]->ShaderTableEntrySize;
             }
         }
+        ShaderTableBuffer.Unmap();
 
         ShaderEntryStride = ShaderDataList[0]->ShaderTableEntrySize;
     }
@@ -532,16 +537,16 @@ void RaytracingPSO::ShaderTable::Build(ID3D12StateObjectPtr pPipelineState)
     {
         // There were no shader data found. Just add a single shader record with no data.
         totalBufferSize = ALIGN(D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES, D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT);
-        pTempBuffer     = _aligned_malloc(totalBufferSize, D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT);
-        memcpy(pTempBuffer, pShaderIdentifier, D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
+        ShaderTableBuffer.Create(L"Shadertable", 1, totalBufferSize, nullptr, D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_FLAG_NONE);
+        {
+            void* pBuffer = nullptr;
+            ShaderTableBuffer.Map(&pBuffer);
+                memcpy(pBuffer, pShaderIdentifier, D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
+            ShaderTableBuffer.Unmap();
+        }
 
         ShaderEntryStride = totalBufferSize;
     }
-   
-    // Allocate GPU buffer and copy with the temp buffer
-    ShaderTableBuffer.Create(L"Shadertable", 1, totalBufferSize, pTempBuffer);
-    _aligned_free(pTempBuffer);
-    pTempBuffer = nullptr;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

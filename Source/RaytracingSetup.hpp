@@ -104,6 +104,7 @@ void Renderer::SetupRealtimeRaytracingPipeline()
             RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::AccelerationStructure][RaytracingGlobalRootSigSlot::Register],
             D3D12_SHADER_VISIBILITY_ALL);
 #if 0
+
         RaytracingGlobalRootSig[RaytracingGlobalRootSigSlot::VertexBuffer].InitAsBufferSRV(
             RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::VertexBuffer][RaytracingGlobalRootSigSlot::Register],
             D3D12_SHADER_VISIBILITY_ALL);
@@ -122,9 +123,6 @@ void Renderer::SetupRealtimeRaytracingPipeline()
 
     // Raygen local root sig setup
     {
-        RaygenLocalRootSig.Reset(0, 0);
-        RaygenLocalRootSig.Finalize("RaygenLocalRootSig", D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE);
-#if 0
         RaygenLocalRootSig.Reset(RaytracingLocalRootSigSlot::Num, 0);
 
         RaygenLocalRootSig[RaytracingLocalRootSigSlot::MaterialConstant].InitAsConstants(
@@ -133,7 +131,6 @@ void Renderer::SetupRealtimeRaytracingPipeline()
             D3D12_SHADER_VISIBILITY_ALL);
 
         RaygenLocalRootSig.Finalize("RaygenLocalRootSig", D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE);
-#endif
     }
 
     // Hit miss local root sig setup
@@ -182,7 +179,8 @@ void Renderer::SetupRealtimeRaytracingPipeline()
 
     // Setup resource views
     {
-
+        //RaytracingDescriptorHeap = new DescriptorHeapStack(1, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+        //RaytracingDescriptorHeap->AllocateBufferUav()
     }
 
     // Done, finalize

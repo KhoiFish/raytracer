@@ -38,7 +38,7 @@ namespace RealtimeEngine
 
     public:
 
-        void                                Create(const std::wstring& name, uint32_t numElements, uint32_t elementSize, const void* initialData = nullptr, D3D12_RESOURCE_STATES usageState = D3D12_RESOURCE_STATE_COMMON);
+        void                                Create(const std::wstring& name, uint32_t numElements, uint32_t elementSize, const void* initialData = nullptr, D3D12_RESOURCE_STATES usageState = D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_FLAGS resourceFlags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
         void                                CreatePlaced(const std::wstring& name, ID3D12Heap* pBackingHeap, uint32_t heapOffset, uint32_t numElements, uint32_t elementSize, const void* initialData = nullptr);
         D3D12_CPU_DESCRIPTOR_HANDLE         CreateConstantBufferView(uint32_t Offset, uint32_t Size) const;
 
@@ -71,6 +71,20 @@ namespace RealtimeEngine
         uint32_t                            ElementCount;
         uint32_t                            ElementSize;
         D3D12_RESOURCE_FLAGS                ResourceFlags;
+        D3D12_HEAP_PROPERTIES               HeapProps;
+    };
+
+    // ----------------------------------------------------------------------------------------------------------------------------
+
+    class UploadBuffer : public GpuBuffer
+    {
+    public:
+
+        UploadBuffer();
+
+        virtual void    CreateDerivedViews() override {}
+        void            Map(void** ppBuffer);
+        void            Unmap();
     };
 
     // ----------------------------------------------------------------------------------------------------------------------------

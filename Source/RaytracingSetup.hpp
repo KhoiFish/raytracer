@@ -59,6 +59,7 @@ namespace RaytracingLocalRootSigSlot
     enum Enum
     {
         OutputView = 0,
+        AccelerationStructure,
 
         Num
     };
@@ -73,6 +74,7 @@ namespace RaytracingLocalRootSigSlot
     static UINT Range[RaytracingLocalRootSigSlot::Num][2] =
     {
         { 0, 1 },
+        { 0, 1 },
     };
 }
 
@@ -86,6 +88,13 @@ void Renderer::SetupRealtimeRaytracingPipeline()
     static const wchar_t* sHitGroupName         = L"HitGroup";
     static const wchar_t* sDxilLibEntryPoints[] = { sRaygenShaderName, sMissShaderName, sClosestHitShaderName };
     static const wchar_t* sMissHitExportName[]  = { sMissShaderName, sClosestHitShaderName };
+
+    // Allocate descriptor heap
+    RaytracingDescriptorHeap = new DescriptorHeapStack(64, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 0);
+
+    // Allocate the output buffer
+    RaytracingOutputBuffer.Destroy();
+    RaytracingOutputBuffer.CreateEx("Raytracing Buffer", Width, Height, 1, RaytracingBufferType, nullptr, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, false);
 
     // Global root sig
     {
@@ -120,25 +129,39 @@ void Renderer::SetupRealtimeRaytracingPipeline()
     }
 
     // Raygen local root sig setup
-    UINT indexToRaygenDescriptorStart = 0;
+    UINT startIndexRaygenDescriptors;
     {
+        // Setup local sig
         RaygenLocalRootSig.Reset(RaytracingLocalRootSigSlot::Num, 0);
+        {
+            RaygenLocalRootSig[RaytracingLocalRootSigSlot::OutputView].InitAsDescriptorRange(
+                D3D12_DESCRIPTOR_RANGE_TYPE_UAV,
+                RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::OutputView][RaytracingLocalRootSigSlot::Register],
+                RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::OutputView][RaytracingLocalRootSigSlot::Count],
+                D3D12_SHADER_VISIBILITY_ALL);
 
-        RaygenLocalRootSig[RaytracingLocalRootSigSlot::OutputView].InitAsDescriptorRange(
-            D3D12_DESCRIPTOR_RANGE_TYPE_UAV,
-            RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::OutputView][RaytracingLocalRootSigSlot::Register],
-            RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::OutputView][RaytracingLocalRootSigSlot::Count],
-            D3D12_SHADER_VISIBILITY_ALL);
-
+            RaygenLocalRootSig[RaytracingLocalRootSigSlot::AccelerationStructure].InitAsDescriptorRange(
+                D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
+                RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::AccelerationStructure][RaytracingLocalRootSigSlot::Register],
+                RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::AccelerationStructure][RaytracingLocalRootSigSlot::Count],
+                D3D12_SHADER_VISIBILITY_ALL);
+        }
         RaygenLocalRootSig.Finalize("RaygenLocalRootSig", D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE);
 
-        // Setup descriptor heap
-        RaytracingDescriptorHeap     = new DescriptorHeapStack(1, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 0);
-        indexToRaygenDescriptorStart = RaytracingDescriptorHeap->AllocateBufferUav(
+        // Allocate descriptor for output view
+        startIndexRaygenDescriptors = RaytracingDescriptorHeap->AllocateBufferUav(
             *RaytracingOutputBuffer.GetResource(),
             D3D12_UAV_DIMENSION_TEXTURE2D,
             D3D12_BUFFER_UAV_FLAG_NONE,
             DXGI_FORMAT_R8G8B8A8_UNORM);
+
+        // Allocate descriptor for acceleration structures
+        RaytracingDescriptorHeap->AllocateBufferSrvRaytracing(
+            TheRenderScene->GetTopLevelAccelerationStructurePointer().GpuVA,
+            D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE,
+            D3D12_BUFFER_SRV_FLAG_NONE,
+            DXGI_FORMAT_UNKNOWN,
+            D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
     }
 
     // Hit miss local root sig setup
@@ -172,12 +195,12 @@ void Renderer::SetupRealtimeRaytracingPipeline()
 
         // Bind data (like descriptor data) to shaders
         {
-            UINT64 heapStart;
+            UINT64 offsetToDescriptorStart;
 
             // Raygen
-            heapStart = RaytracingDescriptorHeap->GetGpuHandle(indexToRaygenDescriptorStart).ptr;
+            offsetToDescriptorStart = RaytracingDescriptorHeap->GetGpuHandle(startIndexRaygenDescriptors).ptr;
             RealtimeRaytracingPSO.GetRaygenShaderTable().AddShaderRecordData(
-                &heapStart,
+                &offsetToDescriptorStart,
                 sizeof(UINT64));
         }
 

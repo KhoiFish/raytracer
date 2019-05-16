@@ -158,19 +158,38 @@ void DescriptorHeapStack::AllocateDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE& cpuHan
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-UINT DescriptorHeapStack::AllocateBufferSrv(ID3D12Resource& resource)
+UINT DescriptorHeapStack::AllocateBufferSrv(ID3D12Resource& resource, D3D12_SRV_DIMENSION viewDimension, D3D12_BUFFER_SRV_FLAGS flags, DXGI_FORMAT format, UINT shader4ComponentMapping)
 {
     UINT                        descriptorHeapIndex;
     D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
     AllocateDescriptor(cpuHandle, descriptorHeapIndex);
 
     D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-    srvDesc.ViewDimension           = D3D12_SRV_DIMENSION_BUFFER;
+    srvDesc.ViewDimension           = viewDimension;
     srvDesc.Buffer.NumElements      = (UINT)(resource.GetDesc().Width / sizeof(UINT32));
-    srvDesc.Buffer.Flags            = D3D12_BUFFER_SRV_FLAG_RAW;
-    srvDesc.Format                  = DXGI_FORMAT_R32_TYPELESS;
-    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    srvDesc.Buffer.Flags            = flags;
+    srvDesc.Format                  = format;
+    srvDesc.Shader4ComponentMapping = shader4ComponentMapping;
     RenderDevice::Get().GetD3DDevice()->CreateShaderResourceView(&resource, &srvDesc, cpuHandle);
+
+    return descriptorHeapIndex;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+UINT DescriptorHeapStack::AllocateBufferSrvRaytracing(D3D12_GPU_VIRTUAL_ADDRESS Location, D3D12_SRV_DIMENSION viewDimension, D3D12_BUFFER_SRV_FLAGS flags, DXGI_FORMAT format, UINT shader4ComponentMapping)
+{
+    UINT                        descriptorHeapIndex;
+    D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
+    AllocateDescriptor(cpuHandle, descriptorHeapIndex);
+
+    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    srvDesc.ViewDimension                            = viewDimension;
+    srvDesc.Buffer.Flags                             = flags;
+    srvDesc.Format                                   = format;
+    srvDesc.Shader4ComponentMapping                  = shader4ComponentMapping;
+    srvDesc.RaytracingAccelerationStructure.Location = Location;
+    RenderDevice::Get().GetD3DDevice()->CreateShaderResourceView(nullptr, &srvDesc, cpuHandle);
 
     return descriptorHeapIndex;
 }
@@ -199,3 +218,4 @@ D3D12_GPU_DESCRIPTOR_HANDLE DescriptorHeapStack::GetGpuHandle(UINT descriptorInd
 {
     return CD3DX12_GPU_DESCRIPTOR_HANDLE(DescriptorHeap->GetGPUDescriptorHandleForHeapStart(), descriptorIndex, DescriptorSize);
 }
+

@@ -180,7 +180,7 @@ void RootSignature::Finalize(const string_t & name, D3D12_ROOT_SIGNATURE_FLAGS f
         ComPtr<ID3DBlob> pOutBlob, pErrorBlob;
 
         ASSERT_SUCCEEDED(D3D12SerializeRootSignature(&rootDesc, D3D_ROOT_SIGNATURE_VERSION_1, pOutBlob.GetAddressOf(), pErrorBlob.GetAddressOf()));
-        ASSERT_SUCCEEDED(RenderDevice::Get().GetD3DDevice()->CreateRootSignature(1, pOutBlob->GetBufferPointer(), pOutBlob->GetBufferSize(), IID_PPV_ARGS(&Signature)));
+        ASSERT_SUCCEEDED(RenderDevice::Get().GetD3DDevice()->CreateRootSignature(0, pOutBlob->GetBufferPointer(), pOutBlob->GetBufferSize(), IID_PPV_ARGS(&Signature)));
 
         Signature->SetName(MakeWStr(name).c_str());
 

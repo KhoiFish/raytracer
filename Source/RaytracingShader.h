@@ -34,8 +34,7 @@ static const float      InShadowRadiance    = 0.35f;
 
 struct RayPayload
 {
-    XMFLOAT4    Color;
-    UINT        RecursionDepth;
+    UINT RecursionDepth;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------

@@ -177,17 +177,17 @@ UINT DescriptorHeapStack::AllocateBufferSrv(ID3D12Resource& resource)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-UINT DescriptorHeapStack::AllocateBufferUav(ID3D12Resource & resource)
+UINT DescriptorHeapStack::AllocateBufferUav(ID3D12Resource & resource, D3D12_UAV_DIMENSION viewDimension, D3D12_BUFFER_UAV_FLAGS flags, DXGI_FORMAT format)
 {
     UINT                        descriptorHeapIndex;
     D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
     AllocateDescriptor(cpuHandle, descriptorHeapIndex);
 
     D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
-    uavDesc.ViewDimension       = D3D12_UAV_DIMENSION_BUFFER;
+    uavDesc.ViewDimension       = viewDimension;
     uavDesc.Buffer.NumElements  = (UINT)(resource.GetDesc().Width / sizeof(UINT32));
-    uavDesc.Buffer.Flags        = D3D12_BUFFER_UAV_FLAG_RAW;
-    uavDesc.Format              = DXGI_FORMAT_R32_TYPELESS;
+    uavDesc.Buffer.Flags        = flags;
+    uavDesc.Format              = format;
     RenderDevice::Get().GetD3DDevice()->CreateUnorderedAccessView(&resource, nullptr, &uavDesc, cpuHandle);
 
     return descriptorHeapIndex;

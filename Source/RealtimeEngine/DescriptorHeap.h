@@ -162,7 +162,7 @@ namespace RealtimeEngine
 
         void                        AllocateDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle, UINT& descriptorHeapIndex);
         UINT                        AllocateBufferSrv(ID3D12Resource& resource);
-        UINT                        AllocateBufferUav(ID3D12Resource& resource);
+        UINT                        AllocateBufferUav(ID3D12Resource& resource, D3D12_UAV_DIMENSION viewDimension = D3D12_UAV_DIMENSION_BUFFER, D3D12_BUFFER_UAV_FLAGS flags = D3D12_BUFFER_UAV_FLAG_RAW, DXGI_FORMAT format = DXGI_FORMAT_R32_TYPELESS);
         ID3D12DescriptorHeap&       GetDescriptorHeap();
         D3D12_GPU_DESCRIPTOR_HANDLE GetGpuHandle(UINT descriptorIndex);
 

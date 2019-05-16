@@ -18,15 +18,15 @@
 // ----------------------------------------------------------------------------------------------------------------------------
 
 #define HLSL
-#include "../RealtimeEngine/RenderSceneVertex.h"
-#include "../RealtimeEngine/RenderSceneShader.h"
-#include "../RaytracingShader.h"
-#include "RaytracingHelpers.hlsli"
+//#include "../RealtimeEngine/RenderSceneVertex.h"
+//#include "../RealtimeEngine/RenderSceneShader.h"
+//#include "../RaytracingShader.h"
+//#include "RaytracingHelpers.hlsli"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
 RWTexture2D<float4>                 gOutput  : register(u0);
-RaytracingAccelerationStructure     gScene   : register(t0);
+//RaytracingAccelerationStructure     gScene   : register(t0);
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -46,24 +46,31 @@ float3 linearToSrgb(float3 c)
 [shader("raygeneration")]
 void RayGenerationShader()
 {
-    uint3  launchIndex = DispatchRaysIndex();
-    float3 col         = linearToSrgb(float3(0.4, 0.6, 0.2));
+    uint3 launchIndex = DispatchRaysIndex();
+    float3 col = linearToSrgb(float3(1, 0, 1));
+    gOutput[launchIndex.xy] = float4(col, 1);
+}
 
-    gOutput[launchIndex.xy] = float4(col, 1); //float4(1, 0, 0, 1); //float4(col, 1);
+// ----------------------------------------------------------------------------------------------------------------------------
+
+struct Payload
+{
+    bool hit;
+};
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+[shader("miss")]
+void MissShader(inout Payload payload)
+{
+    payload.hit = true;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
 [shader("closesthit")]
-void ClosestHitShader(inout RayPayload rayPayload, in BuiltInTriangleIntersectionAttributes attr)
+void ClosestHitShader(inout Payload payload, in BuiltInTriangleIntersectionAttributes attr)
 {
-    rayPayload.RecursionDepth = 1;
+    payload.hit = false;
 }
 
-// ----------------------------------------------------------------------------------------------------------------------------
-
-[shader("miss")]
-void MissShader(inout RayPayload rayPayload)
-{
-    rayPayload.RecursionDepth = 0;
-}

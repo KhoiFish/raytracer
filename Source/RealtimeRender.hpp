@@ -137,8 +137,6 @@ void Renderer::SetupRealtimePipeline()
         ThrowIfFailed(D3DReadFileToBlob(SHADERBUILD_DIR L"\\ZPrePass_VS.cso", &vertexShaderBlob));
         ThrowIfFailed(D3DReadFileToBlob(SHADERBUILD_DIR L"\\ZPrePass_PS.cso", &pixelShaderBlob));
 
-        ZBufferRTType = DXGI_FORMAT_R32_FLOAT;
-
         RealtimeZPrePassPSO.SetRootSignature(RealtimeRootSignature);
         RealtimeZPrePassPSO.SetRasterizerState(rasterizerDesc);
         RealtimeZPrePassPSO.SetBlendState(blendDisable);
@@ -194,11 +192,6 @@ void Renderer::SetupRealtimePipeline()
         Microsoft::WRL::ComPtr<ID3DBlob> vertexShaderBlob, pixelShaderBlob;
         ThrowIfFailed(D3DReadFileToBlob(SHADERBUILD_DIR L"\\GeometryPass_VS.cso", &vertexShaderBlob));
         ThrowIfFailed(D3DReadFileToBlob(SHADERBUILD_DIR L"\\GeometryPass_PS.cso", &pixelShaderBlob));
-
-        DeferredBuffersRTTypes[DeferredBufferType_Position] = DXGI_FORMAT_R32G32B32A32_FLOAT;
-        DeferredBuffersRTTypes[DeferredBufferType_Normal]   = DXGI_FORMAT_R32G32B32A32_FLOAT;
-        DeferredBuffersRTTypes[DeferredBufferType_TexCoord] = DXGI_FORMAT_R32G32B32A32_FLOAT;
-        DeferredBuffersRTTypes[DeferredBufferType_Diffuse]  = DXGI_FORMAT_R32G32B32A32_FLOAT;
 
         RealtimeGeometryPassPSO.SetRootSignature(RealtimeRootSignature);
         RealtimeGeometryPassPSO.SetRasterizerState(rasterizerDesc);
@@ -277,10 +270,11 @@ void Renderer::RenderRealtimeResults()
 {
     GraphicsContext& renderContext = GraphicsContext::Begin("RenderRealtimeResults");
     {
+#if 0
         renderContext.SetRootSignature(RealtimeRootSignature);
         renderContext.SetViewport(RenderDevice::Get().GetScreenViewport());
         renderContext.SetScissor(RenderDevice::Get().GetScissorRect());
-#if  0
+
         // Z pre pass
         {
             renderContext.TransitionResource(ZPrePassBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, true);

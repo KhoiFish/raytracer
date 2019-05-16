@@ -100,13 +100,21 @@ void Renderer::OnInit()
     sNumThreads = sysInfo.dwNumberOfProcessors;
 
     // Init the render device
-    RenderDevice::Initialize(PlatformApp::GetHwnd(), Width, Height, this);
+    RenderDevice::Initialize(PlatformApp::GetHwnd(), Width, Height, this, DXGI_FORMAT_R8G8B8A8_UNORM_SRGB);
+
+    DeferredBuffersRTTypes[DeferredBufferType_Position] = DXGI_FORMAT_R32G32B32A32_FLOAT;
+    DeferredBuffersRTTypes[DeferredBufferType_Normal]   = DXGI_FORMAT_R32G32B32A32_FLOAT;
+    DeferredBuffersRTTypes[DeferredBufferType_TexCoord] = DXGI_FORMAT_R32G32B32A32_FLOAT;
+    DeferredBuffersRTTypes[DeferredBufferType_Diffuse]  = DXGI_FORMAT_R32G32B32A32_FLOAT;
+    RaytracingBufferType                                = DXGI_FORMAT_R8G8B8A8_UNORM;
+    ZBufferRTType                                       = DXGI_FORMAT_R32_FLOAT;
+
+    SetupRenderBuffers();
 
     // Setup render pipelines
     SetupFullscreenQuadPipeline();
     SetupRealtimeRaytracingPipeline();
     SetupRealtimePipeline();
-    SetupRenderBuffers();
 
     // Load the scene data
     LoadScene();
@@ -129,7 +137,7 @@ void Renderer::SetupRenderBuffers()
     ZPrePassBuffer.Create("ZPrePass Buffer", width, height, 1, ZBufferRTType);
 
     RaytracingOutputBuffer.Destroy();
-    RaytracingOutputBuffer.CreateEx("Raytracing Buffer", width, height, 1, RaytracingBufferType, nullptr, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
+    RaytracingOutputBuffer.CreateEx("Raytracing Buffer", width, height, 1, RaytracingBufferType, nullptr, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, false);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

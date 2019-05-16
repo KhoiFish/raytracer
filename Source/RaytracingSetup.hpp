@@ -58,7 +58,7 @@ namespace RaytracingLocalRootSigSlot
 {
     enum Enum
     {
-        MaterialConstant = 0,
+        OutputView = 0,
 
         Num
     };
@@ -72,7 +72,7 @@ namespace RaytracingLocalRootSigSlot
     // [register, count]
     static UINT Range[RaytracingLocalRootSigSlot::Num][2] =
     {
-        { 1, SizeOfInUint32(PrimitiveConstantBuffer) },
+        { 0, 1 },
     };
 }
 
@@ -87,13 +87,12 @@ void Renderer::SetupRealtimeRaytracingPipeline()
     static const wchar_t* sDxilLibEntryPoints[] = { sRaygenShaderName, sMissShaderName, sClosestHitShaderName };
     static const wchar_t* sMissHitExportName[]  = { sMissShaderName, sClosestHitShaderName };
 
-    RaytracingBufferType = DXGI_FORMAT_R8G8B8A8_UNORM;
-
     // Global root sig
     {
         //RaytracingGlobalRootSig.Reset(RaytracingGlobalRootSigSlot::Num, 0);
-        RaytracingGlobalRootSig.Reset(2, 0);
+        RaytracingGlobalRootSig.Reset(0, 0);
 
+#if 0
         RaytracingGlobalRootSig[RaytracingGlobalRootSigSlot::OutputView].InitAsDescriptorRange(
             D3D12_DESCRIPTOR_RANGE_TYPE_UAV,
             RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::OutputView][RaytracingGlobalRootSigSlot::Register],
@@ -103,7 +102,6 @@ void Renderer::SetupRealtimeRaytracingPipeline()
         RaytracingGlobalRootSig[RaytracingGlobalRootSigSlot::AccelerationStructure].InitAsBufferSRV(
             RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::AccelerationStructure][RaytracingGlobalRootSigSlot::Register],
             D3D12_SHADER_VISIBILITY_ALL);
-#if 0
 
         RaytracingGlobalRootSig[RaytracingGlobalRootSigSlot::VertexBuffer].InitAsBufferSRV(
             RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::VertexBuffer][RaytracingGlobalRootSigSlot::Register],
@@ -122,15 +120,25 @@ void Renderer::SetupRealtimeRaytracingPipeline()
     }
 
     // Raygen local root sig setup
+    UINT indexToRaygenDescriptorStart = 0;
     {
         RaygenLocalRootSig.Reset(RaytracingLocalRootSigSlot::Num, 0);
 
-        RaygenLocalRootSig[RaytracingLocalRootSigSlot::MaterialConstant].InitAsConstants(
-            RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::MaterialConstant][RaytracingLocalRootSigSlot::Register],
-            RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::MaterialConstant][RaytracingLocalRootSigSlot::Count],
+        RaygenLocalRootSig[RaytracingLocalRootSigSlot::OutputView].InitAsDescriptorRange(
+            D3D12_DESCRIPTOR_RANGE_TYPE_UAV,
+            RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::OutputView][RaytracingLocalRootSigSlot::Register],
+            RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::OutputView][RaytracingLocalRootSigSlot::Count],
             D3D12_SHADER_VISIBILITY_ALL);
 
         RaygenLocalRootSig.Finalize("RaygenLocalRootSig", D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE);
+
+        // Setup descriptor heap
+        RaytracingDescriptorHeap     = new DescriptorHeapStack(1, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 0);
+        indexToRaygenDescriptorStart = RaytracingDescriptorHeap->AllocateBufferUav(
+            *RaytracingOutputBuffer.GetResource(),
+            D3D12_UAV_DIMENSION_TEXTURE2D,
+            D3D12_BUFFER_UAV_FLAG_NONE,
+            DXGI_FORMAT_R8G8B8A8_UNORM);
     }
 
     // Hit miss local root sig setup
@@ -162,6 +170,17 @@ void Renderer::SetupRealtimeRaytracingPipeline()
         // Associate miss and closet hit shader with the local root signature
         RealtimeRaytracingPSO.AddExportAssociationWithLocalRootSignature(sMissHitExportName, ArraySize(sMissHitExportName), &HitMissLocalRootSig);
 
+        // Bind data (like descriptor data) to shaders
+        {
+            UINT64 heapStart;
+
+            // Raygen
+            heapStart = RaytracingDescriptorHeap->GetGpuHandle(indexToRaygenDescriptorStart).ptr;
+            RealtimeRaytracingPSO.GetRaygenShaderTable().AddShaderRecordData(
+                &heapStart,
+                sizeof(UINT64));
+        }
+
         // Shader config
         RealtimeRaytracingPSO.SetShaderConfig(D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES, sizeof(RayPayload));
 
@@ -169,18 +188,12 @@ void Renderer::SetupRealtimeRaytracingPipeline()
         RealtimeRaytracingPSO.AddExportAssociationWithShaderConfig(sDxilLibEntryPoints, ArraySize(sDxilLibEntryPoints));
 
         // Pipeline config
-        RealtimeRaytracingPSO.SetPipelineConfig(MAX_RAY_RECURSION_DEPTH);
+        RealtimeRaytracingPSO.SetPipelineConfig(0);
 
         // Set shader names for the shader tables
         RealtimeRaytracingPSO.GetRaygenShaderTable().SetShaderName(sRaygenShaderName);
         RealtimeRaytracingPSO.GetHitGroupShaderTable().SetShaderName(sHitGroupName);
         RealtimeRaytracingPSO.GetMissShaderTable().SetShaderName(sMissShaderName);
-    }
-
-    // Setup resource views
-    {
-        //RaytracingDescriptorHeap = new DescriptorHeapStack(1, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-        //RaytracingDescriptorHeap->AllocateBufferUav()
     }
 
     // Done, finalize
@@ -195,8 +208,10 @@ void Renderer::ComputeRaytracingResults()
     {
         computeContext.SetRootSignature(RaytracingGlobalRootSig);
         computeContext.SetPipelineState(RealtimeRaytracingPSO);
-        computeContext.SetDynamicDescriptor(RaytracingGlobalRootSigSlot::OutputView, 0, RaytracingOutputBuffer.GetUAV());
-        computeContext.SetBufferSRV(RaytracingGlobalRootSigSlot::AccelerationStructure, TheRenderScene->GetTopLevelAccelerationStructurePointer().GpuVA);
+        computeContext.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, &RaytracingDescriptorHeap->GetDescriptorHeap());
+        //computeContext.SetDynamicDescriptor(RaytracingGlobalRootSigSlot::OutputView, 0, RaytracingOutputBuffer.GetUAV());
+        //computeContext.SetBufferSRV(RaytracingGlobalRootSigSlot::AccelerationStructure, TheRenderScene->GetTopLevelAccelerationStructurePointer().GpuVA);
+        computeContext.InsertUAVBarrier(RaytracingOutputBuffer, true);
         computeContext.DispatchRays(RealtimeRaytracingPSO, Width, Height);
     }
     computeContext.Finish(true);

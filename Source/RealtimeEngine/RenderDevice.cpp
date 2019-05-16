@@ -372,7 +372,7 @@ void RenderDevice::CreateWindowSizeDependentResources()
             PlatformApp::SetWindowZorderToTopMost(true);
         }
 
-        ThrowIfFailed(swapChain.As(&SwapChain));
+        ThrowIfFailed(swapChain->QueryInterface(IID_PPV_ARGS(&SwapChain)));
 
         // With tearing support enabled we will handle ALT+Enter key presses in the
         // window message loop rather than let DXGI handle it by calling SetFullscreenState.

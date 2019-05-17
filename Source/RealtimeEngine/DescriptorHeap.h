@@ -168,6 +168,7 @@ namespace RealtimeEngine
         UINT                        AllocateBufferUav(ID3D12Resource& resource, D3D12_UAV_DIMENSION viewDimension = D3D12_UAV_DIMENSION_BUFFER, D3D12_BUFFER_UAV_FLAGS flags = D3D12_BUFFER_UAV_FLAG_RAW, DXGI_FORMAT format = DXGI_FORMAT_R32_TYPELESS);
         ID3D12DescriptorHeapPtr     GetDescriptorHeap();
         D3D12_GPU_DESCRIPTOR_HANDLE GetGpuHandle(UINT descriptorIndex);
+        UINT                        GetCount();
 
     private:
 

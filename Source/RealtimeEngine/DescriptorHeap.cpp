@@ -176,6 +176,13 @@ UINT RealtimeEngine::DescriptorHeapStack::AllocateTexture2DSrv(ID3D12Resource* r
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+UINT DescriptorHeapStack::GetCount()
+{
+    return DescriptorsAllocated;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 UINT DescriptorHeapStack::AllocateBufferSrv(ID3D12Resource* resource, D3D12_SRV_DIMENSION viewDimension, D3D12_BUFFER_SRV_FLAGS flags, DXGI_FORMAT format, UINT shader4ComponentMapping)
 {
     UINT                        descriptorHeapIndex;

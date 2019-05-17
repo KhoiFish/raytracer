@@ -145,6 +145,7 @@ private:
     Core::Raytracer*                TheRaytracer;
     Core::WorldScene*               TheWorldScene;
     RealtimeEngine::RenderScene*    TheRenderScene;
+
     int                             FrameCount;
     int                             MaxyRayRecursionDepth;
     int                             NumRaysPerPixel;
@@ -167,6 +168,7 @@ private:
     GraphicsPSO                     RealtimeZPrePassPSO;
     GraphicsPSO                     RealtimeGeometryPassPSO;
     GraphicsPSO                     RealtimeCompositePassPSO;
+    DescriptorHeapStack*            RealtimeDescriptorHeap;
 
     RootSignature                   RaytracingGlobalRootSig;
     RootSignature                   RaytracingLocalRootSig;

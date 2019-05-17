@@ -54,6 +54,8 @@ Renderer::Renderer(uint32_t width, uint32_t height)
     , MaxyRayRecursionDepth(1)
     , NumRaysPerPixel(5)
     , AORadius(100.0f)
+    , RealtimeDescriptorHeap(nullptr)
+    , RaytracingDescriptorHeap(nullptr)
 {
     BackbufferFormat                                    = DXGI_FORMAT_R8G8B8A8_UNORM;
     RaytracingBufferType                                = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -143,6 +145,9 @@ void Renderer::SetupRenderBuffers()
 
     ZPrePassBuffer.Destroy();
     ZPrePassBuffer.Create("ZPrePass Buffer", width, height, 1, ZBufferRTType);
+
+    AmbientOcclusionOutput.Destroy();
+    AmbientOcclusionOutput.CreateEx("AO Buffer", Width, Height, 1, RaytracingBufferType, nullptr, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

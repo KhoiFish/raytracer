@@ -25,11 +25,11 @@ struct PixelShaderInput
 // ----------------------------------------------------------------------------------------------------------------------------
 
 Texture2D     DepthTexture           : register(t0);
-Texture2D     PositionsTexture       : register(t1);
-Texture2D     NormalsTexture         : register(t2);
-Texture2D     TexCoordsTexture       : register(t3);
-Texture2D     DiffuseTexture         : register(t4);
-Texture2D     AOTexture              : register(t5);
+Texture2D     AOTexture              : register(t1);
+Texture2D     PositionsTexture       : register(t2);
+Texture2D     NormalsTexture         : register(t3);
+Texture2D     TexCoordsTexture       : register(t4);
+Texture2D     DiffuseTexture         : register(t5);
 SamplerState  LinearRepeatSampler    : register(s0);
 
 // ----------------------------------------------------------------------------------------------------------------------------

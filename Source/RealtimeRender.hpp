@@ -348,6 +348,7 @@ void Renderer::RenderCompositePass()
                 renderContext.SetDynamicDescriptor(RealtimeRenderingRootIndex_Texture1 + i, 0, DeferredBuffers[i].GetSRV());
             }
 
+            renderContext.TransitionResource(AmbientOcclusionOutput, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, true);
             renderContext.SetDynamicDescriptor(RealtimeRenderingRootIndex_Texture5, 0, AmbientOcclusionOutput.GetSRV());
 
             renderContext.SetNullVertexBuffer(0);

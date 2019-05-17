@@ -29,7 +29,11 @@ namespace RaytracingGlobalRootSigSlot
 {
     enum EnumTypes
     {
-        GlobalConstants,
+        OutputView = 0,
+        AccelerationStructure,
+        Depth,
+        Positions,
+        Normals,
 
         Num
     };
@@ -44,6 +48,10 @@ namespace RaytracingGlobalRootSigSlot
     static UINT Range[RaytracingGlobalRootSigSlot::Num][2] =
     {
         { 0, 1 },
+        { 0, 1 },
+        { 1, 1 },
+        { 2, 1 },
+        { 3, 1 },
     };
 }
 
@@ -51,12 +59,7 @@ namespace RaytracingLocalRootSigSlot
 {
     enum Enum
     {
-        OutputView = 0,
-        AccelerationStructure,
-        Depth,
-        Positions,
-        Normals,
-        SceneCB,
+        SceneCB = 0,
 
         Num
     };
@@ -70,11 +73,6 @@ namespace RaytracingLocalRootSigSlot
     // [register, count]
     static UINT Range[RaytracingLocalRootSigSlot::Num][2] =
     {
-        { 0, 1 },
-        { 0, 1 },
-        { 1, 1 },
-        { 2, 1 },
-        { 3, 1 },
         { 0, 1 },
     };
 }
@@ -101,50 +99,39 @@ void Renderer::SetupRealtimeRaytracingPipeline()
 
     // Global root sig
     {
-        RaytracingGlobalRootSig.Reset(0, 0);
-        RaytracingGlobalRootSig.Finalize("RealtimeRaytracingGlobalRoot", D3D12_ROOT_SIGNATURE_FLAG_NONE);
-    }
-
-    // Raygen local root sig setup
-    {
-        // Setup local sig
-        RaytracingLocalRootSig.Reset(RaytracingLocalRootSigSlot::Num, 0);
+        RaytracingGlobalRootSig.Reset(RaytracingGlobalRootSigSlot::Num, 0);
         {
-            RaytracingLocalRootSig[RaytracingLocalRootSigSlot::OutputView].InitAsDescriptorRange(
+            RaytracingGlobalRootSig[RaytracingGlobalRootSigSlot::OutputView].InitAsDescriptorRange(
                 D3D12_DESCRIPTOR_RANGE_TYPE_UAV,
-                RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::OutputView][RaytracingLocalRootSigSlot::Register],
-                RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::OutputView][RaytracingLocalRootSigSlot::Count],
+                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::OutputView][RaytracingGlobalRootSigSlot::Register],
+                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::OutputView][RaytracingGlobalRootSigSlot::Count],
                 D3D12_SHADER_VISIBILITY_ALL);
 
-            RaytracingLocalRootSig[RaytracingLocalRootSigSlot::AccelerationStructure].InitAsDescriptorRange(
+            RaytracingGlobalRootSig[RaytracingGlobalRootSigSlot::AccelerationStructure].InitAsDescriptorRange(
                 D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
-                RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::AccelerationStructure][RaytracingLocalRootSigSlot::Register],
-                RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::AccelerationStructure][RaytracingLocalRootSigSlot::Count],
+                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::AccelerationStructure][RaytracingGlobalRootSigSlot::Register],
+                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::AccelerationStructure][RaytracingGlobalRootSigSlot::Count],
                 D3D12_SHADER_VISIBILITY_ALL);
 
-            RaytracingLocalRootSig[RaytracingLocalRootSigSlot::Depth].InitAsDescriptorRange(
+            RaytracingGlobalRootSig[RaytracingGlobalRootSigSlot::Depth].InitAsDescriptorRange(
                 D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
-                RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::Depth][RaytracingLocalRootSigSlot::Register],
-                RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::Depth][RaytracingLocalRootSigSlot::Count],
+                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::Depth][RaytracingGlobalRootSigSlot::Register],
+                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::Depth][RaytracingGlobalRootSigSlot::Count],
                 D3D12_SHADER_VISIBILITY_ALL);
 
-            RaytracingLocalRootSig[RaytracingLocalRootSigSlot::Positions].InitAsDescriptorRange(
+            RaytracingGlobalRootSig[RaytracingGlobalRootSigSlot::Positions].InitAsDescriptorRange(
                 D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
-                RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::Positions][RaytracingLocalRootSigSlot::Register],
-                RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::Positions][RaytracingLocalRootSigSlot::Count],
+                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::Positions][RaytracingGlobalRootSigSlot::Register],
+                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::Positions][RaytracingGlobalRootSigSlot::Count],
                 D3D12_SHADER_VISIBILITY_ALL);
 
-            RaytracingLocalRootSig[RaytracingLocalRootSigSlot::Normals].InitAsDescriptorRange(
+            RaytracingGlobalRootSig[RaytracingGlobalRootSigSlot::Normals].InitAsDescriptorRange(
                 D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
-                RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::Normals][RaytracingLocalRootSigSlot::Register],
-                RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::Normals][RaytracingLocalRootSigSlot::Count],
-                D3D12_SHADER_VISIBILITY_ALL);
-
-            RaytracingLocalRootSig[RaytracingLocalRootSigSlot::SceneCB].InitAsConstantBuffer(
-                RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::SceneCB][RaytracingLocalRootSigSlot::Register],
+                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::Normals][RaytracingGlobalRootSigSlot::Register],
+                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::Normals][RaytracingGlobalRootSigSlot::Count],
                 D3D12_SHADER_VISIBILITY_ALL);
         }
-        RaytracingLocalRootSig.Finalize("RaytracerLocalRootSig", D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE);
+        RaytracingGlobalRootSig.Finalize("RealtimeRaytracingGlobalRoot", D3D12_ROOT_SIGNATURE_FLAG_NONE);
 
         // Allocate descriptor for output view
         RaytracingDescriptorHeap->AllocateBufferUav(
@@ -178,9 +165,22 @@ void Renderer::SetupRealtimeRaytracingPipeline()
             DeferredBuffers[DeferredBufferType_Normal].GetResource(),
             DeferredBuffersRTTypes[DeferredBufferType_Normal],
             D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
+    }
+
+    // Local sig
+    UINT indexToLocalSigHeapStart;
+    {
+        // Setup local sig
+        RaytracingLocalRootSig.Reset(RaytracingLocalRootSigSlot::Num, 0);
+        {
+            RaytracingLocalRootSig[RaytracingLocalRootSigSlot::SceneCB].InitAsConstantBuffer(
+                RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::SceneCB][RaytracingLocalRootSigSlot::Register],
+                D3D12_SHADER_VISIBILITY_ALL);
+        }
+        RaytracingLocalRootSig.Finalize("RaytracerLocalRootSig", D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE);
 
         // Allocator descriptor for scene constants
-        RaytracingDescriptorHeap->AllocateBufferCbv(
+        indexToLocalSigHeapStart = RaytracingDescriptorHeap->AllocateBufferCbv(
             RaytracingSceneConstantBuffer.GetGpuVirtualAddress(), 
             (UINT)RaytracingSceneConstantBuffer.GetBufferSize());
     }
@@ -210,22 +210,6 @@ void Renderer::SetupRealtimeRaytracingPipeline()
             uint8_t* pTempBuffer = new uint8_t[256];
             uint32_t numBytes = 0;
             {
-                UINT64 descriptorOffsets[] =
-                {
-                    RaytracingDescriptorHeap->GetGpuHandle(0).ptr,
-                    RaytracingDescriptorHeap->GetGpuHandle(1).ptr,
-                    RaytracingDescriptorHeap->GetGpuHandle(2).ptr,
-                    RaytracingDescriptorHeap->GetGpuHandle(3).ptr,
-                    RaytracingDescriptorHeap->GetGpuHandle(4).ptr,
-                };
-
-                // Copy scene descriptor addresses
-                for (int i = 0; i < ArraySize(descriptorOffsets); i++)
-                {
-                    memcpy(pTempBuffer + numBytes, &descriptorOffsets[i], sizeof(descriptorOffsets[i]));
-                    numBytes += sizeof(descriptorOffsets[i]);
-                }
-        
                 // Copy scene constants address
                 D3D12_GPU_VIRTUAL_ADDRESS cbVA = RaytracingSceneConstantBuffer.GetGpuVirtualAddress();
                 memcpy(pTempBuffer + numBytes, &cbVA, sizeof(cbVA));
@@ -290,10 +274,21 @@ void Renderer::ComputeRaytracingResults()
             computeContext.FlushResourceBarriers();
         }
 
+        // Set root sig and pipeline state
         computeContext.SetRootSignature(RaytracingGlobalRootSig);
         computeContext.SetPipelineState(TheRaytracingPSO);
-        computeContext.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, &RaytracingDescriptorHeap->GetDescriptorHeap());
-        computeContext.InsertUAVBarrier(AmbientOcclusionOutput, true);
+
+        // Set descriptor heaps and tables
+        computeContext.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, RaytracingDescriptorHeap->GetDescriptorHeap());
+        for (int i = 0; i < RaytracingGlobalRootSigSlot::Num; i++)
+        {
+            computeContext.SetDescriptorTable(i, RaytracingDescriptorHeap->GetGpuHandle(i));
+        }
+        
+        // Transition all output buffers
+        computeContext.TransitionResource(AmbientOcclusionOutput, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, true);
+
+        // Finally dispatch rays
         computeContext.DispatchRays(TheRaytracingPSO, Width, Height);
     }
     computeContext.Finish(true);

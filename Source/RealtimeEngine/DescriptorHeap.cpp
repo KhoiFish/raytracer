@@ -142,9 +142,9 @@ DescriptorHeapStack::DescriptorHeapStack(UINT numDescriptors, D3D12_DESCRIPTOR_H
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-ID3D12DescriptorHeap& DescriptorHeapStack::GetDescriptorHeap()
+ID3D12DescriptorHeapPtr DescriptorHeapStack::GetDescriptorHeap()
 {
-    return *DescriptorHeap;
+    return DescriptorHeap;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

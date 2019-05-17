@@ -108,6 +108,5 @@ namespace RealtimeEngine
         WrappedGPUPointer               TLASPointer;
         GpuBuffer*                      ScratchBuffer;
         ByteAddressBuffer               InstanceDataBuffer;
-        GpuBuffer*                      TransformDataBuffer;
     };
 }

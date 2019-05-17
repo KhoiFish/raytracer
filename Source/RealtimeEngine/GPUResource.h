@@ -114,16 +114,4 @@ namespace RealtimeEngine
             return pointer;
         }
     };
-
-    // ----------------------------------------------------------------------------------------------------------------------------
-
-    struct RaytracingInstanceDesc
-    {
-        FLOAT               Transform[3][4];
-        UINT                InstanceID                          : 24;
-        UINT                InstanceMask                        : 8;
-        UINT                InstanceContributionToHitGroupIndex : 24;
-        UINT                Flags                               : 8;
-        WrappedGPUPointer   AccelerationStructure;
-    };
 }

@@ -145,6 +145,7 @@ private:
     Core::WorldScene*               TheWorldScene;
     RealtimeEngine::RenderScene*    TheRenderScene;
 
+    DXGI_FORMAT                     BackbufferFormat;
     DXGI_FORMAT                     DeferredBuffersRTTypes[DeferredBufferType_Num];
     DXGI_FORMAT                     ZBufferRTType;
     DXGI_FORMAT                     RaytracingBufferType;

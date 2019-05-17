@@ -51,12 +51,13 @@ Renderer::Renderer(uint32_t width, uint32_t height)
     , TheWorldScene(nullptr)
     , TheRenderScene(nullptr)
 {
+    BackbufferFormat                                    = DXGI_FORMAT_R8G8B8A8_UNORM;
+    RaytracingBufferType                                = DXGI_FORMAT_R8G8B8A8_UNORM;
+    ZBufferRTType                                       = DXGI_FORMAT_R32_FLOAT;
     DeferredBuffersRTTypes[DeferredBufferType_Position] = DXGI_FORMAT_R32G32B32A32_FLOAT;
     DeferredBuffersRTTypes[DeferredBufferType_Normal]   = DXGI_FORMAT_R32G32B32A32_FLOAT;
     DeferredBuffersRTTypes[DeferredBufferType_TexCoord] = DXGI_FORMAT_R32G32B32A32_FLOAT;
     DeferredBuffersRTTypes[DeferredBufferType_Diffuse]  = DXGI_FORMAT_R32G32B32A32_FLOAT;
-    RaytracingBufferType                                = DXGI_FORMAT_R8G8B8A8_UNORM;
-    ZBufferRTType                                       = DXGI_FORMAT_R32_FLOAT;
 
     // Non-zero so we update cameras at least once on startup
     UserInput.InputDirty = true;
@@ -109,7 +110,7 @@ void Renderer::OnInit()
     sNumThreads = sysInfo.dwNumberOfProcessors;
 
     // Init the render device
-    RenderDevice::Initialize(PlatformApp::GetHwnd(), Width, Height, this, DXGI_FORMAT_R8G8B8A8_UNORM);
+    RenderDevice::Initialize(PlatformApp::GetHwnd(), Width, Height, this, BackbufferFormat);
 
     // Setup render pipelines
     SetupRenderBuffers();

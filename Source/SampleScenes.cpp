@@ -289,6 +289,7 @@ static WorldScene* sampleSceneMesh()
 
     // Meshes
     {
+
         IHitable *r8 =
             new HitableTranslate(
                 new HitableRotateY(
@@ -297,7 +298,8 @@ static WorldScene* sampleSceneMesh()
             );
         list[total++] = r8;
 
-        /*IHitable *totoro =
+#if 0
+        IHitable *totoro =
             new HitableTranslate(
                 new HitableRotateY(
                     TriMesh::CreateFromOBJFile(GetAbsolutePath(RUNTIMEDATA_DIR "/totoro.obj").c_str(), 10.f, false, new MMetal(new ConstantTexture(colorSapphire), 0.5f)), 180.f),
@@ -311,7 +313,8 @@ static WorldScene* sampleSceneMesh()
                     TriMesh::CreateFromOBJFile(GetAbsolutePath(RUNTIMEDATA_DIR "/luigi.obj").c_str(), 2.f), 180.f),
                 Vec4(-320, 105, -100)
             );
-        list[total++] = luigi;*/
+        list[total++] = luigi;
+#endif
     }
 
     // Dielectric and metal spheres

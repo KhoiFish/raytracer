@@ -285,7 +285,7 @@ void Renderer::RenderRealtimeResults()
             renderContext.SetRenderTarget(ZPrePassBuffer.GetRTV(), RenderDevice::Get().GetDepthStencil().GetDSV());
             renderContext.ClearColor(ZPrePassBuffer);
 
-            RenderSceneList(renderContext, TheRenderScene->GetRenderCamera().GetViewMatrix(), TheRenderScene->GetRenderCamera().GetProjectionMatrix());
+            RenderSceneList(renderContext);
         }
 
         // Geometry pass
@@ -313,7 +313,7 @@ void Renderer::RenderRealtimeResults()
                 renderContext.ClearColor(DeferredBuffers[i]);
             }
 
-            RenderSceneList(renderContext, TheRenderScene->GetRenderCamera().GetViewMatrix(), TheRenderScene->GetRenderCamera().GetProjectionMatrix());
+            RenderSceneList(renderContext);
         }
 
         // Composite pass
@@ -347,22 +347,27 @@ void Renderer::RenderRealtimeResults()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static void ComputeMatrices(RenderCamera& camera, FXMMATRIX model, CXMMATRIX view, CXMMATRIX projection, SceneConstantBuffer& sceneCB)
+void Renderer::SetupSceneConstantBuffer(const FXMMATRIX& model, SceneConstantBuffer& sceneCB)
 {
+    RenderCamera& camera = TheRenderScene->GetRenderCamera();
+
+    sceneCB.OutputResolution = DirectX::XMFLOAT2((float)Width, (float)Height);
+
     XMStoreFloat4(&sceneCB.CameraPosition, camera.GetEye());
     XMStoreFloat4x4(&sceneCB.ModelMatrix, XMMatrixTranspose(model));
-    XMStoreFloat4x4(&sceneCB.ViewMatrix, XMMatrixTranspose(view));
-    XMStoreFloat4x4(&sceneCB.ProjectionMatrix, XMMatrixTranspose(projection));
-    XMStoreFloat4x4(&sceneCB.ModelViewMatrix, XMMatrixTranspose(model * view));
-    XMStoreFloat4x4(&sceneCB.ViewProjectionMatrix, XMMatrixTranspose(view * projection));
-    XMStoreFloat4x4(&sceneCB.ModelViewProjectionMatrix, XMMatrixTranspose(model * view * projection));
-    XMStoreFloat4x4(&sceneCB.InverseTransposeModelViewMatrix, XMMatrixTranspose(XMMatrixTranspose(XMMatrixInverse(nullptr, model * view))));
-    XMStoreFloat4x4(&sceneCB.InverseViewProjectionMatrix, XMMatrixInverse(nullptr, view * projection));
+    XMStoreFloat4x4(&sceneCB.ViewMatrix, XMMatrixTranspose(camera.GetViewMatrix()));
+    XMStoreFloat4x4(&sceneCB.ProjectionMatrix, XMMatrixTranspose(camera.GetProjectionMatrix()));
+    XMStoreFloat4x4(&sceneCB.ModelViewMatrix, XMMatrixTranspose(model * camera.GetViewMatrix()));
+    XMStoreFloat4x4(&sceneCB.ViewProjectionMatrix, XMMatrixTranspose(camera.GetViewMatrix() * camera.GetProjectionMatrix()));
+    XMStoreFloat4x4(&sceneCB.ModelViewProjectionMatrix, XMMatrixTranspose(model * camera.GetViewMatrix() * camera.GetProjectionMatrix()));
+    XMStoreFloat4x4(&sceneCB.InverseTransposeModelViewMatrix, XMMatrixTranspose(XMMatrixTranspose(XMMatrixInverse(nullptr, model * camera.GetViewMatrix()))));
+    XMStoreFloat4x4(&sceneCB.InverseViewProjectionMatrix, XMMatrixTranspose(XMMatrixInverse(nullptr, camera.GetViewMatrix() * camera.GetProjectionMatrix())));
+    XMStoreFloat4x4(&sceneCB.InverseTransposeViewProjectionMatrix, XMMatrixTranspose(XMMatrixTranspose(XMMatrixInverse(nullptr, camera.GetViewMatrix() * camera.GetProjectionMatrix()))));
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::RenderSceneList(GraphicsContext& renderContext, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix)
+void Renderer::RenderSceneList(GraphicsContext& renderContext)
 {
     for (int i = 0; i < TheRenderScene->GetRenderSceneList().size(); i++)
     {
@@ -373,7 +378,7 @@ void Renderer::RenderSceneList(GraphicsContext& renderContext, const XMMATRIX& v
         }
 
         SceneConstantBuffer matrices;
-        ComputeMatrices(TheRenderScene->GetRenderCamera(), TheRenderScene->GetRenderSceneList()[i]->WorldMatrix, viewMatrix, projectionMatrix, matrices);
+        SetupSceneConstantBuffer(TheRenderScene->GetRenderSceneList()[i]->WorldMatrix, matrices);
 
         const RealtimeEngine::Texture* defaultTexture = RealtimeEngine::TextureManager::LoadFromFile(DefaultTextureName);
         const RealtimeEngine::Texture* diffuseTex = (TheRenderScene->GetRenderSceneList()[i]->DiffuseTexture != nullptr) ? TheRenderScene->GetRenderSceneList()[i]->DiffuseTexture : defaultTexture;

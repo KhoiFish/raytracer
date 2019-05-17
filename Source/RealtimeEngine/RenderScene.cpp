@@ -338,7 +338,7 @@ void RenderScene::GenerateRenderListFromWorld(const Core::IHitable* currentHead,
             128.0f
         };
 
-        CreateSphere(newNode, radius, 32);
+        CreateSphere(newNode, radius, 16);
         newNode->WorldMatrix    = newMatrix;
         newNode->Material       = newMaterial;
         newNode->DiffuseTexture = defaultTexture;
@@ -634,7 +634,8 @@ void RenderScene::SetupForRaytracing()
     {
         // Allocate memory for transforms
         {
-            const uint32_t sizeOfOneTransform = sizeof(DirectX::XMMATRIX);
+            FLOAT          transform3x4[3][4];
+            const uint32_t sizeOfOneTransform = sizeof(transform3x4);
             uint32_t       bufferSize         = sizeOfOneTransform * (uint32_t)RenderSceneList.size();
 
             // Copy all matrix data to temporary buffer
@@ -642,7 +643,19 @@ void RenderScene::SetupForRaytracing()
             uint8_t* pRunner     = pTempBuffer;
             for (int i = 0; i < (int)RenderSceneList.size(); i++)
             {
-                memcpy(pRunner, &RenderSceneList[i]->WorldMatrix, sizeOfOneTransform);
+                // Write out hardware-accel matrix to a standard array
+                XMFLOAT4X4 temp;
+                XMStoreFloat4x4(&temp, RenderSceneList[i]->WorldMatrix);
+                for (int row = 0; row < 3; row++)
+                {
+                    for (int col = 0; col < 4; col++)
+                    {
+                        transform3x4[row][col] = temp.m[row][col];
+                    }
+                }
+
+                // Copy out transform data
+                memcpy(pRunner, transform3x4, sizeOfOneTransform);
                 pRunner += sizeOfOneTransform;
             }
 

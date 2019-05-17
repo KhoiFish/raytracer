@@ -28,7 +28,6 @@ struct PixelShaderInput
     float4 PositionVS : TEXCOORD0;
     float3 NormalVS   : TEXCOORD1;
     float2 TexCoord   : TEXCOORD2;
-    float4 SMCoord    : TEXCOORD3;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------

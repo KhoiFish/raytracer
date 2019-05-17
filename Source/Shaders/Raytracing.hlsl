@@ -18,19 +18,20 @@
 // ----------------------------------------------------------------------------------------------------------------------------
 
 #define HLSL
-//#include "../RealtimeEngine/RenderSceneVertex.h"
-//#include "../RealtimeEngine/RenderSceneShader.h"
-//#include "../RaytracingShader.h"
-//#include "RaytracingHelpers.hlsli"
+#include "../RealtimeEngine/RenderSceneVertex.h"
+#include "../RealtimeEngine/RenderSceneShader.h"
+#include "../RaytracingShader.h"
+#include "RaytracingHelpers.hlsli"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
 RWTexture2D<float4>                 gOutput  : register(u0);
-//RaytracingAccelerationStructure     gScene   : register(t0);
+RaytracingAccelerationStructure     gScene   : register(t0);
+ConstantBuffer<SceneConstantBuffer> gSceneCB : register(b0);
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-float3 linearToSrgb(float3 c)
+inline float3 linearToSrgb(float3 c)
 {
     // Based on http://chilliant.blogspot.com/2012/08/srgb-approximations-for-hlsl.html
     float3 sq1  = sqrt(c);
@@ -43,34 +44,56 @@ float3 linearToSrgb(float3 c)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+inline void generateCameraRay(uint2 index, out float3 origin, out float3 direction)
+{
+    // Center in the middle of the pixel
+    float2 xy        = index + 0.5;
+    float2 screenPos = xy / gSceneCB.OutputResolution * 2.0 - 1.0;
+
+    // Invert Y for DirectX-style coordinates
+    screenPos.y = -screenPos.y;
+
+    // Unproject into a ray
+    float4 unprojected = mul(float4(screenPos, 0, 1), gSceneCB.InverseTransposeViewProjectionMatrix);
+    float3 world       = unprojected.xyz / unprojected.w;
+
+    // We got our ray
+    origin    = gSceneCB.CameraPosition.xyz;
+    direction = normalize(world - origin);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 [shader("raygeneration")]
 void RayGenerationShader()
 {
     uint3 launchIndex = DispatchRaysIndex();
-    float3 col = linearToSrgb(float3(1, 0, 1));
+
+    RayDesc ray;
+    ray.TMin = 0;
+    ray.TMax = 100000;
+    generateCameraRay(launchIndex.xy, ray.Origin, ray.Direction);
+
+    RayPayload payload;
+    TraceRay(gScene, 0 /*rayFlags*/, 0xFF, 0 /* ray index*/, 0, 0, ray, payload);
+
+    float3 col = linearToSrgb(payload.Color);
     gOutput[launchIndex.xy] = float4(col, 1);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-struct Payload
-{
-    bool hit;
-};
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
 [shader("miss")]
-void MissShader(inout Payload payload)
+void MissShader(inout RayPayload payload)
 {
-    payload.hit = true;
+    payload.Color = float3(0.4, 0.6, 0.2);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
 [shader("closesthit")]
-void ClosestHitShader(inout Payload payload, in BuiltInTriangleIntersectionAttributes attr)
+void ClosestHitShader(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
 {
-    payload.hit = false;
+    payload.Color = float3(1, 0, 0);
 }
 

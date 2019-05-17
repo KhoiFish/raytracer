@@ -196,6 +196,22 @@ UINT DescriptorHeapStack::AllocateBufferSrvRaytracing(D3D12_GPU_VIRTUAL_ADDRESS 
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+UINT DescriptorHeapStack::AllocateBufferCbv(D3D12_GPU_VIRTUAL_ADDRESS location, UINT size)
+{
+    UINT                        descriptorHeapIndex;
+    D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
+    AllocateDescriptor(cpuHandle, descriptorHeapIndex);
+
+    D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
+    cbvDesc.BufferLocation = location;
+    cbvDesc.SizeInBytes    = size;
+    RenderDevice::Get().GetD3DDevice()->CreateConstantBufferView(&cbvDesc, cpuHandle);
+
+    return descriptorHeapIndex;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 UINT DescriptorHeapStack::AllocateBufferUav(ID3D12Resource & resource, D3D12_UAV_DIMENSION viewDimension, D3D12_BUFFER_UAV_FLAGS flags, DXGI_FORMAT format)
 {
     UINT                        descriptorHeapIndex;
@@ -218,4 +234,5 @@ D3D12_GPU_DESCRIPTOR_HANDLE DescriptorHeapStack::GetGpuHandle(UINT descriptorInd
 {
     return CD3DX12_GPU_DESCRIPTOR_HANDLE(DescriptorHeap->GetGPUDescriptorHandleForHeapStart(), descriptorIndex, DescriptorSize);
 }
+
 

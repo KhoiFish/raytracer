@@ -74,10 +74,11 @@ private:
     void                       Raytrace(bool enable);
     void                       OnResizeRaytracer();
     static void                OnRaytraceComplete(Core::Raytracer* tracer, bool actuallyFinished);
-    void                       RenderSceneList(GraphicsContext& renderContext, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix);
+    void                       RenderSceneList(GraphicsContext& renderContext);
     void                       RenderCPUResults();
     void                       RenderRealtimeResults();
     void                       ComputeRaytracingResults();
+    void                       SetupSceneConstantBuffer(const FXMMATRIX& model, SceneConstantBuffer& sceneCB);
 
 private:
 
@@ -161,10 +162,10 @@ private:
     GraphicsPSO                     RealtimeCompositePassPSO;
 
     RootSignature                   RaytracingGlobalRootSig;
-    RootSignature                   RaygenLocalRootSig;
-    RootSignature                   HitMissLocalRootSig;
-    RaytracingPSO                   RealtimeRaytracingPSO;
+    RootSignature                   RaytracingLocalRootSig;
+    RaytracingPSO                   TheRaytracingPSO;
     DescriptorHeapStack*            RaytracingDescriptorHeap;
+    ByteAddressBuffer               RaytracingSceneConstantBuffer;
 
     UserInputData                   UserInput;
 };

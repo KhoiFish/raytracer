@@ -24,7 +24,7 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-#define MAX_RAY_RECURSION_DEPTH  3
+#define MAX_RAY_RECURSION_DEPTH  1
 
 static const XMFLOAT4   ChromiumReflectance = XMFLOAT4(0.549f, 0.556f, 0.554f, 1.0f);
 static const XMFLOAT4   BackgroundColor     = XMFLOAT4(0.8f, 0.9f, 1.0f, 1.0f);
@@ -34,7 +34,7 @@ static const float      InShadowRadiance    = 0.35f;
 
 struct RayPayload
 {
-    UINT RecursionDepth;
+    XMFLOAT3 Color;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -77,32 +77,20 @@ namespace TraceRayParameters
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-struct PrimitiveConstantBuffer
+ALIGN_BEGIN(16)
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+struct RaytracingGlobalCB
 {
-    XMFLOAT4    Albedo;
-    float       ReflectanceCoef;
-    float       DiffuseCoef;
-    float       SpecularCoef;
-    float       SpecularPower;
-    float       StepScale;
+    XMMATRIX  CameraToWorld;
+    XMFLOAT3  WorldCameraPosition;
+    UINT      Padding;
+    XMFLOAT2  Resolution;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-struct PrimitiveInstanceConstantBuffer
-{
-    UINT        InstanceIndex;
-    UINT        PrimitiveType;
-};
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-struct PrimitiveInstancePerFrameBuffer
-{
-    XMMATRIX    LocalSpaceToBottomLevelAS;
-    XMMATRIX    BottomLevelASToLocalSpace;
-};
-
-// ----------------------------------------------------------------------------------------------------------------------------
+ALIGN_END
 
 #endif

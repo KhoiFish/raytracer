@@ -114,7 +114,7 @@ static XMMATRIX XM_CALLCONV LookAtMatrix(FXMVECTOR Position, FXMVECTOR Direction
     return M;
 }
 
-static void XM_CALLCONV ComputeMatrices(FXMMATRIX model, CXMMATRIX view, CXMMATRIX projection, RenderMatrices& mat)
+static void XM_CALLCONV SetupSceneConstantBuffer(FXMMATRIX model, CXMMATRIX view, CXMMATRIX projection, RenderMatrices& mat)
 {
     XMStoreFloat4x4(&mat.ModelMatrix, XMMatrixTranspose(model));
     XMStoreFloat4x4(&mat.ViewMatrix, XMMatrixTranspose(view));
@@ -732,7 +732,7 @@ void RaytracerWindows::RenderPreviewObjects(std::shared_ptr<CommandList>& comman
         }
 
         RenderMatrices matrices;
-        ComputeMatrices(RenderSceneList[i]->WorldMatrix, viewMatrix, projectionMatrix, matrices);
+        SetupSceneConstantBuffer(RenderSceneList[i]->WorldMatrix, viewMatrix, projectionMatrix, matrices);
 
         // Prepare shadowmap transform
         if (!shadowmapRender)

@@ -29,6 +29,7 @@ Texture2D     PositionsTexture       : register(t1);
 Texture2D     NormalsTexture         : register(t2);
 Texture2D     TexCoordsTexture       : register(t3);
 Texture2D     DiffuseTexture         : register(t4);
+Texture2D     AOTexture              : register(t5);
 SamplerState  LinearRepeatSampler    : register(s0);
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -36,6 +37,8 @@ SamplerState  LinearRepeatSampler    : register(s0);
 float4 main(PixelShaderInput IN) : SV_Target
 {
     float4 texColor = DiffuseTexture.Sample(LinearRepeatSampler, IN.TexCoord);
+    float4 ao       = AOTexture.Sample(LinearRepeatSampler, IN.TexCoord);
+    float4 finalCol = texColor * ao;
 
-    return texColor;
+    return finalCol;
 }

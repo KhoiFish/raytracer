@@ -76,7 +76,8 @@ private:
     static void                OnCpuRaytraceComplete(Core::Raytracer* tracer, bool actuallyFinished);
     void                       RenderSceneList(GraphicsContext& renderContext);
     void                       RenderCPUResults();
-    void                       RenderRealtimeResults();
+    void                       RenderGeometryPass();
+    void                       RenderCompositePass();
     void                       ComputeRaytracingResults();
     void                       SetupSceneConstantBuffer(const FXMMATRIX& model, SceneConstantBuffer& sceneCB);
 
@@ -144,6 +145,10 @@ private:
     Core::Raytracer*                TheRaytracer;
     Core::WorldScene*               TheWorldScene;
     RealtimeEngine::RenderScene*    TheRenderScene;
+    int                             FrameCount;
+    int                             MaxyRayRecursionDepth;
+    int                             NumRaysPerPixel;
+    float                           AORadius;
 
     DXGI_FORMAT                     BackbufferFormat;
     DXGI_FORMAT                     DeferredBuffersRTTypes[DeferredBufferType_Num];
@@ -153,7 +158,7 @@ private:
     ColorBuffer                     CPURaytracerTex;
     ColorBuffer                     DeferredBuffers[DeferredBufferType_Num];
     ColorBuffer                     ZPrePassBuffer;
-    ColorBuffer                     RaytracingOutputBuffer;
+    ColorBuffer                     AmbientOcclusionOutput;
 
     RootSignature                   FullscreenQuadRootSignature;
     GraphicsPSO                     FullscreenPipelineState;

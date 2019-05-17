@@ -29,9 +29,7 @@ namespace RaytracingGlobalRootSigSlot
 {
     enum EnumTypes
     {
-        OutputView = 0,
-        AccelerationStructure,
-        SceneConstant,
+        GlobalConstants,
 
         Num
     };
@@ -46,8 +44,6 @@ namespace RaytracingGlobalRootSigSlot
     static UINT Range[RaytracingGlobalRootSigSlot::Num][2] =
     {
         { 0, 1 },
-        { 0, 1 },
-        { 0, 1 },
     };
 }
 
@@ -57,6 +53,9 @@ namespace RaytracingLocalRootSigSlot
     {
         OutputView = 0,
         AccelerationStructure,
+        Depth,
+        Positions,
+        Normals,
         SceneCB,
 
         Num
@@ -73,6 +72,9 @@ namespace RaytracingLocalRootSigSlot
     {
         { 0, 1 },
         { 0, 1 },
+        { 1, 1 },
+        { 2, 1 },
+        { 3, 1 },
         { 0, 1 },
     };
 }
@@ -90,12 +92,12 @@ void Renderer::SetupRealtimeRaytracingPipeline()
     // Allocate descriptor heap
     RaytracingDescriptorHeap = new DescriptorHeapStack(64, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 0);
 
-    // Allocate the output buffer
-    RaytracingOutputBuffer.Destroy();
-    RaytracingOutputBuffer.CreateEx("Raytracing Buffer", Width, Height, 1, RaytracingBufferType, nullptr, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
+    // Allocate the output buffers
+    AmbientOcclusionOutput.Destroy();
+    AmbientOcclusionOutput.CreateEx("AO Buffer", Width, Height, 1, RaytracingBufferType, nullptr, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
 
     // Allocate scene constant buffer
-    RaytracingSceneConstantBuffer.Create(L"Scene Constant Buffer", 1, (uint32_t)AlignUp(sizeof(SceneConstantBuffer), 256));
+    RaytracingSceneConstantBuffer.Create(L"Raytracing Scene Globals Buffer", 1, (uint32_t)AlignUp(sizeof(RaytracingGlobalCB), 256));
 
     // Global root sig
     {
@@ -120,6 +122,24 @@ void Renderer::SetupRealtimeRaytracingPipeline()
                 RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::AccelerationStructure][RaytracingLocalRootSigSlot::Count],
                 D3D12_SHADER_VISIBILITY_ALL);
 
+            RaytracingLocalRootSig[RaytracingLocalRootSigSlot::Depth].InitAsDescriptorRange(
+                D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
+                RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::Depth][RaytracingLocalRootSigSlot::Register],
+                RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::Depth][RaytracingLocalRootSigSlot::Count],
+                D3D12_SHADER_VISIBILITY_ALL);
+
+            RaytracingLocalRootSig[RaytracingLocalRootSigSlot::Positions].InitAsDescriptorRange(
+                D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
+                RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::Positions][RaytracingLocalRootSigSlot::Register],
+                RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::Positions][RaytracingLocalRootSigSlot::Count],
+                D3D12_SHADER_VISIBILITY_ALL);
+
+            RaytracingLocalRootSig[RaytracingLocalRootSigSlot::Normals].InitAsDescriptorRange(
+                D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
+                RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::Normals][RaytracingLocalRootSigSlot::Register],
+                RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::Normals][RaytracingLocalRootSigSlot::Count],
+                D3D12_SHADER_VISIBILITY_ALL);
+
             RaytracingLocalRootSig[RaytracingLocalRootSigSlot::SceneCB].InitAsConstantBuffer(
                 RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::SceneCB][RaytracingLocalRootSigSlot::Register],
                 D3D12_SHADER_VISIBILITY_ALL);
@@ -128,7 +148,7 @@ void Renderer::SetupRealtimeRaytracingPipeline()
 
         // Allocate descriptor for output view
         RaytracingDescriptorHeap->AllocateBufferUav(
-            *RaytracingOutputBuffer.GetResource(),
+            *AmbientOcclusionOutput.GetResource(),
             D3D12_UAV_DIMENSION_TEXTURE2D,
             D3D12_BUFFER_UAV_FLAG_NONE,
             DXGI_FORMAT_R8G8B8A8_UNORM);
@@ -139,6 +159,24 @@ void Renderer::SetupRealtimeRaytracingPipeline()
             D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE,
             D3D12_BUFFER_SRV_FLAG_NONE,
             DXGI_FORMAT_UNKNOWN,
+            D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
+
+        // Depth
+        RaytracingDescriptorHeap->AllocateTexture2DSrv(
+            ZPrePassBuffer.GetResource(),
+            ZBufferRTType,
+            D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
+
+        // Positions
+        RaytracingDescriptorHeap->AllocateTexture2DSrv(
+            DeferredBuffers[DeferredBufferType_Position].GetResource(),
+            DeferredBuffersRTTypes[DeferredBufferType_Position],
+            D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
+
+        // Normals
+        RaytracingDescriptorHeap->AllocateTexture2DSrv(
+            DeferredBuffers[DeferredBufferType_Normal].GetResource(),
+            DeferredBuffersRTTypes[DeferredBufferType_Normal],
             D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
 
         // Allocator descriptor for scene constants
@@ -172,14 +210,24 @@ void Renderer::SetupRealtimeRaytracingPipeline()
             uint8_t* pTempBuffer = new uint8_t[256];
             uint32_t numBytes = 0;
             {
-                UINT64                      offsetToOutputViewDescriptor  = RaytracingDescriptorHeap->GetGpuHandle(0).ptr;
-                UINT64                      offsetToAccelStructDescriptor = RaytracingDescriptorHeap->GetGpuHandle(1).ptr;
-                D3D12_GPU_VIRTUAL_ADDRESS   cbVA                          = RaytracingSceneConstantBuffer.GetGpuVirtualAddress();
+                UINT64 descriptorOffsets[] =
+                {
+                    RaytracingDescriptorHeap->GetGpuHandle(0).ptr,
+                    RaytracingDescriptorHeap->GetGpuHandle(1).ptr,
+                    RaytracingDescriptorHeap->GetGpuHandle(2).ptr,
+                    RaytracingDescriptorHeap->GetGpuHandle(3).ptr,
+                    RaytracingDescriptorHeap->GetGpuHandle(4).ptr,
+                };
 
-                memcpy(pTempBuffer + numBytes, &offsetToOutputViewDescriptor, sizeof(offsetToOutputViewDescriptor));
-                numBytes += sizeof(offsetToOutputViewDescriptor);
-                memcpy(pTempBuffer + numBytes, &offsetToAccelStructDescriptor, sizeof(offsetToAccelStructDescriptor));
-                numBytes += sizeof(offsetToAccelStructDescriptor);
+                // Copy scene descriptor addresses
+                for (int i = 0; i < ArraySize(descriptorOffsets); i++)
+                {
+                    memcpy(pTempBuffer + numBytes, &descriptorOffsets[i], sizeof(descriptorOffsets[i]));
+                    numBytes += sizeof(descriptorOffsets[i]);
+                }
+        
+                // Copy scene constants address
+                D3D12_GPU_VIRTUAL_ADDRESS cbVA = RaytracingSceneConstantBuffer.GetGpuVirtualAddress();
                 memcpy(pTempBuffer + numBytes, &cbVA, sizeof(cbVA));
                 numBytes += sizeof(cbVA);
             }
@@ -207,7 +255,7 @@ void Renderer::SetupRealtimeRaytracingPipeline()
         TheRaytracingPSO.AddExportAssociationWithShaderConfig(sDxilLibEntryPoints, ArraySize(sDxilLibEntryPoints));
 
         // Pipeline config
-        TheRaytracingPSO.SetPipelineConfig(MAX_RAY_RECURSION_DEPTH);
+        TheRaytracingPSO.SetPipelineConfig(MaxyRayRecursionDepth);
 
         // Set shader names for the shader tables
         TheRaytracingPSO.GetRaygenShaderTable().SetShaderName(sRaygenShaderName);
@@ -228,10 +276,14 @@ void Renderer::ComputeRaytracingResults()
         // Update scene constants buffer
         {
             // Get updated scene constants
-            DirectX::XMMATRIX   worldMat = XMMatrixIdentity();
-            SceneConstantBuffer sceneCB;
-            SetupSceneConstantBuffer(worldMat, sceneCB);
-
+            RaytracingGlobalCB sceneCB;
+            XMStoreFloat4(&sceneCB.CameraPosition, TheRenderScene->GetRenderCamera().GetEye());
+            XMStoreFloat4x4(&sceneCB.InverseTransposeViewProjectionMatrix, XMMatrixInverse(nullptr, TheRenderScene->GetRenderCamera().GetViewMatrix() * TheRenderScene->GetRenderCamera().GetProjectionMatrix()));
+            sceneCB.OutputResolution = DirectX::XMFLOAT2((float)Width, (float)Height);
+            sceneCB.AORadius         = AORadius;
+            sceneCB.FrameCount       = FrameCount;
+            sceneCB.NumRays          = NumRaysPerPixel;
+            
             // Update GPU buffer
             computeContext.WriteBuffer(RaytracingSceneConstantBuffer, 0, &sceneCB, sizeof(sceneCB));
             computeContext.TransitionResource(RaytracingSceneConstantBuffer, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
@@ -241,7 +293,7 @@ void Renderer::ComputeRaytracingResults()
         computeContext.SetRootSignature(RaytracingGlobalRootSig);
         computeContext.SetPipelineState(TheRaytracingPSO);
         computeContext.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, &RaytracingDescriptorHeap->GetDescriptorHeap());
-        computeContext.InsertUAVBarrier(RaytracingOutputBuffer, true);
+        computeContext.InsertUAVBarrier(AmbientOcclusionOutput, true);
         computeContext.DispatchRays(TheRaytracingPSO, Width, Height);
     }
     computeContext.Finish(true);

@@ -158,7 +158,25 @@ void DescriptorHeapStack::AllocateDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE& cpuHan
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-UINT DescriptorHeapStack::AllocateBufferSrv(ID3D12Resource& resource, D3D12_SRV_DIMENSION viewDimension, D3D12_BUFFER_SRV_FLAGS flags, DXGI_FORMAT format, UINT shader4ComponentMapping)
+UINT RealtimeEngine::DescriptorHeapStack::AllocateTexture2DSrv(ID3D12Resource* resource, DXGI_FORMAT format, UINT shader4ComponentMapping)
+{
+    UINT                        descriptorHeapIndex;
+    D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
+    AllocateDescriptor(cpuHandle, descriptorHeapIndex);
+
+    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    srvDesc.ViewDimension           = D3D12_SRV_DIMENSION_TEXTURE2D;
+    srvDesc.Texture2D.MipLevels     = 1;
+    srvDesc.Format                  = format;
+    srvDesc.Shader4ComponentMapping = shader4ComponentMapping;
+    RenderDevice::Get().GetD3DDevice()->CreateShaderResourceView(resource, &srvDesc, cpuHandle);
+
+    return descriptorHeapIndex;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+UINT DescriptorHeapStack::AllocateBufferSrv(ID3D12Resource* resource, D3D12_SRV_DIMENSION viewDimension, D3D12_BUFFER_SRV_FLAGS flags, DXGI_FORMAT format, UINT shader4ComponentMapping)
 {
     UINT                        descriptorHeapIndex;
     D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
@@ -166,11 +184,11 @@ UINT DescriptorHeapStack::AllocateBufferSrv(ID3D12Resource& resource, D3D12_SRV_
 
     D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
     srvDesc.ViewDimension           = viewDimension;
-    srvDesc.Buffer.NumElements      = (UINT)(resource.GetDesc().Width / sizeof(UINT32));
+    srvDesc.Buffer.NumElements      = (UINT)(resource->GetDesc().Width / sizeof(UINT32));
     srvDesc.Buffer.Flags            = flags;
     srvDesc.Format                  = format;
     srvDesc.Shader4ComponentMapping = shader4ComponentMapping;
-    RenderDevice::Get().GetD3DDevice()->CreateShaderResourceView(&resource, &srvDesc, cpuHandle);
+    RenderDevice::Get().GetD3DDevice()->CreateShaderResourceView(resource, &srvDesc, cpuHandle);
 
     return descriptorHeapIndex;
 }

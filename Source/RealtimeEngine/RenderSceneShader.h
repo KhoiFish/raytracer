@@ -39,7 +39,6 @@ struct SceneConstantBuffer
     XMFLOAT4X4  InverseTransposeModelViewMatrix;
     XMFLOAT4X4  InverseViewProjectionMatrix;
     XMFLOAT4X4  InverseTransposeViewProjectionMatrix;
-    XMFLOAT2    OutputResolution;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------

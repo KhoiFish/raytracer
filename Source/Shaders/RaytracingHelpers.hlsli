@@ -118,27 +118,6 @@ float3 HitAttribute(float3 vertexAttribute[3], float2 barycentrics)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline Ray GenerateCameraRay(uint2 index, in float3 cameraPosition, in float4x4 projectionToWorld)
-{
-    float2 xy = index + 0.5f; // center in the middle of the pixel.
-    float2 screenPos = xy / DispatchRaysDimensions().xy * 2.0 - 1.0;
-
-    // Invert Y for DirectX-style coordinates.
-    screenPos.y = -screenPos.y;
-
-    // Unproject the pixel coordinate into a world positon.
-    float4 world = mul(float4(screenPos, 0, 1), projectionToWorld);
-    world.xyz /= world.w;
-
-    Ray ray;
-    ray.origin = cameraPosition;
-    ray.direction = normalize(world.xyz - ray.origin);
-
-    return ray;
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
 bool IsCulled(in Ray ray, in float3 hitSurfaceNormal)
 {
     float rayDirectionNormalDot = dot(ray.direction, hitSurfaceNormal);
@@ -163,23 +142,6 @@ bool IsAValidHit(in Ray ray, in float thit, in float3 hitSurfaceNormal)
 float2 TexCoords(in float3 position)
 {
     return position.xz;
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-void CalculateRayDifferentials(out float2 ddx_uv, out float2 ddy_uv, in float2 uv, in float3 hitPosition, in float3 surfaceNormal, in float3 cameraPosition, in float4x4 projectionToWorld)
-{
-    // Compute ray differentials by intersecting the tangent plane to the  surface.
-    Ray ddx = GenerateCameraRay(DispatchRaysIndex().xy + uint2(1, 0), cameraPosition, projectionToWorld);
-    Ray ddy = GenerateCameraRay(DispatchRaysIndex().xy + uint2(0, 1), cameraPosition, projectionToWorld);
-
-    // Compute ray differentials.
-    float3 ddx_pos = ddx.origin - ddx.direction * dot(ddx.origin - hitPosition, surfaceNormal) / dot(ddx.direction, surfaceNormal);
-    float3 ddy_pos = ddy.origin - ddy.direction * dot(ddy.origin - hitPosition, surfaceNormal) / dot(ddy.direction, surfaceNormal);
-
-    // Calculate texture sampling footprint.
-    ddx_uv = TexCoords(ddx_pos) - uv;
-    ddy_uv = TexCoords(ddy_pos) - uv;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -239,3 +201,53 @@ float4 CalculatePhongLighting(in float4 albedo, in float3 normal, in bool isInSh
 
     return ambientColor + diffuseColor + specularColor;
 }
+
+// Generates a seed for a random number generator from 2 inputs plus a backoff
+uint initRand(uint val0, uint val1, uint backoff = 16)
+{
+    uint v0 = val0, v1 = val1, s0 = 0;
+
+    [unroll]
+    for (uint n = 0; n < backoff; n++)
+    {
+        s0 += 0x9e3779b9;
+        v0 += ((v1 << 4) + 0xa341316c) ^ (v1 + s0) ^ ((v1 >> 5) + 0xc8013ea4);
+        v1 += ((v0 << 4) + 0xad90777d) ^ (v0 + s0) ^ ((v0 >> 5) + 0x7e95761e);
+    }
+    return v0;
+}
+
+// Takes our seed, updates it, and returns a pseudorandom float in [0..1]
+float nextRand(inout uint s)
+{
+    s = (1664525u * s + 1013904223u);
+    return float(s & 0x00FFFFFF) / float(0x01000000);
+}
+
+// Utility function to get a vector perpendicular to an input vector 
+//    (from "Efficient Construction of Perpendicular Vectors Without Branching")
+float3 getPerpendicularVector(float3 u)
+{
+    float3 a = abs(u);
+    uint xm = ((a.x - a.y) < 0 && (a.x - a.z) < 0) ? 1 : 0;
+    uint ym = (a.y - a.z) < 0 ? (1 ^ xm) : 0;
+    uint zm = 1 ^ (xm | ym);
+    return cross(u, float3(xm, ym, zm));
+}
+
+// Get a cosine-weighted random vector centered around a specified normal direction.
+float3 getCosHemisphereSample(inout uint randSeed, float3 hitNorm)
+{
+    // Get 2 random numbers to select our sample with
+    float2 randVal = float2(nextRand(randSeed), nextRand(randSeed));
+
+    // Cosine weighted hemisphere sample from RNG
+    float3 bitangent = getPerpendicularVector(hitNorm);
+    float3 tangent = cross(bitangent, hitNorm);
+    float r = sqrt(randVal.x);
+    float phi = 2.0f * 3.14159265f * randVal.y;
+
+    // Get our cosine-weighted hemisphere lobe sample direction
+    return tangent * (r * cos(phi).x) + bitangent * (r * sin(phi)) + hitNorm.xyz * sqrt(1 - randVal.x);
+}
+

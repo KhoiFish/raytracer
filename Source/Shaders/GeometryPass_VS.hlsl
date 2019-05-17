@@ -31,8 +31,8 @@ struct VertexPositionNormalTexture
 
 struct VertexShaderOutput
 {
-    float4 PositionVS : TEXCOORD0;
-    float3 NormalVS   : TEXCOORD1;
+    float4 PositionWS : TEXCOORD0;
+    float3 NormalWS   : TEXCOORD1;
     float2 TexCoord   : TEXCOORD2;
     float4 Position   : SV_Position;
 };
@@ -50,8 +50,8 @@ VertexShaderOutput main(VertexPositionNormalTexture IN)
     float4 worldPos = mul(float4(IN.Position, 1.0f), MatricesCB.ModelMatrix);
 
     OUT.Position   = mul(float4(IN.Position, 1.0f), MatricesCB.ModelViewProjectionMatrix);
-    OUT.PositionVS = mul(float4(IN.Position, 1.0f), MatricesCB.ModelViewMatrix);
-    OUT.NormalVS   = mul(IN.Normal, (float3x3)MatricesCB.InverseTransposeModelViewMatrix);
+    OUT.PositionWS = mul(float4(IN.Position, 1.0f), MatricesCB.ModelMatrix);
+    OUT.NormalWS   = mul(IN.Normal, (float3x3)MatricesCB.ModelMatrix);
     OUT.TexCoord   = IN.TexCoord;
 
     return OUT;

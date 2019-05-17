@@ -17,6 +17,8 @@
 // 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+#include "RaytracingShader.h"
+
 enum RealtimeRenderingRootIndex
 {
     RealtimeRenderingRootIndex_ConstantBuffer0 = 0,
@@ -26,6 +28,7 @@ enum RealtimeRenderingRootIndex
     RealtimeRenderingRootIndex_Texture2,
     RealtimeRenderingRootIndex_Texture3,
     RealtimeRenderingRootIndex_Texture4,
+    RealtimeRenderingRootIndex_Texture5,
 
     RealtimeRenderingRootIndex_Num
 };
@@ -39,6 +42,7 @@ enum RealtimeRenderingRegisters
     RealtimeRenderingRegisters_Texture2         = 2,
     RealtimeRenderingRegisters_Texture3         = 3,
     RealtimeRenderingRegisters_Texture4         = 4,
+    RealtimeRenderingRegisters_Texture5         = 5,
     RealtimeRenderingRegisters_LinearSampler    = 0,
     RealtimeRenderingRegisters_AnisoSampler     = 1,
 };
@@ -88,6 +92,7 @@ void Renderer::SetupRealtimePipeline()
         RealtimeRootSignature[RealtimeRenderingRootIndex_Texture2].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RealtimeRenderingRegisters_Texture2, 1);
         RealtimeRootSignature[RealtimeRenderingRootIndex_Texture3].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RealtimeRenderingRegisters_Texture3, 1);
         RealtimeRootSignature[RealtimeRenderingRootIndex_Texture4].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RealtimeRenderingRegisters_Texture4, 1);
+        RealtimeRootSignature[RealtimeRenderingRootIndex_Texture5].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RealtimeRenderingRegisters_Texture5, 1);
         RealtimeRootSignature.InitStaticSampler(RealtimeRenderingRegisters_LinearSampler, linearSamplerDesc, D3D12_SHADER_VISIBILITY_PIXEL);
         RealtimeRootSignature.InitStaticSampler(RealtimeRenderingRegisters_AnisoSampler, anisoSamplerDesc, D3D12_SHADER_VISIBILITY_PIXEL);
         RealtimeRootSignature.Finalize("RealtimeRender", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
@@ -266,11 +271,10 @@ void Renderer::SetupRealtimePipeline()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::RenderRealtimeResults()
+void Renderer::RenderGeometryPass()
 {
     GraphicsContext& renderContext = GraphicsContext::Begin("RenderRealtimeResults");
     {
-#if 0
         renderContext.SetRootSignature(RealtimeRootSignature);
         renderContext.SetViewport(RenderDevice::Get().GetScreenViewport());
         renderContext.SetScissor(RenderDevice::Get().GetScissorRect());
@@ -315,6 +319,19 @@ void Renderer::RenderRealtimeResults()
 
             RenderSceneList(renderContext);
         }
+    }
+    renderContext.Finish();
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void Renderer::RenderCompositePass()
+{
+    GraphicsContext& renderContext = GraphicsContext::Begin("RenderCompositePass");
+    {
+        renderContext.SetRootSignature(RealtimeRootSignature);
+        renderContext.SetViewport(RenderDevice::Get().GetScreenViewport());
+        renderContext.SetScissor(RenderDevice::Get().GetScissorRect());
 
         // Composite pass
         {
@@ -331,15 +348,11 @@ void Renderer::RenderRealtimeResults()
                 renderContext.SetDynamicDescriptor(RealtimeRenderingRootIndex_Texture1 + i, 0, DeferredBuffers[i].GetSRV());
             }
 
+            renderContext.SetDynamicDescriptor(RealtimeRenderingRootIndex_Texture5, 0, AmbientOcclusionOutput.GetSRV());
+
             renderContext.SetNullVertexBuffer(0);
             renderContext.SetNullIndexBuffer();
             renderContext.Draw(3);
-        }
-#endif
-
-        // Temporary for testing: copy contents of raytracing results directly to the render target
-        {
-            renderContext.CopyBuffer(RenderDevice::Get().GetRenderTarget(), RaytracingOutputBuffer);
         }
     }
     renderContext.Finish();
@@ -350,8 +363,6 @@ void Renderer::RenderRealtimeResults()
 void Renderer::SetupSceneConstantBuffer(const FXMMATRIX& model, SceneConstantBuffer& sceneCB)
 {
     RenderCamera& camera = TheRenderScene->GetRenderCamera();
-
-    sceneCB.OutputResolution = DirectX::XMFLOAT2((float)Width, (float)Height);
 
     XMStoreFloat4(&sceneCB.CameraPosition, camera.GetEye());
     XMStoreFloat4x4(&sceneCB.ModelMatrix, XMMatrixTranspose(model));

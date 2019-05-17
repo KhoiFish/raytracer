@@ -25,22 +25,12 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-RWTexture2D<float4>                 gOutput  : register(u0);
-RaytracingAccelerationStructure     gScene   : register(t0);
-ConstantBuffer<SceneConstantBuffer> gSceneCB : register(b0);
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-inline float3 linearToSrgb(float3 c)
-{
-    // Based on http://chilliant.blogspot.com/2012/08/srgb-approximations-for-hlsl.html
-    float3 sq1  = sqrt(c);
-    float3 sq2  = sqrt(sq1);
-    float3 sq3  = sqrt(sq2);
-    float3 srgb = 0.662002687 * sq1 + 0.684122060 * sq2 - 0.323583601 * sq3 - 0.0225411470 * c;
-
-    return srgb;
-}
+RWTexture2D<float4>                 gOutput     : register(u0);
+RaytracingAccelerationStructure     gScene      : register(t0);
+Texture2D<float>                    gDepth      : register(t1);
+Texture2D<float4>                   gPositions  : register(t2);
+Texture2D<float4>                   gNormals    : register(t3);
+ConstantBuffer<RaytracingGlobalCB>  gSceneCB    : register(b0);
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -64,21 +54,70 @@ inline void generateCameraRay(uint2 index, out float3 origin, out float3 directi
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+inline float3 getWorldPositionFromDepth(uint3 dispatchRaysIndex)
+{
+    float2 xy           = dispatchRaysIndex.xy + 0.5;
+    float2 screenPos    = (xy / gSceneCB.OutputResolution * 2.0 - 1.0) * float2(1, -1);
+    float  sceneDepth   = gDepth.Load(int3(xy, 0));
+    float4 unprojected  = mul(float4(screenPos, sceneDepth, 1), gSceneCB.InverseTransposeViewProjectionMatrix);
+    float3 world        = unprojected.xyz / unprojected.w;
+
+    return world;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+inline float shootAmbientOcclusionRay(float3 orig, float3 dir, float minT, float maxT)
+{
+    RayPayload rayPayload = { 0.0f };
+
+    RayDesc rayAO;
+    rayAO.Origin    = orig;
+    rayAO.Direction = dir;
+    rayAO.TMin      = minT;
+    rayAO.TMax      = maxT;
+
+    // Trace our ray.  Ray stops after it's first definite hit; never execute closest hit shader
+    TraceRay
+    (
+        gScene,
+        RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER, 0xFF, 
+        0, 0, 0, 
+        rayAO, rayPayload
+    );
+
+    return rayPayload.AOValue;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 [shader("raygeneration")]
 void RayGenerationShader()
 {
-    uint3 launchIndex = DispatchRaysIndex();
+    int     numRays     = gSceneCB.NumRays;
+    uint3   launchIndex = DispatchRaysIndex();
+    uint3   launchDim   = DispatchRaysDimensions();
+    uint    randSeed    = initRand(launchIndex.x + launchIndex.y * launchDim.x, gSceneCB.FrameCount, 16);
+    float3  worldPos    = gPositions[launchIndex.xy].xyz;
+    float3  worldNorm   = gNormals[launchIndex.xy].xyz;
+    float   ao          = float(numRays);
+    float   aoRadius    = gSceneCB.AORadius;
+    float   minT        = 0.01f;
+    
+    // Accumulate AO
+    ao = 0.0f;
+    for (int i = 0; i < numRays; i++)
+    {
+        // Sample cosine-weighted hemisphere around surface normal to pick a random ray direction
+        float3 worldDir = getCosHemisphereSample(randSeed, worldNorm);
 
-    RayDesc ray;
-    ray.TMin = 0;
-    ray.TMax = 100000;
-    generateCameraRay(launchIndex.xy, ray.Origin, ray.Direction);
+        // Shoot our ambient occlusion ray and update the value we'll output with the result
+        ao += shootAmbientOcclusionRay(worldPos.xyz, worldDir, minT, aoRadius);
+    }
 
-    RayPayload payload;
-    TraceRay(gScene, 0 /*rayFlags*/, 0xFF, 0 /* ray index*/, 0, 0, ray, payload);
-
-    float3 col = linearToSrgb(payload.Color);
-    gOutput[launchIndex.xy] = float4(col, 1);
+    // Save out our AO color
+    float aoColor = ao / float(numRays);
+    gOutput[launchIndex.xy] = float4(aoColor, aoColor, aoColor, 1.0f);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -86,7 +125,8 @@ void RayGenerationShader()
 [shader("miss")]
 void MissShader(inout RayPayload payload)
 {
-    payload.Color = float3(0.4, 0.6, 0.2);
+    // Our ambient occlusion value is 1 if we hit nothing.
+    payload.AOValue = 1.0f;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -94,6 +134,6 @@ void MissShader(inout RayPayload payload)
 [shader("closesthit")]
 void ClosestHitShader(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
 {
-    payload.Color = float3(1, 0, 0);
+    //IgnoreHit();
 }
 

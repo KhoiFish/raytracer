@@ -50,6 +50,10 @@ Renderer::Renderer(uint32_t width, uint32_t height)
     , TheRaytracer(nullptr)
     , TheWorldScene(nullptr)
     , TheRenderScene(nullptr)
+    , FrameCount(0)
+    , MaxyRayRecursionDepth(1)
+    , NumRaysPerPixel(5)
+    , AORadius(100.0f)
 {
     BackbufferFormat                                    = DXGI_FORMAT_R8G8B8A8_UNORM;
     RaytracingBufferType                                = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -282,8 +286,9 @@ void Renderer::OnRender()
         break;
 
     case RenderingMode_Realtime:
+        RenderGeometryPass();
         ComputeRaytracingResults();
-        RenderRealtimeResults();
+        RenderCompositePass();
         break;
 
     default:
@@ -292,4 +297,5 @@ void Renderer::OnRender()
 
     // Present
     RenderDevice::Get().Present();
+    FrameCount++;
 }

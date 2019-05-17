@@ -80,38 +80,4 @@ namespace RealtimeEngine
         D3D12_GPU_VIRTUAL_ADDRESS                GpuVirtualAddress;
         void*                                    UserAllocatedMemory;
     };
-
-    // ----------------------------------------------------------------------------------------------------------------------------
-
-    struct EmulatedGPUPointer
-    {
-        UINT32 OffsetInBytes;
-        UINT32 DescriptorHeapIndex;
-    };
-
-    // ----------------------------------------------------------------------------------------------------------------------------
-
-    struct WrappedGPUPointer
-    {
-        union
-        {
-            EmulatedGPUPointer        EmulatedGpuPtr;
-            D3D12_GPU_VIRTUAL_ADDRESS GpuVA;
-        };
-
-        WrappedGPUPointer operator+(UINT64 offset)
-        {
-            WrappedGPUPointer pointer = *this;
-            pointer.GpuVA += offset;
-            return pointer;
-        }
-
-        static WrappedGPUPointer FromGpuVA(D3D12_GPU_VIRTUAL_ADDRESS gpuVA)
-        {
-            WrappedGPUPointer pointer;
-            pointer.GpuVA = gpuVA;
-
-            return pointer;
-        }
-    };
 }

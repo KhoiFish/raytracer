@@ -135,7 +135,7 @@ void Renderer::SetupRealtimeRaytracingPipeline()
 
         // Allocate descriptor for acceleration structures
         RaytracingDescriptorHeap->AllocateBufferSrvRaytracing(
-            TheRenderScene->GetTopLevelAccelerationStructurePointer().GpuVA,
+            TheRenderScene->GetTLASVirtualAddress(),
             D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE,
             D3D12_BUFFER_SRV_FLAG_NONE,
             DXGI_FORMAT_UNKNOWN,

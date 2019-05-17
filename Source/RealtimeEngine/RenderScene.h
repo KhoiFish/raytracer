@@ -88,7 +88,7 @@ namespace RealtimeEngine
         void                            UpdateCamera(float newVertFov, float forwardAmount, float strafeAmount, float upDownAmount, int mouseDx, int mouseDy, Core::Camera& worldCamera);
         std::vector<RenderSceneNode*>&  GetRenderSceneList();
         RenderCamera&                   GetRenderCamera();
-        WrappedGPUPointer&              GetTopLevelAccelerationStructurePointer() { return TLASPointer; }
+        D3D12_GPU_VIRTUAL_ADDRESS       GetTLASVirtualAddress() { return TLASBuffer->GetGpuVirtualAddress(); }
 
     private:
 
@@ -105,7 +105,6 @@ namespace RealtimeEngine
 
         GpuBuffer*                      TLASBuffer;
         std::vector<GpuBuffer*>         BLASBuffers;
-        WrappedGPUPointer               TLASPointer;
         GpuBuffer*                      ScratchBuffer;
         ByteAddressBuffer               InstanceDataBuffer;
     };

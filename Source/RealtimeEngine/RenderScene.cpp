@@ -728,8 +728,6 @@ void RenderScene::SetupForRaytracing()
             pCommandList->ResourceBarrier(1, &uavBarrier);
         }
         pCommandList->BuildRaytracingAccelerationStructure(&tlasDesc, 0, nullptr);
-
-        TLASPointer = WrappedGPUPointer::FromGpuVA(TLASBuffer->GetGpuVirtualAddress());
     }
     context.Finish(true);
 }

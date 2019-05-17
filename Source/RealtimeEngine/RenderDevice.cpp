@@ -305,7 +305,7 @@ void RenderDevice::CreateWindowSizeDependentResources()
     // Determine the render target size in pixels.
     uint32_t     backBufferWidth  = GetBackbufferWidth();
     uint32_t     backBufferHeight = GetBackbufferHeight();
-    DXGI_FORMAT  backBufferFormat = NoSRGB(GetBackBufferFormat());
+    DXGI_FORMAT  backBufferFormat = GetBackBufferFormat();
 
     // If the swap chain already exists, resize it, otherwise create one.
     bool handleDeviceLost = false;

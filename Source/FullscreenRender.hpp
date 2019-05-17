@@ -129,7 +129,6 @@ void Renderer::RenderCPUResults()
         renderContext.TransitionResource(RenderDevice::Get().GetRenderTarget(), D3D12_RESOURCE_STATE_RENDER_TARGET, true);
         renderContext.TransitionResource(RenderDevice::Get().GetDepthStencil(), D3D12_RESOURCE_STATE_DEPTH_READ, true);
         renderContext.SetRenderTarget(RenderDevice::Get().GetRenderTarget().GetRTV(), RenderDevice::Get().GetDepthStencil().GetDSV());
-        renderContext.ClearColor(RenderDevice::Get().GetRenderTarget());
 
         if (TheRaytracer != nullptr)
         {

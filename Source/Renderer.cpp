@@ -106,7 +106,7 @@ void Renderer::OnInit()
     sNumThreads = sysInfo.dwNumberOfProcessors;
 
     // Init the render device
-    RenderDevice::Initialize(PlatformApp::GetHwnd(), Width, Height, this, DXGI_FORMAT_R8G8B8A8_UNORM_SRGB);
+    RenderDevice::Initialize(PlatformApp::GetHwnd(), Width, Height, this, DXGI_FORMAT_R8G8B8A8_UNORM);
 
     // Setup render pipelines
     SetupRenderBuffers();

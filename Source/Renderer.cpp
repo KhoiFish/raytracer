@@ -57,6 +57,9 @@ Renderer::Renderer(uint32_t width, uint32_t height)
     DeferredBuffersRTTypes[DeferredBufferType_Diffuse]  = DXGI_FORMAT_R32G32B32A32_FLOAT;
     RaytracingBufferType                                = DXGI_FORMAT_R8G8B8A8_UNORM;
     ZBufferRTType                                       = DXGI_FORMAT_R32_FLOAT;
+
+    // Non-zero so we update cameras at least once on startup
+    UserInput.InputDirty = true;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -216,33 +219,23 @@ void Renderer::OnDestroy()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::Raytrace(bool enable)
+void Renderer::ToggleCpuRaytracer()
 {
-    if (TheRaytracer)
+    if (TheRaytracer != nullptr)
     {
         delete TheRaytracer;
         TheRaytracer = nullptr;
     }
-
-    if (enable)
-    {
-        if (!TheRaytracer)
-        {
-            OnResizeRaytracer();
-        }
-
-        RenderMode = RenderingMode_Cpu;
-        TheRaytracer->BeginRaytrace(TheWorldScene, OnRaytraceComplete);
-    }
     else
     {
-        RenderMode = RenderingMode_Realtime;
+        OnResizeRaytracer();
+        RenderMode = RenderingMode_Cpu;
     }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::OnRaytraceComplete(Raytracer* tracer, bool actuallyFinished)
+void Renderer::OnCpuRaytraceComplete(Raytracer* tracer, bool actuallyFinished)
 {
     if (actuallyFinished)
     {
@@ -259,9 +252,21 @@ void Renderer::OnUpdate(float dtSeconds)
     float strafeAmount   = (UserInput.Left    - UserInput.Right)    * scale;
     float upDownAmount   = (UserInput.Up      - UserInput.Down)     * scale;
 
-    TheRenderScene->UpdateCamera(sVertFov, forwardAmount, strafeAmount, upDownAmount, UserInput.MouseDx, UserInput.MouseDy, TheWorldScene->GetCamera());
-    UserInput.MouseDx = 0;
-    UserInput.MouseDy = 0;
+    // Camera needs update
+    if (UserInput.InputDirty || !CompareFloatEqual(forwardAmount, 0) || !CompareFloatEqual(strafeAmount, 0) || !CompareFloatEqual(upDownAmount, 0))
+    {
+        TheRenderScene->UpdateCamera(sVertFov, forwardAmount, strafeAmount, upDownAmount, UserInput.MouseDx, UserInput.MouseDy, TheWorldScene->GetCamera());
+        UserInput.MouseDx = 0;
+        UserInput.MouseDy = 0;
+
+        // Restart raytrace
+        if (TheRaytracer != nullptr)
+        {
+            TheRaytracer->BeginRaytrace(TheWorldScene, OnCpuRaytraceComplete);
+        }
+
+        UserInput.InputDirty = false;
+    }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

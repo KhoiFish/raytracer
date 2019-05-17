@@ -79,7 +79,7 @@ constexpr inline const T& Clamp(const T& val, const T& min, const T& max)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline float CompareFloatEqual(float a, float b, float relTol = 0.0000001f, float absTol = 0.0000001f)
+inline bool CompareFloatEqual(float a, float b, float relTol = 0.0000001f, float absTol = 0.0000001f)
 {
     return (fabs(a - b) <= GetMax<float>(absTol, relTol * GetMax<float>(fabs(a), fabs(b))));
 }

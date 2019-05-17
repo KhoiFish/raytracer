@@ -71,9 +71,9 @@ private:
     void                       SetupRealtimePipeline();
     void                       SetupRenderBuffers();
     void                       LoadScene();
-    void                       Raytrace(bool enable);
     void                       OnResizeRaytracer();
-    static void                OnRaytraceComplete(Core::Raytracer* tracer, bool actuallyFinished);
+    void                       ToggleCpuRaytracer();
+    static void                OnCpuRaytraceComplete(Core::Raytracer* tracer, bool actuallyFinished);
     void                       RenderSceneList(GraphicsContext& renderContext);
     void                       RenderCPUResults();
     void                       RenderRealtimeResults();
@@ -135,6 +135,7 @@ private:
         int     MouseDy;
         bool    LeftMouseButtonPressed;
         bool    ShiftKeyPressed;
+        bool    InputDirty;
     };
 
 private:

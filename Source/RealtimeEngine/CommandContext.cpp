@@ -81,7 +81,6 @@ void ContextManager::FreeContext(CommandContext* usedContext)
 void CommandContext::DestroyAllContexts()
 {
     LinearAllocator::DestroyAll();
-    DynamicDescriptorHeap::DestroyAll();
     sContextManager.DestroyAllContexts();
 }
 
@@ -157,8 +156,6 @@ uint64_t CommandContext::Finish( bool waitForCompletion )
 
     CpuLinearAllocator.CleanupUsedPages(fenceValue);
     GpuLinearAllocator.CleanupUsedPages(fenceValue);
-    DynamicViewDescriptorHeap.CleanupUsedHeaps(fenceValue);
-    DynamicSamplerDescriptorHeap.CleanupUsedHeaps(fenceValue);
 
     if (waitForCompletion)
     {
@@ -174,8 +171,6 @@ uint64_t CommandContext::Finish( bool waitForCompletion )
 
 CommandContext::CommandContext(D3D12_COMMAND_LIST_TYPE type) :
     Type(type),
-    DynamicViewDescriptorHeap(*this, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV),
-    DynamicSamplerDescriptorHeap(*this, D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER),
     CpuLinearAllocator(kCpuWritable), 
     GpuLinearAllocator(kGpuExclusive)
 {
@@ -285,56 +280,6 @@ void GraphicsContext::ResolveQueryData(ID3D12QueryHeap* queryHeap, D3D12_QUERY_T
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void GraphicsContext::ClearUAV(GpuBuffer& target)
-{
-    // After binding a UAV, we can get a GPU handle that is required to clear it as a UAV (because it essentially runs
-    // a shader to set all of the values).
-    D3D12_GPU_DESCRIPTOR_HANDLE GpuVisibleHandle = DynamicViewDescriptorHeap.UploadDirect(target.GetUAV());
-    const uint32_t clearColor[4] = {};
-    TheCommandList->ClearUnorderedAccessViewUint(GpuVisibleHandle, target.GetUAV(), target.GetResource(), clearColor, 0, nullptr);
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-void ComputeContext::ClearUAV(GpuBuffer& target)
-{
-    // After binding a UAV, we can get a GPU handle that is required to clear it as a UAV (because it essentially runs
-    // a shader to set all of the values).
-    D3D12_GPU_DESCRIPTOR_HANDLE GpuVisibleHandle = DynamicViewDescriptorHeap.UploadDirect(target.GetUAV());
-    const uint32_t clearColor[4] = {};
-    TheCommandList->ClearUnorderedAccessViewUint(GpuVisibleHandle, target.GetUAV(), target.GetResource(), clearColor, 0, nullptr);
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-void GraphicsContext::ClearUAV( ColorBuffer& target )
-{
-    // After binding a UAV, we can get a GPU handle that is required to clear it as a UAV (because it essentially runs
-    // a shader to set all of the values).
-    D3D12_GPU_DESCRIPTOR_HANDLE gpuVisibleHandle = DynamicViewDescriptorHeap.UploadDirect(target.GetUAV());
-    CD3DX12_RECT clearRect(0, 0, (LONG)target.GetWidth(), (LONG)target.GetHeight());
-
-    //TODO: My Nvidia card is not clearing UAVs with either Float or Uint variants.
-    const float* clearColor = target.GetClearColor().GetPtr();
-    TheCommandList->ClearUnorderedAccessViewFloat(gpuVisibleHandle, target.GetUAV(), target.GetResource(), clearColor, 1, &clearRect);
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-void ComputeContext::ClearUAV( ColorBuffer& target )
-{
-    // After binding a UAV, we can get a GPU handle that is required to clear it as a UAV (because it essentially runs
-    // a shader to set all of the values).
-    D3D12_GPU_DESCRIPTOR_HANDLE gpuVisibleHandle = DynamicViewDescriptorHeap.UploadDirect(target.GetUAV());
-    CD3DX12_RECT clearRect(0, 0, (LONG)target.GetWidth(), (LONG)target.GetHeight());
-
-    //TODO: My Nvidia card is not clearing UAVs with either Float or Uint variants.
-    const float* clearColor = target.GetClearColor().GetPtr();
-    TheCommandList->ClearUnorderedAccessViewFloat(gpuVisibleHandle, target.GetUAV(), target.GetResource(), clearColor, 1, &clearRect);
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
 void ComputeContext::SetRootSignature(const RootSignature& rootSig)
 {
     if (rootSig.GetSignature() == CurComputeRootSignature)
@@ -343,9 +288,6 @@ void ComputeContext::SetRootSignature(const RootSignature& rootSig)
     }
 
     TheCommandList->SetComputeRootSignature(CurComputeRootSignature = rootSig.GetSignature());
-
-    DynamicViewDescriptorHeap.ParseComputeRootSignature(rootSig);
-    DynamicSamplerDescriptorHeap.ParseComputeRootSignature(rootSig);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -479,8 +421,6 @@ void ComputeContext::SetBufferUAV(uint32_t rootIndex, D3D12_GPU_VIRTUAL_ADDRESS 
 void ComputeContext::Dispatch(size_t groupCountX, size_t groupCountY, size_t groupCountZ)
 {
     FlushResourceBarriers();
-    DynamicViewDescriptorHeap.CommitComputeRootDescriptorTables(TheCommandList);
-    DynamicSamplerDescriptorHeap.CommitComputeRootDescriptorTables(TheCommandList);
     TheCommandList->Dispatch((uint32_t)groupCountX, (uint32_t)groupCountY, (uint32_t)groupCountZ);
 }
 
@@ -531,30 +471,6 @@ void ComputeContext::DispatchRays(RaytracingPSO& pso, uint32_t width, uint32_t h
 
     // Dispatch
     TheCommandList->DispatchRays(&raytraceDesc);
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-void ComputeContext::SetDynamicDescriptor(uint32_t rootIndex, uint32_t offset, D3D12_CPU_DESCRIPTOR_HANDLE handle)
-{
-    SetDynamicDescriptors(rootIndex, offset, 1, &handle);
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-void ComputeContext::SetDynamicDescriptors(uint32_t rootIndex, uint32_t offset, uint32_t count, const D3D12_CPU_DESCRIPTOR_HANDLE handles[])
-{
-    DynamicViewDescriptorHeap.SetComputeDescriptorHandles(rootIndex, offset, count, handles);
-}
-
-void ComputeContext::SetDynamicSampler(uint32_t rootIndex, uint32_t offset, D3D12_CPU_DESCRIPTOR_HANDLE Handle)
-{
-    SetDynamicSamplers(rootIndex, offset, 1, &Handle);
-}
-
-void ComputeContext::SetDynamicSamplers(uint32_t rootIndex, uint32_t offset, uint32_t count, const D3D12_CPU_DESCRIPTOR_HANDLE handles[])
-{
-    DynamicSamplerDescriptorHeap.SetComputeDescriptorHandles(rootIndex, offset, count, handles);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -655,9 +571,6 @@ void GraphicsContext::SetRootSignature(const RootSignature& rootSig)
     }
 
     TheCommandList->SetGraphicsRootSignature(CurGraphicsRootSignature = rootSig.GetSignature());
-
-    DynamicViewDescriptorHeap.ParseGraphicsRootSignature(rootSig);
-    DynamicSamplerDescriptorHeap.ParseGraphicsRootSignature(rootSig);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -826,34 +739,6 @@ void GraphicsContext::SetBufferUAV(uint32_t rootIndex, const GpuBuffer& uav, UIN
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void GraphicsContext::SetDynamicDescriptor(uint32_t rootIndex, uint32_t offset, D3D12_CPU_DESCRIPTOR_HANDLE handle)
-{
-    SetDynamicDescriptors(rootIndex, offset, 1, &handle);
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-void GraphicsContext::SetDynamicDescriptors(uint32_t rootIndex, uint32_t offset, uint32_t count, const D3D12_CPU_DESCRIPTOR_HANDLE handles[])
-{
-    DynamicViewDescriptorHeap.SetGraphicsDescriptorHandles(rootIndex, offset, count, handles);
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-void GraphicsContext::SetDynamicSampler(uint32_t rootIndex, uint32_t offset, D3D12_CPU_DESCRIPTOR_HANDLE handle)
-{
-    SetDynamicSamplers(rootIndex, offset, 1, &handle);
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-void GraphicsContext::SetDynamicSamplers(uint32_t rootIndex, uint32_t offset, uint32_t count, const D3D12_CPU_DESCRIPTOR_HANDLE handles[])
-{
-    DynamicSamplerDescriptorHeap.SetGraphicsDescriptorHandles(rootIndex, offset, count, handles);
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
 void GraphicsContext::SetDescriptorTable(uint32_t rootIndex, D3D12_GPU_DESCRIPTOR_HANDLE firstHandle)
 {
     TheCommandList->SetGraphicsRootDescriptorTable(rootIndex, firstHandle);
@@ -913,8 +798,6 @@ void GraphicsContext::DrawIndexed(uint32_t IndexCount, uint32_t StartIndexLocati
 void GraphicsContext::DrawInstanced(uint32_t vertexCountPerInstance, uint32_t instanceCount, uint32_t startVertexLocation, uint32_t startInstanceLocation)
 {
     FlushResourceBarriers();
-    DynamicViewDescriptorHeap.CommitGraphicsRootDescriptorTables(TheCommandList);
-    DynamicSamplerDescriptorHeap.CommitGraphicsRootDescriptorTables(TheCommandList);
     TheCommandList->DrawInstanced(vertexCountPerInstance, instanceCount, startVertexLocation, startInstanceLocation);
 }
 
@@ -923,8 +806,6 @@ void GraphicsContext::DrawInstanced(uint32_t vertexCountPerInstance, uint32_t in
 void GraphicsContext::DrawIndexedInstanced(uint32_t indexCountPerInstance, uint32_t instanceCount, uint32_t startIndexLocation, INT baseVertexLocation, uint32_t startInstanceLocation)
 {
     FlushResourceBarriers();
-    DynamicViewDescriptorHeap.CommitGraphicsRootDescriptorTables(TheCommandList);
-    DynamicSamplerDescriptorHeap.CommitGraphicsRootDescriptorTables(TheCommandList);
     TheCommandList->DrawIndexedInstanced(indexCountPerInstance, instanceCount, startIndexLocation, baseVertexLocation, startInstanceLocation);
 }
 

@@ -157,9 +157,6 @@ namespace RealtimeEngine
         ID3D12RootSignature*        CurComputeRootSignature;
         ID3D12PipelineState*        CurComputePipelineState;
 
-        DynamicDescriptorHeap       DynamicViewDescriptorHeap;
-        DynamicDescriptorHeap       DynamicSamplerDescriptorHeap;
-
         D3D12_RESOURCE_BARRIER      ResourceBarrierBuffer[16];
         uint32_t                    NumBarriersToFlush;
 
@@ -190,8 +187,6 @@ namespace RealtimeEngine
             return CommandContext::Begin(id).GetGraphicsContext();
         }
 
-        void ClearUAV(GpuBuffer& target);
-        void ClearUAV(ColorBuffer& target);
         void ClearColor(ColorBuffer& target);
         void ClearDepth(DepthBuffer& target);
         void ClearStencil(DepthBuffer& target);
@@ -232,9 +227,7 @@ namespace RealtimeEngine
         void SetDescriptorTable(uint32_t rootIndex, D3D12_GPU_DESCRIPTOR_HANDLE firstHandle);
 
         void SetDynamicDescriptor(uint32_t rootIndex, uint32_t offset, D3D12_CPU_DESCRIPTOR_HANDLE handle);
-        void SetDynamicDescriptors(uint32_t rootIndex, uint32_t offset, uint32_t count, const D3D12_CPU_DESCRIPTOR_HANDLE handles[]);
         void SetDynamicSampler(uint32_t rootIndex, uint32_t offset, D3D12_CPU_DESCRIPTOR_HANDLE handle);
-        void SetDynamicSamplers(uint32_t rootIndex, uint32_t offset, uint32_t count, const D3D12_CPU_DESCRIPTOR_HANDLE handles[]);
 
         void SetIndexBuffer(const D3D12_INDEX_BUFFER_VIEW& ibView);
         void SetVertexBuffer(uint32_t Slot, const D3D12_VERTEX_BUFFER_VIEW& vbView);
@@ -281,9 +274,7 @@ namespace RealtimeEngine
         void SetDescriptorTable(uint32_t rootIndex, D3D12_GPU_DESCRIPTOR_HANDLE firstHandle);
 
         void SetDynamicDescriptor(uint32_t rootIndex, uint32_t offset, D3D12_CPU_DESCRIPTOR_HANDLE handle);
-        void SetDynamicDescriptors(uint32_t rootIndex, uint32_t offset, uint32_t count, const D3D12_CPU_DESCRIPTOR_HANDLE handles[]);
         void SetDynamicSampler(uint32_t rootIndex, uint32_t offset, D3D12_CPU_DESCRIPTOR_HANDLE handle);
-        void SetDynamicSamplers(uint32_t rootIndex, uint32_t offset, uint32_t count, const D3D12_CPU_DESCRIPTOR_HANDLE handles[]);
 
         void Dispatch(size_t groupCountX = 1, size_t groupCountY = 1, size_t groupCountZ = 1);
         void Dispatch1D(size_t threadCountX, size_t groupSizeX = 64);

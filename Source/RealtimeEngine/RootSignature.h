@@ -103,8 +103,6 @@ namespace RealtimeEngine
             return Signature;
         }
 
-        friend class DynamicDescriptorHeap;
-
     protected:
 
         bool                                          Finalized;

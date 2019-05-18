@@ -199,7 +199,6 @@
     <ClInclude Include="..\..\Source\RealtimeEngine\CommandList.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\DepthBuffer.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\DescriptorHeap.h" />
-    <ClInclude Include="..\..\Source\RealtimeEngine\DynamicDescriptorHeap.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\Globals.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\GpuBuffer.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\GPUResource.h" />
@@ -242,7 +241,6 @@
     <ClCompile Include="..\..\Source\RealtimeEngine\CommandList.cpp" />
     <ClCompile Include="..\..\Source\RealtimeEngine\DepthBuffer.cpp" />
     <ClCompile Include="..\..\Source\RealtimeEngine\DescriptorHeap.cpp" />
-    <ClCompile Include="..\..\Source\RealtimeEngine\DynamicDescriptorHeap.cpp" />
     <ClCompile Include="..\..\Source\RealtimeEngine\Globals.cpp" />
     <ClCompile Include="..\..\Source\RealtimeEngine\GpuBuffer.cpp" />
     <ClCompile Include="..\..\Source\RealtimeEngine\LinearAllocator.cpp" />

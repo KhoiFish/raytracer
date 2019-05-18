@@ -64,7 +64,6 @@ namespace RealtimeEngine
         void                                CreateArray(const string_t& name, uint32_t width, uint32_t height, uint32_t arrayCount, DXGI_FORMAT format, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN);
         void                                SetClearColor(Color clearColor);
         void                                SetMsaaMode(uint32_t numColorSamples, uint32_t numCoverageSamples);
-        void                                GenerateMipMaps(CommandContext & context);
 
         const D3D12_CPU_DESCRIPTOR_HANDLE&  GetSRV(void) const          { return SRVHandle; }
         const D3D12_CPU_DESCRIPTOR_HANDLE&  GetRTV(void) const          { return RTVHandle; }

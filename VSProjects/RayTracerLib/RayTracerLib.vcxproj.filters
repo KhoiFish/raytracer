@@ -33,9 +33,6 @@
     <ClInclude Include="..\..\Source\RealtimeEngine\DescriptorHeap.h">
       <Filter>Realtime</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\RealtimeEngine\DynamicDescriptorHeap.h">
-      <Filter>Realtime</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Source\RealtimeEngine\Globals.h">
       <Filter>Realtime</Filter>
     </ClInclude>
@@ -186,9 +183,6 @@
       <Filter>Realtime</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\RealtimeEngine\DescriptorHeap.cpp">
-      <Filter>Realtime</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\RealtimeEngine\DynamicDescriptorHeap.cpp">
       <Filter>Realtime</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\RealtimeEngine\Globals.cpp">

@@ -62,6 +62,7 @@ public:
     virtual void    OnRender();
     virtual void    OnSizeChanged(uint32_t width, uint32_t height, bool minimized);
     virtual void    OnDestroy();
+    virtual bool    OverrideImguiInput();
 
 private:
 
@@ -138,7 +139,6 @@ private:
     float                           AORadius;
     int                             SelectedBufferIndex;
     int                             CpuResultsBufferIndex;
-    bool                            ShowHelperWindow;
     bool                            LoadSceneRequested;
 
     DXGI_FORMAT                     BackbufferFormat;

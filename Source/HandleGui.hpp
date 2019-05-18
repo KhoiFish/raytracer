@@ -37,21 +37,22 @@ void Renderer::RenderGui()
     ImGui_ImplDX12_NewFrame();
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
+    while(true)
     {
         ImGui::SetNextWindowPos(ImVec2(770, 10), ImGuiCond_FirstUseEver);
         ImGui::SetNextWindowSize(ImVec2(500, 460), ImGuiCond_FirstUseEver);
 
         ImGuiWindowFlags window_flags = 0;
-        if (!ImGui::Begin("Raytracer", &ShowHelperWindow, window_flags))
+        if (!ImGui::Begin("Raytracer", nullptr, window_flags))
         {
             ImGui::End();
-            return;
+            break;
         }
 
         ImGui::Separator();
         ImGui::Text("--- STATUS ---");
         ImGui::Separator();
-        ImGui::BulletText("Selected Buffer Id: %d", SelectedBufferIndex);
+        ImGui::BulletText("Selected Buffer Id: %d", SelectedBufferIndex + 1);
 
         if (TheRaytracer != nullptr && TheRaytracer->IsTracing())
         {
@@ -138,7 +139,9 @@ void Renderer::RenderGui()
         }
 
         ImGui::End();
+        break;
     }
+    ImGui::EndFrame();
 
     // Setup context and render
     GraphicsContext& renderContext = GraphicsContext::Begin("RenderGUI");

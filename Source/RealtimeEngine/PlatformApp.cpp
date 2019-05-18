@@ -224,7 +224,7 @@ LRESULT CALLBACK PlatformApp::WindowProc(HWND hWnd, uint32_t message, WPARAM wPa
     RenderInterface* pRenderInterface = reinterpret_cast<RenderInterface*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
 
     bool keyboardCaptured = false, mouseCaptured = false;
-    if (ImGui::GetCurrentContext() != nullptr)
+    if (ImGui::GetCurrentContext() != nullptr && !pRenderInterface->OverrideImguiInput())
     {
         // Pass message to imgui
         ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam);

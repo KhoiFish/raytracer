@@ -56,6 +56,7 @@ namespace RealtimeEngine
         virtual void                   OnLeftButtonDown(uint32_t x, uint32_t y) {}
         virtual void                   OnLeftButtonUp(uint32_t x, uint32_t y) {}
         virtual void                   OnDisplayChanged() {}
+        virtual bool                   OverrideImguiInput() { return true; }
 
 	public:
 

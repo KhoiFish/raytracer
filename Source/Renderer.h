@@ -139,20 +139,17 @@ private:
 
     DXGI_FORMAT                     BackbufferFormat;
     DXGI_FORMAT                     DeferredBuffersRTTypes[DeferredBufferType_Num];
-    DXGI_FORMAT                     ZBufferRTType;
     DXGI_FORMAT                     RaytracingBufferType;
     DXGI_FORMAT                     CPURaytracerTexType;
 
     ColorBuffer                     CPURaytracerTex;
     ColorBuffer                     DeferredBuffers[DeferredBufferType_Num];
-    ColorBuffer                     ZPrePassBuffer;
     ColorBuffer                     AmbientOcclusionOutput[2];
 
     RootSignature                   FullscreenQuadRootSignature;
     GraphicsPSO                     FullscreenPipelineState;
 
     RootSignature                   RealtimeRootSignature;
-    GraphicsPSO                     RealtimeZPrePassPSO;
     GraphicsPSO                     RealtimeGeometryPassPSO;
     GraphicsPSO                     RealtimeCompositePassPSO;
     DescriptorHeapStack*            RealtimeDescriptorHeap;

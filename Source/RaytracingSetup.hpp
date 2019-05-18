@@ -29,9 +29,10 @@ namespace RaytracingGlobalRootSigSlot
         PrevAOOutput = 0,
         CurAOOutput,
         AccelerationStructure,
-        Depth,
         Positions,
         Normals,
+        TexCoordsAndDepth,
+        Albedo,
 
         Num
     };
@@ -45,12 +46,13 @@ namespace RaytracingGlobalRootSigSlot
     // [register, count]
     static UINT Range[RaytracingGlobalRootSigSlot::Num][2] =
     {
-        { 0, 1 },
-        { 1, 1 },
-        { 0, 1 },
-        { 1, 1 },
-        { 2, 1 },
-        { 3, 1 },
+        { 0, 1 },   // PrevAOOutput
+        { 1, 1 },   // CurAOOutput
+        { 0, 1 },   // AccelerationStructure
+        { 1, 1 },   // Positions
+        { 2, 1 },   // Normals
+        { 3, 1 },   // TexCoordsAndDepth
+        { 4, 1 },   // Albedo
     };
 }
 
@@ -114,12 +116,6 @@ void Renderer::SetupRealtimeRaytracingPipeline()
                 RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::AccelerationStructure][RaytracingGlobalRootSigSlot::Count],
                 D3D12_SHADER_VISIBILITY_ALL);
 
-            RaytracingGlobalRootSig[RaytracingGlobalRootSigSlot::Depth].InitAsDescriptorRange(
-                D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
-                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::Depth][RaytracingGlobalRootSigSlot::Register],
-                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::Depth][RaytracingGlobalRootSigSlot::Count],
-                D3D12_SHADER_VISIBILITY_ALL);
-
             RaytracingGlobalRootSig[RaytracingGlobalRootSigSlot::Positions].InitAsDescriptorRange(
                 D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
                 RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::Positions][RaytracingGlobalRootSigSlot::Register],
@@ -130,6 +126,18 @@ void Renderer::SetupRealtimeRaytracingPipeline()
                 D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
                 RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::Normals][RaytracingGlobalRootSigSlot::Register],
                 RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::Normals][RaytracingGlobalRootSigSlot::Count],
+                D3D12_SHADER_VISIBILITY_ALL);
+
+            RaytracingGlobalRootSig[RaytracingGlobalRootSigSlot::TexCoordsAndDepth].InitAsDescriptorRange(
+                D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
+                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::TexCoordsAndDepth][RaytracingGlobalRootSigSlot::Register],
+                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::TexCoordsAndDepth][RaytracingGlobalRootSigSlot::Count],
+                D3D12_SHADER_VISIBILITY_ALL);
+
+            RaytracingGlobalRootSig[RaytracingGlobalRootSigSlot::Albedo].InitAsDescriptorRange(
+                D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
+                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::Albedo][RaytracingGlobalRootSigSlot::Register],
+                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::Albedo][RaytracingGlobalRootSigSlot::Count],
                 D3D12_SHADER_VISIBILITY_ALL);
         }
         RaytracingGlobalRootSig.Finalize("RealtimeRaytracingGlobalRoot", D3D12_ROOT_SIGNATURE_FLAG_NONE);
@@ -155,12 +163,6 @@ void Renderer::SetupRealtimeRaytracingPipeline()
             DXGI_FORMAT_UNKNOWN,
             D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
 
-        // Depth
-        RaytracingDescriptorHeap->AllocateTexture2DSrv(
-            ZPrePassBuffer.GetResource(),
-            ZBufferRTType,
-            D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
-
         // Positions
         RaytracingDescriptorHeap->AllocateTexture2DSrv(
             DeferredBuffers[DeferredBufferType_Position].GetResource(),
@@ -171,6 +173,18 @@ void Renderer::SetupRealtimeRaytracingPipeline()
         RaytracingDescriptorHeap->AllocateTexture2DSrv(
             DeferredBuffers[DeferredBufferType_Normal].GetResource(),
             DeferredBuffersRTTypes[DeferredBufferType_Normal],
+            D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
+
+        // TexCoords and Depth
+        RaytracingDescriptorHeap->AllocateTexture2DSrv(
+            DeferredBuffers[DeferredBufferType_TexCoord].GetResource(),
+            DeferredBuffersRTTypes[DeferredBufferType_TexCoord],
+            D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
+
+        // Albedo
+        RaytracingDescriptorHeap->AllocateTexture2DSrv(
+            DeferredBuffers[DeferredBufferType_Diffuse].GetResource(),
+            DeferredBuffersRTTypes[DeferredBufferType_Diffuse],
             D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
     }
 

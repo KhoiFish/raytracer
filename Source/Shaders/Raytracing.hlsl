@@ -25,13 +25,14 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-RWTexture2D<float4>                 gPrevAO     : register(u0);
-RWTexture2D<float4>                 gCurAO      : register(u1);
-RaytracingAccelerationStructure     gScene      : register(t0);
-Texture2D<float>                    gDepth      : register(t1);
-Texture2D<float4>                   gPositions  : register(t2);
-Texture2D<float4>                   gNormals    : register(t3);
-ConstantBuffer<RaytracingGlobalCB>  gSceneCB    : register(b0);
+RWTexture2D<float4>                 gPrevAO             : register(u0);
+RWTexture2D<float4>                 gCurAO              : register(u1);
+RaytracingAccelerationStructure     gScene              : register(t0);
+Texture2D<float4>                   gPositions          : register(t1);
+Texture2D<float4>                   gNormals            : register(t2);
+Texture2D<float4>                   gTexCoordsAndDepth  : register(t3);
+Texture2D<float4>                   gAlbedo             : register(t4);
+ConstantBuffer<RaytracingGlobalCB>  gSceneCB            : register(b0);
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -59,7 +60,7 @@ inline float3 getWorldPositionFromDepth(uint3 dispatchRaysIndex)
 {
     float2 xy           = dispatchRaysIndex.xy + 0.5;
     float2 screenPos    = (xy / gSceneCB.OutputResolution * 2.0 - 1.0) * float2(1, -1);
-    float  sceneDepth   = gDepth.Load(int3(xy, 0));
+    float  sceneDepth   = gTexCoordsAndDepth.Load(int3(xy, 0)).z;
     float4 unprojected  = mul(float4(screenPos, sceneDepth, 1), gSceneCB.InverseTransposeViewProjectionMatrix);
     float3 world        = unprojected.xyz / unprojected.w;
 

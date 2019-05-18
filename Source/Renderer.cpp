@@ -60,7 +60,6 @@ Renderer::Renderer(uint32_t width, uint32_t height)
     BackbufferFormat                                    = DXGI_FORMAT_R8G8B8A8_UNORM;
     RaytracingBufferType                                = DXGI_FORMAT_R8G8B8A8_UNORM;
     CPURaytracerTexType                                 = DXGI_FORMAT_R8G8B8A8_UNORM;
-    ZBufferRTType                                       = DXGI_FORMAT_R32_FLOAT;
     DeferredBuffersRTTypes[DeferredBufferType_Position] = DXGI_FORMAT_R32G32B32A32_FLOAT;
     DeferredBuffersRTTypes[DeferredBufferType_Normal]   = DXGI_FORMAT_R32G32B32A32_FLOAT;
     DeferredBuffersRTTypes[DeferredBufferType_TexCoord] = DXGI_FORMAT_R32G32B32A32_FLOAT;
@@ -142,9 +141,6 @@ void Renderer::SetupRenderBuffers()
         DeferredBuffers[i].Destroy();
         DeferredBuffers[i].Create(DeferredBufferTypeStrings[i], width, height, 1, DeferredBuffersRTTypes[i]);
     }
-
-    ZPrePassBuffer.Destroy();
-    ZPrePassBuffer.Create("ZPrePass Buffer", width, height, 1, ZBufferRTType);
 
     CPURaytracerTex.Destroy();
     CPURaytracerTex.Create("CpuRaytracerTex", width, height, 1, CPURaytracerTexType);

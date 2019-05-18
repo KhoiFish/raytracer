@@ -29,13 +29,12 @@ struct PixelShaderInput
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-Texture2D                               DepthTexture            : register(t0);
-Texture2D                               AOTexture               : register(t1);
-Texture2D                               CpuResultsTex           : register(t2);
-Texture2D                               PositionsTexture        : register(t3);
-Texture2D                               NormalsTexture          : register(t4);
-Texture2D                               TexCoordsTexture        : register(t5);
-Texture2D                               DiffuseTexture          : register(t6);
+Texture2D                               AOTexture               : register(t0);
+Texture2D                               CpuResultsTex           : register(t1);
+Texture2D                               PositionsTexture        : register(t2);
+Texture2D                               NormalsTexture          : register(t3);
+Texture2D                               TexCoordsTexture        : register(t4);
+Texture2D                               DiffuseTexture          : register(t5);
 SamplerState                            LinearRepeatSampler     : register(s0);
 ConstantBuffer<SceneConstantBuffer>     SceneCb                 : register(b0);
 
@@ -46,7 +45,10 @@ float4 main(PixelShaderInput IN) : SV_Target
     float4 texColor = DiffuseTexture.Sample(LinearRepeatSampler, IN.TexCoord) * SceneCb.TextureMultipliers[1];
     float4 ao       = AOTexture.Sample(LinearRepeatSampler, IN.TexCoord)      * SceneCb.TextureMultipliers[2];
     float4 cpuRT    = CpuResultsTex.Sample(LinearRepeatSampler, IN.TexCoord)  * SceneCb.TextureMultipliers[3];
-    float4 finalCol = ((texColor * ao) * SceneCb.CompositeMultipliers[0]) + ((texColor + ao + cpuRT) * SceneCb.CompositeMultipliers[1]);
+
+    float4 finalCol = 
+        ((texColor * ao)         * SceneCb.CompositeMultipliers[0]) + 
+        ((texColor + ao + cpuRT) * SceneCb.CompositeMultipliers[1]);
 
     return finalCol;
 }

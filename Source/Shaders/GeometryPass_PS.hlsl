@@ -25,19 +25,20 @@
 
 struct PixelShaderInput
 {
-    float4 PositionWS : TEXCOORD0;
-    float3 NormalWS   : TEXCOORD1;
-    float2 TexCoord   : TEXCOORD2;
+    float4 PositionWS  : TEXCOORD0;
+    float3 NormalWS    : TEXCOORD1;
+    float2 TexCoord    : TEXCOORD2;
+    float  LinearDepth : TEXCOORD3;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
 struct MRT
 {
-    float4 Position : SV_Target0;
-    float4 Normal   : SV_Target1;
-    float4 TexCoord : SV_Target2;
-    float4 Diffuse  : SV_Target3;
+    float4 Position         : SV_Target0;
+    float4 Normal           : SV_Target1;
+    float4 TexCoordAndDepth : SV_Target2;
+    float4 Diffuse          : SV_Target3;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -50,10 +51,10 @@ Texture2D    DiffuseTexture         : register(t0);
 MRT main(PixelShaderInput IN)
 {
     MRT mrt;
-    mrt.Position = IN.PositionWS;
-    mrt.Normal   = float4(IN.NormalWS, 1);
-    mrt.TexCoord = float4(IN.TexCoord, 0, 0);
-    mrt.Diffuse  = DiffuseTexture.Sample(LinearRepeatSampler, IN.TexCoord);
+    mrt.Position         = IN.PositionWS;
+    mrt.Normal           = float4(IN.NormalWS, 1);
+    mrt.TexCoordAndDepth = float4(IN.TexCoord, IN.LinearDepth, 0);
+    mrt.Diffuse          = DiffuseTexture.Sample(LinearRepeatSampler, IN.TexCoord);
 
     return mrt;
 }

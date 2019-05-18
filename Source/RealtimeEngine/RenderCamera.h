@@ -43,6 +43,8 @@ public:
     DirectX::XMVECTOR   GetEye();
     DirectX::XMVECTOR   GetTarget();
     float               GetVertFov();
+    float               GetZFar();
+    float               GetZNear();
 
 private:
 

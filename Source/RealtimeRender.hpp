@@ -108,11 +108,6 @@ void Renderer::SetupRealtimePipeline()
         // Create descriptors
         {
             RealtimeDescriptorHeap->AllocateTexture2DSrv(
-                ZPrePassBuffer.GetResource(),
-                ZBufferRTType,
-                D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
-
-            RealtimeDescriptorHeap->AllocateTexture2DSrv(
                 AmbientOcclusionOutput[1].GetResource(),
                 RaytracingBufferType,
                 D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
@@ -130,62 +125,6 @@ void Renderer::SetupRealtimePipeline()
                     D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
             }
         }
-    }
-
-    // Z pre pass PSO setup
-    {
-        D3D12_RASTERIZER_DESC rasterizerDesc;
-        rasterizerDesc.FillMode                                 = D3D12_FILL_MODE_SOLID;
-        rasterizerDesc.CullMode                                 = D3D12_CULL_MODE_BACK;
-        rasterizerDesc.FrontCounterClockwise                    = FALSE;
-        rasterizerDesc.DepthBias                                = D3D12_DEFAULT_DEPTH_BIAS;
-        rasterizerDesc.DepthBiasClamp                           = D3D12_DEFAULT_DEPTH_BIAS_CLAMP;
-        rasterizerDesc.SlopeScaledDepthBias                     = D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS;
-        rasterizerDesc.DepthClipEnable                          = TRUE;
-        rasterizerDesc.MultisampleEnable                        = FALSE;
-        rasterizerDesc.AntialiasedLineEnable                    = FALSE;
-        rasterizerDesc.ForcedSampleCount                        = 0;
-        rasterizerDesc.ConservativeRaster                       = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
-
-        D3D12_BLEND_DESC blendDisable = {};
-        blendDisable.IndependentBlendEnable                     = FALSE;
-        blendDisable.RenderTarget[0].BlendEnable                = FALSE;
-        blendDisable.RenderTarget[0].SrcBlend                   = D3D12_BLEND_SRC_ALPHA;
-        blendDisable.RenderTarget[0].DestBlend                  = D3D12_BLEND_INV_SRC_ALPHA;
-        blendDisable.RenderTarget[0].BlendOp                    = D3D12_BLEND_OP_ADD;
-        blendDisable.RenderTarget[0].SrcBlendAlpha              = D3D12_BLEND_ONE;
-        blendDisable.RenderTarget[0].DestBlendAlpha             = D3D12_BLEND_INV_SRC_ALPHA;
-        blendDisable.RenderTarget[0].BlendOpAlpha               = D3D12_BLEND_OP_ADD;
-        blendDisable.RenderTarget[0].RenderTargetWriteMask      = 0;
-        blendDisable.RenderTarget[0].RenderTargetWriteMask      = D3D12_COLOR_WRITE_ENABLE_ALL;
-
-        D3D12_DEPTH_STENCIL_DESC depthStateReadWrite;
-        depthStateReadWrite.DepthEnable                         = TRUE;
-        depthStateReadWrite.DepthWriteMask                      = D3D12_DEPTH_WRITE_MASK_ALL;
-        depthStateReadWrite.DepthFunc                           = D3D12_COMPARISON_FUNC_LESS_EQUAL;
-        depthStateReadWrite.StencilEnable                       = FALSE;
-        depthStateReadWrite.StencilReadMask                     = D3D12_DEFAULT_STENCIL_READ_MASK;
-        depthStateReadWrite.StencilWriteMask                    = D3D12_DEFAULT_STENCIL_WRITE_MASK;
-        depthStateReadWrite.FrontFace.StencilFunc               = D3D12_COMPARISON_FUNC_ALWAYS;
-        depthStateReadWrite.FrontFace.StencilPassOp             = D3D12_STENCIL_OP_KEEP;
-        depthStateReadWrite.FrontFace.StencilFailOp             = D3D12_STENCIL_OP_KEEP;
-        depthStateReadWrite.FrontFace.StencilDepthFailOp        = D3D12_STENCIL_OP_KEEP;
-        depthStateReadWrite.BackFace                            = depthStateReadWrite.FrontFace;
-
-        Microsoft::WRL::ComPtr<ID3DBlob> vertexShaderBlob, pixelShaderBlob;
-        ThrowIfFailed(D3DReadFileToBlob(SHADERBUILD_DIR L"\\ZPrePass_VS.cso", &vertexShaderBlob));
-        ThrowIfFailed(D3DReadFileToBlob(SHADERBUILD_DIR L"\\ZPrePass_PS.cso", &pixelShaderBlob));
-
-        RealtimeZPrePassPSO.SetRootSignature(RealtimeRootSignature);
-        RealtimeZPrePassPSO.SetRasterizerState(rasterizerDesc);
-        RealtimeZPrePassPSO.SetBlendState(blendDisable);
-        RealtimeZPrePassPSO.SetDepthStencilState(depthStateReadWrite);
-        RealtimeZPrePassPSO.SetInputLayout(RenderSceneVertexEx::InputElementCount, RenderSceneVertexEx::InputElements);
-        RealtimeZPrePassPSO.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
-        RealtimeZPrePassPSO.SetRenderTargetFormats(1, &ZBufferRTType, RenderDevice::Get().GetDepthBufferFormat());
-        RealtimeZPrePassPSO.SetVertexShader(vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize());
-        RealtimeZPrePassPSO.SetPixelShader(pixelShaderBlob->GetBufferPointer(), pixelShaderBlob->GetBufferSize());
-        RealtimeZPrePassPSO.Finalize();
     }
 
     // Geometry pass PSO setup
@@ -217,7 +156,7 @@ void Renderer::SetupRealtimePipeline()
 
         D3D12_DEPTH_STENCIL_DESC depthStateReadWrite;
         depthStateReadWrite.DepthEnable                         = TRUE;
-        depthStateReadWrite.DepthWriteMask                      = D3D12_DEPTH_WRITE_MASK_ZERO;
+        depthStateReadWrite.DepthWriteMask                      = D3D12_DEPTH_WRITE_MASK_ALL;
         depthStateReadWrite.DepthFunc                           = D3D12_COMPARISON_FUNC_LESS_EQUAL;
         depthStateReadWrite.StencilEnable                       = FALSE;
         depthStateReadWrite.StencilReadMask                     = D3D12_DEFAULT_STENCIL_READ_MASK;
@@ -313,26 +252,13 @@ void Renderer::RenderGeometryPass()
         renderContext.SetViewport(RenderDevice::Get().GetScreenViewport());
         renderContext.SetScissor(RenderDevice::Get().GetScissorRect());
 
-        // Z pre pass
-        {
-            renderContext.TransitionResource(ZPrePassBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET);
-            renderContext.TransitionResource(RenderDevice::Get().GetDepthStencil(), D3D12_RESOURCE_STATE_DEPTH_WRITE, true);
-            renderContext.ClearDepth(RenderDevice::Get().GetDepthStencil());
-            renderContext.SetPipelineState(RealtimeZPrePassPSO);
-            renderContext.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-            renderContext.SetRenderTarget(ZPrePassBuffer.GetRTV(), RenderDevice::Get().GetDepthStencil().GetDSV());
-            renderContext.ClearColor(ZPrePassBuffer);
-
-            RenderSceneList(renderContext);
-        }
-
         // Geometry pass
         {
             for (int i = 0; i < DeferredBufferType_Num; i++)
             {
                 renderContext.TransitionResource(DeferredBuffers[i], D3D12_RESOURCE_STATE_RENDER_TARGET);
             }
-            renderContext.TransitionResource(RenderDevice::Get().GetDepthStencil(), D3D12_RESOURCE_STATE_DEPTH_READ, true);
+            renderContext.TransitionResource(RenderDevice::Get().GetDepthStencil(), D3D12_RESOURCE_STATE_DEPTH_WRITE, true);
             
             // Bind gbuffer
             D3D12_CPU_DESCRIPTOR_HANDLE rtvs[]
@@ -349,6 +275,7 @@ void Renderer::RenderGeometryPass()
                 renderContext.ClearColor(DeferredBuffers[i]);
             }
 
+            renderContext.ClearDepth(RenderDevice::Get().GetDepthStencil());
             renderContext.SetPipelineState(RealtimeGeometryPassPSO);
             renderContext.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
             RenderSceneList(renderContext);
@@ -412,7 +339,6 @@ void Renderer::RenderCompositePass()
 
             // Transition resources
             renderContext.TransitionResource(CPURaytracerTex, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-            renderContext.TransitionResource(ZPrePassBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
             renderContext.TransitionResource(AmbientOcclusionOutput[1], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
             for (int i = 0; i < DeferredBufferType_Num; i++)
             {
@@ -447,6 +373,8 @@ void Renderer::RenderCompositePass()
 void Renderer::SetupSceneConstantBuffer(const FXMMATRIX& model, SceneConstantBuffer& sceneCB)
 {
     RenderCamera& camera = TheRenderScene->GetRenderCamera();
+
+    sceneCB.FarClipDist = camera.GetZFar();
 
     XMStoreFloat4(&sceneCB.CameraPosition, camera.GetEye());
     XMStoreFloat4x4(&sceneCB.ModelMatrix, XMMatrixTranspose(model));

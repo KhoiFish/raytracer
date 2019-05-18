@@ -177,14 +177,14 @@ void Renderer::SetupRealtimeRaytracingPipeline()
 
         // TexCoords and Depth
         RaytracingDescriptorHeap->AllocateTexture2DSrv(
-            DeferredBuffers[DeferredBufferType_TexCoord].GetResource(),
-            DeferredBuffersRTTypes[DeferredBufferType_TexCoord],
+            DeferredBuffers[DeferredBufferType_TexCoordAndDepth].GetResource(),
+            DeferredBuffersRTTypes[DeferredBufferType_TexCoordAndDepth],
             D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
 
         // Albedo
         RaytracingDescriptorHeap->AllocateTexture2DSrv(
-            DeferredBuffers[DeferredBufferType_Diffuse].GetResource(),
-            DeferredBuffersRTTypes[DeferredBufferType_Diffuse],
+            DeferredBuffers[DeferredBufferType_Albedo].GetResource(),
+            DeferredBuffersRTTypes[DeferredBufferType_Albedo],
             D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
     }
 
@@ -260,7 +260,7 @@ void Renderer::SetupRealtimeRaytracingPipeline()
         TheRaytracingPSO.AddExportAssociationWithShaderConfig(sDxilLibEntryPoints, ARRAY_SIZE(sDxilLibEntryPoints));
 
         // Pipeline config
-        TheRaytracingPSO.SetPipelineConfig(MaxyRayRecursionDepth);
+        TheRaytracingPSO.SetPipelineConfig(MaxRayRecursionDepth);
 
         // Set shader names for the shader tables
         TheRaytracingPSO.GetRaygenShaderTable().SetShaderName(sRaygenShaderName);

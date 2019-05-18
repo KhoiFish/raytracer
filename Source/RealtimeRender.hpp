@@ -265,8 +265,8 @@ void Renderer::RenderGeometryPass()
             {
                 DeferredBuffers[DeferredBufferType_Position].GetRTV(),
                 DeferredBuffers[DeferredBufferType_Normal].GetRTV(),
-                DeferredBuffers[DeferredBufferType_TexCoord].GetRTV(),
-                DeferredBuffers[DeferredBufferType_Diffuse].GetRTV()
+                DeferredBuffers[DeferredBufferType_TexCoordAndDepth].GetRTV(),
+                DeferredBuffers[DeferredBufferType_Albedo].GetRTV()
             };
             renderContext.SetRenderTargets(ARRAYSIZE(rtvs), rtvs, RenderDevice::Get().GetDepthStencil().GetDSV());
 

@@ -84,12 +84,6 @@
     <FxCompile Include="..\..\Source\Shaders\Lighting.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="..\..\Source\Shaders\ZPrePass_PS.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="..\..\Source\Shaders\ZPrePass_VS.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
     <FxCompile Include="..\..\Source\Shaders\Raytracing.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>

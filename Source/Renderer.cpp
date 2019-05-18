@@ -49,7 +49,7 @@ Renderer::Renderer(uint32_t width, uint32_t height)
     , TheWorldScene(nullptr)
     , TheRenderScene(nullptr)
     , FrameCount(0)
-    , MaxyRayRecursionDepth(1)
+    , MaxRayRecursionDepth(1)
     , NumRaysPerPixel(5)
     , AORadius(100.0f)
     , SelectedBufferIndex(0)
@@ -57,13 +57,13 @@ Renderer::Renderer(uint32_t width, uint32_t height)
     , RealtimeDescriptorHeap(nullptr)
     , RaytracingDescriptorHeap(nullptr)
 {
-    BackbufferFormat                                    = DXGI_FORMAT_R8G8B8A8_UNORM;
-    RaytracingBufferType                                = DXGI_FORMAT_R8G8B8A8_UNORM;
-    CPURaytracerTexType                                 = DXGI_FORMAT_R8G8B8A8_UNORM;
-    DeferredBuffersRTTypes[DeferredBufferType_Position] = DXGI_FORMAT_R32G32B32A32_FLOAT;
-    DeferredBuffersRTTypes[DeferredBufferType_Normal]   = DXGI_FORMAT_R32G32B32A32_FLOAT;
-    DeferredBuffersRTTypes[DeferredBufferType_TexCoord] = DXGI_FORMAT_R32G32B32A32_FLOAT;
-    DeferredBuffersRTTypes[DeferredBufferType_Diffuse]  = DXGI_FORMAT_R32G32B32A32_FLOAT;
+    BackbufferFormat                                            = DXGI_FORMAT_R8G8B8A8_UNORM;
+    RaytracingBufferType                                        = DXGI_FORMAT_R8G8B8A8_UNORM;
+    CPURaytracerTexType                                         = DXGI_FORMAT_R8G8B8A8_UNORM;
+    DeferredBuffersRTTypes[DeferredBufferType_Position]         = DXGI_FORMAT_R32G32B32A32_FLOAT;
+    DeferredBuffersRTTypes[DeferredBufferType_Normal]           = DXGI_FORMAT_R32G32B32A32_FLOAT;
+    DeferredBuffersRTTypes[DeferredBufferType_TexCoordAndDepth] = DXGI_FORMAT_R32G32B32A32_FLOAT;
+    DeferredBuffersRTTypes[DeferredBufferType_Albedo]           = DXGI_FORMAT_R32G32B32A32_FLOAT;
 
     // Non-zero so we update cameras at least once on startup
     UserInput.InputDirty = true;

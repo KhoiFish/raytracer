@@ -50,34 +50,33 @@ public:
 
 public:
 
-    virtual void               OnDeviceLost() override;
-    virtual void               OnDeviceRestored() override;
-
-    virtual void               OnInit();
-    virtual void               OnKeyDown(UINT8 key);
-    virtual void               OnKeyUp(uint8_t key);
-    virtual void               OnMouseMove(uint32_t x, uint32_t y);
-    virtual void               OnLeftButtonDown(uint32_t x, uint32_t y);
-    virtual void               OnLeftButtonUp(uint32_t x, uint32_t y);
-    virtual void               OnUpdate(float dtSeconds);
-    virtual void               OnRender();
-    virtual void               OnSizeChanged(uint32_t width, uint32_t height, bool minimized);
-    virtual void               OnDestroy();
+    virtual void    OnDeviceLost() override;
+    virtual void    OnDeviceRestored() override;
+    virtual void    OnInit();
+    virtual void    OnKeyDown(UINT8 key);
+    virtual void    OnKeyUp(uint8_t key);
+    virtual void    OnMouseMove(uint32_t x, uint32_t y);
+    virtual void    OnLeftButtonDown(uint32_t x, uint32_t y);
+    virtual void    OnLeftButtonUp(uint32_t x, uint32_t y);
+    virtual void    OnUpdate(float dtSeconds);
+    virtual void    OnRender();
+    virtual void    OnSizeChanged(uint32_t width, uint32_t height, bool minimized);
+    virtual void    OnDestroy();
 
 private:
 
-    void                       SetupRealtimeRaytracingPipeline();
-    void                       SetupRealtimePipeline();
-    void                       SetupRenderBuffers();
-    void                       LoadScene();
-    void                       OnResizeRaytracer();
-    void                       ToggleCpuRaytracer();
-    static void                OnCpuRaytraceComplete(Core::Raytracer* tracer, bool actuallyFinished);
-    void                       RenderSceneList(GraphicsContext& renderContext);
-    void                       RenderGeometryPass();
-    void                       RenderCompositePass();
-    void                       ComputeRaytracingResults();
-    void                       SetupSceneConstantBuffer(const FXMMATRIX& model, SceneConstantBuffer& sceneCB);
+    void            SetupRealtimeRaytracingPipeline();
+    void            SetupRealtimePipeline();
+    void            SetupRenderBuffers();
+    void            LoadScene();
+    void            OnResizeRaytracer();
+    void            ToggleCpuRaytracer();
+    static void     OnCpuRaytraceComplete(Core::Raytracer* tracer, bool actuallyFinished);
+    void            RenderSceneList(GraphicsContext& renderContext);
+    void            RenderGeometryPass();
+    void            RenderCompositePass();
+    void            ComputeRaytracingResults();
+    void            SetupSceneConstantBuffer(const FXMMATRIX& model, SceneConstantBuffer& sceneCB);
 
 private:
 
@@ -85,8 +84,8 @@ private:
     {
         DeferredBufferType_Position = 0,
         DeferredBufferType_Normal,
-        DeferredBufferType_TexCoord,
-        DeferredBufferType_Diffuse,
+        DeferredBufferType_TexCoordAndDepth,
+        DeferredBufferType_Albedo,
 
         DeferredBufferType_Num
     };
@@ -130,7 +129,7 @@ private:
     RealtimeEngine::RenderScene*    TheRenderScene;
 
     int                             FrameCount;
-    int                             MaxyRayRecursionDepth;
+    int                             MaxRayRecursionDepth;
     int                             NumRaysPerPixel;
     float                           AORadius;
     int                             SelectedBufferIndex;

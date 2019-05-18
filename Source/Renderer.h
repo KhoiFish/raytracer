@@ -92,10 +92,10 @@ private:
 
     static constexpr const char* DeferredBufferTypeStrings[DeferredBufferType_Num] =
     {
-        "Position Buffer",
-        "Normal Buffer",
-        "TexCoord Buffer",
-        "Diffuse Buffer",
+        "Positions",
+        "Normals",
+        "TexCoordsAnd Depth",
+        "Albedo",
     };
 
     static constexpr const char* DefaultTextureName = "RuntimeData/guitar.jpg";

@@ -68,13 +68,16 @@ private:
     void            SetupRealtimeRaytracingPipeline();
     void            SetupRealtimePipeline();
     void            SetupRenderBuffers();
+    void            SetupGui();
     void            LoadScene();
     void            OnResizeRaytracer();
     void            ToggleCpuRaytracer();
+    void            SetEnableCpuRaytrace(bool enable);
     static void     OnCpuRaytraceComplete(Core::Raytracer* tracer, bool actuallyFinished);
     void            RenderSceneList(GraphicsContext& renderContext);
     void            RenderGeometryPass();
     void            RenderCompositePass();
+    void            RenderGui();
     void            ComputeRaytracingResults();
     void            SetupSceneConstantBuffer(const FXMMATRIX& model, SceneConstantBuffer& sceneCB);
 
@@ -129,12 +132,14 @@ private:
     RealtimeEngine::RenderScene*    TheRenderScene;
 
     int                             FrameCount;
+    int                             AccumCount;
     int                             MaxRayRecursionDepth;
     int                             NumRaysPerPixel;
     float                           AORadius;
     int                             SelectedBufferIndex;
     int                             CpuResultsBufferIndex;
-    int                             AccumCount;
+    bool                            ShowHelperWindow;
+    bool                            LoadSceneRequested;
 
     DXGI_FORMAT                     BackbufferFormat;
     DXGI_FORMAT                     DeferredBuffersRTTypes[DeferredBufferType_Num];

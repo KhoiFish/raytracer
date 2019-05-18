@@ -71,6 +71,7 @@ namespace RealtimeEngine
         void                                                Present();
         D3D12_CPU_DESCRIPTOR_HANDLE                         AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE type, uint32_t count = 1);
         DescriptorHeapStack&                                GetDefaultDescriptorHeapStack();
+        DescriptorHeapStack&                                GetImguiDescriptorHeapStack();
         bool                                                WindowSizeChanged(int width, int height, bool minimized);
         
     public:
@@ -121,6 +122,8 @@ namespace RealtimeEngine
         void                                                SetWindow(HWND window, int width, int height);
         void                                                HandleDeviceLost();
         void                                                RegisterDeviceNotify(IDeviceNotify* deviceNotify);
+        void                                                SetupImgui();
+        void                                                ShutdownImgui();
 
     private:
 
@@ -165,5 +168,6 @@ namespace RealtimeEngine
         };
 
         DescriptorHeapStack*                                DescriptorStack = nullptr;
+        DescriptorHeapStack*                                ImguiDescriptorStack = nullptr;
     };
 }

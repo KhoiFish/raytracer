@@ -41,6 +41,8 @@ static float   sVertFov          = 40.f;
 static int     sSampleScene      = SceneMesh;
 static float   sClearColor[]     = { 0.2f, 0.2f, 0.2f, 1.0f };
 
+#include "HandleGui.hpp"
+
 // ----------------------------------------------------------------------------------------------------------------------------
 
 Renderer::Renderer(uint32_t width, uint32_t height)
@@ -56,6 +58,8 @@ Renderer::Renderer(uint32_t width, uint32_t height)
     , AccumCount(0)
     , RealtimeDescriptorHeap(nullptr)
     , RaytracingDescriptorHeap(nullptr)
+    , ShowHelperWindow(false)
+    , LoadSceneRequested(false)
 {
     BackbufferFormat                                            = DXGI_FORMAT_R8G8B8A8_UNORM;
     RaytracingBufferType                                        = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -127,6 +131,8 @@ void Renderer::OnInit()
 
     // Raytracing setup last (scene data needs to be loaded first)
     SetupRealtimeRaytracingPipeline();
+
+    SetupGui();
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -228,20 +234,28 @@ void Renderer::OnDestroy()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::ToggleCpuRaytracer()
+void Renderer::SetEnableCpuRaytrace(bool enable)
 {
-    if (TheRaytracer != nullptr)
+    if (enable)
+    {
+        OnResizeRaytracer();
+        TheRaytracer->BeginRaytrace(TheWorldScene, OnCpuRaytraceComplete);
+        SelectedBufferIndex = CpuResultsBufferIndex;
+    }
+    else
     {
         delete TheRaytracer;
         TheRaytracer = nullptr;
 
         SelectedBufferIndex = 0;
     }
-    else
-    {
-        OnResizeRaytracer();
-        SelectedBufferIndex = CpuResultsBufferIndex;
-    }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void Renderer::ToggleCpuRaytracer()
+{
+    SetEnableCpuRaytrace(TheRaytracer == nullptr);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -271,7 +285,7 @@ void Renderer::OnUpdate(float dtSeconds)
         UserInput.MouseDy = 0;
 
         // Restart raytrace
-        if (TheRaytracer != nullptr)
+        if (TheRaytracer != nullptr && SelectedBufferIndex == CpuResultsBufferIndex)
         {
             TheRaytracer->BeginRaytrace(TheWorldScene, OnCpuRaytraceComplete);
         }
@@ -289,6 +303,7 @@ void Renderer::OnRender()
     RenderGeometryPass();
     ComputeRaytracingResults();
     RenderCompositePass();
+    RenderGui();
 
     // Present
     RenderDevice::Get().Present();

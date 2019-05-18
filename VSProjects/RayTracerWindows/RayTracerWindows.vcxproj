@@ -163,6 +163,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\HandleGui.hpp" />
     <ClInclude Include="..\..\Source\HandleInput.hpp" />
     <ClInclude Include="..\..\Source\RaytracingSetup.hpp" />
     <ClInclude Include="..\..\Source\RaytracingShader.h" />

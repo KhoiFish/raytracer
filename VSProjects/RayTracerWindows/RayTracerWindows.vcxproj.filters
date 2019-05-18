@@ -40,6 +40,9 @@
     <ClInclude Include="..\..\Source\RaytracingShader.h">
       <Filter>Source</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\HandleGui.hpp">
+      <Filter>Source</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="RayTracerWindows.rc">

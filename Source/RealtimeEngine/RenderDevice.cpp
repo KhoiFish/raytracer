@@ -21,6 +21,9 @@
 #include "PlatformApp.h"
 #include "CommandList.h"
 #include "CommandContext.h"
+#include <imgui/imgui.h>
+#include <imgui/examples/imgui_impl_win32.h>
+#include <imgui/examples/imgui_impl_dx12.h>
 #include <algorithm>
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -95,12 +98,15 @@ void RenderDevice::SetupDevice()
     CreateDeviceResources();
     CommandListManager::Get().Create(D3DDevice.Get());
     CreateWindowSizeDependentResources();
+    SetupImgui();
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
 void RenderDevice::CleanupDevice()
 {
+    ShutdownImgui();
+
     for (uint32_t n = 0; n < BackBufferCount; n++)
     {
         RenderTargets[n].Destroy();
@@ -409,6 +415,34 @@ void RenderDevice::CreateWindowSizeDependentResources()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+void RenderDevice::SetupImgui()
+{
+    ImguiDescriptorStack = new DescriptorHeapStack(128, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 0);
+
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGui::StyleColorsDark();
+
+    ImGui_ImplWin32_Init(Window);
+    ImGui_ImplDX12_Init(
+        D3DDevice.Get(), 
+        1,
+        GetBackBufferFormat(),
+        ImguiDescriptorStack->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart(),
+        ImguiDescriptorStack->GetDescriptorHeap()->GetGPUDescriptorHandleForHeapStart());
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void RenderDevice::ShutdownImgui()
+{
+    ImGui_ImplDX12_Shutdown();
+    ImGui_ImplWin32_Shutdown();
+    ImGui::DestroyContext();
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 void RenderDevice::CreateDisplayTargets()
 {
     // Create render targets from swap chain
@@ -637,4 +671,11 @@ D3D12_CPU_DESCRIPTOR_HANDLE RenderDevice::AllocateDescriptor(D3D12_DESCRIPTOR_HE
 DescriptorHeapStack& RenderDevice::GetDefaultDescriptorHeapStack()
 {
     return *DescriptorStack;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+DescriptorHeapStack& RenderDevice::GetImguiDescriptorHeapStack()
+{
+    return *ImguiDescriptorStack;
 }

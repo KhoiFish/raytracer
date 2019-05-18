@@ -18,6 +18,8 @@
 // ----------------------------------------------------------------------------------------------------------------------------
 
 #include "PlatformApp.h"
+#include <imgui/imgui.h>
+#include <imgui/examples/imgui_impl_win32.h>
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -31,6 +33,10 @@ bool    PlatformApp::FullscreenMode = false;
 RECT    PlatformApp::WindowRect;
 double  PlatformApp::PCFreq = 0;
 __int64 PlatformApp::PrevCounter = 0;
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+IMGUI_IMPL_API LRESULT  ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -115,7 +121,8 @@ int PlatformApp::Run(RenderInterface* pRenderInterface, HINSTANCE hInstance, int
     }
 }
 
-// Convert a styled window into a fullscreen borderless window and back again.
+// ----------------------------------------------------------------------------------------------------------------------------
+
 void PlatformApp::ToggleFullscreenWindow(IDXGISwapChain* pSwapChain)
 {
     if (FullscreenMode)
@@ -193,6 +200,8 @@ void PlatformApp::ToggleFullscreenWindow(IDXGISwapChain* pSwapChain)
     FullscreenMode = !FullscreenMode;
 }
 
+// ----------------------------------------------------------------------------------------------------------------------------
+
 void PlatformApp::SetWindowZorderToTopMost(bool setToTopMost)
 {
     RECT windowRect;
@@ -208,30 +217,42 @@ void PlatformApp::SetWindowZorderToTopMost(bool setToTopMost)
         SWP_FRAMECHANGED | SWP_NOACTIVATE);
 }
 
-// Main message handler for the sample.
+// ----------------------------------------------------------------------------------------------------------------------------
+
 LRESULT CALLBACK PlatformApp::WindowProc(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam)
 {
     RenderInterface* pRenderInterface = reinterpret_cast<RenderInterface*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
 
+    bool keyboardCaptured = false, mouseCaptured = false;
+    if (ImGui::GetCurrentContext() != nullptr)
+    {
+        // Pass message to imgui
+        ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam);
+
+        // See if mouse wants to be captured
+        ImGuiIO& imguiIo = ImGui::GetIO();
+        keyboardCaptured = imguiIo.WantCaptureKeyboard;
+        mouseCaptured    = imguiIo.WantCaptureMouse;
+    }
+    
     switch (message)
     {
     case WM_CREATE:
     {
-        // Save the DXSample* passed in to CreateWindow.
         LPCREATESTRUCT pCreateStruct = reinterpret_cast<LPCREATESTRUCT>(lParam);
         SetWindowLongPtr(hWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pCreateStruct->lpCreateParams));
     }
     return 0;
 
     case WM_KEYDOWN:
-        if (pRenderInterface)
+        if (pRenderInterface && !keyboardCaptured)
         {
             pRenderInterface->OnKeyDown(static_cast<UINT8>(wParam));
         }
         return 0;
 
     case WM_KEYUP:
-        if (pRenderInterface)
+        if (pRenderInterface && !keyboardCaptured)
         {
             pRenderInterface->OnKeyUp(static_cast<UINT8>(wParam));
         }
@@ -301,7 +322,7 @@ LRESULT CALLBACK PlatformApp::WindowProc(HWND hWnd, uint32_t message, WPARAM wPa
         return 0;
 
     case WM_MOUSEMOVE:
-        if (pRenderInterface && static_cast<UINT8>(wParam) == MK_LBUTTON)
+        if (pRenderInterface && static_cast<UINT8>(wParam) == MK_LBUTTON && !mouseCaptured)
         {
             uint32_t x = LOWORD(lParam);
             uint32_t y = HIWORD(lParam);
@@ -310,6 +331,7 @@ LRESULT CALLBACK PlatformApp::WindowProc(HWND hWnd, uint32_t message, WPARAM wPa
         return 0;
 
     case WM_LBUTTONDOWN:
+    if (!mouseCaptured)
     {
         uint32_t x = LOWORD(lParam);
         uint32_t y = HIWORD(lParam);
@@ -318,6 +340,7 @@ LRESULT CALLBACK PlatformApp::WindowProc(HWND hWnd, uint32_t message, WPARAM wPa
     return 0;
 
     case WM_LBUTTONUP:
+    if  (!mouseCaptured)
     {
         uint32_t x = LOWORD(lParam);
         uint32_t y = HIWORD(lParam);

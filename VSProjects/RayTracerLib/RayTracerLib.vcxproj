@@ -215,6 +215,14 @@
     <ClInclude Include="..\..\Source\RealtimeEngine\RTTexture.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\RenderSceneShader.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\ShaderCompat.h" />
+    <ClInclude Include="..\..\ThirdParty\imgui\examples\imgui_impl_dx12.h" />
+    <ClInclude Include="..\..\ThirdParty\imgui\examples\imgui_impl_win32.h" />
+    <ClInclude Include="..\..\ThirdParty\imgui\imconfig.h" />
+    <ClInclude Include="..\..\ThirdParty\imgui\imgui.h" />
+    <ClInclude Include="..\..\ThirdParty\imgui\imgui_internal.h" />
+    <ClInclude Include="..\..\ThirdParty\imgui\imstb_rectpack.h" />
+    <ClInclude Include="..\..\ThirdParty\imgui\imstb_textedit.h" />
+    <ClInclude Include="..\..\ThirdParty\imgui\imstb_truetype.h" />
     <ClInclude Include="..\..\ThirdParty\StbImage\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
@@ -252,6 +260,11 @@
     <ClCompile Include="..\..\Source\RealtimeEngine\RenderScene.cpp" />
     <ClCompile Include="..\..\Source\RealtimeEngine\RootSignature.cpp" />
     <ClCompile Include="..\..\Source\RealtimeEngine\RTTexture.cpp" />
+    <ClCompile Include="..\..\ThirdParty\imgui\examples\imgui_impl_dx12.cpp" />
+    <ClCompile Include="..\..\ThirdParty\imgui\examples\imgui_impl_win32.cpp" />
+    <ClCompile Include="..\..\ThirdParty\imgui\imgui.cpp" />
+    <ClCompile Include="..\..\ThirdParty\imgui\imgui_draw.cpp" />
+    <ClCompile Include="..\..\ThirdParty\imgui\imgui_widgets.cpp" />
     <ClCompile Include="..\..\ThirdParty\StbImage\StbImageImpl.cpp" />
   </ItemGroup>
   <ItemGroup>

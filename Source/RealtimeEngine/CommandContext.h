@@ -26,7 +26,6 @@
 #include "GpuBuffer.h"
 #include "RTTexture.h"
 #include "ColorBuffer.h"
-#include "DynamicDescriptorHeap.h"
 #include "LinearAllocator.h"
 
 #include <vector>

@@ -29,7 +29,6 @@ using namespace Core;
 using namespace RealtimeEngine;
 
 #include "RaytracingSetup.hpp"
-#include "FullscreenRender.hpp"
 #include "RealtimeRender.hpp"
 #include "HandleInput.hpp"
 
@@ -46,7 +45,6 @@ static float   sClearColor[]     = { 0.2f, 0.2f, 0.2f, 1.0f };
 
 Renderer::Renderer(uint32_t width, uint32_t height)
     : RenderInterface(width, height)
-    , RenderMode(RenderingMode_Realtime)
     , TheRaytracer(nullptr)
     , TheWorldScene(nullptr)
     , TheRenderScene(nullptr)
@@ -54,11 +52,13 @@ Renderer::Renderer(uint32_t width, uint32_t height)
     , MaxyRayRecursionDepth(1)
     , NumRaysPerPixel(5)
     , AORadius(100.0f)
+    , SelectedBufferIndex(-1)
     , RealtimeDescriptorHeap(nullptr)
     , RaytracingDescriptorHeap(nullptr)
 {
     BackbufferFormat                                    = DXGI_FORMAT_R8G8B8A8_UNORM;
     RaytracingBufferType                                = DXGI_FORMAT_R8G8B8A8_UNORM;
+    CPURaytracerTexType                                 = DXGI_FORMAT_R8G8B8A8_UNORM;
     ZBufferRTType                                       = DXGI_FORMAT_R32_FLOAT;
     DeferredBuffersRTTypes[DeferredBufferType_Position] = DXGI_FORMAT_R32G32B32A32_FLOAT;
     DeferredBuffersRTTypes[DeferredBufferType_Normal]   = DXGI_FORMAT_R32G32B32A32_FLOAT;
@@ -120,7 +120,6 @@ void Renderer::OnInit()
 
     // Setup render pipelines
     SetupRenderBuffers();
-    SetupFullscreenQuadPipeline();
     SetupRealtimePipeline();
 
     // Load the scene data
@@ -145,6 +144,9 @@ void Renderer::SetupRenderBuffers()
 
     ZPrePassBuffer.Destroy();
     ZPrePassBuffer.Create("ZPrePass Buffer", width, height, 1, ZBufferRTType);
+
+    CPURaytracerTex.Destroy();
+    CPURaytracerTex.Create("CpuRaytracerTex", width, height, 1, CPURaytracerTexType);
 
     AmbientOcclusionOutput.Destroy();
     AmbientOcclusionOutput.CreateEx("AO Buffer", Width, Height, 1, RaytracingBufferType, nullptr, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
@@ -192,9 +194,6 @@ void Renderer::OnResizeRaytracer()
         TheRaytracer = nullptr;
     }
 
-    CPURaytracerTex.Destroy();
-    CPURaytracerTex.Create("CpuRaytracerTex", backbufferWidth, backbufferHeight, 1, DXGI_FORMAT_R8G8B8A8_UNORM);
-
     // Create the ray tracer
     TheRaytracer = new Raytracer(backbufferWidth, backbufferHeight, sNumSamplesPerRay, sMaxScatterDepth, sNumThreads, true);
 
@@ -235,11 +234,13 @@ void Renderer::ToggleCpuRaytracer()
     {
         delete TheRaytracer;
         TheRaytracer = nullptr;
+
+        SelectedBufferIndex = -1;
     }
     else
     {
         OnResizeRaytracer();
-        RenderMode = RenderingMode_Cpu;
+        SelectedBufferIndex = CpuResultsBufferIndex;
     }
 }
 
@@ -283,22 +284,10 @@ void Renderer::OnUpdate(float dtSeconds)
 
 void Renderer::OnRender()
 {
-    // Render the right stuff
-    switch (RenderMode)
-    {
-    case RenderingMode_Cpu:
-        RenderCPUResults();
-        break;
-
-    case RenderingMode_Realtime:
-        RenderGeometryPass();
-        ComputeRaytracingResults();
-        RenderCompositePass();
-        break;
-
-    default:
-        break;
-    }
+    // Render passes
+    RenderGeometryPass();
+    ComputeRaytracingResults();
+    RenderCompositePass();
 
     // Present
     RenderDevice::Get().Present();

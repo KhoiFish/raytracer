@@ -20,9 +20,6 @@
 #include "RaytracingShader.h"
 #include "RealtimeEngine/RenderSceneShader.h"
 
-#define SizeOfInUint32(obj) ((sizeof(obj) - 1) / sizeof(UINT32) + 1)
-#define ArraySize(a) (sizeof(a)/sizeof(a[0]))
-
 // ----------------------------------------------------------------------------------------------------------------------------
 
 namespace RaytracingGlobalRootSigSlot
@@ -187,7 +184,7 @@ void Renderer::SetupRealtimeRaytracingPipeline()
         {
             ID3DBlobPtr pDxilLib;
             ThrowIfFailed(D3DReadFileToBlob(SHADERBUILD_DIR L"\\Raytracing.cso", &pDxilLib));
-            TheRaytracingPSO.SetDxilLibrary(pDxilLib, sDxilLibEntryPoints, ArraySize(sDxilLibEntryPoints));
+            TheRaytracingPSO.SetDxilLibrary(pDxilLib, sDxilLibEntryPoints, ARRAY_SIZE(sDxilLibEntryPoints));
         }
 
         // Setup hit program
@@ -198,7 +195,7 @@ void Renderer::SetupRealtimeRaytracingPipeline()
         TheRaytracingPSO.AddLocalRootSignature(&RaytracingLocalRootSig);
 
         // Associate shaders with local root signature
-        TheRaytracingPSO.AddExportAssociationWithLocalRootSignature(sDxilLibEntryPoints, ArraySize(sDxilLibEntryPoints), &RaytracingLocalRootSig);
+        TheRaytracingPSO.AddExportAssociationWithLocalRootSignature(sDxilLibEntryPoints, ARRAY_SIZE(sDxilLibEntryPoints), &RaytracingLocalRootSig);
 
         // Bind data (like descriptor data) to shaders
         {
@@ -232,7 +229,7 @@ void Renderer::SetupRealtimeRaytracingPipeline()
         TheRaytracingPSO.SetShaderConfig(D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES, sizeof(RayPayload));
 
         // Associate shaders with shader config
-        TheRaytracingPSO.AddExportAssociationWithShaderConfig(sDxilLibEntryPoints, ArraySize(sDxilLibEntryPoints));
+        TheRaytracingPSO.AddExportAssociationWithShaderConfig(sDxilLibEntryPoints, ARRAY_SIZE(sDxilLibEntryPoints));
 
         // Pipeline config
         TheRaytracingPSO.SetPipelineConfig(MaxyRayRecursionDepth);

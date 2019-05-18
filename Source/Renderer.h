@@ -66,7 +66,6 @@ public:
 
 private:
 
-    void                       SetupFullscreenQuadPipeline();
     void                       SetupRealtimeRaytracingPipeline();
     void                       SetupRealtimePipeline();
     void                       SetupRenderBuffers();
@@ -75,27 +74,12 @@ private:
     void                       ToggleCpuRaytracer();
     static void                OnCpuRaytraceComplete(Core::Raytracer* tracer, bool actuallyFinished);
     void                       RenderSceneList(GraphicsContext& renderContext);
-    void                       RenderCPUResults();
     void                       RenderGeometryPass();
     void                       RenderCompositePass();
     void                       ComputeRaytracingResults();
     void                       SetupSceneConstantBuffer(const FXMMATRIX& model, SceneConstantBuffer& sceneCB);
 
 private:
-
-    enum RenderingMode
-    {
-        RenderingMode_Realtime = 0,
-        RenderingMode_Cpu,
-
-        MaxRenderModes
-    };
-
-    static constexpr const char* RenderingModeStrings[MaxRenderModes] =
-    {
-        "Realtime Rendering",
-        "CPU Raytracing",
-    };
 
     enum DeferredBufferType
     {
@@ -141,7 +125,6 @@ private:
 
 private:
 
-    RenderingMode                   RenderMode;
     Core::Raytracer*                TheRaytracer;
     Core::WorldScene*               TheWorldScene;
     RealtimeEngine::RenderScene*    TheRenderScene;
@@ -150,11 +133,14 @@ private:
     int                             MaxyRayRecursionDepth;
     int                             NumRaysPerPixel;
     float                           AORadius;
+    int                             SelectedBufferIndex;
+    int                             CpuResultsBufferIndex;
 
     DXGI_FORMAT                     BackbufferFormat;
     DXGI_FORMAT                     DeferredBuffersRTTypes[DeferredBufferType_Num];
     DXGI_FORMAT                     ZBufferRTType;
     DXGI_FORMAT                     RaytracingBufferType;
+    DXGI_FORMAT                     CPURaytracerTexType;
 
     ColorBuffer                     CPURaytracerTex;
     ColorBuffer                     DeferredBuffers[DeferredBufferType_Num];

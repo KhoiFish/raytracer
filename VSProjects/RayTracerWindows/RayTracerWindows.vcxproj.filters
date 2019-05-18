@@ -31,9 +31,6 @@
     <ClInclude Include="..\..\Source\HandleInput.hpp">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\FullscreenRender.hpp">
-      <Filter>Source</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Source\RealtimeRender.hpp">
       <Filter>Source</Filter>
     </ClInclude>
@@ -76,12 +73,6 @@
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="..\..\Source\Shaders\CompositePass_VS.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="..\..\Source\Shaders\FullscreenQuad_PS.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="..\..\Source\Shaders\FullscreenQuad_VS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="..\..\Source\Shaders\GeometryPass_PS.hlsl">

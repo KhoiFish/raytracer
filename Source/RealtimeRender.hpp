@@ -29,6 +29,7 @@ enum RealtimeRenderingRootIndex
     RealtimeRenderingRootIndex_Texture3,
     RealtimeRenderingRootIndex_Texture4,
     RealtimeRenderingRootIndex_Texture5,
+    RealtimeRenderingRootIndex_Texture6,
 
     RealtimeRenderingRootIndex_Num
 };
@@ -43,6 +44,7 @@ enum RealtimeRenderingRegisters
     RealtimeRenderingRegisters_Texture3         = 3,
     RealtimeRenderingRegisters_Texture4         = 4,
     RealtimeRenderingRegisters_Texture5         = 5,
+    RealtimeRenderingRegisters_Texture6         = 6,
     RealtimeRenderingRegisters_LinearSampler    = 0,
     RealtimeRenderingRegisters_AnisoSampler     = 1,
 };
@@ -51,6 +53,8 @@ enum RealtimeRenderingRegisters
 
 void Renderer::SetupRealtimePipeline()
 {
+    CpuResultsBufferIndex = RealtimeRenderingRegisters_Texture2;
+
     // Create heap for descriptors
     RealtimeDescriptorHeap = new DescriptorHeapStack(64, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 0);
 
@@ -96,6 +100,7 @@ void Renderer::SetupRealtimePipeline()
         RealtimeRootSignature[RealtimeRenderingRootIndex_Texture3].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RealtimeRenderingRegisters_Texture3, 1);
         RealtimeRootSignature[RealtimeRenderingRootIndex_Texture4].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RealtimeRenderingRegisters_Texture4, 1);
         RealtimeRootSignature[RealtimeRenderingRootIndex_Texture5].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RealtimeRenderingRegisters_Texture5, 1);
+        RealtimeRootSignature[RealtimeRenderingRootIndex_Texture6].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RealtimeRenderingRegisters_Texture6, 1);
         RealtimeRootSignature.InitStaticSampler(RealtimeRenderingRegisters_LinearSampler, linearSamplerDesc, D3D12_SHADER_VISIBILITY_PIXEL);
         RealtimeRootSignature.InitStaticSampler(RealtimeRenderingRegisters_AnisoSampler, anisoSamplerDesc, D3D12_SHADER_VISIBILITY_PIXEL);
         RealtimeRootSignature.Finalize("RealtimeRender", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
@@ -110,6 +115,11 @@ void Renderer::SetupRealtimePipeline()
             RealtimeDescriptorHeap->AllocateTexture2DSrv(
                 AmbientOcclusionOutput.GetResource(),
                 RaytracingBufferType,
+                D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
+
+            RealtimeDescriptorHeap->AllocateTexture2DSrv(
+                CPURaytracerTex.GetResource(),
+                CPURaytracerTexType,
                 D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
 
             for (int i = 0; i < DeferredBufferType_Num; i++)
@@ -305,7 +315,7 @@ void Renderer::RenderGeometryPass()
 
         // Z pre pass
         {
-            renderContext.TransitionResource(ZPrePassBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
+            renderContext.TransitionResource(ZPrePassBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET);
             renderContext.TransitionResource(RenderDevice::Get().GetDepthStencil(), D3D12_RESOURCE_STATE_DEPTH_WRITE, true);
             renderContext.ClearDepth(RenderDevice::Get().GetDepthStencil());
             renderContext.SetPipelineState(RealtimeZPrePassPSO);
@@ -320,12 +330,10 @@ void Renderer::RenderGeometryPass()
         {
             for (int i = 0; i < DeferredBufferType_Num; i++)
             {
-                renderContext.TransitionResource(DeferredBuffers[i], D3D12_RESOURCE_STATE_RENDER_TARGET, true);
+                renderContext.TransitionResource(DeferredBuffers[i], D3D12_RESOURCE_STATE_RENDER_TARGET);
             }
             renderContext.TransitionResource(RenderDevice::Get().GetDepthStencil(), D3D12_RESOURCE_STATE_DEPTH_READ, true);
-            renderContext.SetPipelineState(RealtimeGeometryPassPSO);
-            renderContext.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
+            
             // Bind gbuffer
             D3D12_CPU_DESCRIPTOR_HANDLE rtvs[]
             {
@@ -341,6 +349,8 @@ void Renderer::RenderGeometryPass()
                 renderContext.ClearColor(DeferredBuffers[i]);
             }
 
+            renderContext.SetPipelineState(RealtimeGeometryPassPSO);
+            renderContext.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
             RenderSceneList(renderContext);
         }
     }
@@ -359,11 +369,57 @@ void Renderer::RenderCompositePass()
 
         // Composite pass
         {
-            renderContext.TransitionResource(RenderDevice::Get().GetRenderTarget(), D3D12_RESOURCE_STATE_RENDER_TARGET, true);
+            // Update GPU texture with the cpu traced results
+            if (TheRaytracer != nullptr)
+            {
+                D3D12_SUBRESOURCE_DATA subresource;
+                subresource.RowPitch    = 4 * TheRaytracer->GetOutputWidth();
+                subresource.SlicePitch  = subresource.RowPitch * TheRaytracer->GetOutputHeight();
+                subresource.pData       =  TheRaytracer->GetOutputBufferRGBA();
+                renderContext.InitializeTexture(CPURaytracerTex, 1, &subresource);
+            }
+
+            // Setup constants
+            SceneConstantBuffer sceneCb;
+            {
+                // The following multipliers let us select which buffer to display
+                // See the CompositePass shader for more details.
+                const XMFLOAT4 bufferOn  = XMFLOAT4(1, 1, 1, 1);
+                const XMFLOAT4 bufferOff = XMFLOAT4(0, 0, 0, 0);
+                for (int i = 0; i < ARRAY_SIZE(sceneCb.TextureMultipliers); i++)
+                {
+                    if (SelectedBufferIndex == i || SelectedBufferIndex < 0)
+                    {
+                        sceneCb.TextureMultipliers[i] = bufferOn;
+                    }
+                    else
+                    {
+                        sceneCb.TextureMultipliers[i] = bufferOff;
+                    }
+                }
+
+                if (SelectedBufferIndex < 0)
+                {
+                    sceneCb.CompositeMultipliers[0] = bufferOn;
+                    sceneCb.CompositeMultipliers[1] = bufferOff;
+                }
+                else
+                {
+                    sceneCb.CompositeMultipliers[0] = bufferOff;
+                    sceneCb.CompositeMultipliers[1] = bufferOn;
+                }
+            }
+
+            // Transition resources
+            renderContext.TransitionResource(CPURaytracerTex, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+            renderContext.TransitionResource(ZPrePassBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+            renderContext.TransitionResource(AmbientOcclusionOutput, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+            for (int i = 0; i < DeferredBufferType_Num; i++)
+            {
+                renderContext.TransitionResource(DeferredBuffers[i], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+            }
+            renderContext.TransitionResource(RenderDevice::Get().GetRenderTarget(), D3D12_RESOURCE_STATE_RENDER_TARGET);
             renderContext.TransitionResource(RenderDevice::Get().GetDepthStencil(), D3D12_RESOURCE_STATE_DEPTH_READ, true);
-            renderContext.SetRenderTarget(RenderDevice::Get().GetRenderTarget().GetRTV(), RenderDevice::Get().GetDepthStencil().GetDSV());
-            renderContext.SetPipelineState(RealtimeCompositePassPSO);
-            renderContext.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
             // Set descriptor heaps and tables
             renderContext.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, RealtimeDescriptorHeap->GetDescriptorHeap());
@@ -373,15 +429,11 @@ void Renderer::RenderCompositePass()
                 renderContext.SetDescriptorTable(rootIndex, RealtimeDescriptorHeap->GetGpuHandle(i));
             }
 
-            // Transition resources
-            renderContext.TransitionResource(ZPrePassBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, true);
-            renderContext.TransitionResource(AmbientOcclusionOutput, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, true);
-            for (int i = 0; i < DeferredBufferType_Num; i++)
-            {
-                renderContext.TransitionResource(DeferredBuffers[i], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, true);
-            }
-
             // Draw
+            renderContext.SetDynamicConstantBufferView(RealtimeRenderingRootIndex_ConstantBuffer0, sizeof(sceneCb), &sceneCb);
+            renderContext.SetRenderTarget(RenderDevice::Get().GetRenderTarget().GetRTV(), RenderDevice::Get().GetDepthStencil().GetDSV());
+            renderContext.SetPipelineState(RealtimeCompositePassPSO);
+            renderContext.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
             renderContext.SetNullVertexBuffer(0);
             renderContext.SetNullIndexBuffer();
             renderContext.Draw(3);

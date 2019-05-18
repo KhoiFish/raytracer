@@ -53,6 +53,7 @@ Renderer::Renderer(uint32_t width, uint32_t height)
     , NumRaysPerPixel(5)
     , AORadius(100.0f)
     , SelectedBufferIndex(0)
+    , AccumCount(0)
     , RealtimeDescriptorHeap(nullptr)
     , RaytracingDescriptorHeap(nullptr)
 {
@@ -148,8 +149,11 @@ void Renderer::SetupRenderBuffers()
     CPURaytracerTex.Destroy();
     CPURaytracerTex.Create("CpuRaytracerTex", width, height, 1, CPURaytracerTexType);
 
-    AmbientOcclusionOutput.Destroy();
-    AmbientOcclusionOutput.CreateEx("AO Buffer", Width, Height, 1, RaytracingBufferType, nullptr, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
+    for (int i = 0; i < 2; i++)
+    {
+        AmbientOcclusionOutput[i].Destroy();
+        AmbientOcclusionOutput[i].CreateEx("AO Buffer", Width, Height, 1, RaytracingBufferType, nullptr, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
+    }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -277,6 +281,7 @@ void Renderer::OnUpdate(float dtSeconds)
         }
 
         UserInput.InputDirty = false;
+        AccumCount = 0;
     }
 }
 

@@ -135,6 +135,7 @@ private:
     float                           AORadius;
     int                             SelectedBufferIndex;
     int                             CpuResultsBufferIndex;
+    int                             AccumCount;
 
     DXGI_FORMAT                     BackbufferFormat;
     DXGI_FORMAT                     DeferredBuffersRTTypes[DeferredBufferType_Num];
@@ -145,7 +146,7 @@ private:
     ColorBuffer                     CPURaytracerTex;
     ColorBuffer                     DeferredBuffers[DeferredBufferType_Num];
     ColorBuffer                     ZPrePassBuffer;
-    ColorBuffer                     AmbientOcclusionOutput;
+    ColorBuffer                     AmbientOcclusionOutput[2];
 
     RootSignature                   FullscreenQuadRootSignature;
     GraphicsPSO                     FullscreenPipelineState;

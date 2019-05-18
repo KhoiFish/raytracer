@@ -26,7 +26,8 @@ namespace RaytracingGlobalRootSigSlot
 {
     enum EnumTypes
     {
-        OutputView = 0,
+        PrevAOOutput = 0,
+        CurAOOutput,
         AccelerationStructure,
         Depth,
         Positions,
@@ -45,6 +46,7 @@ namespace RaytracingGlobalRootSigSlot
     static UINT Range[RaytracingGlobalRootSigSlot::Num][2] =
     {
         { 0, 1 },
+        { 1, 1 },
         { 0, 1 },
         { 1, 1 },
         { 2, 1 },
@@ -94,10 +96,16 @@ void Renderer::SetupRealtimeRaytracingPipeline()
     {
         RaytracingGlobalRootSig.Reset(RaytracingGlobalRootSigSlot::Num, 0);
         {
-            RaytracingGlobalRootSig[RaytracingGlobalRootSigSlot::OutputView].InitAsDescriptorRange(
+            RaytracingGlobalRootSig[RaytracingGlobalRootSigSlot::PrevAOOutput].InitAsDescriptorRange(
                 D3D12_DESCRIPTOR_RANGE_TYPE_UAV,
-                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::OutputView][RaytracingGlobalRootSigSlot::Register],
-                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::OutputView][RaytracingGlobalRootSigSlot::Count],
+                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::PrevAOOutput][RaytracingGlobalRootSigSlot::Register],
+                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::PrevAOOutput][RaytracingGlobalRootSigSlot::Count],
+                D3D12_SHADER_VISIBILITY_ALL);
+
+            RaytracingGlobalRootSig[RaytracingGlobalRootSigSlot::CurAOOutput].InitAsDescriptorRange(
+                D3D12_DESCRIPTOR_RANGE_TYPE_UAV,
+                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::CurAOOutput][RaytracingGlobalRootSigSlot::Register],
+                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::CurAOOutput][RaytracingGlobalRootSigSlot::Count],
                 D3D12_SHADER_VISIBILITY_ALL);
 
             RaytracingGlobalRootSig[RaytracingGlobalRootSigSlot::AccelerationStructure].InitAsDescriptorRange(
@@ -128,7 +136,13 @@ void Renderer::SetupRealtimeRaytracingPipeline()
 
         // Allocate descriptor for output view
         RaytracingDescriptorHeap->AllocateBufferUav(
-            *AmbientOcclusionOutput.GetResource(),
+            *AmbientOcclusionOutput[0].GetResource(),
+            D3D12_UAV_DIMENSION_TEXTURE2D,
+            D3D12_BUFFER_UAV_FLAG_NONE,
+            DXGI_FORMAT_R8G8B8A8_UNORM);
+
+        RaytracingDescriptorHeap->AllocateBufferUav(
+            *AmbientOcclusionOutput[1].GetResource(),
             D3D12_UAV_DIMENSION_TEXTURE2D,
             D3D12_BUFFER_UAV_FLAG_NONE,
             DXGI_FORMAT_R8G8B8A8_UNORM);
@@ -260,6 +274,7 @@ void Renderer::ComputeRaytracingResults()
             sceneCB.AORadius         = AORadius;
             sceneCB.FrameCount       = FrameCount;
             sceneCB.NumRays          = NumRaysPerPixel;
+            sceneCB.AccumCount       = AccumCount++;
             
             // Update GPU buffer
             computeContext.WriteBuffer(RaytracingSceneConstantBuffer, 0, &sceneCB, sizeof(sceneCB));
@@ -279,10 +294,14 @@ void Renderer::ComputeRaytracingResults()
         }
         
         // Transition all output buffers
-        computeContext.TransitionResource(AmbientOcclusionOutput, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, true);
+        computeContext.TransitionResource(AmbientOcclusionOutput[0], D3D12_RESOURCE_STATE_UNORDERED_ACCESS, true);
+        computeContext.TransitionResource(AmbientOcclusionOutput[1], D3D12_RESOURCE_STATE_UNORDERED_ACCESS, true);
 
         // Finally dispatch rays
         computeContext.DispatchRays(TheRaytracingPSO, Width, Height);
+
+        // Copy current results to previous
+        computeContext.CopyBuffer(AmbientOcclusionOutput[0], AmbientOcclusionOutput[1]);
     }
     computeContext.Finish(true);
 }

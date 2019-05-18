@@ -87,6 +87,7 @@ struct RaytracingGlobalCB
     float       AORadius;
     int         FrameCount;
     int         NumRays;
+    int         AccumCount;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------

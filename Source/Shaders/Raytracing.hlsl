@@ -25,7 +25,8 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-RWTexture2D<float4>                 gOutput     : register(u0);
+RWTexture2D<float4>                 gPrevAO     : register(u0);
+RWTexture2D<float4>                 gCurAO      : register(u1);
 RaytracingAccelerationStructure     gScene      : register(t0);
 Texture2D<float>                    gDepth      : register(t1);
 Texture2D<float4>                   gPositions  : register(t2);
@@ -116,8 +117,12 @@ void RayGenerationShader()
     }
 
     // Save out our AO color
-    float aoColor = ao / float(numRays);
-    gOutput[launchIndex.xy] = float4(aoColor, aoColor, aoColor, 1.0f);
+    float  aoColor    = ao / float(numRays);
+    float4 curColor   = float4(aoColor, aoColor, aoColor, 1.0f);
+    float4 prevColor  = gPrevAO[launchIndex.xy];
+    float4 finalColor = (gSceneCB.AccumCount * prevColor + curColor) / (gSceneCB.AccumCount + 1);
+
+    gCurAO[launchIndex.xy] = finalColor;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

@@ -53,7 +53,7 @@ enum RealtimeRenderingRegisters
 
 void Renderer::SetupRealtimePipeline()
 {
-    CpuResultsBufferIndex = RealtimeRenderingRegisters_Texture2;
+    CpuResultsBufferIndex = RealtimeRenderingRegisters_Texture2 + 1;
 
     // Create heap for descriptors
     RealtimeDescriptorHeap = new DescriptorHeapStack(64, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 0);
@@ -388,7 +388,7 @@ void Renderer::RenderCompositePass()
                 const XMFLOAT4 bufferOff = XMFLOAT4(0, 0, 0, 0);
                 for (int i = 0; i < ARRAY_SIZE(sceneCb.TextureMultipliers); i++)
                 {
-                    if (SelectedBufferIndex == i || SelectedBufferIndex < 0)
+                    if (SelectedBufferIndex == i || SelectedBufferIndex == 0)
                     {
                         sceneCb.TextureMultipliers[i] = bufferOn;
                     }
@@ -398,7 +398,7 @@ void Renderer::RenderCompositePass()
                     }
                 }
 
-                if (SelectedBufferIndex < 0)
+                if (SelectedBufferIndex == 0)
                 {
                     sceneCb.CompositeMultipliers[0] = bufferOn;
                     sceneCb.CompositeMultipliers[1] = bufferOff;

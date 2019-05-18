@@ -52,7 +52,7 @@ Renderer::Renderer(uint32_t width, uint32_t height)
     , MaxyRayRecursionDepth(1)
     , NumRaysPerPixel(5)
     , AORadius(100.0f)
-    , SelectedBufferIndex(-1)
+    , SelectedBufferIndex(0)
     , RealtimeDescriptorHeap(nullptr)
     , RaytracingDescriptorHeap(nullptr)
 {
@@ -235,7 +235,7 @@ void Renderer::ToggleCpuRaytracer()
         delete TheRaytracer;
         TheRaytracer = nullptr;
 
-        SelectedBufferIndex = -1;
+        SelectedBufferIndex = 0;
     }
     else
     {

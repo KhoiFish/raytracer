@@ -172,13 +172,6 @@ void Renderer::OnKeyUp(uint8_t key)
             SelectedBufferIndex = atoi((const char*)&key) - 1;
             break;
         }
-
-        case '0':
-        case '`':
-        {
-            SelectedBufferIndex = -1;
-            break;
-        }
     }
 }
 

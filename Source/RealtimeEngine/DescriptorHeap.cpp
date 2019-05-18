@@ -153,6 +153,7 @@ void DescriptorHeapStack::AllocateDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE& cpuHan
 {
     descriptorHeapIndex = DescriptorsAllocated;
     cpuHandle           = CD3DX12_CPU_DESCRIPTOR_HANDLE(DescriptorHeapCpuBase, descriptorHeapIndex, DescriptorSize);
+    CpuHandles.push_back(cpuHandle);
     DescriptorsAllocated++;
 }
 
@@ -260,4 +261,9 @@ D3D12_GPU_DESCRIPTOR_HANDLE DescriptorHeapStack::GetGpuHandle(UINT descriptorInd
     return CD3DX12_GPU_DESCRIPTOR_HANDLE(DescriptorHeap->GetGPUDescriptorHandleForHeapStart(), descriptorIndex, DescriptorSize);
 }
 
+// ----------------------------------------------------------------------------------------------------------------------------
 
+D3D12_CPU_DESCRIPTOR_HANDLE DescriptorHeapStack::GetCpuHandle(UINT descriptorIndex)
+{
+    return CpuHandles[descriptorIndex];
+}

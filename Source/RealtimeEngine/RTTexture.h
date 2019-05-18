@@ -21,6 +21,7 @@
 
 #include "Globals.h"
 #include "GpuResource.h"
+#include "DescriptorHeap.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -30,23 +31,21 @@ namespace RealtimeEngine
     {
     public:
 
-        Texture() { CpuDescriptorHandle.ptr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN; }
-        Texture(D3D12_CPU_DESCRIPTOR_HANDLE Handle) : CpuDescriptorHandle(Handle) {}
+        Texture() : Width(0), Height(0), DescriptorIndex(0) {}
 
         void                                Create(size_t pitch, size_t width, size_t height, DXGI_FORMAT Format, const void* initData);
         void                                Create(size_t width, size_t height, DXGI_FORMAT format, const void* initData);
         virtual void                        Destroy() override;
-        const D3D12_CPU_DESCRIPTOR_HANDLE&  GetSRV() const;
-
-        bool operator!() { return CpuDescriptorHandle.ptr == 0; }
+        D3D12_CPU_DESCRIPTOR_HANDLE         GetCpuHandle() const;
+        D3D12_GPU_DESCRIPTOR_HANDLE         GetGpuHandle() const;
 
     protected:
 
         friend class TextureManager;
 
-        D3D12_CPU_DESCRIPTOR_HANDLE     CpuDescriptorHandle;
-        int32_t                         Width;
-        int32_t                         Height;
+        int32_t Width;
+        int32_t Height;
+        UINT    DescriptorIndex;
     };
 
     // ----------------------------------------------------------------------------------------------------------------------------
@@ -59,7 +58,6 @@ namespace RealtimeEngine
 
         void WaitForLoad() const;
         void Unload();
-        void SetToInvalidTexture();
         bool IsValid() const;
         void operator= (const Texture& Texture);
 
@@ -75,11 +73,11 @@ namespace RealtimeEngine
     {
     public:
 
-        static void                   Initialize(const string_t& textureLibRoot);
-        static void                   Shutdown();
-        static const ManagedTexture*  LoadFromFile(const string_t& fileName, bool sRGB = false);
-        static const Texture&         GetBlackTex2D();
-        static const Texture&         GetWhiteTex2D();
-        static const Texture&         GetMagentaTex2D();
+        static void             Initialize(const string_t& textureLibRoot);
+        static void             Shutdown();
+        static ManagedTexture*  LoadFromFile(const string_t& fileName, bool sRGB = false);
+        static Texture&         GetBlackTex2D();
+        static Texture&         GetWhiteTex2D();
+        static Texture&         GetMagentaTex2D();
     };
 }

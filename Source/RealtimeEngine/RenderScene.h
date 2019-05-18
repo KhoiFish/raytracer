@@ -73,7 +73,7 @@ namespace RealtimeEngine
         RealtimeEngine::StructuredBuffer        IndexBuffer;
         DirectX::XMMATRIX                       WorldMatrix;
         RenderMaterial                          Material;
-        const RealtimeEngine::Texture*          DiffuseTexture;
+        RealtimeEngine::Texture*                DiffuseTexture;
     };
 
     // ----------------------------------------------------------------------------------------------------------------------------
@@ -92,7 +92,7 @@ namespace RealtimeEngine
 
     private:
 
-        void                            GenerateRenderListFromWorld(const Core::IHitable* currentHead, const RealtimeEngine::Texture* defaultTexture, std::vector<RenderSceneNode*>& outSceneList, 
+        void                            GenerateRenderListFromWorld(const Core::IHitable* currentHead, RealtimeEngine::Texture* defaultTexture, std::vector<RenderSceneNode*>& outSceneList, 
                                             std::vector<SpotLight>& spotLightsList, std::vector<DirectX::XMMATRIX>& matrixStack, std::vector<bool>& flipNormalStack);
 
         void                            SetupForRaytracing();

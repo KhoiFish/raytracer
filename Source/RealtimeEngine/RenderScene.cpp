@@ -253,7 +253,7 @@ static void CreateResourceViews(RenderSceneNode* renderNode)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RenderScene::GenerateRenderListFromWorld(const Core::IHitable* currentHead, const RealtimeEngine::Texture* defaultTexture, std::vector<RenderSceneNode*>& outSceneList, std::vector<SpotLight>& spotLightsList, std::vector<DirectX::XMMATRIX>& matrixStack, std::vector<bool>& flipNormalStack)
+void RenderScene::GenerateRenderListFromWorld(const Core::IHitable* currentHead, RealtimeEngine::Texture* defaultTexture, std::vector<RenderSceneNode*>& outSceneList, std::vector<SpotLight>& spotLightsList, std::vector<DirectX::XMMATRIX>& matrixStack, std::vector<bool>& flipNormalStack)
 {
     const std::type_info& tid = typeid(*currentHead);
 
@@ -409,7 +409,7 @@ void RenderScene::GenerateRenderListFromWorld(const Core::IHitable* currentHead,
         XMMATRIX translation = XMMatrixIdentity();
         XMMATRIX newMatrix = ComputeFinalMatrix(matrixStack, translation);
 
-        const RealtimeEngine::Texture* newTexture = defaultTexture;
+        RealtimeEngine::Texture* newTexture = defaultTexture;
         if (typeid(*triMesh->GetMaterial()) == typeid(Core::MWavefrontObj))
         {
             std::string  fileName = ((Core::MWavefrontObj*)triMesh->GetMaterial())->GetDiffuseMap()->GetSourceFilename().c_str();

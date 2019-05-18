@@ -225,12 +225,7 @@ void Texture::Create(size_t pitch, size_t width, size_t height, DXGI_FORMAT form
 
     CommandContext::InitializeTexture(*this, 1, &texResource);
 
-    if (CpuDescriptorHandle.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
-    {
-        CpuDescriptorHandle = RenderDevice::Get().AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-    }
-
-    RenderDevice::Get().GetD3DDevice()->CreateShaderResourceView(ResourcePtr.Get(), nullptr, CpuDescriptorHandle);
+    DescriptorIndex = RenderDevice::Get().GetDefaultDescriptorHeapStack().AllocateTexture2DSrv(ResourcePtr.Get(), format);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -245,36 +240,35 @@ void RealtimeEngine::Texture::Create(size_t width, size_t height, DXGI_FORMAT fo
 void RealtimeEngine::Texture::Destroy()
 {
     GpuResource::Destroy();
-
-    // This leaks descriptor handles.  We should really give it back to be reused.
-    CpuDescriptorHandle.ptr = 0;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-const D3D12_CPU_DESCRIPTOR_HANDLE& RealtimeEngine::Texture::GetSRV() const
+D3D12_CPU_DESCRIPTOR_HANDLE Texture::GetCpuHandle() const
 {
-    return CpuDescriptorHandle;
+    return RenderDevice::Get().GetDefaultDescriptorHeapStack().GetCpuHandle(DescriptorIndex);
 }
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+D3D12_GPU_DESCRIPTOR_HANDLE Texture::GetGpuHandle() const
+{
+    return RenderDevice::Get().GetDefaultDescriptorHeapStack().GetGpuHandle(DescriptorIndex);
+}
+
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
 void ManagedTexture::WaitForLoad() const
 {
-    volatile D3D12_CPU_DESCRIPTOR_HANDLE&  volHandle = (volatile D3D12_CPU_DESCRIPTOR_HANDLE&)CpuDescriptorHandle;
+    /*volatile D3D12_CPU_DESCRIPTOR_HANDLE&  volHandle = (volatile D3D12_CPU_DESCRIPTOR_HANDLE&)CpuDescriptorHandle;
     volatile bool&                         volValid  = (volatile bool&)IsValidState;
     while (volHandle.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN && volValid)
     {
         this_thread::yield();
-    }
-}
+    }*/
 
-// ----------------------------------------------------------------------------------------------------------------------------
-
-void ManagedTexture::SetToInvalidTexture()
-{
-    CpuDescriptorHandle = TextureManager::GetMagentaTex2D().GetSRV();
-    IsValidState = false;
+    return;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -322,7 +316,7 @@ static inline pair<ManagedTexture*, bool> FindOrLoadTexture(const string_t& file
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-const Texture& TextureManager::GetBlackTex2D()
+Texture& TextureManager::GetBlackTex2D()
 {
     auto            managedTex   = FindOrLoadTexture("DefaultBlackTexture");
     ManagedTexture* manTex       = managedTex.first;
@@ -341,7 +335,7 @@ const Texture& TextureManager::GetBlackTex2D()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-const Texture& TextureManager::GetWhiteTex2D()
+Texture& TextureManager::GetWhiteTex2D()
 {
     auto            managedTex   = FindOrLoadTexture("DefaultWhiteTexture");
     ManagedTexture* manTex       = managedTex.first;
@@ -361,7 +355,7 @@ const Texture& TextureManager::GetWhiteTex2D()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-const Texture& TextureManager::GetMagentaTex2D()
+Texture& TextureManager::GetMagentaTex2D()
 {
     auto            managedTex   = FindOrLoadTexture("DefaultMagentaTexture");
     ManagedTexture* manTex       = managedTex.first;
@@ -381,7 +375,7 @@ const Texture& TextureManager::GetMagentaTex2D()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-const ManagedTexture* TextureManager::LoadFromFile(const string_t & fileName, bool sRGB)
+ManagedTexture* TextureManager::LoadFromFile(const string_t & fileName, bool sRGB)
 {
     auto            managedTex   = FindOrLoadTexture(fileName);
     ManagedTexture* manTex       = managedTex.first;
@@ -404,7 +398,6 @@ const ManagedTexture* TextureManager::LoadFromFile(const string_t & fileName, bo
     else
     {
         DEBUG_PRINTF("%s\n", stbi_failure_reason());
-        manTex->SetToInvalidTexture();
     }
 
     return manTex;

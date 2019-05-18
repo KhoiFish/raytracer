@@ -171,8 +171,7 @@ void RenderDevice::InitializeDXGIAdapter()
 {
     bool debugDXGI = false;
 
-    //#if defined(_DEBUG)
-    #if 0
+    #if defined(_DEBUG)
         // Enable the debug layer (requires the Graphics Tools "optional feature").
         // NOTE: Enabling the debug layer after device creation will invalidate the active device.
         {
@@ -282,6 +281,8 @@ void RenderDevice::CreateDeviceResources()
     {
         D3dFeatureLevel = D3dMinFeatureLevel;
     }
+
+    DescriptorStack = new DescriptorHeapStack(256, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 0);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -626,7 +627,14 @@ void RenderDevice::RegisterDeviceNotify(IDeviceNotify* deviceNotify)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-D3D12_CPU_DESCRIPTOR_HANDLE RealtimeEngine::RenderDevice::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE type, uint32_t count /*= 1*/)
+D3D12_CPU_DESCRIPTOR_HANDLE RenderDevice::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE type, uint32_t count /*= 1*/)
 {
     return DescriptorAllocators[type].Allocate(count);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+DescriptorHeapStack& RenderDevice::GetDefaultDescriptorHeapStack()
+{
+    return *DescriptorStack;
 }

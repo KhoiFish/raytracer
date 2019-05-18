@@ -423,11 +423,14 @@ void Renderer::RenderSceneList(GraphicsContext& renderContext)
         SceneConstantBuffer matrices;
         SetupSceneConstantBuffer(TheRenderScene->GetRenderSceneList()[i]->WorldMatrix, matrices);
 
-        const RealtimeEngine::Texture* defaultTexture = RealtimeEngine::TextureManager::LoadFromFile(DefaultTextureName);
-        const RealtimeEngine::Texture* diffuseTex = (TheRenderScene->GetRenderSceneList()[i]->DiffuseTexture != nullptr) ? TheRenderScene->GetRenderSceneList()[i]->DiffuseTexture : defaultTexture;
+        RealtimeEngine::Texture* defaultTexture = RealtimeEngine::TextureManager::LoadFromFile(DefaultTextureName);
+        RealtimeEngine::Texture* diffuseTex = (TheRenderScene->GetRenderSceneList()[i]->DiffuseTexture != nullptr) ? TheRenderScene->GetRenderSceneList()[i]->DiffuseTexture : defaultTexture;
 
         renderContext.SetDynamicConstantBufferView(RealtimeRenderingRootIndex_ConstantBuffer0, sizeof(matrices), &matrices);
-        renderContext.SetDynamicDescriptor(RealtimeRenderingRootIndex_Texture0, 0, diffuseTex->GetSRV());
+
+        renderContext.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, RenderDevice::Get().GetDefaultDescriptorHeapStack().GetDescriptorHeap());
+        renderContext.SetDescriptorTable(RealtimeRenderingRootIndex_Texture0, diffuseTex->GetGpuHandle());
+
         renderContext.SetVertexBuffer(0, TheRenderScene->GetRenderSceneList()[i]->VertexBuffer.VertexBufferView());
         renderContext.SetIndexBuffer(TheRenderScene->GetRenderSceneList()[i]->IndexBuffer.IndexBufferView());
         renderContext.DrawIndexed((uint32_t)TheRenderScene->GetRenderSceneList()[i]->Indices.size());

@@ -219,7 +219,7 @@ void CommandContext::Reset()
     CurComputePipelineState  = nullptr;
     NumBarriersToFlush       = 0;
 
-    BindDescriptorHeaps();
+    ZeroMemory(CurrentDescriptorHeaps, sizeof(CurrentDescriptorHeaps));
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

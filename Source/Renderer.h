@@ -72,7 +72,9 @@ private:
     void            SetupRenderBuffers();
     void            SetupGui();
     void            LoadScene();
-    void            OnResizeRaytracer();
+    void            OnResizeCpuRaytracer();
+    void            OnResizeGpuRaytracer();
+    void            OnResizeRealtimeRenderer();
     void            ToggleCpuRaytracer();
     void            SetEnableCpuRaytrace(bool enable);
     static void     OnCpuRaytraceComplete(Core::Raytracer* tracer, bool actuallyFinished);

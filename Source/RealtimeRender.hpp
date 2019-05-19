@@ -51,12 +51,42 @@ enum RealtimeRenderingRegisters
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::SetupRealtimePipeline()
+void Renderer::OnResizeRealtimeRenderer()
 {
-    CpuResultsBufferIndex = RealtimeRenderingRegisters_Texture2 + 1;
+    // Delete old one, if it exists
+    if (RealtimeDescriptorHeap != nullptr)
+    {
+        delete RealtimeDescriptorHeap;
+        RealtimeDescriptorHeap = nullptr;
+    }
 
     // Create heap for descriptors
     RealtimeDescriptorHeap = new DescriptorHeapStack(64, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 0);
+
+    RealtimeDescriptorHeap->AllocateTexture2DSrv(
+        AmbientOcclusionOutput[1].GetResource(),
+        RaytracingBufferType,
+        D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
+
+    RealtimeDescriptorHeap->AllocateTexture2DSrv(
+        CPURaytracerTex.GetResource(),
+        CPURaytracerTexType,
+        D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
+
+    for (int i = 0; i < DeferredBufferType_Num; i++)
+    {
+        RealtimeDescriptorHeap->AllocateTexture2DSrv(
+            DeferredBuffers[i].GetResource(),
+            DeferredBuffersRTTypes[i],
+            D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void Renderer::SetupRealtimePipeline()
+{
+    CpuResultsBufferIndex = RealtimeRenderingRegisters_Texture2 + 1;   
 
     // Root sig setup
     {
@@ -105,26 +135,8 @@ void Renderer::SetupRealtimePipeline()
         RealtimeRootSignature.InitStaticSampler(RealtimeRenderingRegisters_AnisoSampler, anisoSamplerDesc, D3D12_SHADER_VISIBILITY_PIXEL);
         RealtimeRootSignature.Finalize("RealtimeRender", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
-        // Create descriptors
-        {
-            RealtimeDescriptorHeap->AllocateTexture2DSrv(
-                AmbientOcclusionOutput[1].GetResource(),
-                RaytracingBufferType,
-                D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
-
-            RealtimeDescriptorHeap->AllocateTexture2DSrv(
-                CPURaytracerTex.GetResource(),
-                CPURaytracerTexType,
-                D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
-
-            for (int i = 0; i < DeferredBufferType_Num; i++)
-            {       
-                RealtimeDescriptorHeap->AllocateTexture2DSrv(
-                    DeferredBuffers[i].GetResource(),
-                    DeferredBuffersRTTypes[i],
-                    D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
-            }
-        }
+        // This will create descriptors
+        OnResizeRealtimeRenderer();
     }
 
     // Geometry pass PSO setup

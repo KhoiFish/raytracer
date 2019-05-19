@@ -93,7 +93,7 @@ void Renderer::OnDeviceLost()
 
 void Renderer::OnDeviceRestored()
 {
-    OnResizeRaytracer();
+    OnResizeCpuRaytracer();
     SetupRenderBuffers();
 }
 
@@ -141,7 +141,7 @@ void Renderer::SetupRenderBuffers()
     for (int i = 0; i < 2; i++)
     {
         AmbientOcclusionOutput[i].Destroy();
-        AmbientOcclusionOutput[i].CreateEx("AO Buffer", Width, Height, 1, RaytracingBufferType, nullptr, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
+        AmbientOcclusionOutput[i].CreateEx("AO Buffer", width, height, 1, RaytracingBufferType, nullptr, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
     }
 }
 
@@ -176,7 +176,7 @@ void Renderer::LoadScene()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::OnResizeRaytracer()
+void Renderer::OnResizeCpuRaytracer()
 {
     int backbufferWidth  = RenderDevice::Get().GetBackbufferWidth();
     int backbufferHeight = RenderDevice::Get().GetBackbufferHeight();
@@ -206,8 +206,13 @@ void Renderer::OnSizeChanged(uint32_t width, uint32_t height, bool minimized)
         return;
     }
 
-    OnResizeRaytracer();
+    CommandListManager::Get().IdleGPU();
     SetupRenderBuffers();
+    OnResizeCpuRaytracer();
+    OnResizeGpuRaytracer();
+    OnResizeRealtimeRenderer();
+
+    UserInput.InputDirty = true;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -225,7 +230,7 @@ void Renderer::SetEnableCpuRaytrace(bool enable)
 {
     if (enable)
     {
-        OnResizeRaytracer();
+        OnResizeCpuRaytracer();
         TheRaytracer->BeginRaytrace(TheWorldScene, OnCpuRaytraceComplete);
         SelectedBufferIndex = CpuResultsBufferIndex;
     }

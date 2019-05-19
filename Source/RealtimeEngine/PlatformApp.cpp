@@ -307,7 +307,10 @@ LRESULT CALLBACK PlatformApp::WindowProc(HWND hWnd, uint32_t message, WPARAM wPa
 
             RECT clientRect = {};
             GetClientRect(hWnd, &clientRect);
-            pRenderInterface->OnSizeChanged(clientRect.right - clientRect.left, clientRect.bottom - clientRect.top, wParam == SIZE_MINIMIZED);
+            uint32_t newWidth  = clientRect.right - clientRect.left;
+            uint32_t newHeight = clientRect.bottom - clientRect.top;
+            pRenderInterface->UpdateForSizeChange(newWidth, newHeight);
+            pRenderInterface->OnSizeChanged(newWidth, newHeight, wParam == SIZE_MINIMIZED);
         }
         return 0;
 

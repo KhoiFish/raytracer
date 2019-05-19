@@ -51,6 +51,28 @@ enum RealtimeRenderingRegisters
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+const char* Renderer::GetSelectedBufferName()
+{
+    static const char* bufferNames[] =
+    {
+        "Composite",
+        "Albedo",
+        "Ambient Occlusion",
+        "Cpu Raytrace",
+    };
+
+    if (SelectedBufferIndex >= ARRAY_SIZE(bufferNames))
+    {
+        return "Unknown";
+    }
+    else
+    {
+        return bufferNames[SelectedBufferIndex];
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 void Renderer::OnResizeRealtimeRenderer()
 {
     // Delete old one, if it exists

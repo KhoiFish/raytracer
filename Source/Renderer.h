@@ -85,6 +85,7 @@ private:
     void            RenderGui();
     void            ComputeRaytracingResults();
     void            SetupSceneConstantBuffer(const FXMMATRIX& model, SceneConstantBuffer& sceneCB);
+    const char*     GetSelectedBufferName();
 
 private:
 

@@ -54,7 +54,7 @@ void Renderer::RenderGui()
         ImGui::Separator();
         ImGui::Text("CPU RAYTRACE STATUS");
         ImGui::Separator();
-        ImGui::BulletText("Selected Buffer Id: %d", SelectedBufferIndex + 1);
+        ImGui::BulletText("Displaying Buffer: %s", GetSelectedBufferName());
 
         if (TheRaytracer != nullptr && TheRaytracer->IsTracing())
         {

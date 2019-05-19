@@ -53,17 +53,17 @@ public:
 
     virtual void    OnDeviceLost() override;
     virtual void    OnDeviceRestored() override;
-    virtual void    OnInit();
-    virtual void    OnKeyDown(UINT8 key);
-    virtual void    OnKeyUp(uint8_t key);
-    virtual void    OnMouseMove(uint32_t x, uint32_t y);
-    virtual void    OnLeftButtonDown(uint32_t x, uint32_t y);
-    virtual void    OnLeftButtonUp(uint32_t x, uint32_t y);
-    virtual void    OnUpdate(float dtSeconds);
-    virtual void    OnRender();
-    virtual void    OnSizeChanged(uint32_t width, uint32_t height, bool minimized);
-    virtual void    OnDestroy();
-    virtual bool    OverrideImguiInput();
+    virtual void    OnInit() override;
+    virtual void    OnKeyDown(UINT8 key) override;
+    virtual void    OnKeyUp(uint8_t key) override;
+    virtual void    OnMouseMove(uint32_t x, uint32_t y) override;
+    virtual void    OnLeftButtonDown(uint32_t x, uint32_t y) override;
+    virtual void    OnLeftButtonUp(uint32_t x, uint32_t y) override;
+    virtual void    OnUpdate(float dtSeconds) override;
+    virtual void    OnRender() override;
+    virtual void    OnSizeChanged(uint32_t width, uint32_t height, bool minimized) override;
+    virtual void    OnDestroy() override;
+    virtual bool    OverrideImguiInput() override;
 
 private:
 
@@ -107,24 +107,30 @@ private:
 
     struct UserInputData
     {
-        UserInputData()
-            : Forward(0), Backward(0), Left(0), Right(0), Up(0), Down(0),
-            MouseDx(0), MouseDy(0), PrevMouseX(0), PrevMouseY(0),
-            ShiftKeyPressed(false), LeftMouseButtonPressed(false) {}
+        float   Forward                 = 0;
+        float   Backward                = 0;
+        float   Left                    = 0;
+        float   Right                   = 0;
+        float   Up                      = 0;
+        float   Down                    = 0;
+        int     PrevMouseX              = 0;
+        int     PrevMouseY              = 0;
+        int     MouseDx                 = 0;
+        int     MouseDy                 = 0;
+        bool    LeftMouseButtonPressed  = false;
+        bool    ShiftKeyPressed         = false;
+        bool    InputDirty              = true;
 
-        float   Forward;
-        float   Backward;
-        float   Left;
-        float   Right;
-        float   Up;
-        float   Down;
-        int     PrevMouseX;
-        int     PrevMouseY;
-        int     MouseDx;
-        int     MouseDy;
-        bool    LeftMouseButtonPressed;
-        bool    ShiftKeyPressed;
-        bool    InputDirty;
+        int     SampleScene             = SceneMesh;
+        float   VertFov                 = 40.f;
+
+        int     CpuNumSamplesPerRay     = 500;
+        int     CpuMaxScatterDepth      = 50;
+        int     CpuNumThreads           = 4;
+
+        int     DXRMaxRayRecursionDepth = 1;
+        int     DXRNumRaysPerPixel      = 3;
+        float   DXRAORadius             = 100.0f;
     };
 
 private:
@@ -132,12 +138,10 @@ private:
     Core::Raytracer*                TheRaytracer;
     Core::WorldScene*               TheWorldScene;
     RealtimeEngine::RealtimeScene*  TheRenderScene;
+    UserInputData                   UserInput;
 
     int                             FrameCount;
     int                             AccumCount;
-    int                             MaxRayRecursionDepth;
-    int                             NumRaysPerPixel;
-    float                           AORadius;
     int                             SelectedBufferIndex;
     int                             CpuResultsBufferIndex;
     bool                            LoadSceneRequested;
@@ -151,9 +155,6 @@ private:
     ColorBuffer                     DeferredBuffers[DeferredBufferType_Num];
     ColorBuffer                     AmbientOcclusionOutput[2];
 
-    RootSignature                   FullscreenQuadRootSignature;
-    GraphicsPSO                     FullscreenPipelineState;
-
     RootSignature                   RealtimeRootSignature;
     GraphicsPSO                     RealtimeGeometryPassPSO;
     GraphicsPSO                     RealtimeCompositePassPSO;
@@ -164,6 +165,4 @@ private:
     RaytracingPSO                   TheRaytracingPSO;
     DescriptorHeapStack*            RaytracingDescriptorHeap;
     ByteAddressBuffer               RaytracingSceneConstantBuffer;
-
-    UserInputData                   UserInput;
 };

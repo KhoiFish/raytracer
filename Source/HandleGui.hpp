@@ -66,9 +66,9 @@ void Renderer::RenderGui()
                 ImGui::BulletText("Completion: %d%%", percentInt);
                 ImGui::BulletText("Time: %dm:%ds", numMinutes, numSeconds);
                 ImGui::BulletText("Resolution: %dx%d", Width, Height);
-                ImGui::BulletText("Scatter Depth: %d", sMaxScatterDepth);
-                ImGui::BulletText("Num Threads: %d", sNumThreads);
-                ImGui::BulletText("Num Samples: %d", sNumSamplesPerRay);
+                ImGui::BulletText("Scatter Depth: %d", UserInput.CpuMaxScatterDepth);
+                ImGui::BulletText("Num Threads: %d", UserInput.CpuNumThreads);
+                ImGui::BulletText("Num Samples: %d", UserInput.CpuNumSamplesPerRay);
                 ImGui::BulletText("Done Samples: %d", stats.CompletedSampleCount);
                 ImGui::BulletText("Rays Fired: %" PRId64 "", stats.TotalRaysFired);
                 ImGui::BulletText("Num Pixels Sampled: %" PRId64 "", stats.NumPixelSamples);
@@ -98,7 +98,7 @@ void Renderer::RenderGui()
             ImGui::Separator();
             ImGui::Text("GLOBAL OPTIONS");
             ImGui::Separator();
-            if (ImGui::ListBox("Scene Select", &sSampleScene, SampleSceneNames, IM_ARRAYSIZE(SampleSceneNames), MaxScene))
+            if (ImGui::ListBox("Scene Select", &UserInput.SampleScene, SampleSceneNames, IM_ARRAYSIZE(SampleSceneNames), MaxScene))
             {
                 LoadSceneRequested = true;
             }
@@ -106,21 +106,21 @@ void Renderer::RenderGui()
             ImGui::Separator();
             ImGui::Text("CPU RAYTRACE OPTIONS");
             ImGui::Separator();
-            _itoa_s(sNumSamplesPerRay, stringBuf, 10);
+            _itoa_s(UserInput.CpuNumSamplesPerRay, stringBuf, 10);
             if (ImGui::InputText("Num Samples", stringBuf, IM_ARRAYSIZE(stringBuf), ImGuiInputTextFlags_CharsDecimal))
             {
-                sNumSamplesPerRay = atoi(stringBuf);
+                UserInput.CpuNumSamplesPerRay = atoi(stringBuf);
                 rayTracerDirty = true;
             }
 
-            _itoa_s(sMaxScatterDepth, stringBuf, 10);
+            _itoa_s(UserInput.CpuMaxScatterDepth, stringBuf, 10);
             if (ImGui::InputText("Scatter Depth", stringBuf, IM_ARRAYSIZE(stringBuf), ImGuiInputTextFlags_CharsDecimal))
             {
-                sMaxScatterDepth = atoi(stringBuf);
+                UserInput.CpuMaxScatterDepth = atoi(stringBuf);
                 rayTracerDirty = true;
             }
 
-            if (ImGui::SliderInt("Num Threads", &sNumThreads, 1, 32))
+            if (ImGui::SliderInt("Num Threads", &UserInput.CpuNumThreads, 1, 32))
             {
                 rayTracerDirty = true;
             }

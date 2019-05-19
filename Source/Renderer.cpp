@@ -31,16 +31,6 @@ using namespace RealtimeEngine;
 #include "RaytracingSetup.hpp"
 #include "RealtimeRender.hpp"
 #include "HandleInput.hpp"
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-static int     sNumSamplesPerRay = 500;
-static int     sMaxScatterDepth  = 50;
-static int     sNumThreads       = 4;
-static float   sVertFov          = 40.f;
-static int     sSampleScene      = SceneMesh;
-static float   sClearColor[]     = { 0.2f, 0.2f, 0.2f, 1.0f };
-
 #include "HandleGui.hpp"
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -51,9 +41,6 @@ Renderer::Renderer(uint32_t width, uint32_t height)
     , TheWorldScene(nullptr)
     , TheRenderScene(nullptr)
     , FrameCount(0)
-    , MaxRayRecursionDepth(1)
-    , NumRaysPerPixel(5)
-    , AORadius(100.0f)
     , SelectedBufferIndex(0)
     , AccumCount(0)
     , RealtimeDescriptorHeap(nullptr)
@@ -116,7 +103,7 @@ void Renderer::OnInit()
     // Get the number of cores on this system
     SYSTEM_INFO sysInfo;
     GetSystemInfo(&sysInfo);
-    sNumThreads = sysInfo.dwNumberOfProcessors;
+    UserInput.CpuNumThreads = sysInfo.dwNumberOfProcessors;
 
     // Init the render device
     RenderDevice::Initialize(PlatformApp::GetHwnd(), Width, Height, this, BackbufferFormat);
@@ -175,12 +162,12 @@ void Renderer::LoadScene()
     }
 
     // Load the selected scene
-    TheWorldScene = GetSampleScene(SampleScene(sSampleScene));
+    TheWorldScene = GetSampleScene(SampleScene(UserInput.SampleScene));
     TheWorldScene->GetCamera().SetAspect((float)RenderDevice::Get().GetBackbufferWidth() / (float)RenderDevice::Get().GetBackbufferHeight());
     TheWorldScene->GetCamera().SetFocusDistanceToLookAt();
     
-    TheRenderScene = new RealtimeEngine::RealtimeScene(TheWorldScene);
-    sVertFov       = TheWorldScene->GetCamera().GetVertFov();
+    TheRenderScene    = new RealtimeEngine::RealtimeScene(TheWorldScene);
+    UserInput.VertFov = TheWorldScene->GetCamera().GetVertFov();
 
     // Load default texture
     RealtimeEngine::TextureManager::LoadFromFile(DefaultTextureName);
@@ -200,7 +187,7 @@ void Renderer::OnResizeRaytracer()
     }
 
     // Create the ray tracer
-    TheRaytracer = new Raytracer(backbufferWidth, backbufferHeight, sNumSamplesPerRay, sMaxScatterDepth, sNumThreads, true);
+    TheRaytracer = new Raytracer(backbufferWidth, backbufferHeight, UserInput.CpuNumSamplesPerRay, UserInput.CpuMaxScatterDepth, UserInput.CpuNumThreads, true);
 
     // Reset the aspect ratio on the scene camera
     if (TheWorldScene != nullptr)
@@ -279,7 +266,7 @@ void Renderer::OnUpdate(float dtSeconds)
     // Camera needs update
     if (UserInput.InputDirty || !CompareFloatEqual(forwardAmount, 0) || !CompareFloatEqual(strafeAmount, 0) || !CompareFloatEqual(upDownAmount, 0))
     {
-        TheRenderScene->UpdateCamera(sVertFov, forwardAmount, strafeAmount, upDownAmount, UserInput.MouseDx, UserInput.MouseDy, TheWorldScene->GetCamera());
+        TheRenderScene->UpdateCamera(UserInput.VertFov, forwardAmount, strafeAmount, upDownAmount, UserInput.MouseDx, UserInput.MouseDy, TheWorldScene->GetCamera());
         UserInput.MouseDx = 0;
         UserInput.MouseDy = 0;
 

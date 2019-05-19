@@ -73,6 +73,17 @@ const char* Renderer::GetSelectedBufferName()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+void Renderer::CleanupRealtimeRender()
+{
+    if (RealtimeDescriptorHeap != nullptr)
+    {
+        delete RealtimeDescriptorHeap;
+        RealtimeDescriptorHeap = nullptr;
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 void Renderer::OnResizeRealtimeRenderer()
 {
     // Delete old one, if it exists

@@ -72,19 +72,27 @@ private:
     void            SetupRenderBuffers();
     void            SetupGui();
     void            LoadScene();
+
     void            OnResizeCpuRaytracer();
     void            OnResizeGpuRaytracer();
     void            OnResizeRealtimeRenderer();
+
+    void            CleanupGpuRaytracer();
+    void            CleanupRealtimeRender();
+
     void            ToggleCpuRaytracer();
+    static void     OnCpuRaytraceComplete(Core::Raytracer* tracer, bool actuallyFinished);
+
     void            SetEnableCpuRaytrace(bool enable);
     void            SetCameraDirty();
-    static void     OnCpuRaytraceComplete(Core::Raytracer* tracer, bool actuallyFinished);
+    void            SetupSceneConstantBuffer(const FXMMATRIX& model, SceneConstantBuffer& sceneCB);
+
     void            RenderSceneList(GraphicsContext& renderContext);
     void            RenderGeometryPass();
     void            RenderCompositePass();
     void            RenderGui();
-    void            ComputeRaytracingResults();
-    void            SetupSceneConstantBuffer(const FXMMATRIX& model, SceneConstantBuffer& sceneCB);
+    void            RenderGpuRaytracing(); 
+
     const char*     GetSelectedBufferName();
 
 private:

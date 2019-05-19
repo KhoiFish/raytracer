@@ -80,6 +80,23 @@ namespace RaytracingLocalRootSigSlot
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+void Renderer::CleanupGpuRaytracer()
+{
+    if (RaytracingGlobalDescriptorHeap != nullptr)
+    {
+        delete RaytracingGlobalDescriptorHeap;
+        RaytracingGlobalDescriptorHeap = nullptr;
+    }
+
+    if (RaytracingLocalDescriptorHeap != nullptr)
+    {
+        delete RaytracingLocalDescriptorHeap;
+        RaytracingLocalDescriptorHeap = nullptr;
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 void Renderer::OnResizeGpuRaytracer()
 {
     // Delete old one, if it exists
@@ -289,7 +306,7 @@ void Renderer::SetupRealtimeRaytracingPipeline()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::ComputeRaytracingResults()
+void Renderer::RenderGpuRaytracing()
 {
     ComputeContext& computeContext = ComputeContext::Begin("Raytracing");
     {

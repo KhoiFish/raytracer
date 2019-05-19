@@ -112,6 +112,18 @@ void RenderDevice::CleanupDevice()
         RenderTargets[n].Destroy();
     }
 
+    if (DescriptorStack != nullptr)
+    {
+        delete DescriptorStack;
+        DescriptorStack = nullptr;
+    }
+
+    if (ImguiDescriptorStack != nullptr)
+    {
+        delete ImguiDescriptorStack;
+        ImguiDescriptorStack = nullptr;
+    }
+
     CommandListManager::Get().Shutdown();
     DepthStencil.Destroy();
     DescriptorAllocator::DestroyAll();

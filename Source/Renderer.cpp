@@ -62,6 +62,11 @@ Renderer::Renderer(uint32_t width, uint32_t height)
 
 Renderer::~Renderer()
 {
+    CommandListManager::Get().IdleGPU();
+
+    CleanupGpuRaytracer();
+    CleanupRealtimeRender();
+
     if (TheRaytracer != nullptr)
     {
         delete TheRaytracer;
@@ -311,7 +316,7 @@ void Renderer::OnRender()
 {
     // Render passes
     RenderGeometryPass();
-    ComputeRaytracingResults();
+    RenderGpuRaytracing();
     RenderCompositePass();
     RenderGui();
 

@@ -262,13 +262,8 @@ LRESULT CALLBACK PlatformApp::WindowProc(HWND hWnd, uint32_t message, WPARAM wPa
         // Handle ALT+ENTER:
         if ((wParam == VK_RETURN) && (lParam & (1 << 29)))
         {
-            if (pRenderInterface && RenderDevice::Get().IsTearingSupported())
-            {
-                ToggleFullscreenWindow(RenderDevice::Get().GetSwapChain());
-                return 0;
-            }
+            ;
         }
-        // Send all other WM_SYSKEYDOWN messages to the default WndProc.
         break;
 
     case WM_PAINT:

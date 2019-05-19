@@ -46,6 +46,7 @@ Renderer::Renderer(uint32_t width, uint32_t height)
     , RealtimeDescriptorHeap(nullptr)
     , RaytracingGlobalDescriptorHeap(nullptr)
     , RaytracingLocalDescriptorHeap(nullptr)
+    , IsCameraDirty(true)
     , LoadSceneRequested(false)
 {
     BackbufferFormat                                            = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -55,9 +56,6 @@ Renderer::Renderer(uint32_t width, uint32_t height)
     DeferredBuffersRTTypes[DeferredBufferType_Normal]           = DXGI_FORMAT_R32G32B32A32_FLOAT;
     DeferredBuffersRTTypes[DeferredBufferType_TexCoordAndDepth] = DXGI_FORMAT_R32G32B32A32_FLOAT;
     DeferredBuffersRTTypes[DeferredBufferType_Albedo]           = DXGI_FORMAT_R32G32B32A32_FLOAT;
-
-    // Non-zero so we update cameras at least once on startup
-    UserInput.InputDirty = true;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -149,6 +147,8 @@ void Renderer::SetupRenderBuffers()
 
 void Renderer::LoadScene()
 {
+    CommandListManager::Get().IdleGPU();
+
     // Clean up previous scene
     if (TheWorldScene != nullptr)
     {
@@ -211,8 +211,7 @@ void Renderer::OnSizeChanged(uint32_t width, uint32_t height, bool minimized)
     OnResizeCpuRaytracer();
     OnResizeGpuRaytracer();
     OnResizeRealtimeRenderer();
-
-    UserInput.InputDirty = true;
+    SetCameraDirty();
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -245,6 +244,13 @@ void Renderer::SetEnableCpuRaytrace(bool enable)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+void Renderer::SetCameraDirty()
+{
+    IsCameraDirty = true;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 void Renderer::ToggleCpuRaytracer()
 {
     SetEnableCpuRaytrace(TheRaytracer == nullptr);
@@ -264,26 +270,38 @@ void Renderer::OnCpuRaytraceComplete(Raytracer* tracer, bool actuallyFinished)
 
 void Renderer::OnUpdate(float dtSeconds)
 {
-    float scale          = (UserInput.ShiftKeyPressed ? 64.f : 32.0f) * 16.f * dtSeconds;
-    float forwardAmount  = (UserInput.Forward - UserInput.Backward) * scale;
-    float strafeAmount   = (UserInput.Left    - UserInput.Right)    * scale;
-    float upDownAmount   = (UserInput.Up      - UserInput.Down)     * scale;
-
-    // Camera needs update
-    if (UserInput.InputDirty || !CompareFloatEqual(forwardAmount, 0) || !CompareFloatEqual(strafeAmount, 0) || !CompareFloatEqual(upDownAmount, 0))
+    // Handle new scene load requests
+    if (LoadSceneRequested)
     {
-        TheRenderScene->UpdateCamera(UserInput.VertFov, forwardAmount, strafeAmount, upDownAmount, UserInput.MouseDx, UserInput.MouseDy, TheWorldScene->GetCamera());
-        UserInput.MouseDx = 0;
-        UserInput.MouseDy = 0;
+        LoadScene();
+        OnResizeGpuRaytracer();
+        SetCameraDirty();
+        LoadSceneRequested = false;
+    }
 
-        // Restart raytrace
-        if (TheRaytracer != nullptr && SelectedBufferIndex == CpuResultsBufferIndex)
+    // Handle camera updates
+    {
+        float scale          = (UserInput.ShiftKeyPressed ? 64.f : 32.0f) * 16.f * dtSeconds;
+        float forwardAmount  = (UserInput.Forward - UserInput.Backward) * scale;
+        float strafeAmount   = (UserInput.Left    - UserInput.Right)    * scale;
+        float upDownAmount   = (UserInput.Up      - UserInput.Down)     * scale;
+
+        // Camera needs update
+        if (IsCameraDirty || !CompareFloatEqual(forwardAmount, 0) || !CompareFloatEqual(strafeAmount, 0) || !CompareFloatEqual(upDownAmount, 0))
         {
-            TheRaytracer->BeginRaytrace(TheWorldScene, OnCpuRaytraceComplete);
-        }
+            TheRenderScene->UpdateCamera(UserInput.VertFov, forwardAmount, strafeAmount, upDownAmount, UserInput.MouseDx, UserInput.MouseDy, TheWorldScene->GetCamera());
+            UserInput.MouseDx = 0;
+            UserInput.MouseDy = 0;
 
-        UserInput.InputDirty = false;
-        AccumCount = 0;
+            // Restart raytrace
+            if (TheRaytracer != nullptr && SelectedBufferIndex == CpuResultsBufferIndex)
+            {
+                TheRaytracer->BeginRaytrace(TheWorldScene, OnCpuRaytraceComplete);
+            }
+
+            IsCameraDirty = false;
+            AccumCount = 0;
+        }
     }
 }
 

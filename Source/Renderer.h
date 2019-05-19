@@ -77,6 +77,7 @@ private:
     void            OnResizeRealtimeRenderer();
     void            ToggleCpuRaytracer();
     void            SetEnableCpuRaytrace(bool enable);
+    void            SetCameraDirty();
     static void     OnCpuRaytraceComplete(Core::Raytracer* tracer, bool actuallyFinished);
     void            RenderSceneList(GraphicsContext& renderContext);
     void            RenderGeometryPass();
@@ -121,7 +122,6 @@ private:
         int     MouseDy                 = 0;
         bool    LeftMouseButtonPressed  = false;
         bool    ShiftKeyPressed         = false;
-        bool    InputDirty              = true;
 
         int     SampleScene             = SceneMesh;
         float   VertFov                 = 40.f;
@@ -146,6 +146,7 @@ private:
     int                             AccumCount;
     int                             SelectedBufferIndex;
     int                             CpuResultsBufferIndex;
+    bool                            IsCameraDirty;
     bool                            LoadSceneRequested;
     int                             MaxNumCpuThreads;
 

@@ -170,7 +170,7 @@ void Renderer::RenderGui()
             // If gpu options changed, trigger camera to update
             if (gpuOptionsChanged)
             {
-                UserInput.InputDirty = true;
+                SetCameraDirty();
             }
         }
 

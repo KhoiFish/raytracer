@@ -213,7 +213,7 @@
     <ClInclude Include="..\..\Source\RealtimeEngine\RenderSceneVertex.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\RootSignature.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\RTTexture.h" />
-    <ClInclude Include="..\..\Source\RealtimeEngine\RenderSceneShader.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\RealtimeSceneShaderInclude.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\ShaderCompat.h" />
     <ClInclude Include="..\..\ThirdParty\imgui\examples\imgui_impl_dx12.h" />
     <ClInclude Include="..\..\ThirdParty\imgui\examples\imgui_impl_win32.h" />

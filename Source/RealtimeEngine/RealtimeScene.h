@@ -28,7 +28,7 @@
 #include "Core/WorldScene.h"
 #include "RealtimeEngine/GpuBuffer.h"
 #include "RealtimeCamera.h"
-#include "RenderSceneShader.h"
+#include "RealtimeSceneShaderInclude.h"
 #include "RenderSceneVertex.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------

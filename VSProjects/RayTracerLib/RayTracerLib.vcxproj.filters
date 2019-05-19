@@ -153,9 +153,6 @@
     <ClInclude Include="..\..\Source\Core\CoreTexture.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\RealtimeEngine\RenderSceneShader.h">
-      <Filter>Realtime</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Source\RealtimeEngine\ShaderCompat.h">
       <Filter>Realtime</Filter>
     </ClInclude>
@@ -190,6 +187,9 @@
       <Filter>Realtime</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\RealtimeEngine\RealtimeCamera.h">
+      <Filter>Realtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\RealtimeSceneShaderInclude.h">
       <Filter>Realtime</Filter>
     </ClInclude>
   </ItemGroup>

@@ -32,7 +32,7 @@
 
 #include "RenderSceneShader.h"
 #include "RenderCamera.h"
-#include "RenderScene.h"
+#include "RealtimeScene.h"
 #include "RenderDevice.h"
 #include "CommandContext.h"
 
@@ -41,7 +41,7 @@ using namespace RealtimeEngine;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-const D3D12_INPUT_ELEMENT_DESC RenderSceneVertexEx::InputElements[] =
+const D3D12_INPUT_ELEMENT_DESC RealtimeSceneVertexEx::InputElements[] =
 {
     { "POSITION",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
     { "NORMAL",     0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
@@ -120,7 +120,7 @@ static inline Core::Vec4 ConvertToVec4(const XMVECTOR& vec)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static void CreateSphere(RenderSceneNode* renderNode, float radius, int tessellation)
+static void CreateSphere(RealtimeSceneNode* renderNode, float radius, int tessellation)
 {
     int verticalSegments   = tessellation;
     int horizontalSegments = tessellation * 2;
@@ -148,7 +148,7 @@ static void CreateSphere(RenderSceneNode* renderNode, float radius, int tessella
             XMVECTOR normal   = XMVectorSet(dx, dy, dz, 0);
             XMVECTOR texCoord = XMVectorSet(u, v, 0, 0);
 
-            renderNode->Vertices.push_back(RenderSceneVertexEx(normal * radius, normal, texCoord));
+            renderNode->Vertices.push_back(RealtimeSceneVertexEx(normal * radius, normal, texCoord));
         }
     }
 
@@ -173,7 +173,7 @@ static void CreateSphere(RenderSceneNode* renderNode, float radius, int tessella
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static void CreateCube(RenderSceneNode* renderNode, Core::Vec4 sideLengths)
+static void CreateCube(RealtimeSceneNode* renderNode, Core::Vec4 sideLengths)
 {
     const int FaceCount = 6;
 
@@ -219,16 +219,16 @@ static void CreateCube(RenderSceneNode* renderNode, Core::Vec4 sideLengths)
         renderNode->Indices.push_back(uint32_t(vbase + 2));
         renderNode->Indices.push_back(uint32_t(vbase + 3));
 
-        renderNode->Vertices.push_back(RenderSceneVertexEx((normal - side1 - side2) * halfLengths, normal, textureCoordinates[0]));
-        renderNode->Vertices.push_back(RenderSceneVertexEx((normal - side1 + side2) * halfLengths, normal, textureCoordinates[1]));
-        renderNode->Vertices.push_back(RenderSceneVertexEx((normal + side1 + side2) * halfLengths, normal, textureCoordinates[2]));
-        renderNode->Vertices.push_back(RenderSceneVertexEx((normal + side1 - side2) * halfLengths, normal, textureCoordinates[3]));
+        renderNode->Vertices.push_back(RealtimeSceneVertexEx((normal - side1 - side2) * halfLengths, normal, textureCoordinates[0]));
+        renderNode->Vertices.push_back(RealtimeSceneVertexEx((normal - side1 + side2) * halfLengths, normal, textureCoordinates[1]));
+        renderNode->Vertices.push_back(RealtimeSceneVertexEx((normal + side1 + side2) * halfLengths, normal, textureCoordinates[2]));
+        renderNode->Vertices.push_back(RealtimeSceneVertexEx((normal + side1 - side2) * halfLengths, normal, textureCoordinates[3]));
     }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static void CreatePlaneFromPoints(RenderSceneNode* renderNode, const Core::Vec4* points, const Core::Vec4& normal)
+static void CreatePlaneFromPoints(RealtimeSceneNode* renderNode, const Core::Vec4* points, const Core::Vec4& normal)
 {
     renderNode->Vertices.push_back({ ConvertToXMFloat3(points[0]), ConvertToXMFloat3(normal), XMFLOAT2(0.0f, 0.0f) });
     renderNode->Vertices.push_back({ ConvertToXMFloat3(points[1]), ConvertToXMFloat3(normal), XMFLOAT2(1.0f, 0.0f) });
@@ -245,15 +245,15 @@ static void CreatePlaneFromPoints(RenderSceneNode* renderNode, const Core::Vec4*
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static void CreateResourceViews(RenderSceneNode* renderNode)
+static void CreateResourceViews(RealtimeSceneNode* renderNode)
 {
-    renderNode->VertexBuffer.Create(L"VertexBuffer", (uint32_t)renderNode->Vertices.size(), sizeof(RenderSceneVertexEx), &renderNode->Vertices[0]);
+    renderNode->VertexBuffer.Create(L"VertexBuffer", (uint32_t)renderNode->Vertices.size(), sizeof(RealtimeSceneVertexEx), &renderNode->Vertices[0]);
     renderNode->IndexBuffer.Create(L"IndexBuffer", (uint32_t)renderNode->Indices.size(), sizeof(uint32_t), &renderNode->Indices[0]);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RenderScene::GenerateRenderListFromWorld(const Core::IHitable* currentHead, RealtimeEngine::Texture* defaultTexture, std::vector<RenderSceneNode*>& outSceneList, std::vector<SpotLight>& spotLightsList, std::vector<DirectX::XMMATRIX>& matrixStack, std::vector<bool>& flipNormalStack)
+void RealtimeScene::GenerateRenderListFromWorld(const Core::IHitable* currentHead, RealtimeEngine::Texture* defaultTexture, std::vector<RealtimeSceneNode*>& outSceneList, std::vector<SpotLight>& spotLightsList, std::vector<DirectX::XMMATRIX>& matrixStack, std::vector<bool>& flipNormalStack)
 {
     const std::type_info& tid = typeid(*currentHead);
 
@@ -326,7 +326,7 @@ void RenderScene::GenerateRenderListFromWorld(const Core::IHitable* currentHead,
 
         XMMATRIX         translation = XMMatrixTranslation(offset.X(), offset.Y(), offset.Z());
         XMMATRIX         newMatrix   = ComputeFinalMatrix(matrixStack, translation);
-        RenderSceneNode* newNode     = new RenderSceneNode();
+        RealtimeSceneNode* newNode     = new RealtimeSceneNode();
 
         Core::Vec4 color = material->AlbedoValue(0.5f, 0.5f, Core::Vec4(0, 0, 0));
         const RenderMaterial newMaterial =
@@ -357,7 +357,7 @@ void RenderScene::GenerateRenderListFromWorld(const Core::IHitable* currentHead,
         Core::Vec4             offset      = minP + (diff * 0.5f);
         XMMATRIX               translation = XMMatrixTranslation(offset.X(), offset.Y(), offset.Z());
         XMMATRIX               newMatrix   = ComputeFinalMatrix(matrixStack, translation);
-        RenderSceneNode*       newNode     = new RenderSceneNode();
+        RealtimeSceneNode*       newNode     = new RealtimeSceneNode();
         const Core::Material*  material    = box->GetMaterial();
 
         Core::Vec4 color = material->AlbedoValue(0.5f, 0.5f, Core::Vec4(0, 0, 0));
@@ -383,7 +383,7 @@ void RenderScene::GenerateRenderListFromWorld(const Core::IHitable* currentHead,
         Core::TriMesh*    triMesh   = (Core::TriMesh*)currentHead;
         Core::IHitable**  triArray  = nullptr;
         int               numTris   = 0;
-        RenderSceneNode*  newNode   = new RenderSceneNode();
+        RealtimeSceneNode*  newNode   = new RealtimeSceneNode();
         
         // Walk through all the triangles
         triMesh->GetTriArray(triArray, numTris);
@@ -401,7 +401,7 @@ void RenderScene::GenerateRenderListFromWorld(const Core::IHitable* currentHead,
                 XMVECTOR normal   = ConvertToXMVector(triVertices[v].Normal);
                 XMVECTOR texCoord = XMVectorSet(s, t, 0, 0);
 
-                newNode->Vertices.push_back(RenderSceneVertexEx(position, normal, texCoord));
+                newNode->Vertices.push_back(RealtimeSceneVertexEx(position, normal, texCoord));
                 newNode->Indices.push_back(uint32_t(newNode->Vertices.size() - 1));
             }
         }
@@ -435,7 +435,7 @@ void RenderScene::GenerateRenderListFromWorld(const Core::IHitable* currentHead,
         const Core::Material*   material    = xyzRect->GetMaterial();
         XMMATRIX                translation = XMMatrixIdentity();
         XMMATRIX                newMatrix   = ComputeFinalMatrix(matrixStack, translation);
-        RenderSceneNode*        newNode     = new RenderSceneNode();
+        RealtimeSceneNode*        newNode     = new RealtimeSceneNode();
 
         // Clamp colors for lights, since they can overblow the color buffer
         Core::Vec4 color = material->AlbedoValue(0.5f, 0.5f, Core::Vec4(0, 0, 0));
@@ -505,7 +505,7 @@ void RenderScene::GenerateRenderListFromWorld(const Core::IHitable* currentHead,
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RenderScene::UpdateCamera(float newVertFov, float forwardAmount, float strafeAmount, float upDownAmount, int mouseDx, int mouseDy, Core::Camera& worldCamera)
+void RealtimeScene::UpdateCamera(float newVertFov, float forwardAmount, float strafeAmount, float upDownAmount, int mouseDx, int mouseDy, Core::Camera& worldCamera)
 {
     // Get ray tracer camera params
     Core::Vec4   lookFrom, lookAt, up;
@@ -569,7 +569,7 @@ void RenderScene::UpdateCamera(float newVertFov, float forwardAmount, float stra
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-RenderScene::RenderScene(Core::WorldScene* worldScene)
+RealtimeScene::RealtimeScene(Core::WorldScene* worldScene)
 {
     // Generate the scene objects from the world scene
     std::vector<DirectX::XMMATRIX>  matrixStack;
@@ -583,7 +583,7 @@ RenderScene::RenderScene(Core::WorldScene* worldScene)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-RenderScene::~RenderScene()
+RealtimeScene::~RealtimeScene()
 {
     for (int i = 0; i < RenderSceneList.size(); i++)
     {
@@ -594,21 +594,21 @@ RenderScene::~RenderScene()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-std::vector<RenderSceneNode*>& RenderScene::GetRenderSceneList()
+std::vector<RealtimeSceneNode*>& RealtimeScene::GetRenderSceneList()
 {
     return RenderSceneList;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-RenderCamera& RenderScene::GetRenderCamera()
+RenderCamera& RealtimeScene::GetRenderCamera()
 {
     return TheRenderCamera;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RenderScene::SetupForRaytracing()
+void RealtimeScene::SetupForRaytracing()
 {
     // numBottomLevels == number of scene objects
     const int numBottomLevels = (int)RenderSceneList.size();
@@ -635,9 +635,9 @@ void RenderScene::SetupForRaytracing()
         // Fill in the geometry descriptions
         for (int i = 0; i < (int)RenderSceneList.size(); i++)
         {
-            RenderSceneNode*    pRenderNode      = RenderSceneList[i];
-            const int           offsetToPosition = 0;
-            const int           offsetToIndex    = 0;
+            RealtimeSceneNode*    pRenderNode      = RenderSceneList[i];
+            const int             offsetToPosition = 0;
+            const int             offsetToIndex    = 0;
 
             D3D12_RAYTRACING_GEOMETRY_DESC& desc = geometryDescs[i];
             desc.Type  = D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;

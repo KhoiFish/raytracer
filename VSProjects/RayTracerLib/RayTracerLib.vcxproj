@@ -209,7 +209,7 @@
     <ClInclude Include="..\..\Source\RealtimeEngine\RenderCamera.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\RenderDevice.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\RenderInterface.h" />
-    <ClInclude Include="..\..\Source\RealtimeEngine\RenderScene.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\RealtimeScene.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\RenderSceneVertex.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\RootSignature.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\RTTexture.h" />
@@ -257,7 +257,7 @@
     <ClCompile Include="..\..\Source\RealtimeEngine\PlatformApp.cpp" />
     <ClCompile Include="..\..\Source\RealtimeEngine\RenderCamera.cpp" />
     <ClCompile Include="..\..\Source\RealtimeEngine\RenderDevice.cpp" />
-    <ClCompile Include="..\..\Source\RealtimeEngine\RenderScene.cpp" />
+    <ClCompile Include="..\..\Source\RealtimeEngine\RealtimeScene.cpp" />
     <ClCompile Include="..\..\Source\RealtimeEngine\RootSignature.cpp" />
     <ClCompile Include="..\..\Source\RealtimeEngine\RTTexture.cpp" />
     <ClCompile Include="..\..\ThirdParty\imgui\examples\imgui_impl_dx12.cpp" />

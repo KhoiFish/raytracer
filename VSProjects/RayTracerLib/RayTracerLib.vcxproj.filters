@@ -153,9 +153,6 @@
     <ClInclude Include="..\..\Source\Core\CoreTexture.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\RealtimeEngine\RenderScene.h">
-      <Filter>Realtime</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Source\RealtimeEngine\RenderCamera.h">
       <Filter>Realtime</Filter>
     </ClInclude>
@@ -191,6 +188,9 @@
     </ClInclude>
     <ClInclude Include="..\..\ThirdParty\imgui\examples\imgui_impl_win32.h">
       <Filter>ThirdParty\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\RealtimeScene.h">
+      <Filter>Realtime</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -293,9 +293,6 @@
     <ClCompile Include="..\..\Source\Core\CoreTexture.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\RealtimeEngine\RenderScene.cpp">
-      <Filter>Realtime</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Source\RealtimeEngine\RenderCamera.cpp">
       <Filter>Realtime</Filter>
     </ClCompile>
@@ -316,6 +313,9 @@
     </ClCompile>
     <ClCompile Include="..\..\ThirdParty\imgui\imgui_demo.cpp">
       <Filter>ThirdParty\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\RealtimeEngine\RealtimeScene.cpp">
+      <Filter>Realtime</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

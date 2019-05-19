@@ -18,7 +18,7 @@
 // ----------------------------------------------------------------------------------------------------------------------------
 
 #include "Renderer.h"
-#include "RealtimeEngine/RenderScene.h"
+#include "RealtimeEngine/RealtimeScene.h"
 #include "RealtimeEngine/RenderDevice.h"
 #include "RealtimeEngine/PlatformApp.h"
 #include "RealtimeEngine/CommandList.h"
@@ -179,7 +179,7 @@ void Renderer::LoadScene()
     TheWorldScene->GetCamera().SetAspect((float)RenderDevice::Get().GetBackbufferWidth() / (float)RenderDevice::Get().GetBackbufferHeight());
     TheWorldScene->GetCamera().SetFocusDistanceToLookAt();
     
-    TheRenderScene = new RealtimeEngine::RenderScene(TheWorldScene);
+    TheRenderScene = new RealtimeEngine::RealtimeScene(TheWorldScene);
     sVertFov       = TheWorldScene->GetCamera().GetVertFov();
 
     // Load default texture

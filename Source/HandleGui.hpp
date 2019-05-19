@@ -50,7 +50,7 @@ void Renderer::RenderGui()
         }
 
         ImGui::Separator();
-        ImGui::Text("--- STATUS ---");
+        ImGui::Text("STATUS");
         ImGui::Separator();
         ImGui::BulletText("Selected Buffer Id: %d", SelectedBufferIndex + 1);
 
@@ -87,7 +87,7 @@ void Renderer::RenderGui()
             bool rayTracerDirty = false;
 
             ImGui::Separator();
-            ImGui::Text("--- HELP ---");
+            ImGui::Text("HELP");
             ImGui::Separator();
             ImGui::BulletText("Translate camera:    Press keys WASD strafe, QE up and down");
             ImGui::BulletText("Pan camera:          Left/Right mouse button (press and hold)");
@@ -96,7 +96,7 @@ void Renderer::RenderGui()
 
 
             ImGui::Separator();
-            ImGui::Text("--- GLOBAL OPTIONS ---");
+            ImGui::Text("GLOBAL OPTIONS");
             ImGui::Separator();
             if (ImGui::ListBox("Scene Select", &sSampleScene, SampleSceneNames, IM_ARRAYSIZE(SampleSceneNames), MaxScene))
             {
@@ -104,7 +104,7 @@ void Renderer::RenderGui()
             }
 
             ImGui::Separator();
-            ImGui::Text("--- CPU RAYTRACE OPTIONS ---");
+            ImGui::Text("CPU RAYTRACE OPTIONS");
             ImGui::Separator();
             _itoa_s(sNumSamplesPerRay, stringBuf, 10);
             if (ImGui::InputText("Num Samples", stringBuf, IM_ARRAYSIZE(stringBuf), ImGuiInputTextFlags_CharsDecimal))

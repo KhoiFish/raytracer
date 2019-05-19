@@ -29,7 +29,7 @@
 #include "RealtimeEngine/PipelineStateObject.h"
 #include "RealtimeEngine/ColorBuffer.h"
 #include "RealtimeEngine/RenderCamera.h"
-#include "RealtimeEngine/RenderScene.h"
+#include "RealtimeEngine/RealtimeScene.h"
 #include "RealtimeEngine/DescriptorHeap.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -130,7 +130,7 @@ private:
 
     Core::Raytracer*                TheRaytracer;
     Core::WorldScene*               TheWorldScene;
-    RealtimeEngine::RenderScene*    TheRenderScene;
+    RealtimeEngine::RealtimeScene*  TheRenderScene;
 
     int                             FrameCount;
     int                             AccumCount;

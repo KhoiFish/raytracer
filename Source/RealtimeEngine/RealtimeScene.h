@@ -38,16 +38,16 @@ namespace RealtimeEngine
     // ----------------------------------------------------------------------------------------------------------------------------
 
     ALIGN_BEGIN(16)
-    struct RenderSceneVertexEx : public RenderSceneVertex
+    struct RealtimeSceneVertexEx : public RenderSceneVertex
     {
-        RenderSceneVertexEx(const DirectX::XMFLOAT3& position, const DirectX::XMFLOAT3& normal, const DirectX::XMFLOAT2& texCoord)
+        RealtimeSceneVertexEx(const DirectX::XMFLOAT3& position, const DirectX::XMFLOAT3& normal, const DirectX::XMFLOAT2& texCoord)
         {
             Position = position;
             Normal   = normal;
             TexCoord = texCoord;
         }
 
-        RenderSceneVertexEx(DirectX::FXMVECTOR position, DirectX::FXMVECTOR normal, DirectX::FXMVECTOR textureCoordinate)
+        RealtimeSceneVertexEx(DirectX::FXMVECTOR position, DirectX::FXMVECTOR normal, DirectX::FXMVECTOR textureCoordinate)
         {
             XMStoreFloat3(&this->Position, position);
             XMStoreFloat3(&this->Normal, normal);
@@ -61,13 +61,13 @@ namespace RealtimeEngine
 
     // ----------------------------------------------------------------------------------------------------------------------------
 
-    struct RenderSceneNode
+    struct RealtimeSceneNode
     {
-        RenderSceneNode() : Hitable(nullptr), DiffuseTexture(nullptr) {}
-        ~RenderSceneNode() {}
+        RealtimeSceneNode() : Hitable(nullptr), DiffuseTexture(nullptr) {}
+        ~RealtimeSceneNode() {}
 
         const Core::IHitable*                   Hitable;
-        std::vector<RenderSceneVertexEx>        Vertices;
+        std::vector<RealtimeSceneVertexEx>      Vertices;
         std::vector<uint32_t>                   Indices;
         RealtimeEngine::StructuredBuffer        VertexBuffer;
         RealtimeEngine::StructuredBuffer        IndexBuffer;
@@ -78,21 +78,21 @@ namespace RealtimeEngine
 
     // ----------------------------------------------------------------------------------------------------------------------------
 
-    class RenderScene
+    class RealtimeScene
     {
     public:
 
-        RenderScene(Core::WorldScene* worldScene);
-        ~RenderScene();
+        RealtimeScene(Core::WorldScene* worldScene);
+        ~RealtimeScene();
 
         void                            UpdateCamera(float newVertFov, float forwardAmount, float strafeAmount, float upDownAmount, int mouseDx, int mouseDy, Core::Camera& worldCamera);
-        std::vector<RenderSceneNode*>&  GetRenderSceneList();
+        std::vector<RealtimeSceneNode*>&  GetRenderSceneList();
         RenderCamera&                   GetRenderCamera();
         D3D12_GPU_VIRTUAL_ADDRESS       GetTLASVirtualAddress() { return TLASBuffer->GetGpuVirtualAddress(); }
 
     private:
 
-        void                            GenerateRenderListFromWorld(const Core::IHitable* currentHead, RealtimeEngine::Texture* defaultTexture, std::vector<RenderSceneNode*>& outSceneList, 
+        void                            GenerateRenderListFromWorld(const Core::IHitable* currentHead, RealtimeEngine::Texture* defaultTexture, std::vector<RealtimeSceneNode*>& outSceneList, 
                                             std::vector<SpotLight>& spotLightsList, std::vector<DirectX::XMMATRIX>& matrixStack, std::vector<bool>& flipNormalStack);
 
         void                            SetupForRaytracing();
@@ -100,7 +100,7 @@ namespace RealtimeEngine
     private:
 
         RenderCamera                    TheRenderCamera;
-        std::vector<RenderSceneNode*>   RenderSceneList;
+        std::vector<RealtimeSceneNode*> RenderSceneList;
         std::vector<SpotLight>          SpotLightsList;
 
         GpuBuffer*                      TLASBuffer;

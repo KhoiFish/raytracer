@@ -52,7 +52,7 @@ void Renderer::RenderGui()
         // ------------------------------------------------------------
 
         ImGui::Separator();
-        ImGui::Text("CPU RAYTRACE STATUS");
+        ImGui::Text("INFO");
         ImGui::Separator();
         ImGui::BulletText("Displaying Buffer: %s", GetSelectedBufferName());
 

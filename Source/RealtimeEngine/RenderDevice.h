@@ -102,10 +102,6 @@ namespace RealtimeEngine
         LPCWSTR                                             GetAdapterDescription() const    { return AdapterDescription.c_str(); }
         uint32_t                                            GetAdapterID() const             { return AdapterID; }
 
-        ComputePSO*                                         GetGenerateMipsLinearPSO()       { return GenerateMipsLinearPSO; }
-        ComputePSO*                                         GetGenerateMipsGammaPSO()        { return GenerateMipsGammaPSO; }
-        RootSignature&                                      GetGenerateMipsRootSig()         { return GenerateMipsRS; }
-
     private:
 
         RenderDevice(DXGI_FORMAT backBufferFormat, DXGI_FORMAT depthBufferFormat, uint32_t backBufferCount, D3D_FEATURE_LEVEL minFeatureLevel, uint32_t flags, uint32_t adapterIDoverride, float depthClearValue);
@@ -154,10 +150,6 @@ namespace RealtimeEngine
         bool                                                IsWindowVisibleState;
         unsigned int                                        Options;
         IDeviceNotify*                                      DeviceNotify;
-
-        RootSignature                                       GenerateMipsRS;
-        ComputePSO                                          GenerateMipsLinearPSO[4];
-        ComputePSO                                          GenerateMipsGammaPSO[4];
 
         DescriptorAllocator                                 DescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES] =
         {

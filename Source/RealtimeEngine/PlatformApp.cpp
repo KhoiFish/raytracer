@@ -91,7 +91,7 @@ int PlatformApp::Run(RenderInterface* pRenderInterface, HINSTANCE hInstance, int
         // Create the window and store a handle to it.
         Hwnd = CreateWindow(
             windowClass.lpszClassName,
-            L"yart",
+            MakeWStr(pRenderInterface->GetName()).c_str(),
             WindowStyle,
             CW_USEDEFAULT,
             CW_USEDEFAULT,

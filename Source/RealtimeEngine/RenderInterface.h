@@ -28,7 +28,8 @@ namespace RealtimeEngine
     {
     public:
 
-		RenderInterface(uint32_t width, uint32_t height) :
+		RenderInterface(const string_t& name, uint32_t width, uint32_t height) :
+            Name(name),
             Width(width),
             Height(height),
             WindowBounds{ 0,0,0,0 },
@@ -60,6 +61,7 @@ namespace RealtimeEngine
 
 	public:
 
+        const string_t&                GetName() const            { return Name; }
 		uint32_t                       GetWidth() const           { return Width; }
 		uint32_t                       GetHeight() const          { return Height; }
         RECT                           GetWindowsBounds() const   { return WindowBounds; }
@@ -83,10 +85,11 @@ namespace RealtimeEngine
 
 	protected:
 
-        uint32_t                          Width;
-        uint32_t                          Height;
-        float                             AspectRatio;
-        RECT                              WindowBounds;
+        string_t    Name;
+        uint32_t    Width;
+        uint32_t    Height;
+        float       AspectRatio;
+        RECT        WindowBounds;
     };
 
 }

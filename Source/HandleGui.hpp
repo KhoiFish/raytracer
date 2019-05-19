@@ -43,7 +43,7 @@ void Renderer::RenderGui()
         ImGui::SetNextWindowSize(ImVec2(533, 548), ImGuiCond_FirstUseEver);
 
         ImGuiWindowFlags window_flags = ImGuiWindowFlags_AlwaysVerticalScrollbar;
-        if (!ImGui::Begin("Raytracer", nullptr, window_flags))
+        if (!ImGui::Begin("Options Window", nullptr, window_flags))
         {
             ImGui::End();
             break;

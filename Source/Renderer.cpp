@@ -36,7 +36,7 @@ using namespace RealtimeEngine;
 // ----------------------------------------------------------------------------------------------------------------------------
 
 Renderer::Renderer(uint32_t width, uint32_t height)
-    : RenderInterface(width, height)
+    : RenderInterface("Raytracer", width, height)
     , TheRaytracer(nullptr)
     , TheWorldScene(nullptr)
     , TheRenderScene(nullptr)
@@ -50,8 +50,8 @@ Renderer::Renderer(uint32_t width, uint32_t height)
     , LoadSceneRequested(false)
 {
     BackbufferFormat                                            = DXGI_FORMAT_R8G8B8A8_UNORM;
-    RaytracingBufferType                                        = DXGI_FORMAT_R32G32B32A32_FLOAT;
     CPURaytracerTexType                                         = DXGI_FORMAT_R8G8B8A8_UNORM;
+    RaytracingBufferType                                        = DXGI_FORMAT_R32G32B32A32_FLOAT;
     DeferredBuffersRTTypes[DeferredBufferType_Position]         = DXGI_FORMAT_R32G32B32A32_FLOAT;
     DeferredBuffersRTTypes[DeferredBufferType_Normal]           = DXGI_FORMAT_R32G32B32A32_FLOAT;
     DeferredBuffersRTTypes[DeferredBufferType_TexCoordAndDepth] = DXGI_FORMAT_R32G32B32A32_FLOAT;

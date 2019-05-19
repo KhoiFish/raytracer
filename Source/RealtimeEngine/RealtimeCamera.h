@@ -21,12 +21,12 @@
 
 #include <DirectXMath.h>
 
-class RenderCamera
+class RealtimeCamera
 {
 public:
 
-    RenderCamera();
-    virtual ~RenderCamera();
+    RealtimeCamera();
+    virtual ~RealtimeCamera();
 
     void                SetLookAt(DirectX::FXMVECTOR eye, DirectX::FXMVECTOR target, DirectX::FXMVECTOR up);
     void                SetProjection(float fovy, float aspect, float zNear, float zFar);

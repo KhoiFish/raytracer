@@ -206,7 +206,7 @@
     <ClInclude Include="..\..\Source\RealtimeEngine\PipelineStateObject.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\PixelBuffer.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\PlatformApp.h" />
-    <ClInclude Include="..\..\Source\RealtimeEngine\RenderCamera.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\RealtimeCamera.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\RenderDevice.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\RenderInterface.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\RealtimeScene.h" />
@@ -255,7 +255,7 @@
     <ClCompile Include="..\..\Source\RealtimeEngine\PipelineStateObject.cpp" />
     <ClCompile Include="..\..\Source\RealtimeEngine\PixelBuffer.cpp" />
     <ClCompile Include="..\..\Source\RealtimeEngine\PlatformApp.cpp" />
-    <ClCompile Include="..\..\Source\RealtimeEngine\RenderCamera.cpp" />
+    <ClCompile Include="..\..\Source\RealtimeEngine\RealtimeCamera.cpp" />
     <ClCompile Include="..\..\Source\RealtimeEngine\RenderDevice.cpp" />
     <ClCompile Include="..\..\Source\RealtimeEngine\RealtimeScene.cpp" />
     <ClCompile Include="..\..\Source\RealtimeEngine\RootSignature.cpp" />

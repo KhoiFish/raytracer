@@ -17,13 +17,13 @@
 // 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-#include "RenderCamera.h"
+#include "RealtimeCamera.h"
 
 using namespace DirectX;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-RenderCamera::RenderCamera()
+RealtimeCamera::RealtimeCamera()
     : ViewDirty( true )
     , InverseViewDirty( true )
     , ProjectionDirty( true )
@@ -40,7 +40,7 @@ RenderCamera::RenderCamera()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-RenderCamera::~RenderCamera()
+RealtimeCamera::~RealtimeCamera()
 {
     delete TheCameraData;
     TheCameraData = nullptr;
@@ -48,7 +48,7 @@ RenderCamera::~RenderCamera()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RenderCamera::SetLookAt(FXMVECTOR eye, FXMVECTOR target, FXMVECTOR up)
+void RealtimeCamera::SetLookAt(FXMVECTOR eye, FXMVECTOR target, FXMVECTOR up)
 {
     TheCameraData->ViewMatrix  = XMMatrixLookAtRH(eye, target, up);
     TheCameraData->Translation = eye;
@@ -62,7 +62,7 @@ void RenderCamera::SetLookAt(FXMVECTOR eye, FXMVECTOR target, FXMVECTOR up)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-XMMATRIX RenderCamera::GetViewMatrix()
+XMMATRIX RealtimeCamera::GetViewMatrix()
 {
     if (ViewDirty)
     {
@@ -74,7 +74,7 @@ XMMATRIX RenderCamera::GetViewMatrix()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-XMMATRIX RenderCamera::GetInverseViewMatrix()
+XMMATRIX RealtimeCamera::GetInverseViewMatrix()
 {
     if (InverseViewDirty)
     {
@@ -87,7 +87,7 @@ XMMATRIX RenderCamera::GetInverseViewMatrix()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RenderCamera::SetProjection(float fovy, float aspect, float zNear, float zFar)
+void RealtimeCamera::SetProjection(float fovy, float aspect, float zNear, float zFar)
 {
     VertFov                = fovy;
     AspectRatio            = aspect;
@@ -99,7 +99,7 @@ void RenderCamera::SetProjection(float fovy, float aspect, float zNear, float zF
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-XMMATRIX RenderCamera::GetProjectionMatrix()
+XMMATRIX RealtimeCamera::GetProjectionMatrix()
 {
     if (ProjectionDirty)
     {
@@ -111,7 +111,7 @@ XMMATRIX RenderCamera::GetProjectionMatrix()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-XMMATRIX RenderCamera::GetInverseProjectionMatrix()
+XMMATRIX RealtimeCamera::GetInverseProjectionMatrix()
 {
     if (InverseProjectionDirty)
     {
@@ -123,7 +123,7 @@ XMMATRIX RenderCamera::GetInverseProjectionMatrix()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RenderCamera::SetVertFov(float fovy)
+void RealtimeCamera::SetVertFov(float fovy)
 {
     if (VertFov != fovy)
     {
@@ -135,28 +135,28 @@ void RenderCamera::SetVertFov(float fovy)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-float RenderCamera::GetVertFov()
+float RealtimeCamera::GetVertFov()
 {
     return VertFov;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-float RenderCamera::GetZFar()
+float RealtimeCamera::GetZFar()
 {
     return ZFar;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-float RenderCamera::GetZNear()
+float RealtimeCamera::GetZNear()
 {
     return ZNear;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RenderCamera::SetTranslation(FXMVECTOR translation)
+void RealtimeCamera::SetTranslation(FXMVECTOR translation)
 {
     TheCameraData->Translation = translation;
     ViewDirty = true;
@@ -164,42 +164,42 @@ void RenderCamera::SetTranslation(FXMVECTOR translation)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-XMVECTOR RenderCamera::GetTranslation()
+XMVECTOR RealtimeCamera::GetTranslation()
 {
     return TheCameraData->Translation;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RenderCamera::SetRotation(FXMVECTOR rotation)
+void RealtimeCamera::SetRotation(FXMVECTOR rotation)
 {
     TheCameraData->Rotation = rotation;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-XMVECTOR RenderCamera::GetRotation()
+XMVECTOR RealtimeCamera::GetRotation()
 {
     return TheCameraData->Rotation;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-XMVECTOR RenderCamera::GetEye()
+XMVECTOR RealtimeCamera::GetEye()
 {
     return TheCameraData->Eye;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-XMVECTOR RenderCamera::GetTarget()
+XMVECTOR RealtimeCamera::GetTarget()
 {
     return TheCameraData->Target;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RenderCamera::UpdateViewMatrix()
+void RealtimeCamera::UpdateViewMatrix()
 {
     XMMATRIX rotationMatrix    = XMMatrixTranspose(XMMatrixRotationQuaternion(TheCameraData->Rotation));
     XMMATRIX translationMatrix = XMMatrixTranslationFromVector(-(TheCameraData->Translation));
@@ -212,7 +212,7 @@ void RenderCamera::UpdateViewMatrix()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RenderCamera::UpdateInverseViewMatrix()
+void RealtimeCamera::UpdateInverseViewMatrix()
 {
     if (ViewDirty)
     {
@@ -225,7 +225,7 @@ void RenderCamera::UpdateInverseViewMatrix()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RenderCamera::UpdateProjectionMatrix()
+void RealtimeCamera::UpdateProjectionMatrix()
 {
     TheCameraData->ProjectionMatrix = XMMatrixPerspectiveFovRH(XMConvertToRadians(VertFov), AspectRatio, ZNear, ZFar);
 
@@ -235,7 +235,7 @@ void RenderCamera::UpdateProjectionMatrix()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RenderCamera::UpdateInverseProjectionMatrix()
+void RealtimeCamera::UpdateInverseProjectionMatrix()
 {
     if (ProjectionDirty)
     {

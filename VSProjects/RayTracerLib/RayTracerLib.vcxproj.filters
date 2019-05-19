@@ -153,9 +153,6 @@
     <ClInclude Include="..\..\Source\Core\CoreTexture.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\RealtimeEngine\RenderCamera.h">
-      <Filter>Realtime</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Source\RealtimeEngine\RenderSceneShader.h">
       <Filter>Realtime</Filter>
     </ClInclude>
@@ -190,6 +187,9 @@
       <Filter>ThirdParty\imgui</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\RealtimeEngine\RealtimeScene.h">
+      <Filter>Realtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\RealtimeCamera.h">
       <Filter>Realtime</Filter>
     </ClInclude>
   </ItemGroup>
@@ -293,9 +293,6 @@
     <ClCompile Include="..\..\Source\Core\CoreTexture.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\RealtimeEngine\RenderCamera.cpp">
-      <Filter>Realtime</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\ThirdParty\imgui\imgui.cpp">
       <Filter>ThirdParty\imgui</Filter>
     </ClCompile>
@@ -315,6 +312,9 @@
       <Filter>ThirdParty\imgui</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\RealtimeEngine\RealtimeScene.cpp">
+      <Filter>Realtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\RealtimeEngine\RealtimeCamera.cpp">
       <Filter>Realtime</Filter>
     </ClCompile>
   </ItemGroup>

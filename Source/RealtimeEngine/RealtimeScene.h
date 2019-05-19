@@ -27,7 +27,7 @@
 #include "Core/Camera.h"
 #include "Core/WorldScene.h"
 #include "RealtimeEngine/GpuBuffer.h"
-#include "RenderCamera.h"
+#include "RealtimeCamera.h"
 #include "RenderSceneShader.h"
 #include "RenderSceneVertex.h"
 
@@ -85,21 +85,21 @@ namespace RealtimeEngine
         RealtimeScene(Core::WorldScene* worldScene);
         ~RealtimeScene();
 
-        void                            UpdateCamera(float newVertFov, float forwardAmount, float strafeAmount, float upDownAmount, int mouseDx, int mouseDy, Core::Camera& worldCamera);
-        std::vector<RealtimeSceneNode*>&  GetRenderSceneList();
-        RenderCamera&                   GetRenderCamera();
-        D3D12_GPU_VIRTUAL_ADDRESS       GetTLASVirtualAddress() { return TLASBuffer->GetGpuVirtualAddress(); }
+        void                                UpdateCamera(float newVertFov, float forwardAmount, float strafeAmount, float upDownAmount, int mouseDx, int mouseDy, Core::Camera& worldCamera);
+        std::vector<RealtimeSceneNode*>&    GetRenderSceneList();
+        RealtimeCamera&                     GetCamera();
+        D3D12_GPU_VIRTUAL_ADDRESS           GetTLASVirtualAddress() { return TLASBuffer->GetGpuVirtualAddress(); }
 
     private:
 
-        void                            GenerateRenderListFromWorld(const Core::IHitable* currentHead, RealtimeEngine::Texture* defaultTexture, std::vector<RealtimeSceneNode*>& outSceneList, 
-                                            std::vector<SpotLight>& spotLightsList, std::vector<DirectX::XMMATRIX>& matrixStack, std::vector<bool>& flipNormalStack);
+        void                                GenerateRenderListFromWorld(const Core::IHitable* currentHead, RealtimeEngine::Texture* defaultTexture, std::vector<RealtimeSceneNode*>& outSceneList, 
+                                                std::vector<SpotLight>& spotLightsList, std::vector<DirectX::XMMATRIX>& matrixStack, std::vector<bool>& flipNormalStack);
 
-        void                            SetupForRaytracing();
+        void                                SetupForRaytracing();
 
     private:
 
-        RenderCamera                    TheRenderCamera;
+        RealtimeCamera                  TheRenderCamera;
         std::vector<RealtimeSceneNode*> RenderSceneList;
         std::vector<SpotLight>          SpotLightsList;
 

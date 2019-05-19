@@ -282,8 +282,8 @@ void Renderer::ComputeRaytracingResults()
         {
             // Get updated scene constants
             RaytracingGlobalCB sceneCB;
-            XMStoreFloat4(&sceneCB.CameraPosition, TheRenderScene->GetRenderCamera().GetEye());
-            XMStoreFloat4x4(&sceneCB.InverseTransposeViewProjectionMatrix, XMMatrixInverse(nullptr, TheRenderScene->GetRenderCamera().GetViewMatrix() * TheRenderScene->GetRenderCamera().GetProjectionMatrix()));
+            XMStoreFloat4(&sceneCB.CameraPosition, TheRenderScene->GetCamera().GetEye());
+            XMStoreFloat4x4(&sceneCB.InverseTransposeViewProjectionMatrix, XMMatrixInverse(nullptr, TheRenderScene->GetCamera().GetViewMatrix() * TheRenderScene->GetCamera().GetProjectionMatrix()));
             sceneCB.OutputResolution = DirectX::XMFLOAT2((float)Width, (float)Height);
             sceneCB.AORadius         = AORadius;
             sceneCB.FrameCount       = FrameCount;

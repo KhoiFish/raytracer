@@ -372,7 +372,7 @@ void Renderer::RenderCompositePass()
 
 void Renderer::SetupSceneConstantBuffer(const FXMMATRIX& model, SceneConstantBuffer& sceneCB)
 {
-    RenderCamera& camera = TheRenderScene->GetRenderCamera();
+    RealtimeCamera& camera = TheRenderScene->GetCamera();
 
     sceneCB.FarClipDist = camera.GetZFar();
 

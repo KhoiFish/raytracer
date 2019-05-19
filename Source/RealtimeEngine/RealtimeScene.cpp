@@ -31,7 +31,7 @@
 #include "Core/TriMesh.h"
 
 #include "RenderSceneShader.h"
-#include "RenderCamera.h"
+#include "RealtimeCamera.h"
 #include "RealtimeScene.h"
 #include "RenderDevice.h"
 #include "CommandContext.h"
@@ -601,7 +601,7 @@ std::vector<RealtimeSceneNode*>& RealtimeScene::GetRenderSceneList()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-RenderCamera& RealtimeScene::GetRenderCamera()
+RealtimeCamera& RealtimeScene::GetCamera()
 {
     return TheRenderCamera;
 }

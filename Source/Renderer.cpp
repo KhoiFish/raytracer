@@ -44,7 +44,8 @@ Renderer::Renderer(uint32_t width, uint32_t height)
     , SelectedBufferIndex(0)
     , AccumCount(0)
     , RealtimeDescriptorHeap(nullptr)
-    , RaytracingDescriptorHeap(nullptr)
+    , RaytracingGlobalDescriptorHeap(nullptr)
+    , RaytracingLocalDescriptorHeap(nullptr)
     , LoadSceneRequested(false)
 {
     BackbufferFormat                                            = DXGI_FORMAT_R8G8B8A8_UNORM;

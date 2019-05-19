@@ -89,7 +89,8 @@ void Renderer::SetupRealtimeRaytracingPipeline()
     static const wchar_t* sDxilLibEntryPoints[] = { sRaygenShaderName, sMissShaderName, sClosestHitShaderName };
 
     // Allocate descriptor heap
-    RaytracingDescriptorHeap = new DescriptorHeapStack(64, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 0);    
+    RaytracingGlobalDescriptorHeap = new DescriptorHeapStack(64, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 0);
+    RaytracingLocalDescriptorHeap  = new DescriptorHeapStack(64, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 0);
 
     // Allocate scene constant buffer
     RaytracingSceneConstantBuffer.Create(L"Raytracing Scene Globals Buffer", 1, (uint32_t)AlignUp(sizeof(RaytracingGlobalCB), 256));
@@ -143,20 +144,20 @@ void Renderer::SetupRealtimeRaytracingPipeline()
         RaytracingGlobalRootSig.Finalize("RealtimeRaytracingGlobalRoot", D3D12_ROOT_SIGNATURE_FLAG_NONE);
 
         // Allocate descriptor for output view
-        RaytracingDescriptorHeap->AllocateBufferUav(
+        RaytracingGlobalDescriptorHeap->AllocateBufferUav(
             *AmbientOcclusionOutput[0].GetResource(),
             D3D12_UAV_DIMENSION_TEXTURE2D,
             D3D12_BUFFER_UAV_FLAG_NONE,
             DXGI_FORMAT_R8G8B8A8_UNORM);
 
-        RaytracingDescriptorHeap->AllocateBufferUav(
+        RaytracingGlobalDescriptorHeap->AllocateBufferUav(
             *AmbientOcclusionOutput[1].GetResource(),
             D3D12_UAV_DIMENSION_TEXTURE2D,
             D3D12_BUFFER_UAV_FLAG_NONE,
             DXGI_FORMAT_R8G8B8A8_UNORM);
 
         // Allocate descriptor for acceleration structures
-        RaytracingDescriptorHeap->AllocateBufferSrvRaytracing(
+        RaytracingGlobalDescriptorHeap->AllocateBufferSrvRaytracing(
             TheRenderScene->GetTLASVirtualAddress(),
             D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE,
             D3D12_BUFFER_SRV_FLAG_NONE,
@@ -164,32 +165,31 @@ void Renderer::SetupRealtimeRaytracingPipeline()
             D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
 
         // Positions
-        RaytracingDescriptorHeap->AllocateTexture2DSrv(
+        RaytracingGlobalDescriptorHeap->AllocateTexture2DSrv(
             DeferredBuffers[DeferredBufferType_Position].GetResource(),
             DeferredBuffersRTTypes[DeferredBufferType_Position],
             D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
 
         // Normals
-        RaytracingDescriptorHeap->AllocateTexture2DSrv(
+        RaytracingGlobalDescriptorHeap->AllocateTexture2DSrv(
             DeferredBuffers[DeferredBufferType_Normal].GetResource(),
             DeferredBuffersRTTypes[DeferredBufferType_Normal],
             D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
 
         // TexCoords and Depth
-        RaytracingDescriptorHeap->AllocateTexture2DSrv(
+        RaytracingGlobalDescriptorHeap->AllocateTexture2DSrv(
             DeferredBuffers[DeferredBufferType_TexCoordAndDepth].GetResource(),
             DeferredBuffersRTTypes[DeferredBufferType_TexCoordAndDepth],
             D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
 
         // Albedo
-        RaytracingDescriptorHeap->AllocateTexture2DSrv(
+        RaytracingGlobalDescriptorHeap->AllocateTexture2DSrv(
             DeferredBuffers[DeferredBufferType_Albedo].GetResource(),
             DeferredBuffersRTTypes[DeferredBufferType_Albedo],
             D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
     }
 
     // Local sig
-    UINT indexToLocalSigHeapStart;
     {
         // Setup local sig
         RaytracingLocalRootSig.Reset(RaytracingLocalRootSigSlot::Num, 0);
@@ -201,7 +201,7 @@ void Renderer::SetupRealtimeRaytracingPipeline()
         RaytracingLocalRootSig.Finalize("RaytracerLocalRootSig", D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE);
 
         // Allocator descriptor for scene constants
-        indexToLocalSigHeapStart = RaytracingDescriptorHeap->AllocateBufferCbv(
+        RaytracingLocalDescriptorHeap->AllocateBufferCbv(
             RaytracingSceneConstantBuffer.GetGpuVirtualAddress(), 
             (UINT)RaytracingSceneConstantBuffer.GetBufferSize());
     }
@@ -301,10 +301,10 @@ void Renderer::ComputeRaytracingResults()
         computeContext.SetPipelineState(TheRaytracingPSO);
 
         // Set descriptor heaps and tables
-        computeContext.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, RaytracingDescriptorHeap->GetDescriptorHeap());
+        computeContext.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, RaytracingGlobalDescriptorHeap->GetDescriptorHeap());
         for (int i = 0; i < RaytracingGlobalRootSigSlot::Num; i++)
         {
-            computeContext.SetDescriptorTable(i, RaytracingDescriptorHeap->GetGpuHandle(i));
+            computeContext.SetDescriptorTable(i, RaytracingGlobalDescriptorHeap->GetGpuHandle(i));
         }
         
         // Transition all output buffers

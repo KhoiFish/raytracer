@@ -164,6 +164,7 @@ private:
     RootSignature                   RaytracingGlobalRootSig;
     RootSignature                   RaytracingLocalRootSig;
     RaytracingPSO                   TheRaytracingPSO;
-    DescriptorHeapStack*            RaytracingDescriptorHeap;
+    DescriptorHeapStack*            RaytracingGlobalDescriptorHeap;
+    DescriptorHeapStack*            RaytracingLocalDescriptorHeap;
     ByteAddressBuffer               RaytracingSceneConstantBuffer;
 };

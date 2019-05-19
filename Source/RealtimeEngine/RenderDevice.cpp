@@ -151,6 +151,8 @@ void RenderDevice::CleanupDevice()
     }
 
     CommandListManager::Get().Shutdown();
+    RootSignature::DestroyAll();
+    PSO::DestroyAll();
     DepthStencil.Destroy();
     DescriptorAllocator::DestroyAll();
     SwapChain.Reset();

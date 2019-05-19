@@ -193,6 +193,31 @@ CommandContext::~CommandContext()
     if (TheCommandList != nullptr)
     {
         TheCommandList->Release();
+        TheCommandList = nullptr;
+    }
+
+    if (CurGraphicsRootSignature != nullptr)
+    {
+        CurGraphicsRootSignature->Release();
+        CurGraphicsRootSignature = nullptr;
+    }
+
+    if (CurComputeRootSignature != nullptr)
+    {
+        CurComputeRootSignature->Release();
+        CurComputeRootSignature = nullptr;
+    }
+
+    if (CurGraphicsRootSignature != nullptr)
+    {
+        CurGraphicsRootSignature->Release();
+        CurGraphicsRootSignature = nullptr;
+    }
+
+    if (CurComputePipelineState != nullptr)
+    {
+        CurComputePipelineState->Release();
+        CurComputePipelineState = nullptr;
     }
 }
 

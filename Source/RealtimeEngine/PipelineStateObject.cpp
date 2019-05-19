@@ -37,7 +37,7 @@ static map< size_t, ComPtr<ID3D12PipelineState> > sComputePSOHashMap;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void PSO::DestroyAll(void)
+void PSO::DestroyAll()
 {
     sGraphicsPSOHashMap.clear();
     sComputePSOHashMap.clear();
@@ -266,6 +266,14 @@ RaytracingPSO::~RaytracingPSO()
     {
         GlobalRootSignatureInterfacePtr->Release();
         GlobalRootSignatureInterfacePtr = nullptr;
+    }
+
+    for (std::map<std::string, LocalRootSignatureData*>::iterator iter = LocalRootSignatureDataList.begin();
+         iter != LocalRootSignatureDataList.end();
+         ++iter)
+    {
+        delete iter->second;
+        iter->second = nullptr;
     }
 }
 

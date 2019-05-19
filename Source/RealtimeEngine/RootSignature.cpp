@@ -33,7 +33,7 @@ static std::map< size_t, ComPtr<ID3D12RootSignature> > sRootSignatureHashMap;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RootSignature::DestroyAll(void)
+void RootSignature::DestroyAll()
 {
     sRootSignatureHashMap.clear();
 }

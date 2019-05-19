@@ -97,13 +97,13 @@ void Renderer::OnResizeGpuRaytracer()
         *AmbientOcclusionOutput[0].GetResource(),
         D3D12_UAV_DIMENSION_TEXTURE2D,
         D3D12_BUFFER_UAV_FLAG_NONE,
-        DXGI_FORMAT_R8G8B8A8_UNORM);
+        RaytracingBufferType);
 
     RaytracingGlobalDescriptorHeap->AllocateBufferUav(
         *AmbientOcclusionOutput[1].GetResource(),
         D3D12_UAV_DIMENSION_TEXTURE2D,
         D3D12_BUFFER_UAV_FLAG_NONE,
-        DXGI_FORMAT_R8G8B8A8_UNORM);
+        RaytracingBufferType);
 
     // Allocate descriptor for acceleration structures
     RaytracingGlobalDescriptorHeap->AllocateBufferSrvRaytracing(

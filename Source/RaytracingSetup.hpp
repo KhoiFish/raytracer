@@ -260,7 +260,7 @@ void Renderer::SetupRealtimeRaytracingPipeline()
         TheRaytracingPSO.AddExportAssociationWithShaderConfig(sDxilLibEntryPoints, ARRAY_SIZE(sDxilLibEntryPoints));
 
         // Pipeline config
-        TheRaytracingPSO.SetPipelineConfig(UserInput.DXRMaxRayRecursionDepth);
+        TheRaytracingPSO.SetPipelineConfig(UserInput.GpuMaxRayRecursionDepth);
 
         // Set shader names for the shader tables
         TheRaytracingPSO.GetRaygenShaderTable().SetShaderName(sRaygenShaderName);
@@ -285,9 +285,9 @@ void Renderer::ComputeRaytracingResults()
             XMStoreFloat4(&sceneCB.CameraPosition, TheRenderScene->GetCamera().GetEye());
             XMStoreFloat4x4(&sceneCB.InverseTransposeViewProjectionMatrix, XMMatrixInverse(nullptr, TheRenderScene->GetCamera().GetViewMatrix() * TheRenderScene->GetCamera().GetProjectionMatrix()));
             sceneCB.OutputResolution = DirectX::XMFLOAT2((float)Width, (float)Height);
-            sceneCB.AORadius         = UserInput.DXRAORadius;
+            sceneCB.AORadius         = UserInput.GpuAORadius;
             sceneCB.FrameCount       = FrameCount;
-            sceneCB.NumRays          = UserInput.DXRNumRaysPerPixel;
+            sceneCB.NumRays          = UserInput.GpuNumRaysPerPixel;
             sceneCB.AccumCount       = AccumCount++;
             
             // Update GPU buffer

@@ -39,18 +39,20 @@ void Renderer::RenderGui()
     ImGui::NewFrame();
     while(true)
     {
-        ImGui::SetNextWindowPos(ImVec2(770, 10), ImGuiCond_FirstUseEver);
-        ImGui::SetNextWindowSize(ImVec2(500, 460), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowPos(ImVec2(10, 16), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowSize(ImVec2(533, 548), ImGuiCond_FirstUseEver);
 
-        ImGuiWindowFlags window_flags = 0;
+        ImGuiWindowFlags window_flags = ImGuiWindowFlags_AlwaysVerticalScrollbar;
         if (!ImGui::Begin("Raytracer", nullptr, window_flags))
         {
             ImGui::End();
             break;
         }
 
+        // ------------------------------------------------------------
+
         ImGui::Separator();
-        ImGui::Text("STATUS");
+        ImGui::Text("CPU RAYTRACE STATUS");
         ImGui::Separator();
         ImGui::BulletText("Selected Buffer Id: %d", SelectedBufferIndex + 1);
 
@@ -76,7 +78,7 @@ void Renderer::RenderGui()
             }
 
             ImGui::Text("");
-            if (ImGui::Button("Stop Trace", ImVec2(100, 50)))
+            if (ImGui::Button("Stop Cpu Raytrace", ImVec2(140, 30)))
             {
                 SetEnableCpuRaytrace(false);
             }
@@ -84,16 +86,20 @@ void Renderer::RenderGui()
         else
         {
             char stringBuf[128];
-            bool rayTracerDirty = false;
+            bool cpuOptionsChanged = false;
+            bool gpuOptionsChanged = false;
+
+            // ------------------------------------------------------------
 
             ImGui::Separator();
             ImGui::Text("HELP");
             ImGui::Separator();
-            ImGui::BulletText("Translate camera:    Press keys WASD strafe, QE up and down");
-            ImGui::BulletText("Pan camera:          Left/Right mouse button (press and hold)");
-            ImGui::BulletText("Start/stop trace:    Space bar/escape key");
-            ImGui::BulletText("Select output:       1 - 9 keys");
+            ImGui::BulletText("Translate camera:     Press keys WASDQE");
+            ImGui::BulletText("Pan camera:           Hold Left Mouse Button");
+            ImGui::BulletText("Toggle Cpu Raytrace:  Space bar");
+            ImGui::BulletText("Select output:        1 - 9 keys");
 
+            // ------------------------------------------------------------
 
             ImGui::Separator();
             ImGui::Text("GLOBAL OPTIONS");
@@ -103,38 +109,68 @@ void Renderer::RenderGui()
                 LoadSceneRequested = true;
             }
 
+            // ------------------------------------------------------------
+
             ImGui::Separator();
             ImGui::Text("CPU RAYTRACE OPTIONS");
             ImGui::Separator();
+
             _itoa_s(UserInput.CpuNumSamplesPerRay, stringBuf, 10);
-            if (ImGui::InputText("Num Samples", stringBuf, IM_ARRAYSIZE(stringBuf), ImGuiInputTextFlags_CharsDecimal))
+            if (ImGui::InputText("Cpu Num Rays Per Pixel", stringBuf, IM_ARRAYSIZE(stringBuf), ImGuiInputTextFlags_CharsDecimal))
             {
                 UserInput.CpuNumSamplesPerRay = atoi(stringBuf);
-                rayTracerDirty = true;
+                cpuOptionsChanged = true;
             }
 
             _itoa_s(UserInput.CpuMaxScatterDepth, stringBuf, 10);
-            if (ImGui::InputText("Scatter Depth", stringBuf, IM_ARRAYSIZE(stringBuf), ImGuiInputTextFlags_CharsDecimal))
+            if (ImGui::InputText("Cpu Recursion Depth", stringBuf, IM_ARRAYSIZE(stringBuf), ImGuiInputTextFlags_CharsDecimal))
             {
                 UserInput.CpuMaxScatterDepth = atoi(stringBuf);
-                rayTracerDirty = true;
+                cpuOptionsChanged = true;
             }
 
-            if (ImGui::SliderInt("Num Threads", &UserInput.CpuNumThreads, 1, 32))
+            if (ImGui::SliderInt("Cpu Num Threads", &UserInput.CpuNumThreads, 1, MaxNumCpuThreads))
             {
-                rayTracerDirty = true;
-            }
-
-            // If any options changed, recreate the raytracer
-            if (rayTracerDirty)
-            {
-                OnResizeRaytracer();
+                cpuOptionsChanged = true;
             }
 
             ImGui::Text("");
-            if (ImGui::Button("Begin Trace", ImVec2(100, 50)))
+            if (ImGui::Button("Begin Cpu Raytrace", ImVec2(140, 30)))
             {
                 SetEnableCpuRaytrace(true);
+            }
+
+            // ------------------------------------------------------------
+
+            ImGui::Separator();
+            ImGui::Text("GPU RAYTRACE OPTIONS");
+            ImGui::Separator();
+
+            _itoa_s(UserInput.GpuNumRaysPerPixel, stringBuf, 10);
+            if (ImGui::InputText("Gpu Num Rays Per Pixel", stringBuf, IM_ARRAYSIZE(stringBuf), ImGuiInputTextFlags_CharsDecimal))
+            {
+                UserInput.GpuNumRaysPerPixel = atoi(stringBuf);
+                gpuOptionsChanged = true;
+            }
+
+            _itoa_s(UserInput.GpuMaxRayRecursionDepth, stringBuf, 10);
+            if (ImGui::InputText("Gpu Recursion Depth", stringBuf, IM_ARRAYSIZE(stringBuf), ImGuiInputTextFlags_CharsDecimal))
+            {
+                UserInput.GpuMaxRayRecursionDepth = atoi(stringBuf);
+                gpuOptionsChanged = true;
+            }
+
+            if(ImGui::SliderFloat("Gpu AO Radius", &UserInput.GpuAORadius, 1.0f, 1000.0f))
+            {
+                gpuOptionsChanged = true;
+            }
+
+            // ------------------------------------------------------------
+
+            // If gpu options changed, trigger camera to update
+            if (gpuOptionsChanged)
+            {
+                UserInput.InputDirty = true;
             }
         }
 

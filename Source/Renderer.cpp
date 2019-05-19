@@ -103,7 +103,7 @@ void Renderer::OnInit()
     // Get the number of cores on this system
     SYSTEM_INFO sysInfo;
     GetSystemInfo(&sysInfo);
-    UserInput.CpuNumThreads = sysInfo.dwNumberOfProcessors;
+    MaxNumCpuThreads = UserInput.CpuNumThreads = sysInfo.dwNumberOfProcessors;
 
     // Init the render device
     RenderDevice::Initialize(PlatformApp::GetHwnd(), Width, Height, this, BackbufferFormat);

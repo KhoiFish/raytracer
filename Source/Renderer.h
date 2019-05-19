@@ -128,9 +128,9 @@ private:
         int     CpuMaxScatterDepth      = 50;
         int     CpuNumThreads           = 4;
 
-        int     DXRMaxRayRecursionDepth = 1;
-        int     DXRNumRaysPerPixel      = 3;
-        float   DXRAORadius             = 100.0f;
+        int     GpuMaxRayRecursionDepth = 1;
+        int     GpuNumRaysPerPixel      = 25;
+        float   GpuAORadius             = 400.0f;
     };
 
 private:
@@ -145,6 +145,7 @@ private:
     int                             SelectedBufferIndex;
     int                             CpuResultsBufferIndex;
     bool                            LoadSceneRequested;
+    int                             MaxNumCpuThreads;
 
     DXGI_FORMAT                     BackbufferFormat;
     DXGI_FORMAT                     DeferredBuffersRTTypes[DeferredBufferType_Num];

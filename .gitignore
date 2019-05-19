@@ -9,3 +9,4 @@ OutputImages/*.ppm
 *.aps
 *.log
 RaytracerReleasePkg.zip
+imgui.ini

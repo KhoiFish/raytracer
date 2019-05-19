@@ -298,7 +298,7 @@ static WorldScene* sampleSceneMesh()
             );
         list[total++] = r8;
 
-#if 0
+#if 1
         IHitable *totoro =
             new HitableTranslate(
                 new HitableRotateY(

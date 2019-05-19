@@ -20,7 +20,7 @@
 #define HLSL
 #include "../RealtimeEngine/RealtimeSceneShaderInclude.h"
 #include "../RendererShaderInclude.h"
-#include "../RaytracingShader.h"
+#include "../RaytracingShaderInclude.h"
 #include "RaytracingHelpers.hlsli"
 
 // ----------------------------------------------------------------------------------------------------------------------------

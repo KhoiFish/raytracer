@@ -17,7 +17,7 @@
 // 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-#include "RaytracingShader.h"
+#include "RaytracingShaderInclude.h"
 
 enum RealtimeRenderingRootIndex
 {

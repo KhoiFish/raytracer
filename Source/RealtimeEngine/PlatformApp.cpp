@@ -40,6 +40,20 @@ IMGUI_IMPL_API LRESULT  ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPAR
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+static void centerWindow(HWND hWnd)
+{
+    RECT rc;
+
+    GetWindowRect(hWnd, &rc);
+
+    int xPos = (GetSystemMetrics(SM_CXSCREEN) - rc.right) / 2;
+    int yPos = (GetSystemMetrics(SM_CYSCREEN) - rc.bottom) / 2;
+
+    SetWindowPos(hWnd, 0, xPos, yPos, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 int PlatformApp::Run(RenderInterface* pRenderInterface, HINSTANCE hInstance, int nCmdShow)
 {
     try
@@ -63,12 +77,12 @@ int PlatformApp::Run(RenderInterface* pRenderInterface, HINSTANCE hInstance, int
 
         // Initialize the window class.
         WNDCLASSEX windowClass = { 0 };
-        windowClass.cbSize = sizeof(WNDCLASSEX);
-        windowClass.style = CS_HREDRAW | CS_VREDRAW;
-        windowClass.lpfnWndProc = WindowProc;
-        windowClass.hInstance = hInstance;
-        windowClass.hCursor = LoadCursor(NULL, IDC_ARROW);
-        windowClass.lpszClassName = L"PlatformApp";
+        windowClass.cbSize          = sizeof(WNDCLASSEX);
+        windowClass.style           = CS_HREDRAW | CS_VREDRAW;
+        windowClass.lpfnWndProc     = WindowProc;
+        windowClass.hInstance       = hInstance;
+        windowClass.hCursor         = LoadCursor(NULL, IDC_ARROW);
+        windowClass.lpszClassName   = L"PlatformApp";
         RegisterClassEx(&windowClass);
 
         RECT windowRect = { 0, 0, static_cast<LONG>(pRenderInterface->GetWidth()), static_cast<LONG>(pRenderInterface->GetHeight()) };
@@ -92,6 +106,7 @@ int PlatformApp::Run(RenderInterface* pRenderInterface, HINSTANCE hInstance, int
         pRenderInterface->OnInit();
 
         ShowWindow(Hwnd, nCmdShow);
+        centerWindow(Hwnd);
 
         // Main sample loop.
         MSG msg = {};

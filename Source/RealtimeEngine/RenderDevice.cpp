@@ -39,7 +39,33 @@ using Microsoft::WRL::ComPtr;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+class ReportOnExit
+{
+public:
+
+    static void DumpLiveObjectsInfo()
+    {
+        #ifdef _DEBUG
+        {
+            ComPtr<IDXGIDebug1> dxgiDebug;
+            if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&dxgiDebug))))
+            {
+                dxgiDebug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_FLAGS(DXGI_DEBUG_RLO_SUMMARY | DXGI_DEBUG_RLO_IGNORE_INTERNAL));
+            }
+        }
+        #endif
+    }
+
+    ~ReportOnExit()
+    {
+        DumpLiveObjectsInfo();
+    }
+};
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 static RenderDevice* sRenderDevicePtr = nullptr;
+static ReportOnExit  sReportOnExitObject;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -519,17 +545,7 @@ void RenderDevice::HandleDeviceLost()
     }
 
     CleanupDevice();
-
-    #ifdef _DEBUG
-    {
-        ComPtr<IDXGIDebug1> dxgiDebug;
-        if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&dxgiDebug))))
-        {
-            dxgiDebug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_FLAGS(DXGI_DEBUG_RLO_SUMMARY | DXGI_DEBUG_RLO_IGNORE_INTERNAL));
-        }
-    }
-    #endif
-
+    ReportOnExit::DumpLiveObjectsInfo();
     SetupDevice();
 
     if (DeviceNotify)

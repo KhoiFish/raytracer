@@ -83,6 +83,8 @@ Renderer::~Renderer()
         delete TheRenderScene;
         TheRenderScene = nullptr;
     }
+
+    RenderDevice::Shutdown();
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

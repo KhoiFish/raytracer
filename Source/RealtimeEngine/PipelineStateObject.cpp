@@ -246,6 +246,8 @@ ComputePSO::ComputePSO()
 // ----------------------------------------------------------------------------------------------------------------------------
 
 RaytracingPSO::RaytracingPSO()
+    : RaytracingPipelineStateObject(nullptr)
+    , GlobalRootSignatureInterfacePtr(nullptr)
 {
     ;
 }
@@ -254,7 +256,17 @@ RaytracingPSO::RaytracingPSO()
 
 RaytracingPSO::~RaytracingPSO()
 {
-    ;
+    if (RaytracingPipelineStateObject != nullptr)
+    {
+        RaytracingPipelineStateObject->Release();
+        RaytracingPipelineStateObject = nullptr;
+    }
+    
+    if (GlobalRootSignatureInterfacePtr != nullptr)
+    {
+        GlobalRootSignatureInterfacePtr->Release();
+        GlobalRootSignatureInterfacePtr = nullptr;
+    }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

@@ -20,6 +20,7 @@
 #include "RealtimeCamera.h"
 
 using namespace DirectX;
+using namespace RealtimeEngine;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 

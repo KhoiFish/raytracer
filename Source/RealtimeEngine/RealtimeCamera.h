@@ -21,64 +21,64 @@
 
 #include <DirectXMath.h>
 
-class RealtimeCamera
+namespace RealtimeEngine
 {
-public:
-
-    RealtimeCamera();
-    virtual ~RealtimeCamera();
-
-    void                SetLookAt(DirectX::FXMVECTOR eye, DirectX::FXMVECTOR target, DirectX::FXMVECTOR up);
-    void                SetProjection(float fovy, float aspect, float zNear, float zFar);
-    void                SetVertFov(float fovy);
-    void                SetTranslation(DirectX::FXMVECTOR translation);
-    void                SetRotation(DirectX::FXMVECTOR rotation);
-
-    DirectX::XMMATRIX   GetViewMatrix();
-    DirectX::XMMATRIX   GetInverseViewMatrix();
-    DirectX::XMMATRIX   GetProjectionMatrix();
-    DirectX::XMMATRIX   GetInverseProjectionMatrix();
-    DirectX::XMVECTOR   GetTranslation();
-    DirectX::XMVECTOR   GetRotation();
-    DirectX::XMVECTOR   GetEye();
-    DirectX::XMVECTOR   GetTarget();
-    float               GetVertFov();
-    float               GetZFar();
-    float               GetZNear();
-
-private:
-
-    virtual void        UpdateViewMatrix();
-    virtual void        UpdateInverseViewMatrix();
-    virtual void        UpdateProjectionMatrix();
-    virtual void        UpdateInverseProjectionMatrix();
-
-private:
-
-    struct CameraData
+    class RealtimeCamera
     {
-        DirectX::XMVECTOR Eye;
-        DirectX::XMVECTOR Target;
-        DirectX::XMVECTOR Translation;
-        DirectX::XMVECTOR Rotation;
-        DirectX::XMMATRIX ViewMatrix;
-        DirectX::XMMATRIX InverseViewMatrix;
-        DirectX::XMMATRIX ProjectionMatrix;
-        DirectX::XMMATRIX InverseProjectionMatrix;
+    public:
+
+        RealtimeCamera();
+        virtual ~RealtimeCamera();
+
+        void                SetLookAt(DirectX::FXMVECTOR eye, DirectX::FXMVECTOR target, DirectX::FXMVECTOR up);
+        void                SetProjection(float fovy, float aspect, float zNear, float zFar);
+        void                SetVertFov(float fovy);
+        void                SetTranslation(DirectX::FXMVECTOR translation);
+        void                SetRotation(DirectX::FXMVECTOR rotation);
+
+        DirectX::XMMATRIX   GetViewMatrix();
+        DirectX::XMMATRIX   GetInverseViewMatrix();
+        DirectX::XMMATRIX   GetProjectionMatrix();
+        DirectX::XMMATRIX   GetInverseProjectionMatrix();
+        DirectX::XMVECTOR   GetTranslation();
+        DirectX::XMVECTOR   GetRotation();
+        DirectX::XMVECTOR   GetEye();
+        DirectX::XMVECTOR   GetTarget();
+        float               GetVertFov();
+        float               GetZFar();
+        float               GetZNear();
+
+    private:
+
+        virtual void        UpdateViewMatrix();
+        virtual void        UpdateInverseViewMatrix();
+        virtual void        UpdateProjectionMatrix();
+        virtual void        UpdateInverseProjectionMatrix();
+
+    private:
+
+        struct CameraData
+        {
+            DirectX::XMVECTOR Eye;
+            DirectX::XMVECTOR Target;
+            DirectX::XMVECTOR Translation;
+            DirectX::XMVECTOR Rotation;
+            DirectX::XMMATRIX ViewMatrix;
+            DirectX::XMMATRIX InverseViewMatrix;
+            DirectX::XMMATRIX ProjectionMatrix;
+            DirectX::XMMATRIX InverseProjectionMatrix;
+        };
+
+    private:
+
+        CameraData*     TheCameraData;
+        float           VertFov;
+        float           AspectRatio;
+        float           ZNear;
+        float           ZFar;
+        bool            ViewDirty;
+        bool            InverseViewDirty;
+        bool            ProjectionDirty;
+        bool            InverseProjectionDirty;
     };
-
-private:
-
-    CameraData*     TheCameraData;
-    float           VertFov;
-    float           AspectRatio;
-    float           ZNear;
-    float           ZFar;
-    bool            ViewDirty;
-    bool            InverseViewDirty;
-    bool            ProjectionDirty;
-    bool            InverseProjectionDirty;
-
-private:
-
-};
+}

@@ -18,8 +18,8 @@
 // ----------------------------------------------------------------------------------------------------------------------------
 
 #define HLSL
-#include "../RealtimeEngine/RenderSceneVertex.h"
 #include "../RealtimeEngine/RealtimeSceneShaderInclude.h"
+#include "../RendererShaderInclude.h"
 #include "../RaytracingShader.h"
 #include "RaytracingHelpers.hlsli"
 

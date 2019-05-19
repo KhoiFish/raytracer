@@ -17,20 +17,35 @@
 // 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-#ifndef RENDERSCENEVERTEX_H
-#define RENDERSCENEVERTEX_H
+#ifndef RENDERERSHADERINCLUDE_H
+#define RENDERERSHADERINCLUDE_H
 
-#include "ShaderCompat.h"
+#include "RealtimeEngine/ShaderCompat.h"
+
+// Align the following structs to 16 bytes
+ALIGN_BEGIN(16)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-ALIGN_BEGIN(16)
-struct RenderSceneVertex
+struct SceneConstantBuffer
 {
-    XMFLOAT3   Position;
-    XMFLOAT3   Normal;
-    XMFLOAT2   TexCoord;
+    XMFLOAT4    CameraPosition;
+    XMFLOAT4X4  ModelMatrix;
+    XMFLOAT4X4  ViewMatrix;
+    XMFLOAT4X4  ProjectionMatrix;
+    XMFLOAT4X4  ModelViewMatrix;
+    XMFLOAT4X4  ViewProjectionMatrix;
+    XMFLOAT4X4  ModelViewProjectionMatrix;
+    XMFLOAT4X4  InverseTransposeModelViewMatrix;
+    XMFLOAT4X4  InverseViewProjectionMatrix;
+    XMFLOAT4X4  InverseTransposeViewProjectionMatrix;
+    XMFLOAT4    TextureMultipliers[6];
+    XMFLOAT4    CompositeMultipliers[2];
+    float       FarClipDist;
 };
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 ALIGN_END
 
 #endif

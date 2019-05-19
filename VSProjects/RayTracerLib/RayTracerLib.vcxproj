@@ -210,7 +210,6 @@
     <ClInclude Include="..\..\Source\RealtimeEngine\RenderDevice.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\RenderInterface.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\RealtimeScene.h" />
-    <ClInclude Include="..\..\Source\RealtimeEngine\RenderSceneVertex.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\RootSignature.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\RTTexture.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\RealtimeSceneShaderInclude.h" />

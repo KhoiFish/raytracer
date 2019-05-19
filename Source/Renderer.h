@@ -31,6 +31,7 @@
 #include "RealtimeEngine/RealtimeCamera.h"
 #include "RealtimeEngine/RealtimeScene.h"
 #include "RealtimeEngine/DescriptorHeap.h"
+#include "RendererShaderInclude.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 

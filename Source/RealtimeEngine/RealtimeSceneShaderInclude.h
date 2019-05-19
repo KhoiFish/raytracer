@@ -17,8 +17,8 @@
 // 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-#ifndef RENDERSCENESHADER_H
-#define RENDERSCENESHADER_H
+#ifndef REALTIMESCENESHADERINCLUDE_H
+#define REALTIMESCENESHADERINCLUDE_H
 
 #include "ShaderCompat.h"
 
@@ -27,21 +27,11 @@ ALIGN_BEGIN(16)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-struct SceneConstantBuffer
+struct RealtimeSceneVertex
 {
-    XMFLOAT4    CameraPosition;
-    XMFLOAT4X4  ModelMatrix;
-    XMFLOAT4X4  ViewMatrix;
-    XMFLOAT4X4  ProjectionMatrix;
-    XMFLOAT4X4  ModelViewMatrix;
-    XMFLOAT4X4  ViewProjectionMatrix;
-    XMFLOAT4X4  ModelViewProjectionMatrix;
-    XMFLOAT4X4  InverseTransposeModelViewMatrix;
-    XMFLOAT4X4  InverseViewProjectionMatrix;
-    XMFLOAT4X4  InverseTransposeViewProjectionMatrix;
-    XMFLOAT4    TextureMultipliers[6];
-    XMFLOAT4    CompositeMultipliers[2];
-    float       FarClipDist;
+    XMFLOAT3   Position;
+    XMFLOAT3   Normal;
+    XMFLOAT2   TexCoord;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -82,15 +72,6 @@ struct DirLight
     XMFLOAT4    DirectionVS;
     XMFLOAT4    Color;
     int         ShadowmapId;
-};
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-struct GlobalData
-{
-    int         NumSpotLights;
-    int         NumDirLights;
-    float       ShadowmapDepth;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------

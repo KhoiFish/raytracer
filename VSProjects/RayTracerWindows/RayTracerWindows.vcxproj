@@ -169,6 +169,7 @@
     <ClInclude Include="..\..\Source\RaytracingShader.h" />
     <ClInclude Include="..\..\Source\RealtimeRender.hpp" />
     <ClInclude Include="..\..\Source\Renderer.h" />
+    <ClInclude Include="..\..\Source\RendererShaderInclude.h" />
     <ClInclude Include="..\..\Source\SampleScenes.h" />
     <ClInclude Include="..\..\Source\Windows\Resource.h" />
   </ItemGroup>

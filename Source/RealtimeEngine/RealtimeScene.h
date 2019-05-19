@@ -29,7 +29,6 @@
 #include "RealtimeEngine/GpuBuffer.h"
 #include "RealtimeCamera.h"
 #include "RealtimeSceneShaderInclude.h"
-#include "RenderSceneVertex.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -38,7 +37,7 @@ namespace RealtimeEngine
     // ----------------------------------------------------------------------------------------------------------------------------
 
     ALIGN_BEGIN(16)
-    struct RealtimeSceneVertexEx : public RenderSceneVertex
+    struct RealtimeSceneVertexEx : public RealtimeSceneVertex
     {
         RealtimeSceneVertexEx(const DirectX::XMFLOAT3& position, const DirectX::XMFLOAT3& normal, const DirectX::XMFLOAT2& texCoord)
         {

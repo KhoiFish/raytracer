@@ -156,9 +156,6 @@
     <ClInclude Include="..\..\Source\RealtimeEngine\ShaderCompat.h">
       <Filter>Realtime</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\RealtimeEngine\RenderSceneVertex.h">
-      <Filter>Realtime</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\ThirdParty\imgui\imconfig.h">
       <Filter>ThirdParty\imgui</Filter>
     </ClInclude>

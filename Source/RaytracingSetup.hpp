@@ -107,7 +107,7 @@ void Renderer::OnResizeGpuRaytracer()
 
     // Allocate descriptor for acceleration structures
     RaytracingGlobalDescriptorHeap->AllocateBufferSrvRaytracing(
-        TheRenderScene->GetTLASVirtualAddress(),
+        TheRenderScene->GetRaytracingGeometry()->GetTLASVirtualAddress(),
         D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE,
         D3D12_BUFFER_SRV_FLAG_NONE,
         DXGI_FORMAT_UNKNOWN,

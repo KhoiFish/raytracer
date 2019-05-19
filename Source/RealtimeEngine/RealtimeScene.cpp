@@ -578,13 +578,34 @@ RealtimeScene::RealtimeScene(Core::WorldScene* worldScene)
     GenerateRenderListFromWorld(worldScene->GetWorld(), nullptr, RenderSceneList, spotLightsList, matrixStack, flipNormalStack);
 
     // Now that scene objects are created, setup for raytracing
-    SetupForRaytracing();
+    RaytracingGeom = new RaytracingGeometry();
+    for (size_t i = 0; i < RenderSceneList.size(); i++)
+    {
+        RaytracingGeom->AddGeometry
+        (
+            RaytracingGeometry::GeometryInfo
+            (
+                (uint32_t)RenderSceneList[i]->Vertices.size(),
+                (uint32_t)RenderSceneList[i]->Indices.size(),
+                &RenderSceneList[i]->VertexBuffer,
+                &RenderSceneList[i]->IndexBuffer,
+                RenderSceneList[i]->WorldMatrix
+            )
+        );
+    }
+    RaytracingGeom->Build();
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
 RealtimeScene::~RealtimeScene()
 {
+    if (RaytracingGeom != nullptr)
+    {
+        delete RaytracingGeom;
+        RaytracingGeom = nullptr;
+    }
+
     for (int i = 0; i < RenderSceneList.size(); i++)
     {
         delete RenderSceneList[i];
@@ -608,126 +629,7 @@ RealtimeCamera& RealtimeScene::GetCamera()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RealtimeScene::SetupForRaytracing()
+RaytracingGeometry* RealtimeScene::GetRaytracingGeometry()
 {
-    // numBottomLevels == number of scene objects
-    const int numBottomLevels = (int)RenderSceneList.size();
-
-    // Gather info on TLAS
-    D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO tlasPrebuildInfo;
-    D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC    tlasDesc = {};
-    {
-        D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS& topLevelInputs = tlasDesc.Inputs;
-        topLevelInputs.Type             = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL;
-        topLevelInputs.NumDescs         = numBottomLevels;
-        topLevelInputs.Flags            = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE;
-        topLevelInputs.pGeometryDescs   = nullptr;
-        topLevelInputs.DescsLayout      = D3D12_ELEMENTS_LAYOUT_ARRAY;
-        RenderDevice::Get().GetD3DDevice()->GetRaytracingAccelerationStructurePrebuildInfo(&topLevelInputs, &tlasPrebuildInfo);
-    }
-
-    // Gather info on BLAS
-    std::vector<UINT64>                                             blasSizes(RenderSceneList.size());
-    std::vector<D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC> blasDescs(RenderSceneList.size());
-    std::vector<D3D12_RAYTRACING_GEOMETRY_DESC>                     geometryDescs(RenderSceneList.size());
-    UINT64                                                          scratchBufferSizeNeeded = tlasPrebuildInfo.ScratchDataSizeInBytes;
-    {
-        // Fill in the geometry descriptions
-        for (int i = 0; i < (int)RenderSceneList.size(); i++)
-        {
-            RealtimeSceneNode*    pRenderNode      = RenderSceneList[i];
-            const int             offsetToPosition = 0;
-            const int             offsetToIndex    = 0;
-
-            D3D12_RAYTRACING_GEOMETRY_DESC& desc = geometryDescs[i];
-            desc.Type  = D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
-            desc.Flags = D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE;
-
-            D3D12_RAYTRACING_GEOMETRY_TRIANGLES_DESC& trianglesDesc = desc.Triangles;
-            trianglesDesc.VertexFormat                  = DXGI_FORMAT_R32G32B32_FLOAT;
-            trianglesDesc.VertexCount                   = (UINT)pRenderNode->Vertices.size();
-            trianglesDesc.VertexBuffer.StartAddress     = pRenderNode->VertexBuffer->GetGPUVirtualAddress() + offsetToPosition;
-            trianglesDesc.VertexBuffer.StrideInBytes    = pRenderNode->VertexBuffer.GetElementSize();
-            trianglesDesc.IndexFormat                   = DXGI_FORMAT_R32_UINT;
-            trianglesDesc.IndexCount                    = (UINT)pRenderNode->Indices.size();
-            trianglesDesc.IndexBuffer                   = pRenderNode->IndexBuffer.GetGpuVirtualAddress() + offsetToIndex;
-            trianglesDesc.Transform3x4                  = 0;
-        }
-
-        // Gather prebuild info on blas
-        for (int i = 0; i < numBottomLevels; i++)
-        {
-            D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC&   blasDesc   = blasDescs[i];
-            D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS& blasInputs = blasDesc.Inputs;
-            blasInputs.Type              = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL;
-            blasInputs.NumDescs          = 1;
-            blasInputs.pGeometryDescs    = &geometryDescs[i];
-            blasInputs.Flags             = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE;
-            blasInputs.DescsLayout       = D3D12_ELEMENTS_LAYOUT_ARRAY;
-
-            D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO blasPrebuildInfo;
-            RenderDevice::Get().GetD3DDevice()->GetRaytracingAccelerationStructurePrebuildInfo(&blasInputs, &blasPrebuildInfo);
-
-            blasSizes[i]            = blasPrebuildInfo.ResultDataMaxSizeInBytes;
-            scratchBufferSizeNeeded = std::max(blasPrebuildInfo.ScratchDataSizeInBytes, scratchBufferSizeNeeded);
-        }
-    }
-
-    // Allocate scratch buffer
-    ByteAddressBuffer scratchBuffer;
-    scratchBuffer.Create(L"Acceleration Structure Scratch Buffer", (UINT)scratchBufferSizeNeeded, 1);
-
-    // Allocate TLAS buffer
-    TLASBuffer = new StructuredBuffer();
-    TLASBuffer->Create(L"TLAS Buffer", 1, (uint32_t)tlasPrebuildInfo.ResultDataMaxSizeInBytes, nullptr, D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE);
-
-    // Point TLAS description to the allocated buffers
-    tlasDesc.DestAccelerationStructureData    = TLASBuffer->GetGpuVirtualAddress();
-    tlasDesc.ScratchAccelerationStructureData = scratchBuffer.GetGpuVirtualAddress();
-
-    // Allocate BLAS buffers
-    std::vector<D3D12_RAYTRACING_INSTANCE_DESC> instanceDescs(numBottomLevels);
-    BLASBuffers.resize(numBottomLevels);
-    for (UINT i = 0; i < blasDescs.size(); i++)
-    {
-        // Allocate buffer
-        BLASBuffers[i] = new StructuredBuffer();
-        BLASBuffers[i]->Create(L"BLAS Buffer", 1, (uint32_t)blasSizes[i], nullptr, D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE);
-
-        // Point to buffers
-        blasDescs[i].DestAccelerationStructureData    = BLASBuffers[i]->GetGpuVirtualAddress();
-        blasDescs[i].ScratchAccelerationStructureData = scratchBuffer.GetGpuVirtualAddress();
-
-        // Fill in the desc
-        D3D12_RAYTRACING_INSTANCE_DESC& instanceDesc = instanceDescs[i];
-
-        // Fill in transform
-        XMStoreFloat3x4(reinterpret_cast<XMFLOAT3X4*>(instanceDesc.Transform), RenderSceneList[i]->WorldMatrix);
-
-        // Fill in the rest
-        instanceDesc.AccelerationStructure                  = BLASBuffers[i]->GetGpuVirtualAddress();
-        instanceDesc.Flags                                  = D3D12_RAYTRACING_INSTANCE_FLAG_NONE;
-        instanceDesc.InstanceID                             = i;
-        instanceDesc.InstanceMask                           = 0xFF;
-        instanceDesc.InstanceContributionToHitGroupIndex    = i;
-    }
-
-    // Allocate instance data buffer and update TLAS desc
-    InstanceDataBuffer.Create(L"Instance Data Buffer", numBottomLevels, sizeof(D3D12_RAYTRACING_INSTANCE_DESC), instanceDescs.data());
-    tlasDesc.Inputs.InstanceDescs = InstanceDataBuffer.GetGpuVirtualAddress();
-    tlasDesc.Inputs.DescsLayout   = D3D12_ELEMENTS_LAYOUT_ARRAY;
-
-    // Finally, build the acceleration structures
-    GraphicsContext& context = GraphicsContext::Begin("Create Acceleration Structure");
-    {
-        ID3D12GraphicsCommandList4* pCommandList = context.GetCommandList();
-        auto                        uavBarrier   = CD3DX12_RESOURCE_BARRIER::UAV(nullptr);
-        for (UINT i = 0; i < blasDescs.size(); i++)
-        {
-            pCommandList->BuildRaytracingAccelerationStructure(&blasDescs[i], 0, nullptr);
-            pCommandList->ResourceBarrier(1, &uavBarrier);
-        }
-        pCommandList->BuildRaytracingAccelerationStructure(&tlasDesc, 0, nullptr);
-    }
-    context.Finish(true);
+    return RaytracingGeom;
 }

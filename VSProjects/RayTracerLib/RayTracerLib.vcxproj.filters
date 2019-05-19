@@ -189,6 +189,9 @@
     <ClInclude Include="..\..\Source\RealtimeEngine\RealtimeSceneShaderInclude.h">
       <Filter>Realtime</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\RaytracingGeometry.h">
+      <Filter>Realtime</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\ThirdParty\StbImage\StbImageImpl.cpp">
@@ -312,6 +315,9 @@
       <Filter>Realtime</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\RealtimeEngine\RealtimeCamera.cpp">
+      <Filter>Realtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\RealtimeEngine\RaytracingGeometry.cpp">
       <Filter>Realtime</Filter>
     </ClCompile>
   </ItemGroup>

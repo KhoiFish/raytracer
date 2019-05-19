@@ -28,6 +28,7 @@
 #include "Core/WorldScene.h"
 #include "RealtimeEngine/GpuBuffer.h"
 #include "RealtimeCamera.h"
+#include "RaytracingGeometry.h"
 #include "RealtimeSceneShaderInclude.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -87,24 +88,18 @@ namespace RealtimeEngine
         void                                UpdateCamera(float newVertFov, float forwardAmount, float strafeAmount, float upDownAmount, int mouseDx, int mouseDy, Core::Camera& worldCamera);
         std::vector<RealtimeSceneNode*>&    GetRenderSceneList();
         RealtimeCamera&                     GetCamera();
-        D3D12_GPU_VIRTUAL_ADDRESS           GetTLASVirtualAddress() { return TLASBuffer->GetGpuVirtualAddress(); }
+        RaytracingGeometry*                 GetRaytracingGeometry();
 
     private:
 
         void                                GenerateRenderListFromWorld(const Core::IHitable* currentHead, RealtimeEngine::Texture* defaultTexture, std::vector<RealtimeSceneNode*>& outSceneList, 
                                                 std::vector<SpotLight>& spotLightsList, std::vector<DirectX::XMMATRIX>& matrixStack, std::vector<bool>& flipNormalStack);
 
-        void                                SetupForRaytracing();
-
     private:
 
         RealtimeCamera                  TheRenderCamera;
         std::vector<RealtimeSceneNode*> RenderSceneList;
         std::vector<SpotLight>          SpotLightsList;
-
-        GpuBuffer*                      TLASBuffer;
-        std::vector<GpuBuffer*>         BLASBuffers;
-        GpuBuffer*                      ScratchBuffer;
-        ByteAddressBuffer               InstanceDataBuffer;
+        RaytracingGeometry*             RaytracingGeom;
     };
 }

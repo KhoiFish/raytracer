@@ -380,9 +380,9 @@ void RealtimeScene::GenerateRenderListFromWorld(const Core::IHitable* currentHea
     }
     else if (tid == typeid(Core::TriMesh))
     {
-        Core::TriMesh*    triMesh   = (Core::TriMesh*)currentHead;
-        Core::IHitable**  triArray  = nullptr;
-        int               numTris   = 0;
+        Core::TriMesh*      triMesh   = (Core::TriMesh*)currentHead;
+        Core::IHitable**    triArray  = nullptr;
+        int                 numTris   = 0;
         RealtimeSceneNode*  newNode   = new RealtimeSceneNode();
         
         // Walk through all the triangles
@@ -435,7 +435,7 @@ void RealtimeScene::GenerateRenderListFromWorld(const Core::IHitable* currentHea
         const Core::Material*   material    = xyzRect->GetMaterial();
         XMMATRIX                translation = XMMatrixIdentity();
         XMMATRIX                newMatrix   = ComputeFinalMatrix(matrixStack, translation);
-        RealtimeSceneNode*        newNode     = new RealtimeSceneNode();
+        RealtimeSceneNode*      newNode     = new RealtimeSceneNode();
 
         // Clamp colors for lights, since they can overblow the color buffer
         Core::Vec4 color = material->AlbedoValue(0.5f, 0.5f, Core::Vec4(0, 0, 0));
@@ -568,10 +568,14 @@ RealtimeScene::RealtimeScene(Core::WorldScene* worldScene)
     RaytracingGeom = new RaytracingGeometry();
     for (size_t i = 0; i < RenderSceneList.size(); i++)
     {
+        uint32_t instanceMask = 
+            RenderSceneList[i]->Hitable->IsALightShape() ? RAYTRACING_INSTANCEMASK_AREALIGHT : RAYTRACING_INSTANCEMASK_OPAQUE;
+
         RaytracingGeom->AddGeometry
         (
             RaytracingGeometry::GeometryInfo
             (
+                instanceMask,
                 (uint32_t)RenderSceneList[i]->Vertices.size(),
                 (uint32_t)RenderSceneList[i]->Indices.size(),
                 &RenderSceneList[i]->VertexBuffer,

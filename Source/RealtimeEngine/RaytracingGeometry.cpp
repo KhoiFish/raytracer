@@ -172,8 +172,8 @@ void RaytracingGeometry::Build()
         instanceDesc.AccelerationStructure                  = BLASBuffers[i]->GetGpuVirtualAddress();
         instanceDesc.Flags                                  = D3D12_RAYTRACING_INSTANCE_FLAG_NONE;
         instanceDesc.InstanceID                             = i;
-        instanceDesc.InstanceMask                           = 0xFF;
-        instanceDesc.InstanceContributionToHitGroupIndex    = i;
+        instanceDesc.InstanceMask                           = GeometryInfoList[i].InstanceMask;
+        instanceDesc.InstanceContributionToHitGroupIndex    = 0;
     }
 
     // Allocate instance data buffer and update TLAS desc

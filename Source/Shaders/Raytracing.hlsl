@@ -36,64 +36,7 @@ ConstantBuffer<RaytracingGlobalCB>  gSceneCB            : register(b0);
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline void generateCameraRay(uint2 index, out float3 origin, out float3 direction)
-{
-    // Center in the middle of the pixel
-    float2 xy        = index + 0.5;
-    float2 screenPos = xy / gSceneCB.OutputResolution * 2.0 - 1.0;
-
-    // Invert Y for DirectX-style coordinates
-    screenPos.y = -screenPos.y;
-
-    // Unproject into a ray
-    float4 unprojected = mul(float4(screenPos, 0, 1), gSceneCB.InverseTransposeViewProjectionMatrix);
-    float3 world       = unprojected.xyz / unprojected.w;
-
-    // We got our ray
-    origin    = gSceneCB.CameraPosition.xyz;
-    direction = normalize(world - origin);
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-inline float3 getWorldPositionFromDepth(uint3 dispatchRaysIndex)
-{
-    float2 xy           = dispatchRaysIndex.xy + 0.5;
-    float2 screenPos    = (xy / gSceneCB.OutputResolution * 2.0 - 1.0) * float2(1, -1);
-    float  sceneDepth   = gTexCoordsAndDepth.Load(int3(xy, 0)).z;
-    float4 unprojected  = mul(float4(screenPos, sceneDepth, 1), gSceneCB.InverseTransposeViewProjectionMatrix);
-    float3 world        = unprojected.xyz / unprojected.w;
-
-    return world;
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-inline float shootAmbientOcclusionRay(float3 orig, float3 dir, float minT, float maxT)
-{
-    RayPayload payload = { 0.0f };
-
-    RayDesc ray;
-    ray.Origin    = orig;
-    ray.Direction = dir;
-    ray.TMin      = minT;
-    ray.TMax      = maxT;
-
-    // Trace our ray.  Ray stops after it's first definite hit; never execute closest hit shader
-    TraceRay
-    (
-        gScene,
-        RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER, 0xFF, 
-        gSceneCB.AOHitGroupIndex, gSceneCB.HitProgramCount, gSceneCB.AOMissIndex,
-        ray, payload
-    );
-
-    return payload.Value;
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-float shadowRayVisibility(float3 origin, float3 direction, float minT, float maxT)
+inline float shadowRayVisibility(float3 origin, float3 direction, float minT, float maxT)
 {
     // Setup our shadow ray
     RayDesc ray;
@@ -103,14 +46,15 @@ float shadowRayVisibility(float3 origin, float3 direction, float minT, float max
     ray.TMax        = maxT;
 
     // Our shadow rays are *assumed* to hit geometry; this miss shader changes this to 1.0 for "visible"
-    RayPayload payload = { 0.75f };
+    RayPayload payload = { 0.0f, float4(0, 0, 0, 0) };
 
     // Query if anything is between the current point and the light
     TraceRay
     (
         gScene,
-        RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER, 0xFF, 
-        gSceneCB.DirectLightingHitGroupIndex, gSceneCB.HitProgramCount, gSceneCB.DirectLightingMissIndex,
+        RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER,
+        RAYTRACING_INSTANCEMASK_OPAQUE,
+        gSceneCB.AOHitGroupIndex, gSceneCB.HitProgramCount, gSceneCB.AOMissIndex,
         ray, payload);
 
     // Return our ray payload (which is 1 for visible, 0 for occluded)
@@ -119,37 +63,54 @@ float shadowRayVisibility(float3 origin, float3 direction, float minT, float max
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline float3 shootLambertShadowsRays(uint3 launchIndex, uint3 launchDim, float minT, float3 worldPos, float3 worldNorm, float4 albedo)
+inline RayPayload areaLightVisibility(float3 orig, float3 dir, float minT, float maxT)
 {
-    // If we don't hit any geometry, our difuse material contains our background color.
+    RayPayload payload = { 0.0f, float4(0, 0, 0, 0) };
+
+    RayDesc ray;
+    ray.Origin    = orig;
+    ray.Direction = dir;
+    ray.TMin      = minT;
+    ray.TMax      = maxT;
+
+    TraceRay
+    (
+        gScene,
+        RAY_FLAG_NONE,
+        RAYTRACING_INSTANCEMASK_AREALIGHT,
+        gSceneCB.DirectLightingHitGroupIndex, gSceneCB.HitProgramCount, gSceneCB.DirectLightingMissIndex,
+        ray, payload
+    );
+
+    return payload;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+inline float3 shootLambertShadowsRays(int numRays, uint randSeed, float minT, float3 worldPos, float3 worldNorm, float4 albedo)
+{
     float3 shadeColor = albedo.rgb;
 
-    // Our camera sees the background if worldPos.w is 0, only do diffuse shading
     //if (worldPos.w != 0.0f)
     {
-        // We're going to accumulate contributions from multiple lights, so zero out our sum
+        // Shoot rays brute force to see if we hit an area light
+        // TODO: bias the sample towards lights and weight with a pdf
         shadeColor = float3(0.0, 0.0, 0.0);
-
-        // Iterate over the lights
-        int gLightsCount = 1;
-        for (int lightIndex = 0; lightIndex < gLightsCount; lightIndex++)
+        for(int i = 0; i < numRays; i++)
         {
-            // We need to query our scene to find info about the current light
-            float  distToLight    = 100.0f;
             float3 lightIntensity = float3(5, 5, 5);
-            float3 toLight        = float3(0, 1, 1);
 
-            // A helper (from the included .hlsli) to query the Falcor scene to get this data
-            //getLightData(lightIndex, worldPos.xyz, toLight, lightIntensity, distToLight);
+            // See if we hit an area light
+            float3     worldDir        = getCosHemisphereSample(randSeed, worldNorm);
+            RayPayload hitLightPayload = areaLightVisibility(worldPos, worldDir, minT, 1000000);
+            if (hitLightPayload.Value > 0)
+            {
+                float distToLight = hitLightPayload.HitBaryAndDist.a;
+                float LdotN       = saturate(dot(worldNorm, worldDir));
+                float shadowMult  = shadowRayVisibility(worldPos, worldDir, minT, distToLight);
 
-            // Compute our lambertion term (L dot N)
-            float LdotN = saturate(dot(worldNorm.xyz, toLight));
-
-            // Shoot our ray.  Return 1.0 for lit, 0.0 for shadowed
-            float shadowMult = shadowRayVisibility(worldPos, toLight, minT, distToLight);
-
-            // Accumulate our Lambertian shading color
-            shadeColor += shadowMult * LdotN * lightIntensity;
+                shadeColor += LdotN * shadowMult * lightIntensity;
+            }
         }
 
         // Modulate based on the physically based Lambertian term (albedo/pi)
@@ -157,6 +118,42 @@ inline float3 shootLambertShadowsRays(uint3 launchIndex, uint3 launchDim, float 
     }
 
     return shadeColor;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+inline float shootAmbientOcclusionRays(int numRays, uint randSeed, float minT, float maxT, float3 worldPos, float3 worldNorm)
+{
+    // Sample cosine-weighted hemisphere around surface normal to pick a random ray direction
+    float3 worldDir = getCosHemisphereSample(randSeed, worldNorm);
+
+    // Accumulate AO
+    float ao = 0.0f;
+    for (int i = 0; i < numRays; i++)
+    {
+        RayPayload payload = { 0.0f, float4(0, 0, 0, 0) };
+
+        RayDesc ray;
+        ray.Origin    = worldPos;
+        ray.Direction = worldDir;
+        ray.TMin      = minT;
+        ray.TMax      = maxT;
+
+        // Trace our ray.  Ray stops after it's first definite hit; never execute closest hit shader
+        TraceRay
+        (
+            gScene,
+            RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER,
+            RAYTRACING_INSTANCEMASK_OPAQUE,
+            gSceneCB.AOHitGroupIndex, gSceneCB.HitProgramCount, gSceneCB.AOMissIndex,
+            ray, payload
+        );
+
+        ao += payload.Value;
+    }
+    ao = ao / float(numRays);
+
+    return ao;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -171,23 +168,12 @@ void RayGenerationShader()
     float3  worldPos    = gPositions[launchIndex.xy].xyz;
     float3  worldNorm   = gNormals[launchIndex.xy].xyz;
     float4  albedo      = gAlbedo[launchIndex.xy];
-    float   ao          = float(numRays);
     float   aoRadius    = gSceneCB.AORadius;
     float   minT        = 0.01f;
 
-    float3 lambert = shootLambertShadowsRays(launchIndex, launchDim, minT, worldPos, worldNorm, albedo);
-    
-    // Accumulate AO
-    ao = 0.0f;
-    for (int i = 0; i < numRays; i++)
-    {
-        // Sample cosine-weighted hemisphere around surface normal to pick a random ray direction
-        float3 worldDir = getCosHemisphereSample(randSeed, worldNorm);
-
-        // Shoot our ambient occlusion ray and update the value we'll output with the result
-        ao += shootAmbientOcclusionRay(worldPos.xyz, worldDir, minT, aoRadius);
-    }
-    ao = ao / float(numRays);
+    // Get lambert and ao terms
+    float3 lambert = shootLambertShadowsRays(numRays, randSeed, minT, worldPos, worldNorm, albedo);
+    float  ao      = shootAmbientOcclusionRays(numRays, randSeed, minT, aoRadius, worldPos.xyz, worldNorm);
 
     // Save out results
     float4 curColor   = float4(lambert, ao);
@@ -202,8 +188,8 @@ void RayGenerationShader()
 [shader("miss")]
 void DirectLightingMissShader(inout RayPayload payload)
 {
-    // If we miss all geometry, then the light is visibile
-    payload.Value = 1.0f;
+    // Missed the light
+    payload.Value = 0.0f;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -211,7 +197,11 @@ void DirectLightingMissShader(inout RayPayload payload)
 [shader("closesthit")]
 void DirectLightingClosestHitShader(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
 {
-    ;
+    float3 barycentrics = float3(1.f - attr.barycentrics.x - attr.barycentrics.y, attr.barycentrics.x, attr.barycentrics.y);
+
+    // Hit the light
+    payload.Value          = 1.0f;
+    payload.HitBaryAndDist = float4(barycentrics, RayTCurrent());
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

@@ -32,7 +32,8 @@ static const float      InShadowRadiance    = 0.35f;
 
 struct RayPayload
 {
-    float Value;
+    float       Value;
+    XMFLOAT4    HitBaryAndDist;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------

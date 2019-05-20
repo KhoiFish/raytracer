@@ -149,7 +149,7 @@ private:
         int     CpuNumThreads           = 4;
 
         int     GpuMaxRayRecursionDepth = 1;
-        int     GpuNumRaysPerPixel      = 25;
+        int     GpuNumRaysPerPixel      = 10;
         float   GpuAORadius             = 400.0f;
         bool    GpuCameraJitter         = true;
     };

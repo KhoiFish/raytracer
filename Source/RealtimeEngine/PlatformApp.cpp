@@ -118,6 +118,22 @@ int PlatformApp::Run(RenderInterface* pRenderInterface, HINSTANCE hInstance, int
                 TranslateMessage(&msg);
                 DispatchMessage(&msg);
             }
+
+            // Pump app rendering and update
+            if (pRenderInterface)
+            {
+                // Get delta time
+                float dtSeconds;
+                {
+                    LARGE_INTEGER li;
+                    QueryPerformanceCounter(&li);
+                    dtSeconds = float(double(li.QuadPart - PrevCounter) / PCFreq);
+                    PrevCounter = li.QuadPart;
+                }
+
+                pRenderInterface->OnUpdate(dtSeconds);
+                pRenderInterface->OnRender();
+            }
         }
 
         pRenderInterface->OnDestroy();
@@ -280,23 +296,6 @@ LRESULT CALLBACK PlatformApp::WindowProc(HWND hWnd, uint32_t message, WPARAM wPa
             ;
         }
         break;
-
-    case WM_PAINT:
-        if (pRenderInterface)
-        {
-            // Get delta time
-            float dtSeconds;
-            {
-                LARGE_INTEGER li;
-                QueryPerformanceCounter(&li);
-                dtSeconds   = float(double(li.QuadPart - PrevCounter) / PCFreq);
-                PrevCounter = li.QuadPart;
-            }
-
-            pRenderInterface->OnUpdate(dtSeconds);
-            pRenderInterface->OnRender();
-        }
-        return 0;
 
     case WM_SIZE:
         if (pRenderInterface)

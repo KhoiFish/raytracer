@@ -24,6 +24,7 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+#define RAYTRACING_INSTANCEMASK_ALL         (0xFF)
 #define RAYTRACING_INSTANCEMASK_OPAQUE      (1 << 0)
 #define RAYTRACING_INSTANCEMASK_AREALIGHT   (1 << 1)
 

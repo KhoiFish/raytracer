@@ -47,7 +47,7 @@ namespace RealtimeEngine
                       WorldMatrix(worldMatrix)
             {}
 
-            uint32_t            InstanceMask    = RAYTRACING_INSTANCEMASK_OPAQUE;
+            uint32_t            InstanceMask    = RAYTRACING_INSTANCEMASK_ALL;
             uint32_t            NumVertices     = 0;
             uint32_t            NumIndices      = 0;
             StructuredBuffer*   VertexBuffer    = nullptr;

@@ -18,6 +18,15 @@
 // ----------------------------------------------------------------------------------------------------------------------------
 
 #include "RaytracingShaderInclude.h"
+#include <chrono>
+#include <random>
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+static std::uniform_real_distribution<float>    sRngDist;
+static std::mt19937                             sRng;
+
+// ----------------------------------------------------------------------------------------------------------------------------
 
 enum RealtimeRenderingRootIndex
 {
@@ -120,6 +129,13 @@ void Renderer::OnResizeRealtimeRenderer()
 void Renderer::SetupRealtimePipeline()
 {
     CpuResultsBufferIndex = RealtimeRenderingRegisters_Texture2 + 1;   
+
+    // Init random generator
+    {
+        auto currentTime    = std::chrono::high_resolution_clock::now();
+        auto timeInMillisec = std::chrono::time_point_cast<std::chrono::milliseconds>(currentTime);
+        sRng                = std::mt19937(uint32_t(timeInMillisec.time_since_epoch().count()));
+    }
 
     // Root sig setup
     {
@@ -291,6 +307,21 @@ void Renderer::SetupRealtimePipeline()
 
 void Renderer::RenderGeometryPass()
 {
+    // Jitter camera
+    {
+        if (UserInput.GpuCameraJitter)
+        {
+            // Determine our offset in the pixel in the range[-0.5...0.5]
+            float xOff = (float(sRngDist(sRng)) - 0.5f);
+            float yOff = (float(sRngDist(sRng)) - 0.5f);
+            TheRenderScene->GetCamera().SetJitter(xOff / float(Width), yOff / float(Height));
+        }
+        else
+        {
+            TheRenderScene->GetCamera().SetJitter(0, 0);
+        }
+    }
+
     GraphicsContext& renderContext = GraphicsContext::Begin("RenderRealtimeResults");
     {
         renderContext.SetRootSignature(RealtimeRootSignature);

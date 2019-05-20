@@ -160,7 +160,12 @@ void Renderer::RenderGui()
                 gpuOptionsChanged = true;
             }
 
-            if(ImGui::SliderFloat("Gpu AO Radius", &UserInput.GpuAORadius, 1.0f, 1000.0f))
+            if (ImGui::SliderFloat("Gpu AO Radius", &UserInput.GpuAORadius, 1.0f, 1000.0f))
+            {
+                gpuOptionsChanged = true;
+            }
+
+            if (ImGui::Checkbox("Enable Camera Jitter", &UserInput.GpuCameraJitter))
             {
                 gpuOptionsChanged = true;
             }

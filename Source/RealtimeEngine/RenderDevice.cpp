@@ -145,7 +145,7 @@ void RenderDevice::CleanupDevice()
     }
 
     if (ImguiDescriptorStack != nullptr)
-    {
+    { 
         delete ImguiDescriptorStack;
         ImguiDescriptorStack = nullptr;
     }

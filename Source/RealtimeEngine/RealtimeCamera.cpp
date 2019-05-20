@@ -34,6 +34,8 @@ RealtimeCamera::RealtimeCamera()
     , ZNear( 0.1f )
     , ZFar( 100.0f )
 {
+    ProjectionJitter[0] = ProjectionJitter[1] = 0.0f;
+
     TheCameraData = new CameraData();
     TheCameraData->Translation = XMVectorZero();
     TheCameraData->Rotation    = XMQuaternionIdentity();
@@ -179,6 +181,16 @@ void RealtimeCamera::SetRotation(FXMVECTOR rotation)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+void RealtimeCamera::SetJitter(float jitterX, float jitterY)
+{
+    ProjectionJitter[0] = jitterX;
+    ProjectionJitter[1] = jitterY;
+
+    ProjectionDirty = true;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 XMVECTOR RealtimeCamera::GetRotation()
 {
     return TheCameraData->Rotation;
@@ -228,7 +240,19 @@ void RealtimeCamera::UpdateInverseViewMatrix()
 
 void RealtimeCamera::UpdateProjectionMatrix()
 {
-    TheCameraData->ProjectionMatrix = XMMatrixPerspectiveFovRH(XMConvertToRadians(VertFov), AspectRatio, ZNear, ZFar);
+    XMMATRIX projMat = XMMatrixPerspectiveFovRH(XMConvertToRadians(VertFov), AspectRatio, ZNear, ZFar);
+
+    // Jitter
+    float j[2] = { 2.0f * ProjectionJitter[0], 2.0f * ProjectionJitter[1] };
+    XMMATRIX jitterMat
+    (
+        1.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 1.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 1.0f, 0.0f,
+        j[0], j[1], 0.0f, 1.0f
+    );
+
+    TheCameraData->ProjectionMatrix = projMat * jitterMat;
 
     ProjectionDirty        = false;
     InverseProjectionDirty = true;
@@ -246,3 +270,4 @@ void RealtimeCamera::UpdateInverseProjectionMatrix()
     TheCameraData->InverseProjectionMatrix = XMMatrixInverse(nullptr, TheCameraData->ProjectionMatrix);
     InverseProjectionDirty = false;
 }
+

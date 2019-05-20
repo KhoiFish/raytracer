@@ -35,6 +35,7 @@ namespace RealtimeEngine
         void                SetVertFov(float fovy);
         void                SetTranslation(DirectX::FXMVECTOR translation);
         void                SetRotation(DirectX::FXMVECTOR rotation);
+        void                SetJitter(float jitterX, float jitterY);
 
         DirectX::XMMATRIX   GetViewMatrix();
         DirectX::XMMATRIX   GetInverseViewMatrix();
@@ -76,6 +77,7 @@ namespace RealtimeEngine
         float           AspectRatio;
         float           ZNear;
         float           ZFar;
+        float           ProjectionJitter[2];
         bool            ViewDirty;
         bool            InverseViewDirty;
         bool            ProjectionDirty;

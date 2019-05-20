@@ -338,7 +338,7 @@ void RealtimeScene::GenerateRenderListFromWorld(const Core::IHitable* currentHea
             128.0f
         };
 
-        CreateSphere(newNode, radius, 16);
+        CreateSphere(newNode, radius, 32);
         newNode->WorldMatrix    = newMatrix;
         newNode->Material       = newMaterial;
         newNode->DiffuseTexture = defaultTexture;

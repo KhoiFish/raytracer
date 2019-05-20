@@ -481,23 +481,10 @@ void RealtimeScene::GenerateRenderListFromWorld(const Core::IHitable* currentHea
                 Core::Vec4  lookAt  = Core::Vec4(pos[0], -yValue, pos[2]);
                 Core::Vec4  dir     = UnitVector(lookAt - pos);
 
-                // Pullback the camera for shadowmap rendering
-                float smapDist = 1000.f - fabs(yValue);
-                Core::Vec4  smapPos  = pos - (dir * smapDist);
-
-                SpotLight light;
-                light.PositionWS           = ConvertToXMFloat4(pos);
-                light.DirectionWS          = ConvertToXMFloat4(dir);
-                light.LookAtWS             = ConvertToXMFloat4(lookAt);
-                light.UpWS                 = ConvertToXMFloat4(upDir);
-                light.SmapWS               = ConvertToXMFloat4(smapPos);
-                light.SpotAngle            = RT_PI / 2.5f;
-                light.ConstantAttenuation  = 1.f;
-                light.LinearAttenuation    = 0.00f;
-                light.QuadraticAttenuation = 0.f;
-                light.Color                = ConvertToXMFloat4(color);
-
-                spotLightsList.push_back(light);
+                PointLight pointLight;
+                pointLight.Color      = ConvertToXMFloat4(color);
+                pointLight.PositionWS = ConvertToXMFloat4(pos);
+                PointLightsList.push_back(pointLight);
             }
         }
     }
@@ -632,4 +619,11 @@ RealtimeCamera& RealtimeScene::GetCamera()
 RaytracingGeometry* RealtimeScene::GetRaytracingGeometry()
 {
     return RaytracingGeom;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+const std::vector<PointLight>& RealtimeScene::GetPointLights()
+{
+    return PointLightsList;
 }

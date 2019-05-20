@@ -192,4 +192,5 @@ private:
     DescriptorHeapStack*            RaytracingLocalDescriptorHeap;
     ByteAddressBuffer               RaytracingSceneConstantBuffer;
     int32_t                         RaytracingShaderIndex[RaytracingShaderType_Num];
+    int32_t                         HitProgramCount;
 };

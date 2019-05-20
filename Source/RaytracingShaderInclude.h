@@ -32,7 +32,7 @@ static const float      InShadowRadiance    = 0.35f;
 
 struct RayPayload
 {
-    float AOValue;
+    float Value;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -89,6 +89,7 @@ struct RaytracingGlobalCB
     int         FrameCount;
     int         NumRays;
     int         AccumCount;
+    int         HitProgramCount;
 
     int         AOMissIndex;
     int         AOHitGroupIndex;

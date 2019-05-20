@@ -89,6 +89,7 @@ namespace RealtimeEngine
         std::vector<RealtimeSceneNode*>&    GetRenderSceneList();
         RealtimeCamera&                     GetCamera();
         RaytracingGeometry*                 GetRaytracingGeometry();
+        const std::vector<PointLight>&      GetPointLights();
 
     private:
 
@@ -99,7 +100,7 @@ namespace RealtimeEngine
 
         RealtimeCamera                  TheRenderCamera;
         std::vector<RealtimeSceneNode*> RenderSceneList;
-        std::vector<SpotLight>          SpotLightsList;
+        std::vector<PointLight>         PointLightsList;
         RaytracingGeometry*             RaytracingGeom;
     };
 }

@@ -176,8 +176,8 @@ void Renderer::SetupRealtimeRaytracingPipeline()
     static const wchar_t* dxilLibEntryPoints[] =
     {
         raygenShaderName, 
+        directLightingMissShaderName, directLightingClosestHitShaderName,
         aoMissShaderName, aoClosestHitShaderName,
-        directLightingMissShaderName, directLightingClosestHitShaderName
     };
 
     // Allocate scene constant buffer
@@ -265,6 +265,7 @@ void Renderer::SetupRealtimeRaytracingPipeline()
         // Add hit groups
         TheRaytracingPSO.AddHitGroup(nullptr, aoClosestHitShaderName, aoHitGroupName);
         TheRaytracingPSO.AddHitGroup(nullptr, directLightingClosestHitShaderName, directLightingHitGroupName);
+        HitProgramCount = 2;
 
         // Add local root signatures
         TheRaytracingPSO.SetRootSignature(RaytracingGlobalRootSig);
@@ -304,7 +305,7 @@ void Renderer::SetupRealtimeRaytracingPipeline()
 
             // Miss
             RaytracingShaderIndex[RaytracingShaderType_DirectLightingMiss] = TheRaytracingPSO.GetMissShaderTable().AddShaderRecordData(
-                directLightingHitGroupName,
+                directLightingMissShaderName,
                 pTempBuffer,
                 numBytes);
 
@@ -348,6 +349,7 @@ void Renderer::RenderGpuRaytracing()
             sceneCB.FrameCount                  = FrameCount;
             sceneCB.NumRays                     = UserInput.GpuNumRaysPerPixel;
             sceneCB.AccumCount                  = AccumCount++;
+            sceneCB.HitProgramCount             = HitProgramCount;
             sceneCB.AOHitGroupIndex             = RaytracingShaderIndex[RaytracingShaderType_AOHitgroup];
             sceneCB.AOMissIndex                 = RaytracingShaderIndex[RaytracingShaderType_AOMiss];
             sceneCB.DirectLightingHitGroupIndex = RaytracingShaderIndex[RaytracingShaderType_DirectLightingHitGroup];

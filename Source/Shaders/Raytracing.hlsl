@@ -25,8 +25,8 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-RWTexture2D<float4>                 gPrevAO             : register(u0);
-RWTexture2D<float4>                 gCurAO              : register(u1);
+RWTexture2D<float4>                 gPrevOutput         : register(u0);
+RWTexture2D<float4>                 gCurOutput          : register(u1);
 RaytracingAccelerationStructure     gScene              : register(t0);
 Texture2D<float4>                   gPositions          : register(t1);
 Texture2D<float4>                   gNormals            : register(t2);
@@ -71,24 +71,92 @@ inline float3 getWorldPositionFromDepth(uint3 dispatchRaysIndex)
 
 inline float shootAmbientOcclusionRay(float3 orig, float3 dir, float minT, float maxT)
 {
-    RayPayload rayPayload = { 0.0f };
+    RayPayload payload = { 0.0f };
 
-    RayDesc rayAO;
-    rayAO.Origin    = orig;
-    rayAO.Direction = dir;
-    rayAO.TMin      = minT;
-    rayAO.TMax      = maxT;
+    RayDesc ray;
+    ray.Origin    = orig;
+    ray.Direction = dir;
+    ray.TMin      = minT;
+    ray.TMax      = maxT;
 
     // Trace our ray.  Ray stops after it's first definite hit; never execute closest hit shader
     TraceRay
     (
         gScene,
         RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER, 0xFF, 
-        gSceneCB.AOHitGroupIndex, 0, gSceneCB.AOMissIndex,
-        rayAO, rayPayload
+        gSceneCB.AOHitGroupIndex, gSceneCB.HitProgramCount, gSceneCB.AOMissIndex,
+        ray, payload
     );
 
-    return rayPayload.AOValue;
+    return payload.Value;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+float shadowRayVisibility(float3 origin, float3 direction, float minT, float maxT)
+{
+    // Setup our shadow ray
+    RayDesc ray;
+    ray.Origin      = origin;
+    ray.Direction   = direction;
+    ray.TMin        = minT;
+    ray.TMax        = maxT;
+
+    // Our shadow rays are *assumed* to hit geometry; this miss shader changes this to 1.0 for "visible"
+    RayPayload payload = { 0.75f };
+
+    // Query if anything is between the current point and the light
+    TraceRay
+    (
+        gScene,
+        RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER, 0xFF, 
+        gSceneCB.DirectLightingHitGroupIndex, gSceneCB.HitProgramCount, gSceneCB.DirectLightingMissIndex,
+        ray, payload);
+
+    // Return our ray payload (which is 1 for visible, 0 for occluded)
+    return payload.Value;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+inline float3 shootLambertShadowsRays(uint3 launchIndex, uint3 launchDim, float minT, float3 worldPos, float3 worldNorm, float4 albedo)
+{
+    // If we don't hit any geometry, our difuse material contains our background color.
+    float3 shadeColor = albedo.rgb;
+
+    // Our camera sees the background if worldPos.w is 0, only do diffuse shading
+    //if (worldPos.w != 0.0f)
+    {
+        // We're going to accumulate contributions from multiple lights, so zero out our sum
+        shadeColor = float3(0.0, 0.0, 0.0);
+
+        // Iterate over the lights
+        int gLightsCount = 1;
+        for (int lightIndex = 0; lightIndex < gLightsCount; lightIndex++)
+        {
+            // We need to query our scene to find info about the current light
+            float  distToLight    = 100.0f;
+            float3 lightIntensity = float3(5, 5, 5);
+            float3 toLight        = float3(0, 1, 1);
+
+            // A helper (from the included .hlsli) to query the Falcor scene to get this data
+            //getLightData(lightIndex, worldPos.xyz, toLight, lightIntensity, distToLight);
+
+            // Compute our lambertion term (L dot N)
+            float LdotN = saturate(dot(worldNorm.xyz, toLight));
+
+            // Shoot our ray.  Return 1.0 for lit, 0.0 for shadowed
+            float shadowMult = shadowRayVisibility(worldPos, toLight, minT, distToLight);
+
+            // Accumulate our Lambertian shading color
+            shadeColor += shadowMult * LdotN * lightIntensity;
+        }
+
+        // Modulate based on the physically based Lambertian term (albedo/pi)
+        shadeColor *= albedo.rgb / 3.141592f;
+    }
+
+    return shadeColor;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -102,9 +170,12 @@ void RayGenerationShader()
     uint    randSeed    = initRand(launchIndex.x + launchIndex.y * launchDim.x, gSceneCB.FrameCount, 16);
     float3  worldPos    = gPositions[launchIndex.xy].xyz;
     float3  worldNorm   = gNormals[launchIndex.xy].xyz;
+    float4  albedo      = gAlbedo[launchIndex.xy];
     float   ao          = float(numRays);
     float   aoRadius    = gSceneCB.AORadius;
     float   minT        = 0.01f;
+
+    float3 lambert = shootLambertShadowsRays(launchIndex, launchDim, minT, worldPos, worldNorm, albedo);
     
     // Accumulate AO
     ao = 0.0f;
@@ -116,14 +187,31 @@ void RayGenerationShader()
         // Shoot our ambient occlusion ray and update the value we'll output with the result
         ao += shootAmbientOcclusionRay(worldPos.xyz, worldDir, minT, aoRadius);
     }
+    ao = ao / float(numRays);
 
-    // Save out our AO color
-    float  aoColor    = ao / float(numRays);
-    float4 curColor   = float4(aoColor, aoColor, aoColor, 1.0f);
-    float4 prevColor  = gPrevAO[launchIndex.xy];
+    // Save out results
+    float4 curColor   = float4(lambert, ao);
+    float4 prevColor  = gPrevOutput[launchIndex.xy];
     float4 finalColor = (gSceneCB.AccumCount * prevColor + curColor) / (gSceneCB.AccumCount + 1);
 
-    gCurAO[launchIndex.xy] = finalColor;
+    gCurOutput[launchIndex.xy] = finalColor;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+[shader("miss")]
+void DirectLightingMissShader(inout RayPayload payload)
+{
+    // If we miss all geometry, then the light is visibile
+    payload.Value = 1.0f;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+[shader("closesthit")]
+void DirectLightingClosestHitShader(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
+{
+    ;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -132,7 +220,7 @@ void RayGenerationShader()
 void AOMissShader(inout RayPayload payload)
 {
     // Our ambient occlusion value is 1 if we hit nothing.
-    payload.AOValue = 1.0f;
+    payload.Value = 1.0f;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -140,21 +228,5 @@ void AOMissShader(inout RayPayload payload)
 [shader("closesthit")]
 void AOClosestHitShader(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
 {
-    
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-[shader("miss")]
-void DirectLightingMissShader(inout RayPayload payload)
-{
-    
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-[shader("closesthit")]
-void DirectLightingClosestHitShader(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
-{
-    
+    ;
 }

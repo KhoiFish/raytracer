@@ -61,7 +61,6 @@ struct SpotLight
     float       ConstantAttenuation;
     float       LinearAttenuation;
     float       QuadraticAttenuation;
-    int         ShadowmapId;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -71,7 +70,15 @@ struct DirLight
     XMFLOAT4    DirectionWS;
     XMFLOAT4    DirectionVS;
     XMFLOAT4    Color;
-    int         ShadowmapId;
+};
+
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+struct PointLight
+{
+    XMFLOAT4    PositionWS;
+    XMFLOAT4    Color;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------

@@ -177,9 +177,6 @@ void Renderer::LoadScene()
     
     TheRenderScene    = new RealtimeEngine::RealtimeScene(TheWorldScene);
     UserInput.VertFov = TheWorldScene->GetCamera().GetVertFov();
-
-    // Load default texture
-    RealtimeEngine::TextureManager::LoadFromFile(DefaultTextureName);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

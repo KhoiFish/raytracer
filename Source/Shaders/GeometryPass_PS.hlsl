@@ -44,8 +44,9 @@ struct MRT
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-SamplerState LinearRepeatSampler    : register(s0);
-Texture2D    DiffuseTexture         : register(t0);
+SamplerState                    LinearRepeatSampler : register(s0);
+Texture2D                       DiffuseTexture      : register(t0);
+ConstantBuffer<RenderMaterial>  MaterialCb          : register(b1);
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -55,7 +56,7 @@ MRT main(PixelShaderInput IN)
     mrt.Position         = IN.PositionWS;
     mrt.Normal           = float4(IN.NormalWS, 1);
     mrt.TexCoordAndDepth = float4(IN.TexCoord, IN.LinearDepth, 0);
-    mrt.Diffuse          = DiffuseTexture.Sample(LinearRepeatSampler, IN.TexCoord);
+    mrt.Diffuse          = DiffuseTexture.Sample(LinearRepeatSampler, IN.TexCoord) * MaterialCb.Diffuse;
 
     return mrt;
 }

@@ -479,10 +479,11 @@ void Renderer::RenderSceneList(GraphicsContext& renderContext)
         SceneConstantBuffer matrices;
         SetupSceneConstantBuffer(TheRenderScene->GetRenderSceneList()[i]->WorldMatrix, matrices);
 
-        RealtimeEngine::Texture* defaultTexture = RealtimeEngine::TextureManager::LoadFromFile(DefaultTextureName);
-        RealtimeEngine::Texture* diffuseTex = (TheRenderScene->GetRenderSceneList()[i]->DiffuseTexture != nullptr) ? TheRenderScene->GetRenderSceneList()[i]->DiffuseTexture : defaultTexture;
+        RealtimeEngine::Texture* defaultTexture = &RealtimeEngine::TextureManager::GetWhiteTex2D();
+        RealtimeEngine::Texture* diffuseTex     = (TheRenderScene->GetRenderSceneList()[i]->DiffuseTexture != nullptr) ? TheRenderScene->GetRenderSceneList()[i]->DiffuseTexture : defaultTexture;
 
         renderContext.SetDynamicConstantBufferView(RealtimeRenderingRootIndex_ConstantBuffer0, sizeof(matrices), &matrices);
+        renderContext.SetDynamicConstantBufferView(RealtimeRenderingRootIndex_ConstantBuffer1, sizeof(TheRenderScene->GetRenderSceneList()[i]->Material), &TheRenderScene->GetRenderSceneList()[i]->Material);
 
         renderContext.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, RenderDevice::Get().GetDefaultDescriptorHeapStack().GetDescriptorHeap());
         renderContext.SetDescriptorTable(RealtimeRenderingRootIndex_Texture0, diffuseTex->GetGpuHandle());

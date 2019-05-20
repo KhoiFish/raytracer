@@ -126,8 +126,6 @@ private:
         RaytracingShaderType_Num
     };
 
-    static constexpr const char* DefaultTextureName = "RuntimeData/guitar.jpg";
-
     struct UserInputData
     {
         float   Forward                 = 0;

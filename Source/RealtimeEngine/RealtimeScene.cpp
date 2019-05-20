@@ -253,6 +253,32 @@ static void CreateResourceViews(RealtimeSceneNode* renderNode)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+static RenderMaterial ConvertFromCoreMaterial(const Core::Material* pCoreMaterial)
+{
+    Core::Vec4            color = pCoreMaterial->AlbedoValue(0.5f, 0.5f, Core::Vec4(0, 0, 0));
+    const std::type_info& tid   = typeid(*pCoreMaterial);
+    if (tid == typeid(Core::MLambertian) || 
+        tid == typeid(Core::MDielectric) ||
+        tid == typeid(Core::MWavefrontObj))
+    {
+        // Color will come from the actual diffuse map, just set color to white
+        color = Core::Vec4(1, 1, 1);
+    }
+
+    RenderMaterial newMaterial =
+    {
+        { 0.0f,      0.0f,      0.0f,      1.0f },
+        { 0.0f,      0.0f,      0.0f,      1.0f },
+        { color.X(), color.Y(), color.Z(), 1.0f },
+        { 0.0f,      0.0f,      0.0f,      1.0f },
+        128.0f
+    };
+
+    return newMaterial;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 void RealtimeScene::GenerateRenderListFromWorld(const Core::IHitable* currentHead, RealtimeEngine::Texture* defaultTexture, std::vector<RealtimeSceneNode*>& outSceneList, std::vector<SpotLight>& spotLightsList, std::vector<DirectX::XMMATRIX>& matrixStack, std::vector<bool>& flipNormalStack)
 {
     const std::type_info& tid = typeid(*currentHead);
@@ -324,23 +350,13 @@ void RealtimeScene::GenerateRenderListFromWorld(const Core::IHitable* currentHea
             material = sphere->GetMaterial();
         }
 
-        XMMATRIX         translation = XMMatrixTranslation(offset.X(), offset.Y(), offset.Z());
-        XMMATRIX         newMatrix   = ComputeFinalMatrix(matrixStack, translation);
+        XMMATRIX           translation = XMMatrixTranslation(offset.X(), offset.Y(), offset.Z());
+        XMMATRIX           newMatrix   = ComputeFinalMatrix(matrixStack, translation);
         RealtimeSceneNode* newNode     = new RealtimeSceneNode();
-
-        Core::Vec4 color = material->AlbedoValue(0.5f, 0.5f, Core::Vec4(0, 0, 0));
-        const RenderMaterial newMaterial =
-        {
-            { 0.0f, 0.0f, 0.0f, 1.0f },
-            { 0.0f, 0.0f, 0.0f, 1.0f },
-            { color.X(), color.Y(), color.Z(), 1.0f },
-            { 0.0f, 0.0f, 0.0f, 1.0f },
-            128.0f
-        };
 
         CreateSphere(newNode, radius, 32);
         newNode->WorldMatrix    = newMatrix;
-        newNode->Material       = newMaterial;
+        newNode->Material       = ConvertFromCoreMaterial(material);
         newNode->DiffuseTexture = defaultTexture;
         newNode->Hitable        = currentHead;
         CreateResourceViews(newNode);
@@ -357,22 +373,12 @@ void RealtimeScene::GenerateRenderListFromWorld(const Core::IHitable* currentHea
         Core::Vec4             offset      = minP + (diff * 0.5f);
         XMMATRIX               translation = XMMatrixTranslation(offset.X(), offset.Y(), offset.Z());
         XMMATRIX               newMatrix   = ComputeFinalMatrix(matrixStack, translation);
-        RealtimeSceneNode*       newNode     = new RealtimeSceneNode();
+        RealtimeSceneNode*     newNode     = new RealtimeSceneNode();
         const Core::Material*  material    = box->GetMaterial();
-
-        Core::Vec4 color = material->AlbedoValue(0.5f, 0.5f, Core::Vec4(0, 0, 0));
-        const RenderMaterial newMaterial =
-        {
-            { 0.0f, 0.0f, 0.0f, 1.0f },
-            { 0.0f, 0.0f, 0.0f, 1.0f },
-            { color.X(), color.Y(), color.Z(), 1.0f },
-            { 0.0f, 0.0f, 0.0f, 1.0f },
-            128.0f
-        };
 
         CreateCube(newNode, diff);
         newNode->WorldMatrix    = newMatrix;
-        newNode->Material       = newMaterial;
+        newNode->Material       = ConvertFromCoreMaterial(material);
         newNode->DiffuseTexture = defaultTexture;
         newNode->Hitable        = currentHead;
         CreateResourceViews(newNode);
@@ -417,7 +423,7 @@ void RealtimeScene::GenerateRenderListFromWorld(const Core::IHitable* currentHea
         }
 
         newNode->WorldMatrix    = newMatrix;
-        newNode->Material       = MaterialWhite;
+        newNode->Material       = ConvertFromCoreMaterial(triMesh->GetMaterial());
         newNode->DiffuseTexture = newTexture;
         newNode->Hitable        = currentHead;
         CreateResourceViews(newNode);

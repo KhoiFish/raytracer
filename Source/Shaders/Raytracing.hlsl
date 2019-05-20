@@ -98,7 +98,7 @@ inline float3 shootLambertShadowsRays(int numRays, uint randSeed, float minT, fl
         shadeColor = float3(0.0, 0.0, 0.0);
         for(int i = 0; i < numRays; i++)
         {
-            float3 lightIntensity = float3(5, 5, 5);
+            float3 lightIntensity = float3(100, 100, 100);
 
             // See if we hit an area light
             float3     worldDir        = getCosHemisphereSample(randSeed, worldNorm);
@@ -115,6 +115,7 @@ inline float3 shootLambertShadowsRays(int numRays, uint randSeed, float minT, fl
 
         // Modulate based on the physically based Lambertian term (albedo/pi)
         shadeColor *= albedo.rgb / 3.141592f;
+        shadeColor  = shadeColor / numRays;
     }
 
     return shadeColor;

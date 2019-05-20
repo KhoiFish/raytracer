@@ -115,11 +115,9 @@ namespace RealtimeEngine
         class ShaderTable
         {
         public:
-
-            void SetShaderName(const std::wstring& name);
             
             // One shader instance will run per data blob added here
-            void AddShaderRecordData(const void* pData, uint32_t dataSize);
+            uint32_t AddShaderRecordData(const std::wstring& shaderName, const void* pData, uint32_t dataSize);
 
         private:
 
@@ -134,7 +132,6 @@ namespace RealtimeEngine
 
         private:
 
-            std::wstring                    ShaderName;
             std::vector<ShaderRecordData*>  ShaderDataList;
             UploadBuffer                    ShaderTableBuffer;
             uint32_t                        ShaderEntryStride;
@@ -147,10 +144,11 @@ namespace RealtimeEngine
         ~RaytracingPSO();
 
         void                            SetDxilLibrary(ID3DBlobPtr pBlob, const WCHAR* entryPoint[], uint32_t entryPointCount);
-        void                            SetHitProgram(LPCWSTR ahsExport, LPCWSTR chsExport, const std::wstring& name);
         void                            SetShaderConfig(uint32_t maxAttributeSizeInBytes, uint32_t maxPayloadSizeInBytes);
         void                            SetPipelineConfig(uint32_t maxTraceRecursionDepth);
 
+        void                            AddHitGroup(LPCWSTR ahsExport, LPCWSTR chsExport, const std::wstring& hitGroupName);
+        void                            AddMissShader(const std::wstring& missShaderName);
         void                            AddLocalRootSignature(RootSignature* pLocalRootSignature);
         void                            AddExportAssociationWithLocalRootSignature(const WCHAR* exportNames[], uint32_t exportCount, RootSignature* pLocalRootSignature);
         void                            AddExportAssociationWithShaderConfig(const WCHAR* exportNames[], uint32_t exportCount);
@@ -177,6 +175,15 @@ namespace RealtimeEngine
             ID3D12RootSignature*    LocalRootSignatureInterfacePtr;
         };
 
+        struct HitGroupData
+        {
+            uint32_t                SubobjectIndex;
+            std::wstring            AHSExport;
+            std::wstring            CHSExport;
+            std::wstring            HitGroupName;
+            D3D12_HIT_GROUP_DESC    HitProgramDesc;
+        };
+
     private:
 
         friend class CommandContext;
@@ -196,9 +203,7 @@ namespace RealtimeEngine
         std::vector<D3D12_EXPORT_DESC>                          DxilLibExportDesc;
         std::vector<std::wstring>                               DxilLibExportName;
 
-        int32_t                                                 HitProgramStateIndex = -1;
-        std::wstring                                            HitProgramExportName;
-        D3D12_HIT_GROUP_DESC                                    HitProgramDesc;
+        std::vector<HitGroupData*>                              HitGroupList;
        
         int32_t                                                 GlobalRootSignatureStateIndex = -1;
         ID3D12RootSignature*                                    GlobalRootSignatureInterfacePtr;

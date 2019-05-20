@@ -145,8 +145,8 @@ void Renderer::SetupRenderBuffers()
 
     for (int i = 0; i < 2; i++)
     {
-        AmbientOcclusionOutput[i].Destroy();
-        AmbientOcclusionOutput[i].CreateEx("AO Buffer", width, height, 1, RaytracingBufferType, nullptr, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
+        LambertAndAOBuffer[i].Destroy();
+        LambertAndAOBuffer[i].CreateEx("AO Buffer", width, height, 1, RaytracingBufferType, nullptr, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
     }
 }
 

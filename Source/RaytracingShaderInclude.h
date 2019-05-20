@@ -84,10 +84,16 @@ struct RaytracingGlobalCB
     XMFLOAT4    CameraPosition;
     XMFLOAT4X4  InverseTransposeViewProjectionMatrix;
     XMFLOAT2    OutputResolution;
+
     float       AORadius;
     int         FrameCount;
     int         NumRays;
     int         AccumCount;
+
+    int         AOMissIndex;
+    int         AOHitGroupIndex;
+    int         DirectLightingMissIndex;
+    int         DirectLightingHitGroupIndex;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------

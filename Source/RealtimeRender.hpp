@@ -106,7 +106,7 @@ void Renderer::OnResizeRealtimeRenderer()
     RealtimeDescriptorHeap = new DescriptorHeapStack(64, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 0);
 
     RealtimeDescriptorHeap->AllocateTexture2DSrv(
-        AmbientOcclusionOutput[1].GetResource(),
+        LambertAndAOBuffer[1].GetResource(),
         RaytracingBufferType,
         D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
 
@@ -415,7 +415,7 @@ void Renderer::RenderCompositePass()
 
             // Transition resources
             renderContext.TransitionResource(CPURaytracerTex, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-            renderContext.TransitionResource(AmbientOcclusionOutput[1], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+            renderContext.TransitionResource(LambertAndAOBuffer[1], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
             for (int i = 0; i < DeferredBufferType_Num; i++)
             {
                 renderContext.TransitionResource(DeferredBuffers[i], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);

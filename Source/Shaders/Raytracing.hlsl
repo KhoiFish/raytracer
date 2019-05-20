@@ -84,7 +84,7 @@ inline float shootAmbientOcclusionRay(float3 orig, float3 dir, float minT, float
     (
         gScene,
         RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER, 0xFF, 
-        0, 0, 0, 
+        gSceneCB.AOHitGroupIndex, 0, gSceneCB.AOMissIndex,
         rayAO, rayPayload
     );
 
@@ -129,7 +129,7 @@ void RayGenerationShader()
 // ----------------------------------------------------------------------------------------------------------------------------
 
 [shader("miss")]
-void MissShader(inout RayPayload payload)
+void AOMissShader(inout RayPayload payload)
 {
     // Our ambient occlusion value is 1 if we hit nothing.
     payload.AOValue = 1.0f;
@@ -138,8 +138,23 @@ void MissShader(inout RayPayload payload)
 // ----------------------------------------------------------------------------------------------------------------------------
 
 [shader("closesthit")]
-void ClosestHitShader(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
+void AOClosestHitShader(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
 {
-    //IgnoreHit();
+    
 }
 
+// ----------------------------------------------------------------------------------------------------------------------------
+
+[shader("miss")]
+void DirectLightingMissShader(inout RayPayload payload)
+{
+    
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+[shader("closesthit")]
+void DirectLightingClosestHitShader(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
+{
+    
+}

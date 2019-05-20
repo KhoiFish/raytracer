@@ -115,6 +115,17 @@ private:
         "Albedo",
     };
 
+    enum RaytracingShaderType
+    {
+        RaytracingShaderType_AOMiss = 0,
+        RaytracingShaderType_AOHitgroup,
+
+        RaytracingShaderType_DirectLightingMiss,
+        RaytracingShaderType_DirectLightingHitGroup,
+
+        RaytracingShaderType_Num
+    };
+
     static constexpr const char* DefaultTextureName = "RuntimeData/guitar.jpg";
 
     struct UserInputData
@@ -167,7 +178,7 @@ private:
 
     ColorBuffer                     CPURaytracerTex;
     ColorBuffer                     DeferredBuffers[DeferredBufferType_Num];
-    ColorBuffer                     AmbientOcclusionOutput[2];
+    ColorBuffer                     LambertAndAOBuffer[2];
 
     RootSignature                   RealtimeRootSignature;
     GraphicsPSO                     RealtimeGeometryPassPSO;
@@ -180,4 +191,5 @@ private:
     DescriptorHeapStack*            RaytracingGlobalDescriptorHeap;
     DescriptorHeapStack*            RaytracingLocalDescriptorHeap;
     ByteAddressBuffer               RaytracingSceneConstantBuffer;
+    int32_t                         RaytracingShaderIndex[RaytracingShaderType_Num];
 };

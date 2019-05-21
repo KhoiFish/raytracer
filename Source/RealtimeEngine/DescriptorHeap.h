@@ -162,7 +162,7 @@ namespace RealtimeEngine
 
         void                        AllocateDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle, UINT& descriptorHeapIndex);
         UINT                        AllocateTexture2DSrv(ID3D12Resource* resource, DXGI_FORMAT format, UINT shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
-        UINT                        AllocateBufferSrv(ID3D12Resource* resource, D3D12_SRV_DIMENSION viewDimension = D3D12_SRV_DIMENSION_BUFFER, D3D12_BUFFER_SRV_FLAGS flags = D3D12_BUFFER_SRV_FLAG_RAW, DXGI_FORMAT format = DXGI_FORMAT_R32_TYPELESS, UINT shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
+        UINT                        AllocateBufferSrv(ID3D12Resource* resource, UINT numElements, D3D12_SRV_DIMENSION viewDimension = D3D12_SRV_DIMENSION_BUFFER, D3D12_BUFFER_SRV_FLAGS flags = D3D12_BUFFER_SRV_FLAG_RAW, DXGI_FORMAT format = DXGI_FORMAT_R32_TYPELESS, UINT shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
         UINT                        AllocateBufferSrvRaytracing(D3D12_GPU_VIRTUAL_ADDRESS Location, D3D12_SRV_DIMENSION viewDimension = D3D12_SRV_DIMENSION_BUFFER, D3D12_BUFFER_SRV_FLAGS flags = D3D12_BUFFER_SRV_FLAG_RAW, DXGI_FORMAT format = DXGI_FORMAT_R32_TYPELESS, UINT shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
         UINT                        AllocateBufferCbv(D3D12_GPU_VIRTUAL_ADDRESS location, UINT size);
         UINT                        AllocateBufferUav(ID3D12Resource& resource, D3D12_UAV_DIMENSION viewDimension = D3D12_UAV_DIMENSION_BUFFER, D3D12_BUFFER_UAV_FLAGS flags = D3D12_BUFFER_UAV_FLAG_RAW, DXGI_FORMAT format = DXGI_FORMAT_R32_TYPELESS);

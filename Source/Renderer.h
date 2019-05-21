@@ -189,9 +189,9 @@ private:
     RootSignature                   RaytracingGlobalRootSig;
     RootSignature                   RaytracingLocalRootSig;
     RaytracingPSO                   TheRaytracingPSO;
-    DescriptorHeapStack*            RaytracingGlobalDescriptorHeap;
-    DescriptorHeapStack*            RaytracingLocalDescriptorHeap;
+    DescriptorHeapStack*            RaytracingDescriptorHeap;
     ByteAddressBuffer               RaytracingSceneConstantBuffer;
     int32_t                         RaytracingShaderIndex[RaytracingShaderType_Num];
     int32_t                         HitProgramCount;
+    uint32_t                        LocalSigDataIndexStart;
 };

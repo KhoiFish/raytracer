@@ -247,8 +247,25 @@ static void CreatePlaneFromPoints(RealtimeSceneNode* renderNode, const Core::Vec
 
 static void CreateResourceViews(RealtimeSceneNode* renderNode)
 {
-    renderNode->VertexBuffer.Create(L"VertexBuffer", (uint32_t)renderNode->Vertices.size(), sizeof(RealtimeSceneVertexEx), &renderNode->Vertices[0]);
-    renderNode->IndexBuffer.Create(L"IndexBuffer", (uint32_t)renderNode->Indices.size(), sizeof(uint32_t), &renderNode->Indices[0]);
+    renderNode->VertexBuffer.Create
+    (
+        L"VertexBuffer", 
+        (uint32_t)renderNode->Vertices.size(), 
+        sizeof(RealtimeSceneVertexEx), 
+        &renderNode->Vertices[0],
+        D3D12_RESOURCE_STATE_COMMON,
+        D3D12_RESOURCE_FLAG_NONE
+    );
+
+    renderNode->IndexBuffer.Create
+    (
+        L"IndexBuffer", 
+        (uint32_t)renderNode->Indices.size(), 
+        sizeof(uint32_t), 
+        &renderNode->Indices[0],
+        D3D12_RESOURCE_STATE_COMMON,
+        D3D12_RESOURCE_FLAG_NONE
+    );
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -574,13 +591,31 @@ RealtimeScene::RealtimeScene(Core::WorldScene* worldScene)
     RaytracingGeom = new RaytracingGeometry();
     for (size_t i = 0; i < RenderSceneList.size(); i++)
     {
+        // Set instance id and prepare the data buffer
+        RenderSceneList[i]->InstanceId = (uint32_t)i;
+        {
+            const uint32_t bufferSize = (uint32_t)AlignUp(sizeof(RenderNodeInstanceData), 256);
+            RenderNodeInstanceData* pInstanceData = (RenderNodeInstanceData * )_aligned_malloc(bufferSize, 16);
+            {
+                pInstanceData->InstanceId  = RenderSceneList[i]->InstanceId;
+                pInstanceData->WorldMatrix = RenderSceneList[i]->WorldMatrix;
+
+                RenderSceneList[i]->InstanceDataBuffer.Create(L"Instance Data", 1, bufferSize, pInstanceData);
+            }
+            _aligned_free(pInstanceData);
+            pInstanceData = nullptr;
+        }
+
+        // Get the instance mask
         uint32_t instanceMask = 
             RenderSceneList[i]->Hitable->IsALightShape() ? RAYTRACING_INSTANCEMASK_AREALIGHT : RAYTRACING_INSTANCEMASK_OPAQUE;
 
+        // Add geometry to the raytracing builder
         RaytracingGeom->AddGeometry
         (
             RaytracingGeometry::GeometryInfo
             (
+                RenderSceneList[i]->InstanceId,
                 instanceMask,
                 (uint32_t)RenderSceneList[i]->Vertices.size(),
                 (uint32_t)RenderSceneList[i]->Indices.size(),

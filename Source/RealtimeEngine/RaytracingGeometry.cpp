@@ -171,7 +171,7 @@ void RaytracingGeometry::Build()
         // Fill in the rest
         instanceDesc.AccelerationStructure                  = BLASBuffers[i]->GetGpuVirtualAddress();
         instanceDesc.Flags                                  = D3D12_RAYTRACING_INSTANCE_FLAG_NONE;
-        instanceDesc.InstanceID                             = i;
+        instanceDesc.InstanceID                             = GeometryInfoList[i].InstanceId;
         instanceDesc.InstanceMask                           = GeometryInfoList[i].InstanceMask;
         instanceDesc.InstanceContributionToHitGroupIndex    = i;
     }

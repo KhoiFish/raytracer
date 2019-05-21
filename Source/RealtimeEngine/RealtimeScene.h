@@ -66,11 +66,13 @@ namespace RealtimeEngine
         RealtimeSceneNode() : Hitable(nullptr), DiffuseTexture(nullptr) {}
         ~RealtimeSceneNode() {}
 
+        uint32_t                                InstanceId;
         const Core::IHitable*                   Hitable;
         std::vector<RealtimeSceneVertexEx>      Vertices;
         std::vector<uint32_t>                   Indices;
         RealtimeEngine::StructuredBuffer        VertexBuffer;
         RealtimeEngine::StructuredBuffer        IndexBuffer;
+        RealtimeEngine::StructuredBuffer        InstanceDataBuffer;
         DirectX::XMMATRIX                       WorldMatrix;
         RenderMaterial                          Material;
         RealtimeEngine::Texture*                DiffuseTexture;

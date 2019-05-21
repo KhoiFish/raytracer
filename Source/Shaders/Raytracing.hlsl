@@ -32,13 +32,54 @@
 
 RWTexture2D<float4>                         gPrevOutput         : register(u0);
 RWTexture2D<float4>                         gCurOutput          : register(u1);
+
+ConstantBuffer<RaytracingGlobalCB>          gSceneCB            : register(b0);
+ConstantBuffer<RenderNodeInstanceData>      gInstanceCB         : register(b1);
+
 RaytracingAccelerationStructure             gScene              : register(t0);
 Texture2D<float4>                           gPositions          : register(t1);
 Texture2D<float4>                           gNormals            : register(t2);
 Texture2D<float4>                           gTexCoordsAndDepth  : register(t3);
 Texture2D<float4>                           gAlbedo             : register(t4);
-StructuredBuffer<RealtimeSceneVertex>       gVertexBuffer       : register(t5);
-ConstantBuffer<RaytracingGlobalCB>          gSceneCB            : register(b0);
+ByteAddressBuffer                           gVertexBuffer       : register(t5);
+ByteAddressBuffer                           gIndexBuffer        : register(t6);
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+inline uint3 getIndices(uint triangleIndex)
+{
+    uint baseIndex = (triangleIndex * 3);
+    int  address   = (baseIndex * 4);
+
+    return gIndexBuffer.Load3(address);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+inline RealtimeSceneVertex getVertex(uint triangleIndex, float3 barycentrics)
+{
+    RealtimeSceneVertex v;
+    v.Position = float3(0, 0, 0);
+    v.Normal   = float3(0, 0, 0);
+    v.TexCoord = float2(0, 0);
+
+    const uint vertSize = (3 * 4) + (3 * 4) + (2 * 4);
+    uint3      indices  = getIndices(triangleIndex);
+    for (uint i = 0; i < 3; i++)
+    {
+        int address = indices[i] * vertSize;
+
+        v.Position += asfloat(gVertexBuffer.Load3(address)) * barycentrics[i];
+        address += (3 * 4);
+
+        v.Normal += asfloat(gVertexBuffer.Load3(address)) * barycentrics[i];
+        address += (3 * 4);
+
+        v.TexCoord += asfloat(gVertexBuffer.Load2(address)) * barycentrics[i];
+    }
+
+    return v;
+}
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -171,7 +212,7 @@ inline float3 sampleIndirectLighting(int numRays, uint randSeed, float minT, flo
     //   shadeColor = (NdotL * bounceColor * albedo.rgb / SHADER_PI) / sampleProb;
     //
     // The terms cancel to this:
-    float3 shadeColor = albedo.rgb * bounceColor;
+    float3 shadeColor = bounceColor; //albedo.rgb * bounceColor;
 
     return shadeColor;
 }
@@ -246,31 +287,19 @@ void IndirectLightingMiss(inout IndirectRayPayload payload)
 [shader("closesthit")]
 void IndirectLightingClosest(inout IndirectRayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
 {
-    float3 lightIntensity = float3(100, 100, 100);
-    int    numRays        = payload.NumRays;
-
-    uint   vertId = 3 * PrimitiveIndex();
-    float3 bary   = float3(1.f - attr.barycentrics.x - attr.barycentrics.y, attr.barycentrics.x, attr.barycentrics.y);
-
-    float3 worldPos = WorldRayOrigin() + WorldRayDirection() * RayTCurrent();
-
-#if 0
-    float3 worldNorm =
-        gVertexBuffer[vertId + 0].Normal * bary.x +
-        gVertexBuffer[vertId + 1].Normal * bary.y +
-        gVertexBuffer[vertId + 2].Normal * bary.z;
-#else
-    float3 worldNorm = getCosHemisphereSample(payload.RndSeed, normalize(worldPos));
-#endif
+    float3               lightIntensity = float3(0.5f, 0.5f, 0.5f);
+    float3               bary           = float3(1.f - attr.barycentrics.x - attr.barycentrics.y, attr.barycentrics.x, attr.barycentrics.y);
+    RealtimeSceneVertex  vert           = getVertex(PrimitiveIndex(), bary);
+    float3               worldPos       = mul(vert.Position, (float3x3)gInstanceCB.WorldMatrix);
+    float3               worldNorm      = mul(vert.Normal, (float3x3)gInstanceCB.WorldMatrix);
 
     float lightResult = 0;
-    for (int i = 0; i < numRays; i++)
+    for (int i = 0; i < payload.NumRays; i++)
     {
         lightResult += computeLighting(payload.RndSeed, RayTMin(), worldPos, worldNorm);
     }
 
     payload.Color = lightIntensity * lightResult;
-    //payload.Color = float3(1, 0, 0);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -306,7 +335,7 @@ void RayGeneration()
     float   minT        = 0.01f;
 
     float3 direct       = sampleDirectLighting(numRays, randSeed, minT, worldPos, worldNorm, albedo);
-    float3 indirect     = float3(0, 0, 0); //sampleIndirectLighting(numRays, randSeed, minT, worldPos, worldNorm, albedo);
+    float3 indirect     = sampleIndirectLighting(numRays, randSeed, minT, worldPos, worldNorm, albedo);
     float  ao           = shootAmbientOcclusionRays(numRays, randSeed, minT, aoRadius, worldPos.xyz, worldNorm);
 
     float4 curColor     = float4(indirect + direct, ao);

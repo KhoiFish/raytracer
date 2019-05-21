@@ -44,11 +44,11 @@ Renderer::Renderer(uint32_t width, uint32_t height)
     , SelectedBufferIndex(0)
     , AccumCount(0)
     , RealtimeDescriptorHeap(nullptr)
-    , RaytracingGlobalDescriptorHeap(nullptr)
-    , RaytracingLocalDescriptorHeap(nullptr)
+    , RaytracingDescriptorHeap(nullptr)
     , IsCameraDirty(true)
     , LoadSceneRequested(false)
     , HitProgramCount(0)
+    , LocalSigDataIndexStart(0)
 {
     BackbufferFormat                                            = DXGI_FORMAT_R8G8B8A8_UNORM;
     CPURaytracerTexType                                         = DXGI_FORMAT_R8G8B8A8_UNORM;

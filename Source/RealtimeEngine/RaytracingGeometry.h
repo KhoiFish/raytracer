@@ -37,16 +37,18 @@ namespace RealtimeEngine
         struct GeometryInfo
         {
             GeometryInfo(
+                uint32_t instanceId,
                 uint32_t instanceMask,
                 uint32_t numVertices, uint32_t numIndices,
                 StructuredBuffer* vertexBuffer, StructuredBuffer* indexBuffer,
                 const DirectX::XMMATRIX& worldMatrix)
-                    : InstanceMask(instanceMask),
+                    : InstanceId(instanceId), InstanceMask(instanceMask),
                       NumVertices(numVertices), NumIndices(numIndices), 
                       VertexBuffer(vertexBuffer), IndexBuffer(indexBuffer),
                       WorldMatrix(worldMatrix)
             {}
 
+            uint32_t            InstanceId      = 0;
             uint32_t            InstanceMask    = RAYTRACING_INSTANCEMASK_ALL;
             uint32_t            NumVertices     = 0;
             uint32_t            NumIndices      = 0;

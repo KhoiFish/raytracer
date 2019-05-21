@@ -43,6 +43,15 @@ struct RealtimeSceneVertex
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+struct RenderNodeInstanceData
+{
+    XMMATRIX  WorldMatrix;
+    UINT      InstanceId;
+    UINT      Pad[3];
+};
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 struct RenderMaterial
 {
     XMFLOAT4   Emissive;

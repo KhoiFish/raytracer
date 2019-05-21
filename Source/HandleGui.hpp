@@ -40,7 +40,7 @@ void Renderer::RenderGui()
     while(true)
     {
         ImGui::SetNextWindowPos(ImVec2(10, 16), ImGuiCond_FirstUseEver);
-        ImGui::SetNextWindowSize(ImVec2(533, 548), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowSize(ImVec2(530, 560), ImGuiCond_FirstUseEver);
 
         ImGuiWindowFlags window_flags = ImGuiWindowFlags_AlwaysVerticalScrollbar;
         if (!ImGui::Begin("Options Window", nullptr, window_flags))

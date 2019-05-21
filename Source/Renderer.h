@@ -123,6 +123,9 @@ private:
         RaytracingShaderType_DirectLightingMiss,
         RaytracingShaderType_DirectLightingHitGroup,
 
+        RaytracingShaderType_IndirectLightingMiss,
+        RaytracingShaderType_IndirectLightingHitGroup,
+
         RaytracingShaderType_Num
     };
 
@@ -148,7 +151,7 @@ private:
         int     CpuMaxScatterDepth      = 50;
         int     CpuNumThreads           = 4;
 
-        int     GpuMaxRayRecursionDepth = 1;
+        int     GpuMaxRayRecursionDepth = 10;
         int     GpuNumRaysPerPixel      = 10;
         float   GpuAORadius             = 400.0f;
         bool    GpuCameraJitter         = true;

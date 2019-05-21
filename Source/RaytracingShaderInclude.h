@@ -36,6 +36,13 @@ struct RayPayload
     XMFLOAT4    HitBaryAndDist;
 };
 
+struct IndirectRayPayload
+{
+    XMFLOAT3    Color;
+    UINT        RndSeed;
+    UINT        NumRays;
+};
+
 // ----------------------------------------------------------------------------------------------------------------------------
 
 namespace RayType
@@ -96,6 +103,8 @@ struct RaytracingGlobalCB
     int         AOHitGroupIndex;
     int         DirectLightingMissIndex;
     int         DirectLightingHitGroupIndex;
+    int         IndirectLightingMissIndex;
+    int         IndirectLightingHitGroupIndex;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------

@@ -355,8 +355,8 @@ void Renderer::SetupRealtimeRaytracingPipeline()
             // Hit groups
             {
                 // Prepare the local data for the hitgroups
-                uint8_t*       pHitGroupData   = new uint8_t[256];
                 const uint32_t localDataStride = sizeof(D3D12_GPU_DESCRIPTOR_HANDLE) + sizeof(D3D12_GPU_DESCRIPTOR_HANDLE) + sizeof(D3D12_GPU_DESCRIPTOR_HANDLE);
+                uint8_t*       pHitGroupData   = new uint8_t[TheRenderScene->GetRenderSceneList().size() * localDataStride];
                 for (int i = 0; i < TheRenderScene->GetRenderSceneList().size(); i++)
                 {
                     uint32_t offset = (i * localDataStride);

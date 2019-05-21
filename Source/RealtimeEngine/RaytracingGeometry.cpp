@@ -173,7 +173,7 @@ void RaytracingGeometry::Build()
         instanceDesc.Flags                                  = D3D12_RAYTRACING_INSTANCE_FLAG_NONE;
         instanceDesc.InstanceID                             = i;
         instanceDesc.InstanceMask                           = GeometryInfoList[i].InstanceMask;
-        instanceDesc.InstanceContributionToHitGroupIndex    = 0;
+        instanceDesc.InstanceContributionToHitGroupIndex    = i;
     }
 
     // Allocate instance data buffer and update TLAS desc

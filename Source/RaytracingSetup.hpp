@@ -28,6 +28,7 @@ namespace RaytracingGlobalRootSigSlot
     {
         PrevOutput1 = 0,
         CurOutput1,
+        SceneCB,
         AccelerationStructure,
         Positions,
         Normals,
@@ -49,6 +50,7 @@ namespace RaytracingGlobalRootSigSlot
     {
         { 0, 1 },   // PrevOutput1
         { 1, 1 },   // CurOutput1
+        { 0, 1 },   // Scene CB
         { 0, 1 },   // AccelerationStructure
         { 1, 1 },   // Positions
         { 2, 1 },   // Normals
@@ -62,7 +64,7 @@ namespace RaytracingLocalRootSigSlot
 {
     enum Enum
     {
-        SceneCB = 0,
+        LocalCB = 0,
 
         Num
     };
@@ -123,6 +125,11 @@ void Renderer::OnResizeGpuRaytracer()
         D3D12_UAV_DIMENSION_TEXTURE2D,
         D3D12_BUFFER_UAV_FLAG_NONE,
         RaytracingBufferType);
+
+    // Scene CB
+    RaytracingGlobalDescriptorHeap->AllocateBufferCbv(
+        RaytracingSceneConstantBuffer.GetGpuVirtualAddress(),        
+        RaytracingSceneConstantBuffer.GetBufferSize());
 
     // Allocate descriptor for acceleration structures
     RaytracingGlobalDescriptorHeap->AllocateBufferSrvRaytracing(
@@ -215,6 +222,12 @@ void Renderer::SetupRealtimeRaytracingPipeline()
                 RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::CurOutput1][RaytracingGlobalRootSigSlot::Count],
                 D3D12_SHADER_VISIBILITY_ALL);
 
+            RaytracingGlobalRootSig[RaytracingGlobalRootSigSlot::SceneCB].InitAsDescriptorRange(
+                D3D12_DESCRIPTOR_RANGE_TYPE_CBV,
+                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::SceneCB][RaytracingGlobalRootSigSlot::Register],
+                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::SceneCB][RaytracingGlobalRootSigSlot::Count],
+                D3D12_SHADER_VISIBILITY_ALL);
+
             RaytracingGlobalRootSig[RaytracingGlobalRootSigSlot::AccelerationStructure].InitAsDescriptorRange(
                 D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
                 RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::AccelerationStructure][RaytracingGlobalRootSigSlot::Register],
@@ -259,6 +272,7 @@ void Renderer::SetupRealtimeRaytracingPipeline()
 
     // Local sig
     {
+#if 0
         // Setup local sig
         RaytracingLocalRootSig.Reset(RaytracingLocalRootSigSlot::Num, 0);
         {
@@ -273,6 +287,10 @@ void Renderer::SetupRealtimeRaytracingPipeline()
         RaytracingLocalDescriptorHeap->AllocateBufferCbv(
             RaytracingSceneConstantBuffer.GetGpuVirtualAddress(), 
             (UINT)RaytracingSceneConstantBuffer.GetBufferSize());
+#else
+        RaytracingLocalRootSig.Reset(0, 0);
+        RaytracingLocalRootSig.Finalize("RaytracerLocalRootSig", D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE);
+#endif
     }
 
     // Setup shaders and configs for the PSO
@@ -316,20 +334,44 @@ void Renderer::SetupRealtimeRaytracingPipeline()
                 numBytes);
 
             // Hit groups
-            RaytracingShaderIndex[RaytracingShaderType_DirectLightingHitGroup] = TheRaytracingPSO.GetHitGroupShaderTable().AddShaderRecordData(
-                directLightingHitGroupName,
-                pTempBuffer,
-                numBytes);
+            for (int i = 0; i < TheRenderScene->GetRenderSceneList().size(); i++)
+            {
+                uint32_t index = TheRaytracingPSO.GetHitGroupShaderTable().AddShaderRecordData(
+                    directLightingHitGroupName,
+                    pTempBuffer,
+                    numBytes);
 
-            RaytracingShaderIndex[RaytracingShaderType_IndirectLightingHitGroup] = TheRaytracingPSO.GetHitGroupShaderTable().AddShaderRecordData(
-                indirectLightingHitGroupName,
-                pTempBuffer,
-                numBytes);
+                if (i == 0)
+                {
+                    RaytracingShaderIndex[RaytracingShaderType_DirectLightingHitGroup] = index;
+                }
+            }
 
-            RaytracingShaderIndex[RaytracingShaderType_AOHitgroup] = TheRaytracingPSO.GetHitGroupShaderTable().AddShaderRecordData(
-                aoHitGroupName,
-                pTempBuffer,
-                numBytes);
+            for (int i = 0; i < TheRenderScene->GetRenderSceneList().size(); i++)
+            {
+                uint32_t index = TheRaytracingPSO.GetHitGroupShaderTable().AddShaderRecordData(
+                    indirectLightingHitGroupName,
+                    pTempBuffer,
+                    numBytes);
+
+                if (i == 0)
+                {
+                    RaytracingShaderIndex[RaytracingShaderType_IndirectLightingHitGroup] = index;
+                }
+            }
+
+            for (int i = 0; i < TheRenderScene->GetRenderSceneList().size(); i++)
+            {
+                uint32_t index = TheRaytracingPSO.GetHitGroupShaderTable().AddShaderRecordData(
+                    aoHitGroupName,
+                    pTempBuffer,
+                    numBytes);
+
+                if (i == 0)
+                {
+                    RaytracingShaderIndex[RaytracingShaderType_AOHitgroup] = index;
+                }
+            }
 
             // Miss
             RaytracingShaderIndex[RaytracingShaderType_DirectLightingMiss] = TheRaytracingPSO.GetMissShaderTable().AddShaderRecordData(

@@ -25,12 +25,6 @@
     <ClInclude Include="..\..\Source\HandleInput.hpp">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\RealtimeRender.hpp">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\RaytracingSetup.hpp">
-      <Filter>Source</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Source\HandleGui.hpp">
       <Filter>Source</Filter>
     </ClInclude>
@@ -38,6 +32,12 @@
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\RaytracingShaderInclude.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RaytracingRender.hpp">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RasterRender.hpp">
       <Filter>Source</Filter>
     </ClInclude>
   </ItemGroup>

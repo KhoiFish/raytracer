@@ -283,7 +283,7 @@ static WorldScene* sampleSceneMesh()
     // Create light
     {
         Material *lightMat   = new MDiffuseLight(new ConstantTexture(Vec4(30, 30, 30)));
-        IHitable *lightShape = new XYZRect(XYZRect::XZ, 123, 423, 147, 412, 700, lightMat, true);
+        IHitable *lightShape = new XYZRect(XYZRect::XZ, -200, 200, -200, 200, 1000, lightMat, true);
         list[total++]        = new FlipNormals(lightShape);;
         lsList[numLs++]      = lightShape;
     }

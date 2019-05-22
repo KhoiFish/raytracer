@@ -115,7 +115,7 @@ namespace RaytracingLocalRootSigSlot
     static UINT Range[RaytracingLocalRootSigSlot::Num][2] =
     {
         { 1, 1 }, // LocalCB
-        { 2, 1 }, // Scene
+        { 2, 1 }, // Material CB
 
         { 5, 1 }, // VertexBuffer
         { 6, 1 }, // IndexBuffer

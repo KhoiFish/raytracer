@@ -73,6 +73,7 @@ namespace RealtimeEngine
         RealtimeEngine::StructuredBuffer        VertexBuffer;
         RealtimeEngine::StructuredBuffer        IndexBuffer;
         RealtimeEngine::StructuredBuffer        InstanceDataBuffer;
+        RealtimeEngine::StructuredBuffer        MaterialBuffer;
         DirectX::XMMATRIX                       WorldMatrix;
         RenderMaterial                          Material;
         RealtimeEngine::Texture*                DiffuseTexture;

@@ -54,15 +54,15 @@ namespace Core
             Pdf* PdfPtr;
         };
 
-        Material() : Owner(nullptr), Albedo(nullptr), EmitTex(nullptr) {}
-        Material(BaseTexture* albedo, BaseTexture* emitTex) : Owner(nullptr), Albedo(albedo), EmitTex(emitTex) {}
+        Material() : Owner(nullptr), AlbedoTexture(nullptr), EmitTex(nullptr) {}
+        Material(BaseTexture* albedo, BaseTexture* emitTex) : Owner(nullptr), AlbedoTexture(albedo), EmitTex(emitTex) {}
 
         virtual ~Material()
         {
-            if (Albedo != nullptr)
+            if (AlbedoTexture != nullptr)
             {
-                delete Albedo;
-                Albedo = nullptr;
+                delete AlbedoTexture;
+                AlbedoTexture = nullptr;
             }
 
             if (EmitTex != nullptr)
@@ -76,6 +76,7 @@ namespace Core
         virtual float ScatteringPdf(const Ray& rayIn, const HitRecord& rec, Ray& scattered) const { return 1.f; }
         virtual Vec4  Emitted(const Ray& rayIn, const HitRecord& rec, float u, float v, Vec4& p) const { return Vec4(0, 0, 0); }
         virtual Vec4  AlbedoValue(float u, float v, const Vec4& p) const { return Vec4(0, 0, 0); }
+        virtual Vec4  GetAverageAlbedo() const;
 
     public:
 
@@ -83,7 +84,7 @@ namespace Core
 
     protected:
 
-        BaseTexture* Albedo;
+        BaseTexture* AlbedoTexture;
         BaseTexture* EmitTex;
     };
 
@@ -164,16 +165,13 @@ namespace Core
         MWavefrontObj(const char* materialFilePath, bool makeMetal = false, float fuzz = 0.5f);
         virtual ~MWavefrontObj();
 
-        virtual bool  Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& scatterRec) const;
-        virtual Vec4  AlbedoValue(float u, float v, const Vec4& p) const;
-
-        const ImageTexture* GetDiffuseMap() const { return DiffuseMap; }
+        virtual bool        Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& scatterRec) const;
+        const ImageTexture* GetDiffuseMap() const { return (ImageTexture*)AlbedoTexture; }
 
     private:
 
         bool          MakeMetal;
         float         Fuzz;
-        ImageTexture* DiffuseMap;
     };
 
 }

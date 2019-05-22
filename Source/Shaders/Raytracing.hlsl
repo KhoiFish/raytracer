@@ -35,6 +35,7 @@ RWTexture2D<float4>                         gCurOutput          : register(u1);
 
 ConstantBuffer<RaytracingGlobalCB>          gSceneCB            : register(b0);
 ConstantBuffer<RenderNodeInstanceData>      gInstanceCB         : register(b1);
+ConstantBuffer<RenderMaterial>              gMaterial           : register(b2);
 
 RaytracingAccelerationStructure             gScene              : register(t0);
 Texture2D<float4>                           gPositions          : register(t1);
@@ -141,7 +142,7 @@ inline float computeLighting(uint randSeed, float minT, float3 worldPos, float3 
     {
         float distToLight = hitLightPayload.HitBaryAndDist.a;
         float LdotN       = saturate(dot(worldNorm, worldDir));
-        float shadowMult  = shadowRayVisibility(worldPos, worldDir, minT, distToLight);
+        float shadowMult  = shadowRayVisibility(worldPos, worldDir, minT, SHADER_FLOAT_MAX);
 
         lightResult = LdotN * shadowMult;
     }
@@ -154,7 +155,7 @@ inline float computeLighting(uint randSeed, float minT, float3 worldPos, float3 
 inline float3 sampleDirectLighting(int numRays, uint randSeed, float minT, float3 worldPos, float3 worldNorm, float4 albedo)
 {
     float3 shadeColor     = float3(0, 0, 0);
-    float3 lightIntensity = float3(100, 100, 100);
+    float3 lightIntensity = float3(100.0f, 100.0f, 100.0f);
     for(int i = 0; i < numRays; i++)
     {
         shadeColor += computeLighting(randSeed, minT, worldPos, worldNorm) * lightIntensity;
@@ -287,19 +288,30 @@ void IndirectLightingMiss(inout IndirectRayPayload payload)
 [shader("closesthit")]
 void IndirectLightingClosest(inout IndirectRayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
 {
-    float3               lightIntensity = float3(0.5f, 0.5f, 0.5f);
-    float3               bary           = float3(1.f - attr.barycentrics.x - attr.barycentrics.y, attr.barycentrics.x, attr.barycentrics.y);
-    RealtimeSceneVertex  vert           = getVertex(PrimitiveIndex(), bary);
-    float3               worldPos       = mul(vert.Position, (float3x3)gInstanceCB.WorldMatrix);
-    float3               worldNorm      = mul(vert.Normal, (float3x3)gInstanceCB.WorldMatrix);
+    float3               bary       = float3(1.f - attr.barycentrics.x - attr.barycentrics.y, attr.barycentrics.x, attr.barycentrics.y);
+    RealtimeSceneVertex  vert       = getVertex(PrimitiveIndex(), bary);
+    float3               worldPos   = mul(vert.Position, (float3x3)gInstanceCB.WorldMatrix);
+    float3               worldNorm  = mul(vert.Normal, (float3x3)gInstanceCB.WorldMatrix);
 
-    float lightResult = 0;
-    for (int i = 0; i < payload.NumRays; i++)
+#if 1
+    int numRays = payload.NumRays;
+    float3 shadeColor     = float3(0, 0, 0);
+    for (int i = 0; i < numRays; i++)
     {
-        lightResult += computeLighting(payload.RndSeed, RayTMin(), worldPos, worldNorm);
+        shadeColor += computeLighting(payload.RndSeed, RayTMin(), worldPos, worldNorm);
     }
 
-    payload.Color = lightIntensity * lightResult;
+    // Modulate based on the physically based Lambertian term (albedo/pi)
+    shadeColor *= (gMaterial.Diffuse.rgb / SHADER_PI);
+    shadeColor /= numRays;
+    
+
+    payload.Color = shadeColor;
+#else
+    float shadowMult = 0.5f; // shadowRayVisibility(worldPos, worldNorm, RayTMin(), SHADER_FLOAT_MAX);
+
+    payload.Color = gMaterial.Diffuse.rgb * shadowMult;
+#endif
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -335,10 +347,11 @@ void RayGeneration()
     float   minT        = 0.01f;
 
     float3 direct       = sampleDirectLighting(numRays, randSeed, minT, worldPos, worldNorm, albedo);
-    float3 indirect     = sampleIndirectLighting(numRays, randSeed, minT, worldPos, worldNorm, albedo);
+    float3 indirect     = sampleIndirectLighting(numRays, randSeed, minT, worldPos, worldNorm, albedo) * 10;
     float  ao           = shootAmbientOcclusionRays(numRays, randSeed, minT, aoRadius, worldPos.xyz, worldNorm);
 
     float4 curColor     = float4(indirect + direct, ao);
+    //float4 curColor     = float4(direct, ao);
     float4 prevColor    = gPrevOutput[launchIndex.xy];
     float4 finalColor   = (gSceneCB.AccumCount * prevColor + curColor) / (gSceneCB.AccumCount + 1);
 

@@ -272,14 +272,17 @@ static void CreateResourceViews(RealtimeSceneNode* renderNode)
 
 static RenderMaterial ConvertFromCoreMaterial(const Core::Material* pCoreMaterial)
 {
+    // HACKS until we get materials working for reals
     Core::Vec4            color = pCoreMaterial->AlbedoValue(0.5f, 0.5f, Core::Vec4(0, 0, 0));
     const std::type_info& tid   = typeid(*pCoreMaterial);
-    if (tid == typeid(Core::MLambertian) || 
-        tid == typeid(Core::MDielectric) ||
-        tid == typeid(Core::MWavefrontObj))
+    if (tid == typeid(Core::MWavefrontObj))
     {
-        // Color will come from the actual diffuse map, just set color to white
-        color = Core::Vec4(1, 1, 1);
+        // Get average color
+        color = pCoreMaterial->GetAverageAlbedo();
+    }
+    else if (tid == typeid(Core::MLambertian) || tid == typeid(Core::MDielectric))
+    {
+        color = Core::Vec4(1, 1, 1, 1);
     }
 
     RenderMaterial newMaterial =
@@ -594,16 +597,27 @@ RealtimeScene::RealtimeScene(Core::WorldScene* worldScene)
         // Set instance id and prepare the data buffer
         RenderSceneList[i]->InstanceId = (uint32_t)i;
         {
-            const uint32_t bufferSize = (uint32_t)AlignUp(sizeof(RenderNodeInstanceData), 256);
+            const uint32_t          bufferSize    = (uint32_t)AlignUp(sizeof(RenderNodeInstanceData), 256);
             RenderNodeInstanceData* pInstanceData = (RenderNodeInstanceData * )_aligned_malloc(bufferSize, 16);
             {
                 pInstanceData->InstanceId  = RenderSceneList[i]->InstanceId;
                 pInstanceData->WorldMatrix = RenderSceneList[i]->WorldMatrix;
-
                 RenderSceneList[i]->InstanceDataBuffer.Create(L"Instance Data", 1, bufferSize, pInstanceData);
             }
             _aligned_free(pInstanceData);
             pInstanceData = nullptr;
+        }
+
+        // Prepare materials buffer
+        {
+            const uint32_t  bufferSize      = (uint32_t)AlignUp(sizeof(RenderMaterial), 256);
+            RenderMaterial* pRenderMaterial = (RenderMaterial*)_aligned_malloc(bufferSize, 16);
+            {
+                memcpy(pRenderMaterial, &RenderSceneList[i]->Material, sizeof(RenderMaterial));
+                RenderSceneList[i]->MaterialBuffer.Create(L"Material Data", 1, bufferSize, pRenderMaterial);
+            }
+            _aligned_free(pRenderMaterial);
+            pRenderMaterial = nullptr;
         }
 
         // Get the instance mask

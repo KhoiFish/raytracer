@@ -24,6 +24,8 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+#define RAYTRACING_MAX_NUM_MATERIALS        1024
+
 #define RAYTRACING_INSTANCEMASK_ALL         (0xFF)
 #define RAYTRACING_INSTANCEMASK_OPAQUE      (1 << 0)
 #define RAYTRACING_INSTANCEMASK_AREALIGHT   (1 << 1)
@@ -46,8 +48,9 @@ struct RealtimeSceneVertex
 struct RenderNodeInstanceData
 {
     XMMATRIX  WorldMatrix;
+    XMFLOAT4  AverageAlbedo;
     UINT      InstanceId;
-    UINT      Pad[3];
+    UINT      Padding[3];
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------

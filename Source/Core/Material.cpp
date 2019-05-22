@@ -27,6 +27,32 @@ using namespace Core;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+Vec4 Material::GetAverageAlbedo() const
+{
+    // Run through the entire texture map and get an average color
+    const float step = 0.01f;
+    Vec4        color(0, 0, 0, 9);
+    Vec4        p(0, 0, 0, 0);
+    float       u = 0.0f;
+    int         count = 0;
+    while (u <= 1.0f)
+    {
+        float v = 0.0f;
+        while (v <= 1.0f)
+        {
+            color += AlbedoValue(u, v, p);
+            v += step;
+            count++;
+        }
+
+        u += step;
+    }
+
+    return (color / float(count));
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 MLambertian::MLambertian(BaseTexture* albedo) : Material(albedo, nullptr)
 {
     ;
@@ -39,7 +65,7 @@ bool MLambertian::Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterReco
     Vec4 target = hitRec.P + hitRec.Normal + RandomInUnitSphere();
 
     scatterRec.IsSpecular       = false;
-    scatterRec.Attenuation      = Albedo->Value(hitRec.U, hitRec.V, hitRec.P);
+    scatterRec.Attenuation      = AlbedoTexture->Value(hitRec.U, hitRec.V, hitRec.P);
     scatterRec.PdfPtr           = new CosinePdf(hitRec.Normal);
     scatterRec.ScatteredClassic = Ray(hitRec.P, target - hitRec.P, rayIn.Time());
    
@@ -73,7 +99,7 @@ float MLambertian::ScatteringPdf(const Ray& rayIn, const HitRecord& rec, Ray& sc
 
 Vec4 MLambertian::AlbedoValue(float u, float v, const Vec4& p) const
 {
-    return Albedo->Value(u, v, p);
+    return AlbedoTexture->Value(u, v, p);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -97,7 +123,7 @@ bool MMetal::Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& s
 {
     Vec4 reflected = Reflect(UnitVector(rayIn.Direction()), hitRec.Normal);
     scatterRec.SpecularRay = Ray(hitRec.P, reflected + Fuzz * RandomInUnitSphere());
-    scatterRec.Attenuation = Albedo->Value(hitRec.U, hitRec.V, hitRec.P);
+    scatterRec.Attenuation = AlbedoTexture->Value(hitRec.U, hitRec.V, hitRec.P);
     scatterRec.IsSpecular  = true;
     scatterRec.PdfPtr      = nullptr;
 
@@ -108,7 +134,7 @@ bool MMetal::Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& s
 
 Vec4 MMetal::AlbedoValue(float u, float v, const Vec4& p) const
 {
-    return Albedo->Value(u, v, p);
+    return AlbedoTexture->Value(u, v, p);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -209,7 +235,7 @@ MIsotropic::MIsotropic(BaseTexture* albedo)  : Material(albedo, nullptr)
 bool MIsotropic::Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& scatterRec) const
 {
     scatterRec.SpecularRay = Ray(hitRec.P, RandomInUnitSphere());
-    scatterRec.Attenuation = Albedo->Value(hitRec.U, hitRec.V, hitRec.P);
+    scatterRec.Attenuation = AlbedoTexture->Value(hitRec.U, hitRec.V, hitRec.P);
     scatterRec.PdfPtr      = nullptr;
     scatterRec.IsSpecular  = true;
 
@@ -220,7 +246,7 @@ bool MIsotropic::Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecor
 
 Vec4 MIsotropic::AlbedoValue(float u, float v, const Vec4& p) const
 {
-    return Albedo->Value(u, v, p);
+    return AlbedoTexture->Value(u, v, p);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -230,7 +256,6 @@ MWavefrontObj::MWavefrontObj(const char* materialFilePath, bool makeMetal, float
     : MLambertian(new ConstantTexture(Vec4(0, 0, 0)))
     , MakeMetal(makeMetal)
     , Fuzz(fuzz)
-    , DiffuseMap(nullptr)
 {
     std::ifstream inputFile(materialFilePath);
     if (inputFile.is_open())
@@ -244,14 +269,14 @@ MWavefrontObj::MWavefrontObj(const char* materialFilePath, bool makeMetal, float
             {
                 std::string textureFilename = strLine.substr(strlen("map_Kd") + 1);
                 std::string texFilePath = GetAbsolutePath(GetParentDir(materialFilePath) + std::string("/") + textureFilename);
-                DiffuseMap = new ImageTexture(texFilePath.c_str());
+                AlbedoTexture = new ImageTexture(texFilePath.c_str());
             }
         }
 
-        if (DiffuseMap == nullptr)
+        if (AlbedoTexture == nullptr)
         {
             DEBUG_PRINTF("No diffuse found, trying default\n");
-            DiffuseMap = new ImageTexture(GetAbsolutePath(RUNTIMEDATA_DIR "/white.png").c_str());
+            AlbedoTexture = new ImageTexture(GetAbsolutePath(RUNTIMEDATA_DIR "/white.png").c_str());
         }
     }
     else
@@ -264,10 +289,10 @@ MWavefrontObj::MWavefrontObj(const char* materialFilePath, bool makeMetal, float
 
 MWavefrontObj::~MWavefrontObj()
 {
-    if (DiffuseMap != nullptr)
+    if (AlbedoTexture != nullptr)
     {
-        delete DiffuseMap;
-        DiffuseMap = nullptr;
+        delete AlbedoTexture;
+        AlbedoTexture = nullptr;
     }
 }
 
@@ -287,14 +312,7 @@ bool MWavefrontObj::Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRe
         MLambertian::Scatter(rayIn, hitRec, scatterRec);
     }
     
-    scatterRec.Attenuation = DiffuseMap->Value(hitRec.U, hitRec.V, hitRec.P);
+    scatterRec.Attenuation = AlbedoTexture->Value(hitRec.U, hitRec.V, hitRec.P);
 
     return true;
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-Vec4 MWavefrontObj::AlbedoValue(float u, float v, const Vec4& p) const
-{
-    return DiffuseMap->Value(u, v, p);
 }

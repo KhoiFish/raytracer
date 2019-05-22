@@ -63,6 +63,7 @@ namespace RaytracingLocalRootSigSlot
     enum Enum
     {
         LocalCB = 0,
+        MaterialCB,
         VertexBuffer,
         IndexBuffer,
 
@@ -79,6 +80,7 @@ namespace RaytracingLocalRootSigSlot
     static UINT Range[RaytracingLocalRootSigSlot::Num][2] =
     {
         { 1, 1 }, // LocalCB
+        { 2, 1 }, // Scene
         { 5, 1 }, // VertexBuffer
         { 6, 1 }, // IndexBuffer
     };
@@ -107,7 +109,7 @@ void Renderer::OnResizeGpuRaytracer()
     }
 
     // Allocate descriptor heap
-    RaytracingDescriptorHeap = new DescriptorHeapStack(64, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 0);
+    RaytracingDescriptorHeap = new DescriptorHeapStack(16384 * 4, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 0);
 
     // Allocate descriptor for output view
     RaytracingDescriptorHeap->AllocateBufferUav(
@@ -166,6 +168,11 @@ void Renderer::OnResizeGpuRaytracer()
         RaytracingDescriptorHeap->AllocateBufferCbv(
             TheRenderScene->GetRenderSceneList()[i]->InstanceDataBuffer.GetGpuVirtualAddress(),
             static_cast<UINT>(TheRenderScene->GetRenderSceneList()[i]->InstanceDataBuffer.GetBufferSize())
+        );
+
+        RaytracingDescriptorHeap->AllocateBufferCbv(
+            TheRenderScene->GetRenderSceneList()[i]->MaterialBuffer.GetGpuVirtualAddress(),
+            static_cast<UINT>(TheRenderScene->GetRenderSceneList()[i]->MaterialBuffer.GetBufferSize())
         );
 
         RaytracingDescriptorHeap->AllocateBufferSrv(
@@ -289,6 +296,12 @@ void Renderer::SetupRealtimeRaytracingPipeline()
                 RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::LocalCB][RaytracingLocalRootSigSlot::Count],
                 D3D12_SHADER_VISIBILITY_ALL);
 
+            RaytracingLocalRootSig[RaytracingLocalRootSigSlot::MaterialCB].InitAsDescriptorRange(
+                D3D12_DESCRIPTOR_RANGE_TYPE_CBV,
+                RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::MaterialCB][RaytracingLocalRootSigSlot::Register],
+                RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::MaterialCB][RaytracingLocalRootSigSlot::Count],
+                D3D12_SHADER_VISIBILITY_ALL);
+
             RaytracingLocalRootSig[RaytracingLocalRootSigSlot::VertexBuffer].InitAsDescriptorRange(
                 D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
                 RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::VertexBuffer][RaytracingLocalRootSigSlot::Register],
@@ -302,8 +315,6 @@ void Renderer::SetupRealtimeRaytracingPipeline()
                 D3D12_SHADER_VISIBILITY_ALL);
         }
         RaytracingLocalRootSig.Finalize("RaytracerLocalRootSig", D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE);
-
-        
     }
 
     // Setup shaders and configs for the PSO
@@ -355,18 +366,23 @@ void Renderer::SetupRealtimeRaytracingPipeline()
             // Hit groups
             {
                 // Prepare the local data for the hitgroups
-                const uint32_t localDataStride = sizeof(D3D12_GPU_DESCRIPTOR_HANDLE) + sizeof(D3D12_GPU_DESCRIPTOR_HANDLE) + sizeof(D3D12_GPU_DESCRIPTOR_HANDLE);
-                uint8_t*       pHitGroupData   = new uint8_t[TheRenderScene->GetRenderSceneList().size() * localDataStride];
+                const uint32_t numDescriptorsPerInstance = 4;
+                const uint32_t localDataStride           = sizeof(D3D12_GPU_DESCRIPTOR_HANDLE) * numDescriptorsPerInstance;
+                uint8_t*       pHitGroupData             = new uint8_t[TheRenderScene->GetRenderSceneList().size() * localDataStride];
                 for (int i = 0; i < TheRenderScene->GetRenderSceneList().size(); i++)
                 {
                     uint32_t offset = (i * localDataStride);
                     {
-                        D3D12_GPU_DESCRIPTOR_HANDLE localCbVA     = RaytracingDescriptorHeap->GetGpuHandle(LocalSigDataIndexStart + (i * 3) + 0);
-                        D3D12_GPU_DESCRIPTOR_HANDLE vertBufferVA  = RaytracingDescriptorHeap->GetGpuHandle(LocalSigDataIndexStart + (i * 3) + 1);
-                        D3D12_GPU_DESCRIPTOR_HANDLE indexBufferVA = RaytracingDescriptorHeap->GetGpuHandle(LocalSigDataIndexStart + (i * 3) + 2);
+                        const uint32_t              descOffset    = LocalSigDataIndexStart + (i * numDescriptorsPerInstance);
+                        D3D12_GPU_DESCRIPTOR_HANDLE localCbVA     = RaytracingDescriptorHeap->GetGpuHandle(descOffset + 0);
+                        D3D12_GPU_DESCRIPTOR_HANDLE materialCbVA  = RaytracingDescriptorHeap->GetGpuHandle(descOffset + 1);
+                        D3D12_GPU_DESCRIPTOR_HANDLE vertBufferVA  = RaytracingDescriptorHeap->GetGpuHandle(descOffset + 2);
+                        D3D12_GPU_DESCRIPTOR_HANDLE indexBufferVA = RaytracingDescriptorHeap->GetGpuHandle(descOffset + 3);
 
                         memcpy(pHitGroupData + offset, &localCbVA, sizeof(localCbVA));
                         offset += sizeof(localCbVA);
+                        memcpy(pHitGroupData + offset, &materialCbVA, sizeof(materialCbVA));
+                        offset += sizeof(materialCbVA);
                         memcpy(pHitGroupData + offset, &vertBufferVA, sizeof(vertBufferVA));
                         offset += sizeof(vertBufferVA);
                         memcpy(pHitGroupData + offset, &indexBufferVA, sizeof(indexBufferVA));

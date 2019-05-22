@@ -49,7 +49,7 @@ float4 main(PixelShaderInput IN) : SV_Target
     float4 cpuRT        = CpuResultsTex.Sample(LinearRepeatSampler, IN.TexCoord)  * SceneCb.TextureMultipliers[3];
 
     float4 finalCol = 
-        ((texColor * ao)         * SceneCb.CompositeMultipliers[0]) + 
+        ((texColor)              * SceneCb.CompositeMultipliers[0]) + 
         ((texColor + ao + cpuRT) * SceneCb.CompositeMultipliers[1]);
 
     return finalCol;

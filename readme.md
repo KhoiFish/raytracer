@@ -5,6 +5,8 @@ This is a raytracing rendering application. It currently has CPU based and Realt
 The core CPU rendering code builds for Windows, Mac and Linux. The realtime raytracing is currently only supported under Windows 10.
 
 This project initially grew from working through the great "Raytracing in a Weekend" series by Peter Shirley. It has grown beyond it.
+<br>
+![alt text](https://github.com/KhoiFish/raytracer/blob/master/SavedImages/final.png "CPU traced image")
 
 # Credits
 

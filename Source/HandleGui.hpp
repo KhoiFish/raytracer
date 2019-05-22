@@ -146,18 +146,9 @@ void Renderer::RenderGui()
             ImGui::Text("GPU RAYTRACE OPTIONS");
             ImGui::Separator();
 
-            _itoa_s(UserInput.GpuNumRaysPerPixel, stringBuf, 10);
-            if (ImGui::InputText("Num Rays Per Pixel", stringBuf, IM_ARRAYSIZE(stringBuf), ImGuiInputTextFlags_CharsDecimal))
+            if (ImGui::SliderInt("Gpu Rays Per Pixel", &UserInput.GpuNumRaysPerPixel, 1, 100))
             {
-                UserInput.GpuNumRaysPerPixel = atoi(stringBuf);
-                gpuOptionsChanged = true;
-            }
-
-            _itoa_s(UserInput.GpuMaxRayRecursionDepth, stringBuf, 10);
-            if (ImGui::InputText("Gpu Recursion Depth", stringBuf, IM_ARRAYSIZE(stringBuf), ImGuiInputTextFlags_CharsDecimal))
-            {
-                UserInput.GpuMaxRayRecursionDepth = atoi(stringBuf);
-                gpuOptionsChanged = true;
+                cpuOptionsChanged = true;
             }
 
             if (ImGui::SliderFloat("Gpu Direct Light Scale", &UserInput.GpuDirectLightMult, 0.0f, 10.0f))

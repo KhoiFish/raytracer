@@ -147,7 +147,7 @@ private:
         bool    LeftMouseButtonPressed  = false;
         bool    ShiftKeyPressed         = false;
 
-        int     SampleScene             = SceneCornell;
+        int     SampleScene             = SceneMesh;
         float   VertFov                 = 40.f;
 
         int     CpuNumSamplesPerRay     = 500;
@@ -156,7 +156,7 @@ private:
 
         int     GpuMaxRayRecursionDepth = 5;
         int     GpuNumRaysPerPixel      = 1;
-        float   GpuAORadius             = 400.0f;
+        float   GpuAORadius             = 500.0f;
         bool    GpuCameraJitter         = true;
         float   GpuDirectLightMult      = 2.0f;
         float   GpuIndirectLightMult    = 0.5f;

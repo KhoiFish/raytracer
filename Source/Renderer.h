@@ -56,9 +56,9 @@ public:
     virtual void    OnInit() override;
     virtual void    OnKeyDown(UINT8 key) override;
     virtual void    OnKeyUp(uint8_t key) override;
-    virtual void    OnMouseMove(uint32_t x, uint32_t y) override;
-    virtual void    OnLeftButtonDown(uint32_t x, uint32_t y) override;
-    virtual void    OnLeftButtonUp(uint32_t x, uint32_t y) override;
+    virtual void    OnMouseMove(int32_t x, int32_t y) override;
+    virtual void    OnLeftButtonDown(int32_t x, int32_t y) override;
+    virtual void    OnLeftButtonUp(int32_t x, int32_t y) override;
     virtual void    OnUpdate(float dtSeconds) override;
     virtual void    OnRender() override;
     virtual void    OnSizeChanged(uint32_t width, uint32_t height, bool minimized) override;

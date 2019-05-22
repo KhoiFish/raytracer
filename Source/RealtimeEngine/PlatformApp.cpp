@@ -18,6 +18,7 @@
 // ----------------------------------------------------------------------------------------------------------------------------
 
 #include "PlatformApp.h"
+#include "windowsx.h"
 #include <imgui/imgui.h>
 #include <imgui/examples/imgui_impl_win32.h>
 
@@ -322,8 +323,8 @@ LRESULT CALLBACK PlatformApp::WindowProc(HWND hWnd, uint32_t message, WPARAM wPa
             GetWindowRect(hWnd, &windowRect);
             pRenderInterface->SetWindowBounds(windowRect.left, windowRect.top, windowRect.right, windowRect.bottom);
 
-            int xPos = (int)(short)LOWORD(lParam);
-            int yPos = (int)(short)HIWORD(lParam);
+            int xPos = (int)(short)GET_X_LPARAM(lParam);
+            int yPos = (int)(short)GET_Y_LPARAM(lParam);
             pRenderInterface->OnWindowMoved(xPos, yPos);
         }
         return 0;
@@ -338,8 +339,8 @@ LRESULT CALLBACK PlatformApp::WindowProc(HWND hWnd, uint32_t message, WPARAM wPa
     case WM_MOUSEMOVE:
         if (pRenderInterface && static_cast<UINT8>(wParam) == MK_LBUTTON && !mouseCaptured)
         {
-            uint32_t x = LOWORD(lParam);
-            uint32_t y = HIWORD(lParam);
+            int32_t x = GET_X_LPARAM(lParam);
+            int32_t y = GET_Y_LPARAM(lParam);
             pRenderInterface->OnMouseMove(x, y);
         }
         return 0;
@@ -347,8 +348,8 @@ LRESULT CALLBACK PlatformApp::WindowProc(HWND hWnd, uint32_t message, WPARAM wPa
     case WM_LBUTTONDOWN:
     if (!mouseCaptured)
     {
-        uint32_t x = LOWORD(lParam);
-        uint32_t y = HIWORD(lParam);
+        int32_t x = GET_X_LPARAM(lParam);
+        int32_t y = GET_Y_LPARAM(lParam);
         pRenderInterface->OnLeftButtonDown(x, y);
     }
     return 0;
@@ -356,8 +357,8 @@ LRESULT CALLBACK PlatformApp::WindowProc(HWND hWnd, uint32_t message, WPARAM wPa
     case WM_LBUTTONUP:
     if  (!mouseCaptured)
     {
-        uint32_t x = LOWORD(lParam);
-        uint32_t y = HIWORD(lParam);
+        int32_t x = GET_X_LPARAM(lParam);
+        int32_t y = GET_Y_LPARAM(lParam);
         pRenderInterface->OnLeftButtonUp(x, y);
     }
     return 0;

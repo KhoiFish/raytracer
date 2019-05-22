@@ -53,9 +53,9 @@ namespace RealtimeEngine
         virtual void                   OnKeyDown(uint8_t key) {}
         virtual void                   OnKeyUp(uint8_t key) {}
         virtual void                   OnWindowMoved(int x, int y) {}
-        virtual void                   OnMouseMove(uint32_t x, uint32_t y) {}
-        virtual void                   OnLeftButtonDown(uint32_t x, uint32_t y) {}
-        virtual void                   OnLeftButtonUp(uint32_t x, uint32_t y) {}
+        virtual void                   OnMouseMove(int32_t x, int32_t y) {}
+        virtual void                   OnLeftButtonDown(int32_t x, int32_t y) {}
+        virtual void                   OnLeftButtonUp(int32_t x, int32_t y) {}
         virtual void                   OnDisplayChanged() {}
         virtual bool                   OverrideImguiInput() { return true; }
 

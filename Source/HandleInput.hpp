@@ -184,7 +184,7 @@ bool Renderer::OverrideImguiInput()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::OnMouseMove(uint32_t x, uint32_t y)
+void Renderer::OnMouseMove(int32_t x, int32_t y)
 {
     if (UserInput.LeftMouseButtonPressed)
     {
@@ -198,7 +198,7 @@ void Renderer::OnMouseMove(uint32_t x, uint32_t y)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::OnLeftButtonDown(uint32_t x, uint32_t y)
+void Renderer::OnLeftButtonDown(int32_t x, int32_t y)
 {
     UserInput.LeftMouseButtonPressed = true;
     UserInput.PrevMouseX             = x;
@@ -208,7 +208,7 @@ void Renderer::OnLeftButtonDown(uint32_t x, uint32_t y)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::OnLeftButtonUp(uint32_t x, uint32_t y)
+void Renderer::OnLeftButtonUp(int32_t x, int32_t y)
 {
     UserInput.LeftMouseButtonPressed = false;
     UserInput.PrevMouseX             = x;

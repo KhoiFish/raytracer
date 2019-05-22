@@ -68,6 +68,7 @@ public:
 private:
 
     void            SetupRealtimeRaytracingPipeline();
+    void            SetupRaytracingPSO();
     void            SetupRealtimePipeline();
     void            SetupRenderBuffers();
     void            SetupGui();
@@ -188,7 +189,7 @@ private:
 
     RootSignature                   RaytracingGlobalRootSig;
     RootSignature                   RaytracingLocalRootSig;
-    RaytracingPSO                   TheRaytracingPSO;
+    RaytracingPSO*                  TheRaytracingPSO;
     DescriptorHeapStack*            RaytracingDescriptorHeap;
     ByteAddressBuffer               RaytracingSceneConstantBuffer;
     int32_t                         RaytracingShaderIndex[RaytracingShaderType_Num];

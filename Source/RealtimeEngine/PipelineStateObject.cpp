@@ -261,12 +261,6 @@ RaytracingPSO::~RaytracingPSO()
         RaytracingPipelineStateObject->Release();
         RaytracingPipelineStateObject = nullptr;
     }
-    
-    if (GlobalRootSignatureInterfacePtr != nullptr)
-    {
-        GlobalRootSignatureInterfacePtr->Release();
-        GlobalRootSignatureInterfacePtr = nullptr;
-    }
 
     for (std::map<std::string, LocalRootSignatureData*>::iterator iter = LocalRootSignatureDataList.begin();
          iter != LocalRootSignatureDataList.end();

@@ -64,7 +64,7 @@ namespace Core
             }
             else
             {
-                return 0;
+                return 0.05f;
             }
         }
 

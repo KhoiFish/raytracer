@@ -297,21 +297,8 @@ Vec4 Raytracer::trace(WorldScene* scene, const Ray& r, int depth)
                         pdf = &mixPdf;
                     }
 
-                    // PDF values may be zero or close to it, or close to infinity.
-                    // We retry in these cases
-                    int   numPdfQueries = 0;
-                    do
-                    {
-                        scattered = Ray(hitRec.P, pdf->Generate(), r.Time());
-                        pdfValue = pdf->Value(scattered.Direction());
-                        numPdfQueries++;
-                    } while (pdfValue <= 0.0000001f);
-
-                    if (numPdfQueries > 1)
-                    {
-                        NumPdfQueryRetries += (numPdfQueries - 1);
-                    }
-
+                    scattered  = Ray(hitRec.P, pdf->Generate(), r.Time());
+                    pdfValue   = pdf->Value(scattered.Direction());
                     scatterPdf = hitRec.MatPtr->ScatteringPdf(r, hitRec, scattered);
                 }
 

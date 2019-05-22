@@ -302,6 +302,12 @@ Vec4 Raytracer::trace(WorldScene* scene, const Ray& r, int depth)
                     scatterPdf = hitRec.MatPtr->ScatteringPdf(r, hitRec, scattered);
                 }
 
+                // Clamp bad pdf values
+                if (isnan(pdfValue) || isinf(pdfValue))
+                {
+                    pdfValue = 1.0f;
+                }
+
                 // Compute the aggregate color
                 const Vec4 color = trace(scene, scattered, depth + 1);
                 const Vec4 ret   = emitted + (scatterRec.Attenuation * scatterPdf * color / pdfValue);

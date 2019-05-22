@@ -131,13 +131,18 @@ void Renderer::CleanupGpuRaytracer()
         delete RaytracingDescriptorHeap;
         RaytracingDescriptorHeap = nullptr;
     }
+
+    if (TheRaytracingPSO != nullptr)
+    {
+        delete TheRaytracingPSO;
+        TheRaytracingPSO = nullptr;
+    }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
 void Renderer::OnResizeGpuRaytracer()
 {
-    // Re-setup descriptors and raytracing PSO
     SetupRaytracingDescriptors();
     SetupRaytracingPSO();
 }
@@ -145,6 +150,15 @@ void Renderer::OnResizeGpuRaytracer()
 // ----------------------------------------------------------------------------------------------------------------------------
 
 void Renderer::SetupRealtimeRaytracingPipeline()
+{
+    SetupRaytracingRootSignatures();
+    SetupRaytracingDescriptors();
+    SetupRaytracingPSO();
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void Renderer::SetupRaytracingRootSignatures()
 {
     // Allocate scene constant buffer
     RaytracingSceneConstantBuffer.Create(L"Raytracing Scene Globals Buffer", 1, (uint32_t)AlignUp(sizeof(RaytracingGlobalCB), 256));
@@ -247,10 +261,6 @@ void Renderer::SetupRealtimeRaytracingPipeline()
         }
         RaytracingLocalRootSig.Finalize("RaytracerLocalRootSig", D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE);
     }
-
-    // Setup descriptors and raytracing PSO
-    SetupRaytracingDescriptors();
-    SetupRaytracingPSO();
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

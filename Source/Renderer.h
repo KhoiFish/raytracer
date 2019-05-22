@@ -73,6 +73,7 @@ private:
     void            SetupGui();
     void            LoadScene();
 
+    void            SetupRaytracingRootSignatures();
     void            SetupRaytracingDescriptors();
     void            SetupRaytracingPSO();
 

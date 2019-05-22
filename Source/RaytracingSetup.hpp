@@ -130,98 +130,8 @@ void Renderer::CleanupGpuRaytracer()
 
 void Renderer::OnResizeGpuRaytracer()
 {
-    // Delete old one, if it exists
-    if (RaytracingDescriptorHeap != nullptr)
-    {
-        delete RaytracingDescriptorHeap;
-        RaytracingDescriptorHeap = nullptr;
-    }
-
-    // Allocate descriptor heap
-    RaytracingDescriptorHeap = new DescriptorHeapStack(16384 * 4, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 0);
-
-    // Allocate descriptor for output view
-    RaytracingDescriptorHeap->AllocateBufferUav(
-        *LambertAndAOBuffer[0].GetResource(),
-        D3D12_UAV_DIMENSION_TEXTURE2D,
-        D3D12_BUFFER_UAV_FLAG_NONE,
-        RaytracingBufferType);
-
-    RaytracingDescriptorHeap->AllocateBufferUav(
-        *LambertAndAOBuffer[1].GetResource(),
-        D3D12_UAV_DIMENSION_TEXTURE2D,
-        D3D12_BUFFER_UAV_FLAG_NONE,
-        RaytracingBufferType);
-
-    // Scene CB
-    RaytracingDescriptorHeap->AllocateBufferCbv(
-        RaytracingSceneConstantBuffer.GetGpuVirtualAddress(),        
-        (UINT)RaytracingSceneConstantBuffer.GetBufferSize());
-
-    // Allocate descriptor for acceleration structures
-    RaytracingDescriptorHeap->AllocateBufferSrvRaytracing(
-        TheRenderScene->GetRaytracingGeometry()->GetTLASVirtualAddress(),
-        D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE,
-        D3D12_BUFFER_SRV_FLAG_NONE,
-        DXGI_FORMAT_UNKNOWN,
-        D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
-
-    // Positions
-    RaytracingDescriptorHeap->AllocateTexture2DSrv(
-        DeferredBuffers[DeferredBufferType_Position].GetResource(),
-        DeferredBuffersRTTypes[DeferredBufferType_Position],
-        D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
-
-    // Normals
-    RaytracingDescriptorHeap->AllocateTexture2DSrv(
-        DeferredBuffers[DeferredBufferType_Normal].GetResource(),
-        DeferredBuffersRTTypes[DeferredBufferType_Normal],
-        D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
-
-    // TexCoords and Depth
-    RaytracingDescriptorHeap->AllocateTexture2DSrv(
-        DeferredBuffers[DeferredBufferType_TexCoordAndDepth].GetResource(),
-        DeferredBuffersRTTypes[DeferredBufferType_TexCoordAndDepth],
-        D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
-
-    // Albedo
-    RaytracingDescriptorHeap->AllocateTexture2DSrv(
-        DeferredBuffers[DeferredBufferType_Albedo].GetResource(),
-        DeferredBuffersRTTypes[DeferredBufferType_Albedo],
-        D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
-
-    // Allocate descriptors for vertex and index buffers for all instances of geometry
-    LocalSigDataIndexStart = RaytracingDescriptorHeap->GetCount();
-    for (int i = 0; i < TheRenderScene->GetRenderSceneList().size(); i++)
-    {
-        RaytracingDescriptorHeap->AllocateBufferCbv(
-            TheRenderScene->GetRenderSceneList()[i]->InstanceDataBuffer.GetGpuVirtualAddress(),
-            static_cast<UINT>(TheRenderScene->GetRenderSceneList()[i]->InstanceDataBuffer.GetBufferSize())
-        );
-
-        RaytracingDescriptorHeap->AllocateBufferCbv(
-            TheRenderScene->GetRenderSceneList()[i]->MaterialBuffer.GetGpuVirtualAddress(),
-            static_cast<UINT>(TheRenderScene->GetRenderSceneList()[i]->MaterialBuffer.GetBufferSize())
-        );
-
-        RaytracingDescriptorHeap->AllocateBufferSrv(
-            TheRenderScene->GetRenderSceneList()[i]->VertexBuffer.GetResource(),
-            (static_cast<UINT>(TheRenderScene->GetRenderSceneList()[i]->Vertices.size()) * sizeof(RealtimeSceneVertex)) / sizeof(float),
-            D3D12_SRV_DIMENSION_BUFFER,
-            D3D12_BUFFER_SRV_FLAG_RAW,
-            DXGI_FORMAT_R32_TYPELESS
-        );
-
-        RaytracingDescriptorHeap->AllocateBufferSrv(
-            TheRenderScene->GetRenderSceneList()[i]->IndexBuffer.GetResource(),
-            (static_cast<UINT>(TheRenderScene->GetRenderSceneList()[i]->Indices.size()) * sizeof(uint32_t)) / sizeof(float),
-            D3D12_SRV_DIMENSION_BUFFER,
-            D3D12_BUFFER_SRV_FLAG_RAW,
-            DXGI_FORMAT_R32_TYPELESS
-        );
-    }
-
-    // Re-setup the PSO
+    // Re-setup descriptors and raytracing PSO
+    SetupRaytracingDescriptors();
     SetupRaytracingPSO();
 }
 
@@ -319,8 +229,105 @@ void Renderer::SetupRealtimeRaytracingPipeline()
         RaytracingLocalRootSig.Finalize("RaytracerLocalRootSig", D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE);
     }
 
-    // This will allocate descriptor heap and setup raytracing PSO
-    OnResizeGpuRaytracer();
+    // Setup descriptors and raytracing PSO
+    SetupRaytracingDescriptors();
+    SetupRaytracingPSO();
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void Renderer::SetupRaytracingDescriptors()
+{
+    // Delete old one, if it exists
+    if (RaytracingDescriptorHeap != nullptr)
+    {
+        delete RaytracingDescriptorHeap;
+        RaytracingDescriptorHeap = nullptr;
+    }
+
+    // Allocate descriptor heap
+    RaytracingDescriptorHeap = new DescriptorHeapStack(16384 * 4, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 0);
+
+    // Allocate descriptor for output view
+    RaytracingDescriptorHeap->AllocateBufferUav(
+        *LambertAndAOBuffer[0].GetResource(),
+        D3D12_UAV_DIMENSION_TEXTURE2D,
+        D3D12_BUFFER_UAV_FLAG_NONE,
+        RaytracingBufferType);
+
+    RaytracingDescriptorHeap->AllocateBufferUav(
+        *LambertAndAOBuffer[1].GetResource(),
+        D3D12_UAV_DIMENSION_TEXTURE2D,
+        D3D12_BUFFER_UAV_FLAG_NONE,
+        RaytracingBufferType);
+
+    // Scene CB
+    RaytracingDescriptorHeap->AllocateBufferCbv(
+        RaytracingSceneConstantBuffer.GetGpuVirtualAddress(),
+        (UINT)RaytracingSceneConstantBuffer.GetBufferSize());
+
+    // Allocate descriptor for acceleration structures
+    RaytracingDescriptorHeap->AllocateBufferSrvRaytracing(
+        TheRenderScene->GetRaytracingGeometry()->GetTLASVirtualAddress(),
+        D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE,
+        D3D12_BUFFER_SRV_FLAG_NONE,
+        DXGI_FORMAT_UNKNOWN,
+        D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
+
+    // Positions
+    RaytracingDescriptorHeap->AllocateTexture2DSrv(
+        DeferredBuffers[DeferredBufferType_Position].GetResource(),
+        DeferredBuffersRTTypes[DeferredBufferType_Position],
+        D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
+
+    // Normals
+    RaytracingDescriptorHeap->AllocateTexture2DSrv(
+        DeferredBuffers[DeferredBufferType_Normal].GetResource(),
+        DeferredBuffersRTTypes[DeferredBufferType_Normal],
+        D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
+
+    // TexCoords and Depth
+    RaytracingDescriptorHeap->AllocateTexture2DSrv(
+        DeferredBuffers[DeferredBufferType_TexCoordAndDepth].GetResource(),
+        DeferredBuffersRTTypes[DeferredBufferType_TexCoordAndDepth],
+        D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
+
+    // Albedo
+    RaytracingDescriptorHeap->AllocateTexture2DSrv(
+        DeferredBuffers[DeferredBufferType_Albedo].GetResource(),
+        DeferredBuffersRTTypes[DeferredBufferType_Albedo],
+        D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
+
+    // Allocate descriptors for vertex and index buffers for all instances of geometry
+    LocalSigDataIndexStart = RaytracingDescriptorHeap->GetCount();
+    for (int i = 0; i < TheRenderScene->GetRenderSceneList().size(); i++)
+    {
+        RaytracingDescriptorHeap->AllocateBufferCbv(
+            TheRenderScene->GetRenderSceneList()[i]->InstanceDataBuffer.GetGpuVirtualAddress(),
+            static_cast<UINT>(TheRenderScene->GetRenderSceneList()[i]->InstanceDataBuffer.GetBufferSize())
+        );
+
+        RaytracingDescriptorHeap->AllocateBufferCbv(
+            TheRenderScene->GetRenderSceneList()[i]->MaterialBuffer.GetGpuVirtualAddress(),
+            static_cast<UINT>(TheRenderScene->GetRenderSceneList()[i]->MaterialBuffer.GetBufferSize())
+        );
+
+        RaytracingDescriptorHeap->AllocateBufferSrv(
+            TheRenderScene->GetRenderSceneList()[i]->VertexBuffer.GetResource(),
+            (static_cast<UINT>(TheRenderScene->GetRenderSceneList()[i]->Vertices.size()) * sizeof(RealtimeSceneVertex)) / sizeof(float),
+            D3D12_SRV_DIMENSION_BUFFER,
+            D3D12_BUFFER_SRV_FLAG_RAW,
+            DXGI_FORMAT_R32_TYPELESS
+        );
+
+        RaytracingDescriptorHeap->AllocateBufferSrv(
+            TheRenderScene->GetRenderSceneList()[i]->IndexBuffer.GetResource(),
+            (static_cast<UINT>(TheRenderScene->GetRenderSceneList()[i]->Indices.size()) * sizeof(uint32_t)) / sizeof(float),
+            D3D12_SRV_DIMENSION_BUFFER,
+            D3D12_BUFFER_SRV_FLAG_RAW,
+            DXGI_FORMAT_R32_TYPELESS
+        );
+    }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

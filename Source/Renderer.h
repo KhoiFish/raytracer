@@ -68,11 +68,13 @@ public:
 private:
 
     void            SetupRealtimeRaytracingPipeline();
-    void            SetupRaytracingPSO();
     void            SetupRealtimePipeline();
     void            SetupRenderBuffers();
     void            SetupGui();
     void            LoadScene();
+
+    void            SetupRaytracingDescriptors();
+    void            SetupRaytracingPSO();
 
     void            OnResizeCpuRaytracer();
     void            OnResizeGpuRaytracer();

@@ -76,6 +76,7 @@ namespace RealtimeEngine
         static void             Initialize(const string_t& textureLibRoot);
         static void             Shutdown();
         static ManagedTexture*  LoadFromFile(const string_t& fileName, bool sRGB = false);
+        static Texture&         CreateFromColor(float r, float g, float b, float a);
         static Texture&         GetBlackTex2D();
         static Texture&         GetWhiteTex2D();
         static Texture&         GetMagentaTex2D();

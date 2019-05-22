@@ -55,7 +55,7 @@ MRT main(PixelShaderInput IN)
     mrt.Position         = IN.PositionWS;
     mrt.Normal           = float4(IN.NormalWS, 1);
     mrt.TexCoordAndDepth = float4(IN.TexCoord, IN.LinearDepth, 0);
-    mrt.Diffuse = DiffuseTexture.Sample(LinearRepeatSampler, IN.TexCoord); // *MaterialCb.Diffuse;
+    mrt.Diffuse          = DiffuseTexture.Sample(LinearRepeatSampler, IN.TexCoord); // *MaterialCb.Diffuse;
 
     return mrt;
 }

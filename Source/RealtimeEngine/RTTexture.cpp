@@ -316,6 +316,40 @@ static inline pair<ManagedTexture*, bool> FindOrLoadTexture(const string_t& file
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+static inline uint32_t rgbaToHex(float r, float g, float b, float a)
+{
+    uint8_t cR = uint8_t(r * 255.0f);
+    uint8_t cG = uint8_t(g * 255.0f);
+    uint8_t cB = uint8_t(b * 255.0f);
+    uint8_t cA = uint8_t(a * 255.0f);
+
+    return ((cA << 24) | (cB << 16) | (cG << 8) | (cR << 0));
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+Texture& TextureManager::CreateFromColor(float r, float g, float b, float a)
+{
+    char hashName[256];
+    sprintf_s(hashName, "%f %f %f", r, g, b);
+
+    auto            managedTex   = FindOrLoadTexture(hashName);
+    ManagedTexture* manTex       = managedTex.first;
+    const bool      requestsLoad = managedTex.second;
+    if (!requestsLoad)
+    {
+        manTex->WaitForLoad();
+        return *manTex;
+    }
+
+    uint32_t pixelColor = rgbaToHex(r, g, b, a);
+    manTex->Create(1, 1, DXGI_FORMAT_R8G8B8A8_UNORM, &pixelColor);
+
+    return *manTex;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 Texture& TextureManager::GetBlackTex2D()
 {
     auto            managedTex   = FindOrLoadTexture("DefaultBlackTexture");

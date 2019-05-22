@@ -40,7 +40,7 @@ IMGUI
 <br>
 [https://github.com/ocornut/imgui]
 
-# Speacial Thanks
+# Special Thanks
 
 The following people were great influences and provided great learning material and knowledge through their works, books, posts and material. If any of you are reading this, thank you for sharing your knowledge and for inspiring this project.
 

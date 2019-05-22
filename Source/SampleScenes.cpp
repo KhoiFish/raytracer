@@ -294,7 +294,7 @@ static WorldScene* sampleSceneMesh()
         IHitable *r8 =
             new HitableTranslate(
                 new HitableRotateY(
-                    TriMesh::CreateFromOBJFile(GetAbsolutePath(RUNTIMEDATA_DIR "/r8.obj").c_str(), 25.f, true), 20.f),
+                    TriMesh::CreateFromOBJFile(GetAbsolutePath(RUNTIMEDATA_DIR "/r8.obj").c_str(), 25.f, false), 20.f),
                 Vec4(220, 105, 145)
             );
         list[total++] = r8;

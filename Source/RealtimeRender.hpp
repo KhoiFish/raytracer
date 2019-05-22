@@ -39,6 +39,7 @@ enum RealtimeRenderingRootIndex
     RealtimeRenderingRootIndex_Texture4,
     RealtimeRenderingRootIndex_Texture5,
     RealtimeRenderingRootIndex_Texture6,
+    RealtimeRenderingRootIndex_Texture7,
 
     RealtimeRenderingRootIndex_Num
 };
@@ -54,6 +55,7 @@ enum RealtimeRenderingRegisters
     RealtimeRenderingRegisters_Texture4         = 4,
     RealtimeRenderingRegisters_Texture5         = 5,
     RealtimeRenderingRegisters_Texture6         = 6,
+    RealtimeRenderingRegisters_Texture7         = 7,
     RealtimeRenderingRegisters_LinearSampler    = 0,
     RealtimeRenderingRegisters_AnisoSampler     = 1,
 };
@@ -64,8 +66,9 @@ const char* Renderer::GetSelectedBufferName()
 {
     static const char* bufferNames[] =
     {
-        "Composite",
-        "Shaded + Lit",
+        "Composited Output",
+        "Direct Lighting",
+        "Indirect Lighting",
         "Ambient Occlusion",
         "Cpu Raytrace",
     };
@@ -106,7 +109,12 @@ void Renderer::OnResizeRealtimeRenderer()
     RealtimeDescriptorHeap = new DescriptorHeapStack(64, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 0);
 
     RealtimeDescriptorHeap->AllocateTexture2DSrv(
-        LambertAndAOBuffer[1].GetResource(),
+        DirectLightingAOBuffer[1].GetResource(),
+        RaytracingBufferType,
+        D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
+
+    RealtimeDescriptorHeap->AllocateTexture2DSrv(
+        IndirectLightingBuffer[1].GetResource(),
         RaytracingBufferType,
         D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
 
@@ -180,6 +188,7 @@ void Renderer::SetupRealtimePipeline()
         RealtimeRootSignature[RealtimeRenderingRootIndex_Texture4].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RealtimeRenderingRegisters_Texture4, 1);
         RealtimeRootSignature[RealtimeRenderingRootIndex_Texture5].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RealtimeRenderingRegisters_Texture5, 1);
         RealtimeRootSignature[RealtimeRenderingRootIndex_Texture6].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RealtimeRenderingRegisters_Texture6, 1);
+        RealtimeRootSignature[RealtimeRenderingRootIndex_Texture7].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RealtimeRenderingRegisters_Texture7, 1);
         RealtimeRootSignature.InitStaticSampler(RealtimeRenderingRegisters_LinearSampler, linearSamplerDesc, D3D12_SHADER_VISIBILITY_PIXEL);
         RealtimeRootSignature.InitStaticSampler(RealtimeRenderingRegisters_AnisoSampler, anisoSamplerDesc, D3D12_SHADER_VISIBILITY_PIXEL);
         RealtimeRootSignature.Finalize("RealtimeRender", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
@@ -411,11 +420,15 @@ void Renderer::RenderCompositePass()
                     sceneCb.CompositeMultipliers[0] = bufferOff;
                     sceneCb.CompositeMultipliers[1] = bufferOn;
                 }
+
+                // Setup direct/indirect multipliers
+                sceneCb.DirectIndirectLightMult = XMFLOAT2(UserInput.GpuDirectLightMult, UserInput.GpuIndirectLightMult);
             }
 
             // Transition resources
             renderContext.TransitionResource(CPURaytracerTex, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-            renderContext.TransitionResource(LambertAndAOBuffer[1], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+            renderContext.TransitionResource(DirectLightingAOBuffer[1], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+            renderContext.TransitionResource(IndirectLightingBuffer[1], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
             for (int i = 0; i < DeferredBufferType_Num; i++)
             {
                 renderContext.TransitionResource(DeferredBuffers[i], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);

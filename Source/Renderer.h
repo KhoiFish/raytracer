@@ -154,10 +154,12 @@ private:
         int     CpuMaxScatterDepth      = 50;
         int     CpuNumThreads           = 4;
 
-        int     GpuMaxRayRecursionDepth = 10;
-        int     GpuNumRaysPerPixel      = 10;
+        int     GpuMaxRayRecursionDepth = 5;
+        int     GpuNumRaysPerPixel      = 1;
         float   GpuAORadius             = 400.0f;
         bool    GpuCameraJitter         = true;
+        float   GpuDirectLightMult      = 1.0f;
+        float   GpuIndirectLightMult    = 15.0f;
     };
 
 private:
@@ -182,7 +184,8 @@ private:
 
     ColorBuffer                     CPURaytracerTex;
     ColorBuffer                     DeferredBuffers[DeferredBufferType_Num];
-    ColorBuffer                     LambertAndAOBuffer[2];
+    ColorBuffer                     DirectLightingAOBuffer[2];
+    ColorBuffer                     IndirectLightingBuffer[2];
 
     RootSignature                   RealtimeRootSignature;
     GraphicsPSO                     RealtimeGeometryPassPSO;

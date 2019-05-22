@@ -55,8 +55,10 @@ namespace RaytracingGlobalRootSigSlot
 {
     enum EnumTypes
     {
-        PrevOutput1 = 0,
-        CurOutput1,
+        PrevDirectLightAO = 0,
+        CurrDirectLightAO,
+        PrevIndirectLight,
+        CurrIndirectLight,
         SceneCB,
         AccelerationStructure,
         Positions,
@@ -76,9 +78,13 @@ namespace RaytracingGlobalRootSigSlot
     // [register, count]
     static UINT Range[RaytracingGlobalRootSigSlot::Num][2] =
     {
-        { 0, 1 },   // PrevOutput1
-        { 1, 1 },   // CurOutput1
+        { 0, 1 },   // PrevDirectLightAO
+        { 1, 1 },   // CurrDirectLightAO
+        { 2, 1 },   // PrevIndirectLight
+        { 3, 1 },   // CurrIndirectLight
+
         { 0, 1 },   // Scene CB
+
         { 0, 1 },   // AccelerationStructure
         { 1, 1 },   // Positions
         { 2, 1 },   // Normals
@@ -110,6 +116,7 @@ namespace RaytracingLocalRootSigSlot
     {
         { 1, 1 }, // LocalCB
         { 2, 1 }, // Scene
+
         { 5, 1 }, // VertexBuffer
         { 6, 1 }, // IndexBuffer
     };
@@ -146,16 +153,28 @@ void Renderer::SetupRealtimeRaytracingPipeline()
     {
         RaytracingGlobalRootSig.Reset(RaytracingGlobalRootSigSlot::Num, 0);
         {
-            RaytracingGlobalRootSig[RaytracingGlobalRootSigSlot::PrevOutput1].InitAsDescriptorRange(
+            RaytracingGlobalRootSig[RaytracingGlobalRootSigSlot::PrevDirectLightAO].InitAsDescriptorRange(
                 D3D12_DESCRIPTOR_RANGE_TYPE_UAV,
-                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::PrevOutput1][RaytracingGlobalRootSigSlot::Register],
-                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::PrevOutput1][RaytracingGlobalRootSigSlot::Count],
+                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::PrevDirectLightAO][RaytracingGlobalRootSigSlot::Register],
+                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::PrevDirectLightAO][RaytracingGlobalRootSigSlot::Count],
                 D3D12_SHADER_VISIBILITY_ALL);
 
-            RaytracingGlobalRootSig[RaytracingGlobalRootSigSlot::CurOutput1].InitAsDescriptorRange(
+            RaytracingGlobalRootSig[RaytracingGlobalRootSigSlot::CurrDirectLightAO].InitAsDescriptorRange(
                 D3D12_DESCRIPTOR_RANGE_TYPE_UAV,
-                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::CurOutput1][RaytracingGlobalRootSigSlot::Register],
-                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::CurOutput1][RaytracingGlobalRootSigSlot::Count],
+                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::CurrDirectLightAO][RaytracingGlobalRootSigSlot::Register],
+                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::CurrDirectLightAO][RaytracingGlobalRootSigSlot::Count],
+                D3D12_SHADER_VISIBILITY_ALL);
+
+            RaytracingGlobalRootSig[RaytracingGlobalRootSigSlot::PrevIndirectLight].InitAsDescriptorRange(
+                D3D12_DESCRIPTOR_RANGE_TYPE_UAV,
+                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::PrevIndirectLight][RaytracingGlobalRootSigSlot::Register],
+                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::PrevIndirectLight][RaytracingGlobalRootSigSlot::Count],
+                D3D12_SHADER_VISIBILITY_ALL);
+
+            RaytracingGlobalRootSig[RaytracingGlobalRootSigSlot::CurrIndirectLight].InitAsDescriptorRange(
+                D3D12_DESCRIPTOR_RANGE_TYPE_UAV,
+                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::CurrIndirectLight][RaytracingGlobalRootSigSlot::Register],
+                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::CurrIndirectLight][RaytracingGlobalRootSigSlot::Count],
                 D3D12_SHADER_VISIBILITY_ALL);
 
             RaytracingGlobalRootSig[RaytracingGlobalRootSigSlot::SceneCB].InitAsDescriptorRange(
@@ -248,18 +267,25 @@ void Renderer::SetupRaytracingDescriptors()
     // Allocate descriptor heap
     RaytracingDescriptorHeap = new DescriptorHeapStack(16384 * 4, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 0);
 
-    // Allocate descriptor for output view
-    RaytracingDescriptorHeap->AllocateBufferUav(
-        *LambertAndAOBuffer[0].GetResource(),
-        D3D12_UAV_DIMENSION_TEXTURE2D,
-        D3D12_BUFFER_UAV_FLAG_NONE,
-        RaytracingBufferType);
+    // Allocate descriptors for prev and current direct lighting + ao
+    for (int i = 0; i < 2; i++)
+    {
+        RaytracingDescriptorHeap->AllocateBufferUav(
+            *DirectLightingAOBuffer[i].GetResource(),
+            D3D12_UAV_DIMENSION_TEXTURE2D,
+            D3D12_BUFFER_UAV_FLAG_NONE,
+            RaytracingBufferType);
+    }
 
-    RaytracingDescriptorHeap->AllocateBufferUav(
-        *LambertAndAOBuffer[1].GetResource(),
-        D3D12_UAV_DIMENSION_TEXTURE2D,
-        D3D12_BUFFER_UAV_FLAG_NONE,
-        RaytracingBufferType);
+    // Allocate descriptors for prev and current indirect lighting
+    for (int i = 0; i < 2; i++)
+    {
+        RaytracingDescriptorHeap->AllocateBufferUav(
+            *IndirectLightingBuffer[i].GetResource(),
+            D3D12_UAV_DIMENSION_TEXTURE2D,
+            D3D12_BUFFER_UAV_FLAG_NONE,
+            RaytracingBufferType);
+    }
 
     // Scene CB
     RaytracingDescriptorHeap->AllocateBufferCbv(
@@ -522,14 +548,19 @@ void Renderer::RenderGpuRaytracing()
         }
         
         // Transition all output buffers
-        computeContext.TransitionResource(LambertAndAOBuffer[0], D3D12_RESOURCE_STATE_UNORDERED_ACCESS, true);
-        computeContext.TransitionResource(LambertAndAOBuffer[1], D3D12_RESOURCE_STATE_UNORDERED_ACCESS, true);
+        for (int i = 0; i < 2; i++)
+        {
+            computeContext.TransitionResource(DirectLightingAOBuffer[i], D3D12_RESOURCE_STATE_UNORDERED_ACCESS, true);
+            computeContext.TransitionResource(IndirectLightingBuffer[i], D3D12_RESOURCE_STATE_UNORDERED_ACCESS, true);
+        }
+        
 
         // Finally dispatch rays
         computeContext.DispatchRays(*TheRaytracingPSO, Width, Height);
 
         // Copy current results to previous
-        computeContext.CopyBuffer(LambertAndAOBuffer[0], LambertAndAOBuffer[1]);
+        computeContext.CopyBuffer(DirectLightingAOBuffer[0], DirectLightingAOBuffer[1]);
+        computeContext.CopyBuffer(IndirectLightingBuffer[0], IndirectLightingBuffer[1]);
     }
     computeContext.Finish(true);
 }

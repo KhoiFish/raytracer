@@ -147,7 +147,7 @@ void Renderer::RenderGui()
             ImGui::Separator();
 
             _itoa_s(UserInput.GpuNumRaysPerPixel, stringBuf, 10);
-            if (ImGui::InputText("Gpu Num Rays Per Pixel", stringBuf, IM_ARRAYSIZE(stringBuf), ImGuiInputTextFlags_CharsDecimal))
+            if (ImGui::InputText("Num Rays Per Pixel", stringBuf, IM_ARRAYSIZE(stringBuf), ImGuiInputTextFlags_CharsDecimal))
             {
                 UserInput.GpuNumRaysPerPixel = atoi(stringBuf);
                 gpuOptionsChanged = true;
@@ -157,6 +157,16 @@ void Renderer::RenderGui()
             if (ImGui::InputText("Gpu Recursion Depth", stringBuf, IM_ARRAYSIZE(stringBuf), ImGuiInputTextFlags_CharsDecimal))
             {
                 UserInput.GpuMaxRayRecursionDepth = atoi(stringBuf);
+                gpuOptionsChanged = true;
+            }
+
+            if (ImGui::SliderFloat("Gpu Direct Lighting Multiplier", &UserInput.GpuDirectLightMult, 1.0f, 500.0f))
+            {
+                gpuOptionsChanged = true;
+            }
+
+            if (ImGui::SliderFloat("Gpu Indirect Lighting Multiplier", &UserInput.GpuIndirectLightMult, 1.0f, 500.0f))
+            {
                 gpuOptionsChanged = true;
             }
 

@@ -30,8 +30,10 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-RWTexture2D<float4>                         gPrevOutput         : register(u0);
-RWTexture2D<float4>                         gCurOutput          : register(u1);
+RWTexture2D<float4>                         gPrevDirectAO       : register(u0);
+RWTexture2D<float4>                         gCurrDirectAO       : register(u1);
+RWTexture2D<float4>                         gPrevIndirect       : register(u2);
+RWTexture2D<float4>                         gCurrIndirect       : register(u3);
 
 ConstantBuffer<RaytracingGlobalCB>          gSceneCB            : register(b0);
 ConstantBuffer<RenderNodeInstanceData>      gInstanceCB         : register(b1);
@@ -202,7 +204,7 @@ inline float3 shootIndirectLightingRay(int numRays, uint randSeed, float minT, f
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline float3 sampleIndirectLighting(int numRays, uint randSeed, float minT, float3 worldPos, float3 worldNorm, float4 albedo)
+inline float3 sampleIndirectLighting(int numRays, uint randSeed, float minT, float3 worldPos, float3 worldNorm)
 {
     // Get the bounce color from indirect lighting
     float3 bounceColor = shootIndirectLightingRay(numRays, randSeed, minT, worldPos, worldNorm);
@@ -213,7 +215,7 @@ inline float3 sampleIndirectLighting(int numRays, uint randSeed, float minT, flo
     //   shadeColor = (NdotL * bounceColor * albedo.rgb / SHADER_PI) / sampleProb;
     //
     // The terms cancel to this:
-    float3 shadeColor = bounceColor; //albedo.rgb * bounceColor;
+    float3 shadeColor = bounceColor;
 
     return shadeColor;
 }
@@ -292,26 +294,17 @@ void IndirectLightingClosest(inout IndirectRayPayload payload, in BuiltInTriangl
     RealtimeSceneVertex  vert       = getVertex(PrimitiveIndex(), bary);
     float3               worldPos   = mul(vert.Position, (float3x3)gInstanceCB.WorldMatrix);
     float3               worldNorm  = mul(vert.Normal, (float3x3)gInstanceCB.WorldMatrix);
+    int                  numRays    = payload.NumRays;
 
-#if 1
-    int numRays = payload.NumRays;
-    float3 shadeColor     = float3(0, 0, 0);
+    payload.Color = float3(0, 0, 0);
     for (int i = 0; i < numRays; i++)
     {
-        shadeColor += computeLighting(payload.RndSeed, RayTMin(), worldPos, worldNorm);
+        payload.Color += computeLighting(payload.RndSeed, RayTMin(), worldPos, worldNorm);
     }
 
     // Modulate based on the physically based Lambertian term (albedo/pi)
-    shadeColor *= (gMaterial.Diffuse.rgb / SHADER_PI);
-    shadeColor /= numRays;
-    
-
-    payload.Color = shadeColor;
-#else
-    float shadowMult = 0.5f; // shadowRayVisibility(worldPos, worldNorm, RayTMin(), SHADER_FLOAT_MAX);
-
-    payload.Color = gMaterial.Diffuse.rgb * shadowMult;
-#endif
+    payload.Color *= (gMaterial.Diffuse.rgb / SHADER_PI);
+    payload.Color /= numRays;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -333,28 +326,37 @@ void AOClosest(inout RayPayload payload, in BuiltInTriangleIntersectionAttribute
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+inline float4 temporalAccumulate(float4 prevColor, float4 currColor)
+{
+    return (gSceneCB.AccumCount * prevColor + currColor) / (gSceneCB.AccumCount + 1);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 [shader("raygeneration")]
 void RayGeneration()
 {
-    int     numRays     = gSceneCB.NumRays;
-    uint3   launchIndex = DispatchRaysIndex();
-    uint3   launchDim   = DispatchRaysDimensions();
-    uint    randSeed    = initRand(launchIndex.x + launchIndex.y * launchDim.x, gSceneCB.FrameCount, 16);
-    float3  worldPos    = gPositions[launchIndex.xy].xyz;
-    float3  worldNorm   = gNormals[launchIndex.xy].xyz;
-    float4  albedo      = gAlbedo[launchIndex.xy];
-    float   aoRadius    = gSceneCB.AORadius;
-    float   minT        = 0.01f;
+    // Inputs
+    int     numRays      = gSceneCB.NumRays;
+    uint3   launchIndex  = DispatchRaysIndex();
+    uint3   launchDim    = DispatchRaysDimensions();
+    uint    randSeed     = initRand(launchIndex.x + launchIndex.y * launchDim.x, gSceneCB.FrameCount, 16);
+    float3  worldPos     = gPositions[launchIndex.xy].xyz;
+    float3  worldNorm    = gNormals[launchIndex.xy].xyz;
+    float4  albedo       = gAlbedo[launchIndex.xy];
+    float   aoRadius     = gSceneCB.AORadius;
+    float   minT         = 0.01f;
 
-    float3 direct       = sampleDirectLighting(numRays, randSeed, minT, worldPos, worldNorm, albedo);
-    float3 indirect     = sampleIndirectLighting(numRays, randSeed, minT, worldPos, worldNorm, albedo) * 10;
-    float  ao           = shootAmbientOcclusionRays(numRays, randSeed, minT, aoRadius, worldPos.xyz, worldNorm);
+    // Get direct, indirect and AO contributions
+    float3 direct        = sampleDirectLighting(numRays, randSeed, minT, worldPos, worldNorm, albedo);
+    float3 indirect      = sampleIndirectLighting(numRays, randSeed, minT, worldPos, worldNorm);
+    float  ao            = shootAmbientOcclusionRays(numRays, randSeed, minT, aoRadius, worldPos.xyz, worldNorm);
 
-    float4 curColor     = float4(indirect + direct, ao);
-    //float4 curColor     = float4(direct, ao);
-    float4 prevColor    = gPrevOutput[launchIndex.xy];
-    float4 finalColor   = (gSceneCB.AccumCount * prevColor + curColor) / (gSceneCB.AccumCount + 1);
+    // Accumulate results
+    float4 finalDirectAO = temporalAccumulate(gPrevDirectAO[launchIndex.xy], float4(direct, ao));
+    float4 finalIndirect = temporalAccumulate(gPrevIndirect[launchIndex.xy], float4(indirect, 1));
 
-    // Write result to the output
-    gCurOutput[launchIndex.xy] = finalColor;
+    // Write final results to the output
+    gCurrDirectAO[launchIndex.xy] = finalDirectAO;
+    gCurrIndirect[launchIndex.xy] = finalIndirect;
 }

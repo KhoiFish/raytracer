@@ -30,12 +30,13 @@ struct PixelShaderInput
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-Texture2D                               LambertAndAO            : register(t0);
-Texture2D                               CpuResultsTex           : register(t1);
-Texture2D                               PositionsTexture        : register(t2);
-Texture2D                               NormalsTexture          : register(t3);
-Texture2D                               TexCoordsTexture        : register(t4);
-Texture2D                               DiffuseTexture          : register(t5);
+Texture2D                               DirectLightAO           : register(t0);
+Texture2D                               IndirectLight           : register(t1);
+Texture2D                               CpuResultsTex           : register(t2);
+Texture2D                               PositionsTexture        : register(t3);
+Texture2D                               NormalsTexture          : register(t4);
+Texture2D                               TexCoordsTexture        : register(t5);
+Texture2D                               DiffuseTexture          : register(t6);
 SamplerState                            LinearRepeatSampler     : register(s0);
 ConstantBuffer<SceneConstantBuffer>     SceneCb                 : register(b0);
 
@@ -43,14 +44,19 @@ ConstantBuffer<SceneConstantBuffer>     SceneCb                 : register(b0);
 
 float4 main(PixelShaderInput IN) : SV_Target
 {
-    float4 lambertAndAO = LambertAndAO.Sample(LinearRepeatSampler, IN.TexCoord);
-    float4 texColor     = float4(lambertAndAO.rgb, 1) * SceneCb.TextureMultipliers[1];
-    float4 ao           = lambertAndAO.a * SceneCb.TextureMultipliers[2];
-    float4 cpuRT        = CpuResultsTex.Sample(LinearRepeatSampler, IN.TexCoord)  * SceneCb.TextureMultipliers[3];
+    // Direct lighting and ao stored in the same buffer
+    float4 directLightAO = DirectLightAO.Sample(LinearRepeatSampler, IN.TexCoord);
 
+    // Get all the buffer contributions
+    float4 directLight   = float4(directLightAO.rgb, 1)                            * SceneCb.TextureMultipliers[1] * SceneCb.DirectIndirectLightMult.x;
+    float4 indirectLight = IndirectLight.Sample(LinearRepeatSampler, IN.TexCoord)  * SceneCb.TextureMultipliers[2] * SceneCb.DirectIndirectLightMult.y;
+    float4 ao            = directLightAO.a                                         * SceneCb.TextureMultipliers[3];
+    float4 cpuRT         = CpuResultsTex.Sample(LinearRepeatSampler, IN.TexCoord)  * SceneCb.TextureMultipliers[4];
+
+    // Compute final color
     float4 finalCol = 
-        ((texColor)              * SceneCb.CompositeMultipliers[0]) + 
-        ((texColor + ao + cpuRT) * SceneCb.CompositeMultipliers[1]);
+        ((directLight + indirectLight)              * SceneCb.CompositeMultipliers[0]) +
+        ((directLight + indirectLight + ao + cpuRT) * SceneCb.CompositeMultipliers[1]);
 
     return finalCol;
 }

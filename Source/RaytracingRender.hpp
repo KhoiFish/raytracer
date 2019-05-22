@@ -543,7 +543,6 @@ void Renderer::RenderGpuRaytracing()
             // Update GPU buffer
             computeContext.WriteBuffer(RaytracingSceneConstantBuffer, 0, &sceneCB, sizeof(sceneCB));
             computeContext.TransitionResource(RaytracingSceneConstantBuffer, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
-            computeContext.FlushResourceBarriers();
         }
 
         // Set root sig and pipeline state
@@ -560,10 +559,12 @@ void Renderer::RenderGpuRaytracing()
         // Transition all output buffers
         for (int i = 0; i < 2; i++)
         {
-            computeContext.TransitionResource(DirectLightingAOBuffer[i], D3D12_RESOURCE_STATE_UNORDERED_ACCESS, true);
-            computeContext.TransitionResource(IndirectLightingBuffer[i], D3D12_RESOURCE_STATE_UNORDERED_ACCESS, true);
+            computeContext.TransitionResource(DirectLightingAOBuffer[i], D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+            computeContext.TransitionResource(IndirectLightingBuffer[i], D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
         }
         
+        // Flush all resource barriers before dispatching rays
+        computeContext.FlushResourceBarriers();
 
         // Finally dispatch rays
         computeContext.DispatchRays(*TheRaytracingPSO, Width, Height);

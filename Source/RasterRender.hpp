@@ -435,7 +435,7 @@ void Renderer::RenderCompositePass()
                 renderContext.TransitionResource(DeferredBuffers[i], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
             }
             renderContext.TransitionResource(RenderDevice::Get().GetRenderTarget(), D3D12_RESOURCE_STATE_RENDER_TARGET);
-            renderContext.TransitionResource(RenderDevice::Get().GetDepthStencil(), D3D12_RESOURCE_STATE_DEPTH_READ, true);
+            renderContext.TransitionResource(RenderDevice::Get().GetDepthStencil(), D3D12_RESOURCE_STATE_DEPTH_READ);
 
             // Set descriptor heaps and tables
             renderContext.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, RasterDescriptorHeap->GetDescriptorHeap());
@@ -445,11 +445,14 @@ void Renderer::RenderCompositePass()
                 renderContext.SetDescriptorTable(rootIndex, RasterDescriptorHeap->GetGpuHandle(i));
             }
 
-            // Draw
+            // Setup rest of the pipeline
             renderContext.SetDynamicConstantBufferView(RealtimeRenderingRootIndex_ConstantBuffer0, sizeof(sceneCb), &sceneCb);
             renderContext.SetRenderTarget(RenderDevice::Get().GetRenderTarget().GetRTV(), RenderDevice::Get().GetDepthStencil().GetDSV());
             renderContext.SetPipelineState(RasterCompositePassPSO);
             renderContext.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+            renderContext.FlushResourceBarriers();
+
+            // Draw
             renderContext.SetNullVertexBuffer(0);
             renderContext.SetNullIndexBuffer();
             renderContext.Draw(3);

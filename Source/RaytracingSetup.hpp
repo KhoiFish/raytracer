@@ -22,6 +22,35 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+// Main ray gen
+static const wchar_t* sRaygenShaderName                      = L"RayGeneration";
+
+// AO shaders
+static const wchar_t* sAoMissShaderName                      = L"AOMiss";
+static const wchar_t* sAoClosestHitShaderName                = L"AOClosest";
+static const wchar_t* sAoHitGroupName                        = L"AOHitGroup";
+
+// Direct lighting shaders
+static const wchar_t* sDirectLightingMissShaderName          = L"DirectLightingMiss";
+static const wchar_t* sDirectLightingClosestHitShaderName    = L"DirectLightingClosest";
+static const wchar_t* sDirectLightingHitGroupName            = L"DirectLightingHitGroup";
+
+// Indirect lighting shaders
+static const wchar_t* sIndirectLightingMissShaderName        = L"IndirectLightingMiss";
+static const wchar_t* sIndirectLightingClosestHitShaderName  = L"IndirectLightingClosest";
+static const wchar_t* sIndirectLightingHitGroupName          = L"IndirectLightingHitGroup";
+
+// Concatenated entry points
+static const wchar_t* sDxilLibEntryPoints[] =
+{
+    sRaygenShaderName,
+    sDirectLightingMissShaderName, sDirectLightingClosestHitShaderName,
+    sIndirectLightingMissShaderName, sIndirectLightingClosestHitShaderName,
+    sAoMissShaderName, sAoClosestHitShaderName,
+};
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 namespace RaytracingGlobalRootSigSlot
 {
     enum EnumTypes
@@ -298,33 +327,6 @@ void Renderer::SetupRealtimeRaytracingPipeline()
 
 void Renderer::SetupRaytracingPSO()
 {
-    // Main ray gen
-    static const wchar_t* raygenShaderName                      = L"RayGeneration";
-
-    // AO shaders
-    static const wchar_t* aoMissShaderName                      = L"AOMiss";
-    static const wchar_t* aoClosestHitShaderName                = L"AOClosest";
-    static const wchar_t* aoHitGroupName                        = L"AOHitGroup";
-
-    // Direct lighting shaders
-    static const wchar_t* directLightingMissShaderName          = L"DirectLightingMiss";
-    static const wchar_t* directLightingClosestHitShaderName    = L"DirectLightingClosest";
-    static const wchar_t* directLightingHitGroupName            = L"DirectLightingHitGroup";
-
-    // Indirect lighting shaders
-    static const wchar_t* indirectLightingMissShaderName        = L"IndirectLightingMiss";
-    static const wchar_t* indirectLightingClosestHitShaderName  = L"IndirectLightingClosest";
-    static const wchar_t* indirectLightingHitGroupName          = L"IndirectLightingHitGroup";
-
-    // Concatenated entry points
-    static const wchar_t* dxilLibEntryPoints[] =
-    {
-        raygenShaderName,
-        directLightingMissShaderName, directLightingClosestHitShaderName,
-        indirectLightingMissShaderName, indirectLightingClosestHitShaderName,
-        aoMissShaderName, aoClosestHitShaderName,
-    };
-
     // Delete old one, if it exists
     if (TheRaytracingPSO != nullptr)
     {
@@ -341,13 +343,13 @@ void Renderer::SetupRaytracingPSO()
         {
             ID3DBlobPtr pDxilLib;
             ThrowIfFailed(D3DReadFileToBlob(SHADERBUILD_DIR L"\\Raytracing.cso", &pDxilLib));
-            TheRaytracingPSO->SetDxilLibrary(pDxilLib, dxilLibEntryPoints, ARRAY_SIZE(dxilLibEntryPoints));
+            TheRaytracingPSO->SetDxilLibrary(pDxilLib, sDxilLibEntryPoints, ARRAY_SIZE(sDxilLibEntryPoints));
         }
 
         // Add hit groups
-        TheRaytracingPSO->AddHitGroup(nullptr, aoClosestHitShaderName, aoHitGroupName);
-        TheRaytracingPSO->AddHitGroup(nullptr, directLightingClosestHitShaderName, directLightingHitGroupName);
-        TheRaytracingPSO->AddHitGroup(nullptr, indirectLightingClosestHitShaderName, indirectLightingHitGroupName);
+        TheRaytracingPSO->AddHitGroup(nullptr, sAoClosestHitShaderName, sAoHitGroupName);
+        TheRaytracingPSO->AddHitGroup(nullptr, sDirectLightingClosestHitShaderName, sDirectLightingHitGroupName);
+        TheRaytracingPSO->AddHitGroup(nullptr, sIndirectLightingClosestHitShaderName, sIndirectLightingHitGroupName);
         HitProgramCount = 3;
 
         // Add local root signatures
@@ -355,29 +357,29 @@ void Renderer::SetupRaytracingPSO()
         TheRaytracingPSO->AddLocalRootSignature(&RaytracingLocalRootSig);
 
         // Associate shaders with local root signature
-        TheRaytracingPSO->AddExportAssociationWithLocalRootSignature(dxilLibEntryPoints, ARRAY_SIZE(dxilLibEntryPoints), &RaytracingLocalRootSig);
+        TheRaytracingPSO->AddExportAssociationWithLocalRootSignature(sDxilLibEntryPoints, ARRAY_SIZE(sDxilLibEntryPoints), &RaytracingLocalRootSig);
 
         // Bind data (like descriptor data) to shaders
         {
             // Raygen
             TheRaytracingPSO->GetRaygenShaderTable().AddShaderRecordData(
-                raygenShaderName,
+                sRaygenShaderName,
                 nullptr,
                 0);
 
             // Miss
             RaytracingShaderIndex[RaytracingShaderType_DirectLightingMiss] = TheRaytracingPSO->GetMissShaderTable().AddShaderRecordData(
-                directLightingMissShaderName,
+                sDirectLightingMissShaderName,
                 nullptr,
                 0);
 
             RaytracingShaderIndex[RaytracingShaderType_IndirectLightingMiss] = TheRaytracingPSO->GetMissShaderTable().AddShaderRecordData(
-                indirectLightingMissShaderName,
+                sIndirectLightingMissShaderName,
                 nullptr,
                 0);
 
             RaytracingShaderIndex[RaytracingShaderType_AOMiss] = TheRaytracingPSO->GetMissShaderTable().AddShaderRecordData(
-                aoMissShaderName,
+                sAoMissShaderName,
                 nullptr,
                 0);
 
@@ -413,7 +415,7 @@ void Renderer::SetupRaytracingPSO()
                 {
                     uint32_t dataOffset = (i * localDataStride);
                     uint32_t index = TheRaytracingPSO->GetHitGroupShaderTable().AddShaderRecordData(
-                        directLightingHitGroupName,
+                        sDirectLightingHitGroupName,
                         pHitGroupData + dataOffset,
                         localDataStride);
 
@@ -427,7 +429,7 @@ void Renderer::SetupRaytracingPSO()
                 {
                     uint32_t dataOffset = (i * localDataStride);
                     uint32_t index = TheRaytracingPSO->GetHitGroupShaderTable().AddShaderRecordData(
-                        indirectLightingHitGroupName,
+                        sIndirectLightingHitGroupName,
                         pHitGroupData + dataOffset,
                         localDataStride);
 
@@ -441,7 +443,7 @@ void Renderer::SetupRaytracingPSO()
                 {
                     uint32_t dataOffset = (i * localDataStride);
                     uint32_t index = TheRaytracingPSO->GetHitGroupShaderTable().AddShaderRecordData(
-                        aoHitGroupName,
+                        sAoHitGroupName,
                         pHitGroupData + dataOffset,
                         localDataStride);
 
@@ -460,7 +462,7 @@ void Renderer::SetupRaytracingPSO()
         TheRaytracingPSO->SetShaderConfig(D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES, sizeof(RayPayload));
 
         // Associate shaders with shader config
-        TheRaytracingPSO->AddExportAssociationWithShaderConfig(dxilLibEntryPoints, ARRAY_SIZE(dxilLibEntryPoints));
+        TheRaytracingPSO->AddExportAssociationWithShaderConfig(sDxilLibEntryPoints, ARRAY_SIZE(sDxilLibEntryPoints));
 
         // Pipeline config
         TheRaytracingPSO->SetPipelineConfig(UserInput.GpuMaxRayRecursionDepth);

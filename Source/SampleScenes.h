@@ -39,11 +39,11 @@ enum SampleScene
 
 constexpr const char* SampleSceneNames[MaxScene] =
 {
-    "SceneRandom",
-    "SceneCornell",
-    "SceneCornellSmoke",
-    "SceneMesh",
-    "SceneFinal",
+    "Raytracing In One Weekend",
+    "Cornell",
+    "Cornell Smoke",
+    "Meshes: Luigi, Totoro & Audi R8",
+    "Raytracing The Rest Of Your Life",
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------

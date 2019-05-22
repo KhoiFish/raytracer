@@ -136,7 +136,7 @@ void Renderer::OnResizeRealtimeRenderer()
 
 void Renderer::SetupRealtimePipeline()
 {
-    CpuResultsBufferIndex = RealtimeRenderingRegisters_Texture2 + 1;   
+    CpuResultsBufferIndex = RealtimeRenderingRegisters_Texture3 + 1;   
 
     // Init random generator
     {

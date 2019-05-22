@@ -210,9 +210,9 @@ void XYZRect::GetPlaneData(Vec4 outPoints[4], Vec4& normal)
         {
             normal       = Vec4(0, 0, 1);
             outPoints[0] = Vec4(A0, B0, K);
-            outPoints[1] = Vec4(A1, B0, K);
+            outPoints[1] = Vec4(A0, B1, K);
             outPoints[2] = Vec4(A1, B1, K);
-            outPoints[3] = Vec4(A0, B1, K);
+            outPoints[3] = Vec4(A1, B0, K);
         }
         break;
 
@@ -230,9 +230,9 @@ void XYZRect::GetPlaneData(Vec4 outPoints[4], Vec4& normal)
         {
             normal       = Vec4(1, 0, 0);
             outPoints[0] = Vec4(K, A0, B0);
-            outPoints[1] = Vec4(K, A1, B0);
+            outPoints[1] = Vec4(K, A0, B1);
             outPoints[2] = Vec4(K, A1, B1);
-            outPoints[3] = Vec4(K, A0, B1);
+            outPoints[3] = Vec4(K, A1, B0);
         }
         break;
     }

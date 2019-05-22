@@ -147,7 +147,7 @@ private:
         bool    LeftMouseButtonPressed  = false;
         bool    ShiftKeyPressed         = false;
 
-        int     SampleScene             = SceneMesh;
+        int     SampleScene             = SceneCornell;
         float   VertFov                 = 40.f;
 
         int     CpuNumSamplesPerRay     = 500;

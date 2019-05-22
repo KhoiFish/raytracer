@@ -228,19 +228,27 @@ static void CreateCube(RealtimeSceneNode* renderNode, Core::Vec4 sideLengths)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static void CreatePlaneFromPoints(RealtimeSceneNode* renderNode, const Core::Vec4* points, const Core::Vec4& normal)
+static void CreatePlaneFromPoints(RealtimeSceneNode* renderNode, const Core::Vec4* points, const Core::Vec4& normal, bool normalFlipped)
 {
     renderNode->Vertices.push_back({ ConvertToXMFloat3(points[0]), ConvertToXMFloat3(normal), XMFLOAT2(0.0f, 0.0f) });
     renderNode->Vertices.push_back({ ConvertToXMFloat3(points[1]), ConvertToXMFloat3(normal), XMFLOAT2(1.0f, 0.0f) });
     renderNode->Vertices.push_back({ ConvertToXMFloat3(points[2]), ConvertToXMFloat3(normal), XMFLOAT2(1.0f, 1.0f) });
     renderNode->Vertices.push_back({ ConvertToXMFloat3(points[3]), ConvertToXMFloat3(normal), XMFLOAT2(0.0f, 1.0f) });
 
-    renderNode->Indices.push_back(0);
-    renderNode->Indices.push_back(3);
-    renderNode->Indices.push_back(1);
-    renderNode->Indices.push_back(1);
-    renderNode->Indices.push_back(3);
-    renderNode->Indices.push_back(2);
+    const uint32_t indices[6]        = { 0, 1, 2, 2, 3, 0 };
+    const uint32_t indicesFlipped[6] = { 0, 3, 1, 1, 3, 2 };
+
+    for (int i = 0; i < 6; i++)
+    {
+        if (normalFlipped)
+        {
+            renderNode->Indices.push_back(indicesFlipped[i]);
+        }
+        else
+        {
+            renderNode->Indices.push_back(indices[i]);
+        }
+    }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -473,7 +481,7 @@ void RealtimeScene::GenerateRenderListFromWorld(const Core::IHitable* currentHea
         XMMATRIX                newMatrix   = ComputeFinalMatrix(matrixStack, translation);
         RealtimeSceneNode*      newNode     = new RealtimeSceneNode();
 
-        CreatePlaneFromPoints(newNode, planePoints, normal);
+        CreatePlaneFromPoints(newNode, planePoints, normal, normalFlipped);
         newNode->WorldMatrix    = newMatrix;
         newNode->Material       = ConvertFromCoreMaterial(material);;
         newNode->DiffuseTexture = CreateTextureFromMaterial(newNode->Material);
@@ -556,6 +564,8 @@ RealtimeScene::RealtimeScene(Core::WorldScene* worldScene)
     std::vector<bool>               flipNormalStack;
     std::vector<SpotLight>          spotLightsList;
     GenerateRenderListFromWorld(worldScene->GetWorld(), nullptr, RenderSceneList, spotLightsList, matrixStack, flipNormalStack);
+    RTL_ASSERT(matrixStack.size() == 0);
+    RTL_ASSERT(flipNormalStack.size() == 0);
 
     // Now that scene objects are created, setup for raytracing
     RaytracingGeom = new RaytracingGeometry();

@@ -42,7 +42,7 @@ void Renderer::RenderGui()
     while(true)
     {
         ImGui::SetNextWindowPos(ImVec2(12, 18), ImGuiCond_FirstUseEver);
-        ImGui::SetNextWindowSize(ImVec2(715, 785), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowSize(ImVec2(800, 820), ImGuiCond_FirstUseEver);
 
         ImGuiWindowFlags window_flags = ImGuiWindowFlags_AlwaysVerticalScrollbar;
         if (!ImGui::Begin("Options Window", nullptr, window_flags))
@@ -153,22 +153,28 @@ void Renderer::RenderGui()
             ImGui::Text("GPU RAYTRACE OPTIONS");
             ImGui::Separator();
 
-            if (ImGui::SliderInt("Gpu Rays Per Pixel", &UserInput.GpuNumRaysPerPixel, 1, 100))
+
+            if (ImGui::SliderInt("Num Accum. Passes Per Frame", &UserInput.GpuNumAccumPasses, 1, 16))
             {
                 gpuOptionsChanged = true;
             }
 
-            if (ImGui::SliderFloat("Gpu Direct Light Scale", &UserInput.GpuDirectLightMult, 0.0f, 10.0f))
+            if (ImGui::SliderInt("Rays Per Pixel", &UserInput.GpuNumRaysPerPixel, 1, 100))
             {
                 gpuOptionsChanged = true;
             }
 
-            if (ImGui::SliderFloat("Gpu Indirect Light Scale", &UserInput.GpuIndirectLightMult, 0.0f, 10.0f))
+            if (ImGui::SliderFloat("Direct Light Scale", &UserInput.GpuDirectLightMult, 0.0f, 10.0f))
             {
                 gpuOptionsChanged = true;
             }
 
-            if (ImGui::SliderFloat("Gpu AO Radius", &UserInput.GpuAORadius, 1.0f, 1000.0f))
+            if (ImGui::SliderFloat("Indirect Light Scale", &UserInput.GpuIndirectLightMult, 0.0f, 10.0f))
+            {
+                gpuOptionsChanged = true;
+            }
+
+            if (ImGui::SliderFloat("AO Radius", &UserInput.GpuAORadius, 1.0f, 1000.0f))
             {
                 gpuOptionsChanged = true;
             }

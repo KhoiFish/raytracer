@@ -155,6 +155,7 @@ private:
         int     CpuMaxScatterDepth      = 50;
         int     CpuNumThreads           = 4;
 
+        int     GpuNumAccumPasses       = 1;
         int     GpuMaxRayRecursionDepth = 5;
         int     GpuNumRaysPerPixel      = 1;
         float   GpuAORadius             = 500.0f;

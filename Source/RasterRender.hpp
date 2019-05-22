@@ -344,7 +344,7 @@ void Renderer::RenderGeometryPass()
             {
                 renderContext.TransitionResource(DeferredBuffers[i], D3D12_RESOURCE_STATE_RENDER_TARGET);
             }
-            renderContext.TransitionResource(RenderDevice::Get().GetDepthStencil(), D3D12_RESOURCE_STATE_DEPTH_WRITE, true);
+            renderContext.TransitionResource(RenderDevice::Get().GetDepthStencil(), D3D12_RESOURCE_STATE_DEPTH_WRITE);
             
             // Bind gbuffer
             D3D12_CPU_DESCRIPTOR_HANDLE rtvs[]
@@ -364,6 +364,7 @@ void Renderer::RenderGeometryPass()
             renderContext.ClearDepth(RenderDevice::Get().GetDepthStencil());
             renderContext.SetPipelineState(RasterGeometryPassPSO);
             renderContext.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+            renderContext.FlushResourceBarriers();
             RenderSceneList(renderContext);
         }
     }

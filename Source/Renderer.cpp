@@ -317,13 +317,18 @@ void Renderer::OnUpdate(float dtSeconds)
 
 void Renderer::OnRender()
 {
-    // Render passes
-    RenderGeometryPass();
-    RenderGpuRaytracing();
+    // Allow multiple temporal accumulation per frame
+    for (int i = 0; i < UserInput.GpuNumAccumPasses; i++)
+    {
+        RenderGeometryPass();
+        RenderGpuRaytracing();
+        FrameCount++;
+    }
+
+    // Composite results and GUI render
     RenderCompositePass();
     RenderGui();
 
     // Present
     RenderDevice::Get().Present();
-    FrameCount++;
 }

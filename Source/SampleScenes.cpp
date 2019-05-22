@@ -269,9 +269,10 @@ static WorldScene* sampleSceneMesh()
     const Vec4 colorAlmostWhite = Vec4(0.9f, 0.9f, 0.9f);
     const Vec4 colorGreenish    = Vec4(0.2f, 0.9f, 0.4f);
     const Vec4 colorYellow      = Vec4(1.0f, 1.0f, 0.0f);
+    const Vec4 colorPurple      = Vec4(0.621f, 0.351f, 0.988f);
 
     IHitable** list     = new IHitable*[30];
-    Material*  ground   = new MLambertian(new ConstantTexture(colorAlmostWhite));
+    Material*  ground   = new MLambertian(new ConstantTexture(colorPurple));
 
     IHitable** lsList = new IHitable*[2];
     int numLs = 0;

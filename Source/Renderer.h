@@ -158,8 +158,8 @@ private:
         int     GpuNumRaysPerPixel      = 1;
         float   GpuAORadius             = 400.0f;
         bool    GpuCameraJitter         = true;
-        float   GpuDirectLightMult      = 1.0f;
-        float   GpuIndirectLightMult    = 15.0f;
+        float   GpuDirectLightMult      = 2.0f;
+        float   GpuIndirectLightMult    = 0.5f;
     };
 
 private:

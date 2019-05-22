@@ -473,56 +473,13 @@ void RealtimeScene::GenerateRenderListFromWorld(const Core::IHitable* currentHea
         XMMATRIX                newMatrix   = ComputeFinalMatrix(matrixStack, translation);
         RealtimeSceneNode*      newNode     = new RealtimeSceneNode();
 
-        // Clamp colors for lights, since they can overblow the color buffer
-        Core::Vec4 color = material->AlbedoValue(0.5f, 0.5f, Core::Vec4(0, 0, 0));
-        color.Clamp(0.f, 1.f);
-
-        // Light shapes should not get lit, and always show up fully shaded
-        Core::Vec4 em = xyzRect->IsALightShape() ? Core::Vec4(1.f, 1.f, 1.f, 1.f) : Core::Vec4(0.0f, 0.0f, 0.0f, 1.0f);
-
-        const RenderMaterial newMaterial =
-        {
-            { em.X(), em.Y(), em.Z(), 1.0f },
-            { 0.0f, 0.0f, 0.0f, 1.0f },
-            { color.X(), color.Y(), color.Z(), 1.0f },
-            { 0.0f, 0.0f, 0.0f, 1.0f },
-            128.0f
-        };
-
         CreatePlaneFromPoints(newNode, planePoints, normal);
         newNode->WorldMatrix    = newMatrix;
-        newNode->Material       = newMaterial;
-        newNode->DiffuseTexture = defaultTexture;
+        newNode->Material       = ConvertFromCoreMaterial(material);;
+        newNode->DiffuseTexture = CreateTextureFromMaterial(newNode->Material);
         newNode->Hitable        = currentHead;
         CreateResourceViews(newNode);
         outSceneList.push_back(newNode);
-        
-        // These can be light shapes too
-        if (xyzRect->IsALightShape())
-        {
-            if (xyzRect->GetAxisPlane() == Core::XYZRect::AxisPlane::XZ)
-            {
-                float xValues[2], yValue, zValues[2];
-                xyzRect->GetParams(
-                    xValues[0], xValues[1],
-                    zValues[0], zValues[1],
-                    yValue);
-
-                Core::Vec4 pos(
-                    (xValues[0] + xValues[1]) * 0.5f,
-                    yValue,
-                    (zValues[0] + zValues[1]) * 0.5f);
-                
-                Core::Vec4  upDir   = Core::Vec4(1.f, 0.f, 1.f);
-                Core::Vec4  lookAt  = Core::Vec4(pos[0], -yValue, pos[2]);
-                Core::Vec4  dir     = UnitVector(lookAt - pos);
-
-                PointLight pointLight;
-                pointLight.Color      = ConvertToXMFloat4(color);
-                pointLight.PositionWS = ConvertToXMFloat4(pos);
-                PointLightsList.push_back(pointLight);
-            }
-        }
     }
 }
 

@@ -88,13 +88,14 @@ inline RealtimeSceneVertex getVertex(uint triangleIndex, float3 barycentrics)
 
 inline float shadowRayVisibility(float3 origin, float3 direction, float minT, float maxT)
 {
+    ShadowRayPayload payload;
+    payload.Value = 0.0f;
+
     RayDesc ray;
     ray.Origin      = origin;
     ray.Direction   = direction;
     ray.TMin        = minT;
     ray.TMax        = maxT;
-
-    RayPayload payload = { 0.0f, float4(0, 0, 0, 0) };
 
     TraceRay
     (
@@ -109,9 +110,12 @@ inline float shadowRayVisibility(float3 origin, float3 direction, float minT, fl
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline RayPayload areaLightVisibility(float3 orig, float3 dir, float minT, float maxT)
+inline DirectRayPayload areaLightVisibility(float3 orig, float3 dir, float minT, float maxT)
 {
-    RayPayload payload = { 0.0f, float4(0, 0, 0, 0) };
+    DirectRayPayload payload;
+    payload.Value          = 0.0f;
+    payload.HitBaryAndDist = float4(0, 0, 0, 0);
+    payload.LightColor     = float3(0, 0, 0);
 
     RayDesc ray;
     ray.Origin    = orig;
@@ -133,20 +137,20 @@ inline RayPayload areaLightVisibility(float3 orig, float3 dir, float minT, float
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline float computeLighting(uint randSeed, float minT, float3 worldPos, float3 worldNorm)
+inline float3 computeLighting(uint randSeed, float minT, float3 worldPos, float3 worldNorm)
 {
     // Shoot rays brute force to see if we hit an area light
     // TODO: bias the sample towards lights and weight with a pdf
-    float      lightResult     = 0;
-    float3     worldDir        = getCosHemisphereSample(randSeed, worldNorm);
-    RayPayload hitLightPayload = areaLightVisibility(worldPos, worldDir, minT, SHADER_FLOAT_MAX);
-    if (hitLightPayload.Value > 0)
+    float3           lightResult  = float3(0, 0, 0);
+    float3           worldDir     = getCosHemisphereSample(randSeed, worldNorm);
+    DirectRayPayload lightPayload = areaLightVisibility(worldPos, worldDir, minT, SHADER_FLOAT_MAX);
+    if (lightPayload.Value > 0)
     {
-        float distToLight = hitLightPayload.HitBaryAndDist.a;
+        float distToLight = lightPayload.HitBaryAndDist.a;
         float LdotN       = saturate(dot(worldNorm, worldDir));
         float shadowMult  = shadowRayVisibility(worldPos, worldDir, minT, SHADER_FLOAT_MAX);
 
-        lightResult = LdotN * shadowMult;
+        lightResult = LdotN * shadowMult * lightPayload.LightColor;
     }
 
     return lightResult;
@@ -157,10 +161,9 @@ inline float computeLighting(uint randSeed, float minT, float3 worldPos, float3 
 inline float3 sampleDirectLighting(int numRays, uint randSeed, float minT, float3 worldPos, float3 worldNorm, float4 albedo)
 {
     float3 shadeColor     = float3(0, 0, 0);
-    float3 lightIntensity = float3(100.0f, 100.0f, 100.0f);
     for(int i = 0; i < numRays; i++)
     {
-        shadeColor += computeLighting(randSeed, minT, worldPos, worldNorm) * lightIntensity;
+        shadeColor += computeLighting(randSeed, minT, worldPos, worldNorm);
     }
 
     // Modulate based on the physically based Lambertian term (albedo/pi)
@@ -176,20 +179,17 @@ inline float3 shootIndirectLightingRay(int numRays, uint randSeed, float minT, f
 {
     float3 bounceDir = getCosHemisphereSample(randSeed, worldNorm);
 
-    // Setup shadow ray
+    IndirectRayPayload payload;
+    payload.Color   = float3(0, 0, 0);
+    payload.RndSeed = randSeed;
+    payload.NumRays = numRays;
+
     RayDesc ray;
     ray.Origin      = worldPos;
     ray.Direction   = bounceDir;
     ray.TMin        = minT;
     ray.TMax        = SHADER_FLOAT_MAX;
 
-    // Initialize the ray's payload data with black return color and the current rng seed
-    IndirectRayPayload payload;
-    payload.Color   = float3(0, 0, 0);
-    payload.RndSeed = randSeed;
-    payload.NumRays = numRays;
-
-    // Trace ray
     TraceRay
     (
         gScene,
@@ -231,7 +231,8 @@ inline float shootAmbientOcclusionRays(int numRays, uint randSeed, float minT, f
     float ao = 0.0f;
     for (int i = 0; i < numRays; i++)
     {
-        RayPayload payload = { 0.0f, float4(0, 0, 0, 0) };
+        ShadowRayPayload payload;
+        payload.Value = 0.0f;
 
         RayDesc ray;
         ray.Origin    = worldPos;
@@ -259,7 +260,7 @@ inline float shootAmbientOcclusionRays(int numRays, uint randSeed, float minT, f
 // ----------------------------------------------------------------------------------------------------------------------------
 
 [shader("miss")]
-void DirectLightingMiss(inout RayPayload payload)
+void DirectLightingMiss(inout DirectRayPayload payload)
 {
     // Missed the light
     payload.Value = 0.0f;
@@ -268,13 +269,14 @@ void DirectLightingMiss(inout RayPayload payload)
 // ----------------------------------------------------------------------------------------------------------------------------
 
 [shader("closesthit")]
-void DirectLightingClosest(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
+void DirectLightingClosest(inout DirectRayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
 {
     float3 barycentrics = float3(1.f - attr.barycentrics.x - attr.barycentrics.y, attr.barycentrics.x, attr.barycentrics.y);
 
     // Hit the light
     payload.Value          = 1.0f;
     payload.HitBaryAndDist = float4(barycentrics, RayTCurrent());
+    payload.LightColor     = gMaterial.Diffuse.rgb;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -310,7 +312,7 @@ void IndirectLightingClosest(inout IndirectRayPayload payload, in BuiltInTriangl
 // ----------------------------------------------------------------------------------------------------------------------------
 
 [shader("miss")]
-void AOMiss(inout RayPayload payload)
+void AOMiss(inout ShadowRayPayload payload)
 {
     // Our ambient occlusion value is 1 if we hit nothing
     payload.Value = 1.0f;
@@ -319,7 +321,7 @@ void AOMiss(inout RayPayload payload)
 // ----------------------------------------------------------------------------------------------------------------------------
 
 [shader("closesthit")]
-void AOClosest(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
+void AOClosest(inout ShadowRayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
 {
     ;
 }

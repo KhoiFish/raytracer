@@ -30,10 +30,16 @@ static const float      InShadowRadiance    = 0.35f;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-struct RayPayload
+struct ShadowRayPayload
+{
+    float       Value;
+};
+
+struct DirectRayPayload
 {
     float       Value;
     XMFLOAT4    HitBaryAndDist;
+    XMFLOAT3    LightColor;
 };
 
 struct IndirectRayPayload
@@ -42,6 +48,9 @@ struct IndirectRayPayload
     UINT        RndSeed;
     UINT        NumRays;
 };
+
+// Set this to the largest payload struct from above
+#define RAYTRACER_MAX_PAYLOAD_SIZE  sizeof(DirectRayPayload)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 

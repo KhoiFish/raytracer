@@ -160,12 +160,12 @@ void Renderer::RenderGui()
                 gpuOptionsChanged = true;
             }
 
-            if (ImGui::SliderFloat("Gpu Direct Light Scale", &UserInput.GpuDirectLightMult, 1.0f, 500.0f))
+            if (ImGui::SliderFloat("Gpu Direct Light Scale", &UserInput.GpuDirectLightMult, 0.0f, 10.0f))
             {
                 gpuOptionsChanged = true;
             }
 
-            if (ImGui::SliderFloat("Gpu Indirect Light Scale", &UserInput.GpuIndirectLightMult, 1.0f, 500.0f))
+            if (ImGui::SliderFloat("Gpu Indirect Light Scale", &UserInput.GpuIndirectLightMult, 0.0f, 10.0f))
             {
                 gpuOptionsChanged = true;
             }

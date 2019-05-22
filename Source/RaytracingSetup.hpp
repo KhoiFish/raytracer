@@ -492,7 +492,7 @@ void Renderer::SetupRaytracingPSO()
         }
 
         // Shader config
-        TheRaytracingPSO->SetShaderConfig(D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES, sizeof(RayPayload));
+        TheRaytracingPSO->SetShaderConfig(D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES, RAYTRACER_MAX_PAYLOAD_SIZE);
 
         // Associate shaders with shader config
         TheRaytracingPSO->AddExportAssociationWithShaderConfig(sDxilLibEntryPoints, ARRAY_SIZE(sDxilLibEntryPoints));

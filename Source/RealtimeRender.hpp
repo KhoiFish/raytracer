@@ -321,7 +321,7 @@ void Renderer::RenderGeometryPass()
     {
         if (UserInput.GpuCameraJitter)
         {
-            // Determine our offset in the pixel in the range[-0.5...0.5]
+            // Half pixel offset
             float xOff = (float(sRngDist(sRng)) - 0.5f);
             float yOff = (float(sRngDist(sRng)) - 0.5f);
             TheRenderScene->GetCamera().SetJitter(xOff / float(Width), yOff / float(Height));

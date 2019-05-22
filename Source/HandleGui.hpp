@@ -27,7 +27,9 @@
 
 void Renderer::SetupGui()
 {
-    ;
+    ImGuiIO& io = ImGui::GetIO();
+    io.Fonts->AddFontFromFileTTF("RuntimeData/Fonts/RobotoMono-Regular.ttf", 20.0f);
+    io.Fonts->Build();
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -40,7 +42,7 @@ void Renderer::RenderGui()
     while(true)
     {
         ImGui::SetNextWindowPos(ImVec2(12, 18), ImGuiCond_FirstUseEver);
-        ImGui::SetNextWindowSize(ImVec2(576, 608), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowSize(ImVec2(715, 785), ImGuiCond_FirstUseEver);
 
         ImGuiWindowFlags window_flags = ImGuiWindowFlags_AlwaysVerticalScrollbar;
         if (!ImGui::Begin("Options Window", nullptr, window_flags))
@@ -51,6 +53,7 @@ void Renderer::RenderGui()
 
         // ------------------------------------------------------------
 
+        ImGui::Separator();
         ImGui::Separator();
         ImGui::Text("INFO");
         ImGui::Separator();
@@ -78,7 +81,7 @@ void Renderer::RenderGui()
             }
 
             ImGui::Text("");
-            if (ImGui::Button("Stop Cpu Raytrace", ImVec2(140, 30)))
+            if (ImGui::Button("Stop Cpu Raytrace", ImVec2(180, 30)))
             {
                 SetEnableCpuRaytrace(false);
             }
@@ -92,6 +95,7 @@ void Renderer::RenderGui()
             // ------------------------------------------------------------
 
             ImGui::Separator();
+            ImGui::Separator();
             ImGui::Text("HELP");
             ImGui::Separator();
             ImGui::BulletText("Translate camera:     Press keys WASDQE");
@@ -102,6 +106,7 @@ void Renderer::RenderGui()
             // ------------------------------------------------------------
 
             ImGui::Separator();
+            ImGui::Separator();
             ImGui::Text("GLOBAL OPTIONS");
             ImGui::Separator();
             if (ImGui::ListBox("Scene Select", &UserInput.SampleScene, SampleSceneNames, IM_ARRAYSIZE(SampleSceneNames), MaxScene))
@@ -111,6 +116,7 @@ void Renderer::RenderGui()
 
             // ------------------------------------------------------------
 
+            ImGui::Separator();
             ImGui::Separator();
             ImGui::Text("CPU RAYTRACE OPTIONS");
             ImGui::Separator();
@@ -135,7 +141,7 @@ void Renderer::RenderGui()
             }
 
             ImGui::Text("");
-            if (ImGui::Button("Begin Cpu Raytrace", ImVec2(140, 30)))
+            if (ImGui::Button("Begin Cpu Raytrace", ImVec2(180, 30)))
             {
                 SetEnableCpuRaytrace(true);
             }
@@ -143,12 +149,13 @@ void Renderer::RenderGui()
             // ------------------------------------------------------------
 
             ImGui::Separator();
+            ImGui::Separator();
             ImGui::Text("GPU RAYTRACE OPTIONS");
             ImGui::Separator();
 
             if (ImGui::SliderInt("Gpu Rays Per Pixel", &UserInput.GpuNumRaysPerPixel, 1, 100))
             {
-                cpuOptionsChanged = true;
+                gpuOptionsChanged = true;
             }
 
             if (ImGui::SliderFloat("Gpu Direct Light Scale", &UserInput.GpuDirectLightMult, 0.0f, 10.0f))

@@ -65,7 +65,7 @@ const char* Renderer::GetSelectedBufferName()
     static const char* bufferNames[] =
     {
         "Composite",
-        "Albedo",
+        "Shaded + Lit",
         "Ambient Occlusion",
         "Cpu Raytrace",
     };
@@ -470,12 +470,6 @@ void Renderer::RenderSceneList(GraphicsContext& renderContext)
 {
     for (int i = 0; i < TheRenderScene->GetRenderSceneList().size(); i++)
     {
-        // Don't render light shapes
-        if (TheRenderScene->GetRenderSceneList()[i]->Hitable->IsALightShape())
-        {
-            continue;
-        }
-
         SceneConstantBuffer matrices;
         SetupSceneConstantBuffer(TheRenderScene->GetRenderSceneList()[i]->WorldMatrix, matrices);
 

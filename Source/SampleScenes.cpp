@@ -330,9 +330,11 @@ static WorldScene* sampleSceneMesh()
 
     // Volumes
     {
-        IHitable *boundary = new Sphere(Vec4(500, 250, 100), 125, new MDielectric(1.5f));
-        list[total++] = boundary;
-        list[total++] = new ConstantMedium(boundary, 0.2f, new ConstantTexture(colorYellow));
+        list[total++] = new Sphere(Vec4(500, 250, 100), 125, new MLambertian(new ConstantTexture(colorYellow)));
+
+        //IHitable *boundary = new Sphere(Vec4(500, 250, 100), 125, new MDielectric(1.5f));
+        //list[total++] = boundary;
+        //list[total++] = new ConstantMedium(boundary, 0.2f, new ConstantTexture(colorYellow));
 
         //boundary = new Sphere(Vec4(0, 0, 0), 5000, new MDielectric(1.5f));
         //list[total++] = new ConstantMedium(boundary, 0.0001f, new ConstantTexture(Vec4(1.0f, 1.0f, 1.0f)));

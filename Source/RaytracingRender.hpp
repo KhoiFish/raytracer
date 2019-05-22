@@ -143,22 +143,22 @@ void Renderer::CleanupGpuRaytracer()
 
 void Renderer::OnResizeGpuRaytracer()
 {
-    SetupRaytracingDescriptors();
-    SetupRaytracingPSO();
+    SetupGpuRaytracingDescriptors();
+    SetupGpuRaytracingPSO();
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::SetupRealtimeRaytracingPipeline()
+void Renderer::SetupGpuRaytracingPipeline()
 {
-    SetupRaytracingRootSignatures();
-    SetupRaytracingDescriptors();
-    SetupRaytracingPSO();
+    SetupGpuRaytracingRootSignatures();
+    SetupGpuRaytracingDescriptors();
+    SetupGpuRaytracingPSO();
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::SetupRaytracingRootSignatures()
+void Renderer::SetupGpuRaytracingRootSignatures()
 {
     // Allocate scene constant buffer
     RaytracingSceneConstantBuffer.Create(L"Raytracing Scene Globals Buffer", 1, (uint32_t)AlignUp(sizeof(RaytracingGlobalCB), 256));
@@ -265,7 +265,7 @@ void Renderer::SetupRaytracingRootSignatures()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::SetupRaytracingDescriptors()
+void Renderer::SetupGpuRaytracingDescriptors()
 {
     // Delete old one, if it exists
     if (RaytracingDescriptorHeap != nullptr)
@@ -368,7 +368,7 @@ void Renderer::SetupRaytracingDescriptors()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::SetupRaytracingPSO()
+void Renderer::SetupGpuRaytracingPSO()
 {
     // Delete old one, if it exists
     if (TheRaytracingPSO != nullptr)

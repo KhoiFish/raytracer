@@ -86,47 +86,47 @@ const char* Renderer::GetSelectedBufferName()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::CleanupRealtimeRender()
+void Renderer::CleanupRasterRender()
 {
-    if (RealtimeDescriptorHeap != nullptr)
+    if (RasterDescriptorHeap != nullptr)
     {
-        delete RealtimeDescriptorHeap;
-        RealtimeDescriptorHeap = nullptr;
+        delete RasterDescriptorHeap;
+        RasterDescriptorHeap = nullptr;
     }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::OnResizeRealtimeRenderer()
+void Renderer::OnResizeRasterRender()
 {
     // Delete old one, if it exists
-    if (RealtimeDescriptorHeap != nullptr)
+    if (RasterDescriptorHeap != nullptr)
     {
-        delete RealtimeDescriptorHeap;
-        RealtimeDescriptorHeap = nullptr;
+        delete RasterDescriptorHeap;
+        RasterDescriptorHeap = nullptr;
     }
 
     // Create heap for descriptors
-    RealtimeDescriptorHeap = new DescriptorHeapStack(64, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 0);
+    RasterDescriptorHeap = new DescriptorHeapStack(64, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 0);
 
-    RealtimeDescriptorHeap->AllocateTexture2DSrv(
+    RasterDescriptorHeap->AllocateTexture2DSrv(
         DirectLightingAOBuffer[1].GetResource(),
         RaytracingBufferType,
         D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
 
-    RealtimeDescriptorHeap->AllocateTexture2DSrv(
+    RasterDescriptorHeap->AllocateTexture2DSrv(
         IndirectLightingBuffer[1].GetResource(),
         RaytracingBufferType,
         D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
 
-    RealtimeDescriptorHeap->AllocateTexture2DSrv(
+    RasterDescriptorHeap->AllocateTexture2DSrv(
         CPURaytracerTex.GetResource(),
         CPURaytracerTexType,
         D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
 
     for (int i = 0; i < DeferredBufferType_Num; i++)
     {
-        RealtimeDescriptorHeap->AllocateTexture2DSrv(
+        RasterDescriptorHeap->AllocateTexture2DSrv(
             DeferredBuffers[i].GetResource(),
             DeferredBuffersRTTypes[i],
             D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
@@ -135,7 +135,7 @@ void Renderer::OnResizeRealtimeRenderer()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::SetupRealtimePipeline()
+void Renderer::SetupRasterPipeline()
 {
     CpuResultsBufferIndex = RealtimeRenderingRegisters_Texture4 + 1;   
 
@@ -179,23 +179,23 @@ void Renderer::SetupRealtimePipeline()
         anisoSamplerDesc.MaxLOD             = D3D12_FLOAT32_MAX;
 
         const int numSamplers = 2;
-        RealtimeRootSignature.Reset(RealtimeRenderingRootIndex_Num, numSamplers);
-        RealtimeRootSignature[RealtimeRenderingRootIndex_ConstantBuffer0].InitAsConstantBuffer(RealtimeRenderingRegisters_ConstantBuffer0, D3D12_SHADER_VISIBILITY_ALL);
-        RealtimeRootSignature[RealtimeRenderingRootIndex_ConstantBuffer1].InitAsConstantBuffer(RealtimeRenderingRegisters_ConstantBuffer1, D3D12_SHADER_VISIBILITY_ALL);
-        RealtimeRootSignature[RealtimeRenderingRootIndex_Texture0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RealtimeRenderingRegisters_Texture0, 1);
-        RealtimeRootSignature[RealtimeRenderingRootIndex_Texture1].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RealtimeRenderingRegisters_Texture1, 1);
-        RealtimeRootSignature[RealtimeRenderingRootIndex_Texture2].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RealtimeRenderingRegisters_Texture2, 1);
-        RealtimeRootSignature[RealtimeRenderingRootIndex_Texture3].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RealtimeRenderingRegisters_Texture3, 1);
-        RealtimeRootSignature[RealtimeRenderingRootIndex_Texture4].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RealtimeRenderingRegisters_Texture4, 1);
-        RealtimeRootSignature[RealtimeRenderingRootIndex_Texture5].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RealtimeRenderingRegisters_Texture5, 1);
-        RealtimeRootSignature[RealtimeRenderingRootIndex_Texture6].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RealtimeRenderingRegisters_Texture6, 1);
-        RealtimeRootSignature[RealtimeRenderingRootIndex_Texture7].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RealtimeRenderingRegisters_Texture7, 1);
-        RealtimeRootSignature.InitStaticSampler(RealtimeRenderingRegisters_LinearSampler, linearSamplerDesc, D3D12_SHADER_VISIBILITY_PIXEL);
-        RealtimeRootSignature.InitStaticSampler(RealtimeRenderingRegisters_AnisoSampler, anisoSamplerDesc, D3D12_SHADER_VISIBILITY_PIXEL);
-        RealtimeRootSignature.Finalize("RealtimeRender", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+        RasterRootSignature.Reset(RealtimeRenderingRootIndex_Num, numSamplers);
+        RasterRootSignature[RealtimeRenderingRootIndex_ConstantBuffer0].InitAsConstantBuffer(RealtimeRenderingRegisters_ConstantBuffer0, D3D12_SHADER_VISIBILITY_ALL);
+        RasterRootSignature[RealtimeRenderingRootIndex_ConstantBuffer1].InitAsConstantBuffer(RealtimeRenderingRegisters_ConstantBuffer1, D3D12_SHADER_VISIBILITY_ALL);
+        RasterRootSignature[RealtimeRenderingRootIndex_Texture0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RealtimeRenderingRegisters_Texture0, 1);
+        RasterRootSignature[RealtimeRenderingRootIndex_Texture1].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RealtimeRenderingRegisters_Texture1, 1);
+        RasterRootSignature[RealtimeRenderingRootIndex_Texture2].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RealtimeRenderingRegisters_Texture2, 1);
+        RasterRootSignature[RealtimeRenderingRootIndex_Texture3].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RealtimeRenderingRegisters_Texture3, 1);
+        RasterRootSignature[RealtimeRenderingRootIndex_Texture4].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RealtimeRenderingRegisters_Texture4, 1);
+        RasterRootSignature[RealtimeRenderingRootIndex_Texture5].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RealtimeRenderingRegisters_Texture5, 1);
+        RasterRootSignature[RealtimeRenderingRootIndex_Texture6].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RealtimeRenderingRegisters_Texture6, 1);
+        RasterRootSignature[RealtimeRenderingRootIndex_Texture7].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RealtimeRenderingRegisters_Texture7, 1);
+        RasterRootSignature.InitStaticSampler(RealtimeRenderingRegisters_LinearSampler, linearSamplerDesc, D3D12_SHADER_VISIBILITY_PIXEL);
+        RasterRootSignature.InitStaticSampler(RealtimeRenderingRegisters_AnisoSampler, anisoSamplerDesc, D3D12_SHADER_VISIBILITY_PIXEL);
+        RasterRootSignature.Finalize("RealtimeRender", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
         // This will create descriptors
-        OnResizeRealtimeRenderer();
+        OnResizeRasterRender();
     }
 
     // Geometry pass PSO setup
@@ -242,16 +242,16 @@ void Renderer::SetupRealtimePipeline()
         ThrowIfFailed(D3DReadFileToBlob(SHADERBUILD_DIR L"\\GeometryPass_VS.cso", &vertexShaderBlob));
         ThrowIfFailed(D3DReadFileToBlob(SHADERBUILD_DIR L"\\GeometryPass_PS.cso", &pixelShaderBlob));
 
-        RealtimeGeometryPassPSO.SetRootSignature(RealtimeRootSignature);
-        RealtimeGeometryPassPSO.SetRasterizerState(rasterizerDesc);
-        RealtimeGeometryPassPSO.SetBlendState(blendDisable);
-        RealtimeGeometryPassPSO.SetDepthStencilState(depthStateReadWrite);
-        RealtimeGeometryPassPSO.SetInputLayout(RealtimeSceneVertexEx::InputElementCount, RealtimeSceneVertexEx::InputElements);
-        RealtimeGeometryPassPSO.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
-        RealtimeGeometryPassPSO.SetRenderTargetFormats(_countof(DeferredBuffersRTTypes), DeferredBuffersRTTypes, RenderDevice::Get().GetDepthBufferFormat());
-        RealtimeGeometryPassPSO.SetVertexShader(vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize());
-        RealtimeGeometryPassPSO.SetPixelShader(pixelShaderBlob->GetBufferPointer(), pixelShaderBlob->GetBufferSize());
-        RealtimeGeometryPassPSO.Finalize();
+        RasterGeometryPassPSO.SetRootSignature(RasterRootSignature);
+        RasterGeometryPassPSO.SetRasterizerState(rasterizerDesc);
+        RasterGeometryPassPSO.SetBlendState(blendDisable);
+        RasterGeometryPassPSO.SetDepthStencilState(depthStateReadWrite);
+        RasterGeometryPassPSO.SetInputLayout(RealtimeSceneVertexEx::InputElementCount, RealtimeSceneVertexEx::InputElements);
+        RasterGeometryPassPSO.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
+        RasterGeometryPassPSO.SetRenderTargetFormats(_countof(DeferredBuffersRTTypes), DeferredBuffersRTTypes, RenderDevice::Get().GetDepthBufferFormat());
+        RasterGeometryPassPSO.SetVertexShader(vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize());
+        RasterGeometryPassPSO.SetPixelShader(pixelShaderBlob->GetBufferPointer(), pixelShaderBlob->GetBufferSize());
+        RasterGeometryPassPSO.Finalize();
     }
 
     // Composite pass PSO setup
@@ -300,16 +300,16 @@ void Renderer::SetupRealtimePipeline()
 
         DXGI_FORMAT rtFormats[] { RenderDevice::Get().GetBackBufferFormat() };
 
-        RealtimeCompositePassPSO.SetRootSignature(RealtimeRootSignature);
-        RealtimeCompositePassPSO.SetRasterizerState(rasterizerDesc);
-        RealtimeCompositePassPSO.SetBlendState(blendDisable);
-        RealtimeCompositePassPSO.SetDepthStencilState(depthDisabledState);
-        RealtimeCompositePassPSO.SetInputLayout(RealtimeSceneVertexEx::InputElementCount, RealtimeSceneVertexEx::InputElements);
-        RealtimeCompositePassPSO.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
-        RealtimeCompositePassPSO.SetRenderTargetFormats(_countof(rtFormats), rtFormats, RenderDevice::Get().GetDepthBufferFormat());
-        RealtimeCompositePassPSO.SetVertexShader(vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize());
-        RealtimeCompositePassPSO.SetPixelShader(pixelShaderBlob->GetBufferPointer(), pixelShaderBlob->GetBufferSize());
-        RealtimeCompositePassPSO.Finalize();
+        RasterCompositePassPSO.SetRootSignature(RasterRootSignature);
+        RasterCompositePassPSO.SetRasterizerState(rasterizerDesc);
+        RasterCompositePassPSO.SetBlendState(blendDisable);
+        RasterCompositePassPSO.SetDepthStencilState(depthDisabledState);
+        RasterCompositePassPSO.SetInputLayout(RealtimeSceneVertexEx::InputElementCount, RealtimeSceneVertexEx::InputElements);
+        RasterCompositePassPSO.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
+        RasterCompositePassPSO.SetRenderTargetFormats(_countof(rtFormats), rtFormats, RenderDevice::Get().GetDepthBufferFormat());
+        RasterCompositePassPSO.SetVertexShader(vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize());
+        RasterCompositePassPSO.SetPixelShader(pixelShaderBlob->GetBufferPointer(), pixelShaderBlob->GetBufferSize());
+        RasterCompositePassPSO.Finalize();
     }
 }
 
@@ -334,7 +334,7 @@ void Renderer::RenderGeometryPass()
 
     GraphicsContext& renderContext = GraphicsContext::Begin("RenderRealtimeResults");
     {
-        renderContext.SetRootSignature(RealtimeRootSignature);
+        renderContext.SetRootSignature(RasterRootSignature);
         renderContext.SetViewport(RenderDevice::Get().GetScreenViewport());
         renderContext.SetScissor(RenderDevice::Get().GetScissorRect());
 
@@ -362,7 +362,7 @@ void Renderer::RenderGeometryPass()
             }
 
             renderContext.ClearDepth(RenderDevice::Get().GetDepthStencil());
-            renderContext.SetPipelineState(RealtimeGeometryPassPSO);
+            renderContext.SetPipelineState(RasterGeometryPassPSO);
             renderContext.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
             RenderSceneList(renderContext);
         }
@@ -376,7 +376,7 @@ void Renderer::RenderCompositePass()
 {
     GraphicsContext& renderContext = GraphicsContext::Begin("RenderCompositePass");
     {
-        renderContext.SetRootSignature(RealtimeRootSignature);
+        renderContext.SetRootSignature(RasterRootSignature);
         renderContext.SetViewport(RenderDevice::Get().GetScreenViewport());
         renderContext.SetScissor(RenderDevice::Get().GetScissorRect());
 
@@ -438,17 +438,17 @@ void Renderer::RenderCompositePass()
             renderContext.TransitionResource(RenderDevice::Get().GetDepthStencil(), D3D12_RESOURCE_STATE_DEPTH_READ, true);
 
             // Set descriptor heaps and tables
-            renderContext.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, RealtimeDescriptorHeap->GetDescriptorHeap());
-            for (uint32_t i = 0; i < RealtimeDescriptorHeap->GetCount(); i++)
+            renderContext.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, RasterDescriptorHeap->GetDescriptorHeap());
+            for (uint32_t i = 0; i < RasterDescriptorHeap->GetCount(); i++)
             {
                 uint32_t rootIndex = RealtimeRenderingRootIndex_Texture0 + i;
-                renderContext.SetDescriptorTable(rootIndex, RealtimeDescriptorHeap->GetGpuHandle(i));
+                renderContext.SetDescriptorTable(rootIndex, RasterDescriptorHeap->GetGpuHandle(i));
             }
 
             // Draw
             renderContext.SetDynamicConstantBufferView(RealtimeRenderingRootIndex_ConstantBuffer0, sizeof(sceneCb), &sceneCb);
             renderContext.SetRenderTarget(RenderDevice::Get().GetRenderTarget().GetRTV(), RenderDevice::Get().GetDepthStencil().GetDSV());
-            renderContext.SetPipelineState(RealtimeCompositePassPSO);
+            renderContext.SetPipelineState(RasterCompositePassPSO);
             renderContext.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
             renderContext.SetNullVertexBuffer(0);
             renderContext.SetNullIndexBuffer();

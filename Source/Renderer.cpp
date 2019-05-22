@@ -43,7 +43,7 @@ Renderer::Renderer(uint32_t width, uint32_t height)
     , FrameCount(0)
     , SelectedBufferIndex(0)
     , AccumCount(0)
-    , RealtimeDescriptorHeap(nullptr)
+    , RasterDescriptorHeap(nullptr)
     , RaytracingDescriptorHeap(nullptr)
     , IsCameraDirty(true)
     , LoadSceneRequested(false)
@@ -66,7 +66,7 @@ Renderer::~Renderer()
     CommandListManager::Get().IdleGPU();
 
     CleanupGpuRaytracer();
-    CleanupRealtimeRender();
+    CleanupRasterRender();
 
     if (TheRaytracer != nullptr)
     {
@@ -117,13 +117,13 @@ void Renderer::OnInit()
 
     // Setup render pipelines
     SetupRenderBuffers();
-    SetupRealtimePipeline();
+    SetupRasterPipeline();
 
     // Load the scene data
     LoadScene();
 
     // Raytracing setup last (scene data needs to be loaded first)
-    SetupRealtimeRaytracingPipeline();
+    SetupGpuRaytracingPipeline();
 
     SetupGui();
 }
@@ -218,7 +218,7 @@ void Renderer::OnSizeChanged(uint32_t width, uint32_t height, bool minimized)
     SetupRenderBuffers();
     OnResizeCpuRaytracer();
     OnResizeGpuRaytracer();
-    OnResizeRealtimeRenderer();
+    OnResizeRasterRender();
     SetCameraDirty();
 }
 

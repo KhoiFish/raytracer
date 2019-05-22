@@ -67,22 +67,22 @@ public:
 
 private:
 
-    void            SetupRealtimeRaytracingPipeline();
-    void            SetupRealtimePipeline();
+    void            SetupGpuRaytracingPipeline();
+    void            SetupRasterPipeline();
     void            SetupRenderBuffers();
     void            SetupGui();
     void            LoadScene();
 
-    void            SetupRaytracingRootSignatures();
-    void            SetupRaytracingDescriptors();
-    void            SetupRaytracingPSO();
+    void            SetupGpuRaytracingRootSignatures();
+    void            SetupGpuRaytracingDescriptors();
+    void            SetupGpuRaytracingPSO();
 
     void            OnResizeCpuRaytracer();
     void            OnResizeGpuRaytracer();
-    void            OnResizeRealtimeRenderer();
+    void            OnResizeRasterRender();
 
     void            CleanupGpuRaytracer();
-    void            CleanupRealtimeRender();
+    void            CleanupRasterRender();
 
     void            ToggleCpuRaytracer();
     static void     OnCpuRaytraceComplete(Core::Raytracer* tracer, bool actuallyFinished);
@@ -93,9 +93,9 @@ private:
 
     void            RenderSceneList(GraphicsContext& renderContext);
     void            RenderGeometryPass();
+    void            RenderGpuRaytracing();
     void            RenderCompositePass();
     void            RenderGui();
-    void            RenderGpuRaytracing(); 
 
     const char*     GetSelectedBufferName();
 
@@ -188,10 +188,10 @@ private:
     ColorBuffer                     DirectLightingAOBuffer[2];
     ColorBuffer                     IndirectLightingBuffer[2];
 
-    RootSignature                   RealtimeRootSignature;
-    GraphicsPSO                     RealtimeGeometryPassPSO;
-    GraphicsPSO                     RealtimeCompositePassPSO;
-    DescriptorHeapStack*            RealtimeDescriptorHeap;
+    RootSignature                   RasterRootSignature;
+    GraphicsPSO                     RasterGeometryPassPSO;
+    GraphicsPSO                     RasterCompositePassPSO;
+    DescriptorHeapStack*            RasterDescriptorHeap;
 
     RootSignature                   RaytracingGlobalRootSig;
     RootSignature                   RaytracingLocalRootSig;

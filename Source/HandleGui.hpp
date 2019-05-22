@@ -39,8 +39,8 @@ void Renderer::RenderGui()
     ImGui::NewFrame();
     while(true)
     {
-        ImGui::SetNextWindowPos(ImVec2(10, 16), ImGuiCond_FirstUseEver);
-        ImGui::SetNextWindowSize(ImVec2(530, 560), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowPos(ImVec2(12, 18), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowSize(ImVec2(576, 608), ImGuiCond_FirstUseEver);
 
         ImGuiWindowFlags window_flags = ImGuiWindowFlags_AlwaysVerticalScrollbar;
         if (!ImGui::Begin("Options Window", nullptr, window_flags))
@@ -160,12 +160,12 @@ void Renderer::RenderGui()
                 gpuOptionsChanged = true;
             }
 
-            if (ImGui::SliderFloat("Gpu Direct Lighting Multiplier", &UserInput.GpuDirectLightMult, 1.0f, 500.0f))
+            if (ImGui::SliderFloat("Gpu Direct Light Scale", &UserInput.GpuDirectLightMult, 1.0f, 500.0f))
             {
                 gpuOptionsChanged = true;
             }
 
-            if (ImGui::SliderFloat("Gpu Indirect Lighting Multiplier", &UserInput.GpuIndirectLightMult, 1.0f, 500.0f))
+            if (ImGui::SliderFloat("Gpu Indirect Light Scale", &UserInput.GpuIndirectLightMult, 1.0f, 500.0f))
             {
                 gpuOptionsChanged = true;
             }

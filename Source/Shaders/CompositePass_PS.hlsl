@@ -51,12 +51,14 @@ float4 main(PixelShaderInput IN) : SV_Target
     float4 directLight   = float4(directLightAO.rgb, 1)                            * SceneCb.TextureMultipliers[1] * SceneCb.DirectIndirectLightMult.x;
     float4 indirectLight = IndirectLight.Sample(LinearRepeatSampler, IN.TexCoord)  * SceneCb.TextureMultipliers[2] * SceneCb.DirectIndirectLightMult.y;
     float4 ao            = directLightAO.a                                         * SceneCb.TextureMultipliers[3];
-    float4 cpuRT         = CpuResultsTex.Sample(LinearRepeatSampler, IN.TexCoord)  * SceneCb.TextureMultipliers[4];
+    float4 diffuse       = DiffuseTexture.Sample(LinearRepeatSampler, IN.TexCoord) * SceneCb.TextureMultipliers[4];
+    float4 cpuRT         = CpuResultsTex.Sample(LinearRepeatSampler, IN.TexCoord)  * SceneCb.TextureMultipliers[5];
+
+    float4 composited    = (directLight + indirectLight);
+    float4 selected      = (directLight + indirectLight + ao + diffuse + cpuRT);
 
     // Compute final color
-    float4 finalCol = 
-        ((directLight + indirectLight)              * SceneCb.CompositeMultipliers[0]) +
-        ((directLight + indirectLight + ao + cpuRT) * SceneCb.CompositeMultipliers[1]);
+    float4 finalCol = (composited * SceneCb.CompositeMultipliers[0]) + (selected * SceneCb.CompositeMultipliers[1]);
 
     return finalCol;
 }

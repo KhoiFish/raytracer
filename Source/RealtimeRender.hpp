@@ -66,10 +66,11 @@ const char* Renderer::GetSelectedBufferName()
 {
     static const char* bufferNames[] =
     {
-        "Composited Output",
+        "Composite Output",
         "Direct Lighting",
         "Indirect Lighting",
         "Ambient Occlusion",
+        "Diffuse",
         "Cpu Raytrace",
     };
 
@@ -136,7 +137,7 @@ void Renderer::OnResizeRealtimeRenderer()
 
 void Renderer::SetupRealtimePipeline()
 {
-    CpuResultsBufferIndex = RealtimeRenderingRegisters_Texture3 + 1;   
+    CpuResultsBufferIndex = RealtimeRenderingRegisters_Texture4 + 1;   
 
     // Init random generator
     {

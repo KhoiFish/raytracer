@@ -6,15 +6,21 @@ The core CPU rendering code builds for Windows, Mac and Linux. The realtime rayt
 
 This project initially grew from working through the great "Raytracing in a Weekend" series by Peter Shirley. It has grown beyond it.
 <br>
+<br>
+
 ![alt text](https://github.com/KhoiFish/raytracer/blob/master/SavedImages/final.png "CPU traced image")
+<br>
+<br>
+
+![alt text](https://github.com/KhoiFish/raytracer/blob/master/SavedImages/realtime.png "GPU traced image")
 
 # Credits
 
 This was not created in isolation. A great portion of this software was built around code from around the internet. I've shamelessly borrowed and modified tutorial and sample code from great developers from Microsoft, Nvidia and former collegues of mine.
 
-Most of the realtime core engine code was copied, stripped of features we didn't need and modified to match the style and spirit of this project. I've included unadulterated copies of this software under the ThirdParty folder. Long story short, if you see a similarity to something you've seen somewhere else, your hunches are correct: it's going to be code from the gracious programmers aforementioned. So, feel free to use the code in this package and also kindly credit the following individuals and/or organizations a well:
+Most of the realtime core engine code was copied, stripped of features I didn't need and modified to match the style and spirit of this project. I've included unadulterated copies of this software under the ThirdParty folder. Long story short, if you see a similarity to something you've seen somewhere else, your hunches are correct: it's going to be code from the gracious programmers aforementioned. So, feel free to use the code in this package and also kindly credit the following individuals and/or organizations as well:
 
-Ray Tracing In A Weekend / Peter Shirley
+Ray Tracing In One Weekend / Peter Shirley
 <br>
 [https://github.com/petershirley/raytracinginoneweekend]
 

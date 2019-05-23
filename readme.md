@@ -22,7 +22,7 @@ This project initially grew from working through the great "Raytracing in a Week
 
 ![alt text](https://github.com/KhoiFish/raytracer/blob/master/SavedImages/realtime.png "GPU traced image")
 
-# Good reads
+## Good reads
 
 The following people were great influences and provided the learning material and knowledge through their works, books, etc. If any of you are reading this, thank you for sharing your knowledge and for inspiring this project.
 
@@ -38,7 +38,7 @@ The following people were great influences and provided the learning material an
 <br>
 *I always keep a copy of "Real-time Rendering" book on my desk. The new "Raytracing Gems" is also a good read on emerging realtime raytracing tech.*
 
-# References & Credits
+## References & Credits
 
 This was not created in isolation. A portion of this software was built around code from around the internet. I've shamelessly borrowed and modified tutorial and sample code from great developers from Microsoft, Nvidia and former collegues of mine.
 

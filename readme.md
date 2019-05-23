@@ -1,10 +1,18 @@
 # CPU and GPU Raytracer
 
-This is a raytracing rendering application. It currently has CPU based and Realtime (via DXR) based raytracing.
+This is a raytracing rendering application. It currently has CPU based and Realtime (via DXR) based raytracing. The core CPU rendering code builds for Windows, Mac and Linux. The realtime raytracing is currently only supported under Windows 10.
 
-The core CPU rendering code builds for Windows, Mac and Linux. The realtime raytracing is currently only supported under Windows 10.
+This project initially grew from working through the great "Raytracing in a Weekend" series by Peter Shirley.
 
-This project initially grew from working through the great "Raytracing in a Weekend" series by Peter Shirley. It has grown beyond it.
+## Features
+* RGB based
+* CPU: multi-core, SIMD accelerated
+* GPU: DXR accelerated raytracing
+* Area lighting
+* Raytraced direct, indirect lighting (single bounce)
+* Raytraced ambient occlusion
+* Anti-aliasing (via camera jitter + temporal accumulation)
+
 <br>
 <br>
 
@@ -14,11 +22,27 @@ This project initially grew from working through the great "Raytracing in a Week
 
 ![alt text](https://github.com/KhoiFish/raytracer/blob/master/SavedImages/realtime.png "GPU traced image")
 
-# Credits
+# Good reads
 
-This was not created in isolation. A great portion of this software was built around code from around the internet. I've shamelessly borrowed and modified tutorial and sample code from great developers from Microsoft, Nvidia and former collegues of mine.
+The following people were great influences and provided the learning material and knowledge through their works, books, etc. If any of you are reading this, thank you for sharing your knowledge and for inspiring this project.
 
-Most of the realtime core engine code was copied, stripped of features I didn't need and modified to match the style and spirit of this project. I've included unadulterated copies of this software under the ThirdParty folder. Long story short, if you see a similarity to something you've seen somewhere else, your hunches are correct: it's going to be code from the gracious programmers aforementioned. So, feel free to use the code in this package and also kindly credit the following individuals and/or organizations as well:
+Peter Shirley
+<br>
+His great book "Ray Tracing In A Weekend" started this whole shin-dig.
+  
+Matt Pharr, Wenzel Jakob
+<br>
+Their magnificent and massive "Physically based rendering" book is a must read. I still have to finish my copy...
+
+Eric Haines, Tomas Akenine-Möller
+<br>
+I always keep a copy of "Real-time Rendering" book on my desk. The new "Raytracing Gems" is also a great read about the emerging realtime raytracing technology.
+
+# References & Credits
+
+This was not created in isolation. A portion of this software was built around code from around the internet. I've shamelessly borrowed and modified tutorial and sample code from great developers from Microsoft, Nvidia and former collegues of mine.
+
+Most of the realtime core engine code was copied, stripped of features I didn't need and modified to match the style and spirit of this project. Feel free to use the code in this package and kindly credit the following individuals and/or organizations as well:
 
 Ray Tracing In One Weekend / Peter Shirley
 <br>
@@ -48,18 +72,4 @@ IMGUI
 <br>
 [https://github.com/ocornut/imgui]
 
-# Special Thanks
 
-The following people were great influences and provided great learning material and knowledge through their works, books, posts and material. If any of you are reading this, thank you for sharing your knowledge and for inspiring this project.
-
-Peter Shirley
-<br>
-His great book "Ray Tracing In A Weekend" started this whole shin-dig.
-  
-Matt Pharr, Wenzel Jakob
-<br>
-Their magnificent and massive "Physically based rendering" book is a must read. I still have to finish my copy...
-
-Eric Haines, Tomas Akenine-Möller
-<br>
-I always keep a copy of "Real-time Rendering" book on my desk. The new "Raytracing Gems" is also a great read about the emerging realtime raytracing technology.

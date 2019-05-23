@@ -20,7 +20,7 @@ This was not created in isolation. A great portion of this software was built ar
 
 Most of the realtime core engine code was copied, stripped of features I didn't need and modified to match the style and spirit of this project. I've included unadulterated copies of this software under the ThirdParty folder. Long story short, if you see a similarity to something you've seen somewhere else, your hunches are correct: it's going to be code from the gracious programmers aforementioned. So, feel free to use the code in this package and also kindly credit the following individuals and/or organizations as well:
 
-Ray Tracing In A Weekend / Peter Shirley
+Ray Tracing In One Weekend / Peter Shirley
 <br>
 [https://github.com/petershirley/raytracinginoneweekend]
 

@@ -14,6 +14,7 @@ This is a raytracing rendering application. It currently has CPU based and Realt
 * Raytraced ambient occlusion
 * Anti-aliasing (via camera jitter + temporal accumulation)
 <br>
+
 ![alt text](https://github.com/KhoiFish/raytracer/blob/master/SavedImages/realtime.png "GPU traced image")
 <br>
 

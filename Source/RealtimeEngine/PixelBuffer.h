@@ -36,6 +36,8 @@ namespace RealtimeEngine
         uint32_t            GetDepth(void) const    { return ArraySize; }
         const DXGI_FORMAT&  GetFormat(void) const   { return Format; }
 
+        static size_t       BytesPerPixel(DXGI_FORMAT format);
+
     protected:
 
         D3D12_RESOURCE_DESC DescribeTex2D(uint32_t width, uint32_t height, uint32_t depthOrArraySize, uint32_t numMips, DXGI_FORMAT format, D3D12_RESOURCE_FLAGS resourceFlags);
@@ -47,7 +49,6 @@ namespace RealtimeEngine
         static DXGI_FORMAT  GetDSVFormat(DXGI_FORMAT format);
         static DXGI_FORMAT  GetDepthFormat(DXGI_FORMAT format);
         static DXGI_FORMAT  GetStencilFormat(DXGI_FORMAT format);
-        static size_t       BytesPerPixel(DXGI_FORMAT format);
 
     protected:
 

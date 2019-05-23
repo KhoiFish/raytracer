@@ -116,7 +116,7 @@ namespace RealtimeEngine
         static void                 InitializeTexture(GpuResource& dest, uint32_t numSubresources, D3D12_SUBRESOURCE_DATA subData[]);
         static void                 InitializeBuffer(GpuResource& dest, const void* Data, size_t numBytes, size_t offset = 0);
         static void                 InitializeTextureArraySlice(GpuResource& dest, uint32_t sliceIndex, GpuResource& src);
-//        static void                 ReadbackTexture2D(GpuResource& ReadbackBuffer, PixelBuffer& srcBuffer);
+        static void                 ReadbackTexture2D(GpuResource& readbackBuffer, PixelBuffer& srcBuffer);
 
         void                        WriteBuffer(GpuResource& dest, size_t destOffset, const void* data, size_t numBytes);
         void                        FillBuffer(GpuResource& dest, size_t destOffset, DWParam value, size_t numBytes);

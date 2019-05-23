@@ -21,6 +21,7 @@
 #include "ColorBuffer.h"
 #include "DepthBuffer.h"
 #include "DescriptorHeap.h"
+#include "RenderDevice.h"
 
 using namespace RealtimeEngine;
 
@@ -1193,4 +1194,24 @@ void CommandContext::InsertTimeStamp(ID3D12QueryHeap* pQueryHeap, uint32_t query
 void CommandContext::ResolveTimeStamps(ID3D12Resource* pReadbackHeap, ID3D12QueryHeap* pQueryHeap, uint32_t numQueries)
 {
     TheCommandList->ResolveQueryData(pQueryHeap, D3D12_QUERY_TYPE_TIMESTAMP, 0, numQueries, pReadbackHeap, 0);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void RealtimeEngine::CommandContext::ReadbackTexture2D(GpuResource& readbackBuffer, PixelBuffer& srcBuffer)
+{
+    D3D12_PLACED_SUBRESOURCE_FOOTPRINT PlacedFootprint;
+    RenderDevice::Get().GetD3DDevice()->GetCopyableFootprints(&srcBuffer.GetResource()->GetDesc(), 0, 1, 0, &PlacedFootprint, nullptr, nullptr, nullptr);
+
+    // This very short command list only issues one API call and will be synchronized so we can immediately read
+    // the buffer contents.
+    CommandContext& context = CommandContext::Begin("Copy texture to memory");
+
+    context.TransitionResource(srcBuffer, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
+
+    context.TheCommandList->CopyTextureRegion(
+        &CD3DX12_TEXTURE_COPY_LOCATION(readbackBuffer.GetResource(), PlacedFootprint), 0, 0, 0,
+        &CD3DX12_TEXTURE_COPY_LOCATION(srcBuffer.GetResource(), 0), nullptr);
+
+    context.Finish(true);
 }

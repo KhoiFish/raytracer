@@ -222,6 +222,67 @@ D3D12_RESOURCE_DESC GpuBuffer::DescribeBuffer()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+void ReadbackBuffer::Create(const std::wstring& name, uint32_t numElements, uint32_t elementSize)
+{
+    Destroy();
+
+    ElementCount = numElements;
+    ElementSize  = elementSize;
+    BufferSize   = numElements * elementSize;
+    UsageState   = D3D12_RESOURCE_STATE_COPY_DEST;
+
+    // Create a readback buffer large enough to hold all texel data
+    D3D12_HEAP_PROPERTIES HeapProps;
+    HeapProps.Type                  = D3D12_HEAP_TYPE_READBACK;
+    HeapProps.CPUPageProperty       = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+    HeapProps.MemoryPoolPreference  = D3D12_MEMORY_POOL_UNKNOWN;
+    HeapProps.CreationNodeMask      = 1;
+    HeapProps.VisibleNodeMask       = 1;
+
+    // Readback buffers must be 1-dimensional, i.e. "buffer" not "texture2d"
+    D3D12_RESOURCE_DESC ResourceDesc = {};
+    ResourceDesc.Dimension          = D3D12_RESOURCE_DIMENSION_BUFFER;
+    ResourceDesc.Width              = BufferSize;
+    ResourceDesc.Height             = 1;
+    ResourceDesc.DepthOrArraySize   = 1;
+    ResourceDesc.MipLevels          = 1;
+    ResourceDesc.Format             = DXGI_FORMAT_UNKNOWN;
+    ResourceDesc.SampleDesc.Count   = 1;
+    ResourceDesc.SampleDesc.Quality = 0;
+    ResourceDesc.Layout             = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+    ResourceDesc.Flags              = D3D12_RESOURCE_FLAG_NONE;
+
+    ASSERT_SUCCEEDED(RenderDevice::Get().GetD3DDevice()->CreateCommittedResource(&HeapProps, D3D12_HEAP_FLAG_NONE, &ResourceDesc,
+        D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&ResourcePtr)));
+
+    GpuVirtualAddress = ResourcePtr->GetGPUVirtualAddress();
+
+    #ifdef RELEASE
+        (name);
+    #else
+        ResourcePtr->SetName(name.c_str());
+    #endif
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void* ReadbackBuffer::Map(void)
+{
+    void* pMemory;
+    ResourcePtr->Map(0, &CD3DX12_RANGE(0, BufferSize), &pMemory);
+
+    return pMemory;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void ReadbackBuffer::Unmap(void)
+{
+    ResourcePtr->Unmap(0, &CD3DX12_RANGE(0, 0));
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 void ByteAddressBuffer::CreateDerivedViews()
 {
     D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};

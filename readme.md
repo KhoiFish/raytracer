@@ -1,4 +1,7 @@
 # CPU and GPU Raytracer
+![alt text](https://github.com/KhoiFish/raytracer/blob/master/SavedImages/final.png "CPU traced image")
+<br>
+<br>
 
 This is a raytracing rendering application. It currently has CPU based and Realtime (via DXR) based raytracing. The core CPU rendering code builds for Windows, Mac and Linux. The realtime raytracing is currently only supported under Windows 10.
 
@@ -13,10 +16,6 @@ This project initially grew from working through the great "Raytracing in a Week
 * Raytraced ambient occlusion
 * Anti-aliasing (via camera jitter + temporal accumulation)
 
-<br>
-<br>
-
-![alt text](https://github.com/KhoiFish/raytracer/blob/master/SavedImages/final.png "CPU traced image")
 <br>
 <br>
 

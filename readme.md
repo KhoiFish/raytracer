@@ -6,7 +6,13 @@ The core CPU rendering code builds for Windows, Mac and Linux. The realtime rayt
 
 This project initially grew from working through the great "Raytracing in a Weekend" series by Peter Shirley. It has grown beyond it.
 <br>
+<br>
+
 ![alt text](https://github.com/KhoiFish/raytracer/blob/master/SavedImages/final.png "CPU traced image")
+<br>
+<br>
+
+![alt text](https://github.com/KhoiFish/raytracer/blob/master/SavedImages/realtime.png "GPU traced image")
 
 # Credits
 

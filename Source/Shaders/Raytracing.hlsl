@@ -92,30 +92,6 @@ inline RealtimeSceneVertex getVertex(uint triangleIndex, float3 barycentrics)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline float shadowRayVisibility(float3 origin, float3 direction, float minT, float maxT)
-{
-    ShadowRayPayload payload;
-    payload.Value = 0.0f;
-
-    RayDesc ray;
-    ray.Origin      = origin;
-    ray.Direction   = direction;
-    ray.TMin        = minT;
-    ray.TMax        = maxT;
-
-    TraceRay
-    (
-        gScene,
-        RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER,
-        RAYTRACING_INSTANCEMASK_OPAQUE,
-        gSceneCB.AOHitGroupIndex, gSceneCB.HitProgramCount, gSceneCB.AOMissIndex,
-        ray, payload);
-
-    return payload.Value;
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
 inline DirectRayPayload areaLightVisibility(float3 orig, float3 dir, float minT, float maxT)
 {
     DirectRayPayload payload;

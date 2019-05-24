@@ -47,7 +47,7 @@ namespace RealtimeEngine
         void InitAsBufferSRV        (uint32_t reg, D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL);
         void InitAsBufferUAV        (uint32_t reg, D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL);
         void InitAsDescriptorTable  (uint32_t rangeCount, D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL);
-        void InitAsDescriptorRange  (D3D12_DESCRIPTOR_RANGE_TYPE type, uint32_t reg, uint32_t count, D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL);
+        void InitAsDescriptorRange  (D3D12_DESCRIPTOR_RANGE_TYPE type, uint32_t reg, uint32_t count, uint32_t space, D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL);
         void SetTableRange          (uint32_t rangeIndex, D3D12_DESCRIPTOR_RANGE_TYPE type, uint32_t reg, uint32_t count, uint32_t space = 0);
 
         const D3D12_ROOT_PARAMETER& operator() () const

@@ -60,6 +60,7 @@ namespace RaytracingGlobalRootSigSlot
         PrevIndirectLight,
         CurrIndirectLight,
         SceneCB,
+        LightsCB,
         AccelerationStructure,
         Positions,
         Normals,
@@ -72,24 +73,28 @@ namespace RaytracingGlobalRootSigSlot
     enum IndexTypes
     {
         Register = 0,
-        Count
+        Count,
+        Space
     };
 
-    // [register, count]
-    static UINT Range[RaytracingGlobalRootSigSlot::Num][2] =
+    static const UINT nL = RAYTRACING_MAX_NUM_LIGHTS;
+
+    // [register, count, space]
+    static UINT Range[RaytracingGlobalRootSigSlot::Num][3] =
     {
-        { 0, 1 },   // PrevDirectLightAO
-        { 1, 1 },   // CurrDirectLightAO
-        { 2, 1 },   // PrevIndirectLight
-        { 3, 1 },   // CurrIndirectLight
+        { 0, 1,  0 },   // PrevDirectLightAO
+        { 1, 1,  0 },   // CurrDirectLightAO
+        { 2, 1,  0 },   // PrevIndirectLight
+        { 3, 1,  0 },   // CurrIndirectLight
 
-        { 0, 1 },   // Scene CB
+        { 0, 1,  0 },   // Scene CB
+        { 1, nL, 0 },   // Lights CB
 
-        { 0, 1 },   // AccelerationStructure
-        { 1, 1 },   // Positions
-        { 2, 1 },   // Normals
-        { 3, 1 },   // TexCoordsAndDepth
-        { 4, 1 },   // Albedo
+        { 0, 1,  0 },   // AccelerationStructure
+        { 1, 1,  0 },   // Positions
+        { 2, 1,  0 },   // Normals
+        { 3, 1,  0 },   // TexCoordsAndDepth
+        { 4, 1,  0 },   // Albedo
     };
 }
 
@@ -108,17 +113,18 @@ namespace RaytracingLocalRootSigSlot
     enum IndexTypes
     {
         Register = 0,
-        Count
+        Count,
+        Space
     };
 
-    // [register, count]
-    static UINT Range[RaytracingLocalRootSigSlot::Num][2] =
+    // [register, count, space]
+    static UINT Range[RaytracingLocalRootSigSlot::Num][3] =
     {
-        { 1, 1 }, // LocalCB
-        { 2, 1 }, // Material CB
+        { 0, 1, 1 }, // LocalCB
+        { 1, 1, 1 }, // Material CB
 
-        { 5, 1 }, // VertexBuffer
-        { 6, 1 }, // IndexBuffer
+        { 0, 1, 1 }, // VertexBuffer
+        { 1, 1, 1 }, // IndexBuffer
     };
 }
 
@@ -171,60 +177,77 @@ void Renderer::SetupGpuRaytracingRootSignatures()
                 D3D12_DESCRIPTOR_RANGE_TYPE_UAV,
                 RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::PrevDirectLightAO][RaytracingGlobalRootSigSlot::Register],
                 RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::PrevDirectLightAO][RaytracingGlobalRootSigSlot::Count],
+                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::PrevDirectLightAO][RaytracingGlobalRootSigSlot::Space],
                 D3D12_SHADER_VISIBILITY_ALL);
 
             RaytracingGlobalRootSig[RaytracingGlobalRootSigSlot::CurrDirectLightAO].InitAsDescriptorRange(
                 D3D12_DESCRIPTOR_RANGE_TYPE_UAV,
                 RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::CurrDirectLightAO][RaytracingGlobalRootSigSlot::Register],
                 RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::CurrDirectLightAO][RaytracingGlobalRootSigSlot::Count],
+                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::CurrDirectLightAO][RaytracingGlobalRootSigSlot::Space],
                 D3D12_SHADER_VISIBILITY_ALL);
 
             RaytracingGlobalRootSig[RaytracingGlobalRootSigSlot::PrevIndirectLight].InitAsDescriptorRange(
                 D3D12_DESCRIPTOR_RANGE_TYPE_UAV,
                 RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::PrevIndirectLight][RaytracingGlobalRootSigSlot::Register],
                 RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::PrevIndirectLight][RaytracingGlobalRootSigSlot::Count],
+                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::PrevIndirectLight][RaytracingGlobalRootSigSlot::Space],
                 D3D12_SHADER_VISIBILITY_ALL);
 
             RaytracingGlobalRootSig[RaytracingGlobalRootSigSlot::CurrIndirectLight].InitAsDescriptorRange(
                 D3D12_DESCRIPTOR_RANGE_TYPE_UAV,
                 RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::CurrIndirectLight][RaytracingGlobalRootSigSlot::Register],
                 RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::CurrIndirectLight][RaytracingGlobalRootSigSlot::Count],
+                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::CurrIndirectLight][RaytracingGlobalRootSigSlot::Space],
                 D3D12_SHADER_VISIBILITY_ALL);
 
             RaytracingGlobalRootSig[RaytracingGlobalRootSigSlot::SceneCB].InitAsDescriptorRange(
                 D3D12_DESCRIPTOR_RANGE_TYPE_CBV,
                 RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::SceneCB][RaytracingGlobalRootSigSlot::Register],
                 RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::SceneCB][RaytracingGlobalRootSigSlot::Count],
+                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::SceneCB][RaytracingGlobalRootSigSlot::Space],
+                D3D12_SHADER_VISIBILITY_ALL);
+
+            RaytracingGlobalRootSig[RaytracingGlobalRootSigSlot::LightsCB].InitAsDescriptorRange(
+                D3D12_DESCRIPTOR_RANGE_TYPE_CBV,
+                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::LightsCB][RaytracingGlobalRootSigSlot::Register],
+                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::LightsCB][RaytracingGlobalRootSigSlot::Count],
+                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::LightsCB][RaytracingGlobalRootSigSlot::Space],
                 D3D12_SHADER_VISIBILITY_ALL);
 
             RaytracingGlobalRootSig[RaytracingGlobalRootSigSlot::AccelerationStructure].InitAsDescriptorRange(
                 D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
                 RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::AccelerationStructure][RaytracingGlobalRootSigSlot::Register],
                 RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::AccelerationStructure][RaytracingGlobalRootSigSlot::Count],
+                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::AccelerationStructure][RaytracingGlobalRootSigSlot::Space],
                 D3D12_SHADER_VISIBILITY_ALL);
 
             RaytracingGlobalRootSig[RaytracingGlobalRootSigSlot::Positions].InitAsDescriptorRange(
                 D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
                 RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::Positions][RaytracingGlobalRootSigSlot::Register],
                 RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::Positions][RaytracingGlobalRootSigSlot::Count],
+                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::Positions][RaytracingGlobalRootSigSlot::Space],
                 D3D12_SHADER_VISIBILITY_ALL);
 
             RaytracingGlobalRootSig[RaytracingGlobalRootSigSlot::Normals].InitAsDescriptorRange(
                 D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
                 RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::Normals][RaytracingGlobalRootSigSlot::Register],
                 RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::Normals][RaytracingGlobalRootSigSlot::Count],
+                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::Normals][RaytracingGlobalRootSigSlot::Space],
                 D3D12_SHADER_VISIBILITY_ALL);
 
             RaytracingGlobalRootSig[RaytracingGlobalRootSigSlot::TexCoordsAndDepth].InitAsDescriptorRange(
                 D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
                 RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::TexCoordsAndDepth][RaytracingGlobalRootSigSlot::Register],
                 RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::TexCoordsAndDepth][RaytracingGlobalRootSigSlot::Count],
+                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::TexCoordsAndDepth][RaytracingGlobalRootSigSlot::Space],
                 D3D12_SHADER_VISIBILITY_ALL);
 
             RaytracingGlobalRootSig[RaytracingGlobalRootSigSlot::Albedo].InitAsDescriptorRange(
                 D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
                 RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::Albedo][RaytracingGlobalRootSigSlot::Register],
                 RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::Albedo][RaytracingGlobalRootSigSlot::Count],
+                RaytracingGlobalRootSigSlot::Range[RaytracingGlobalRootSigSlot::Albedo][RaytracingGlobalRootSigSlot::Space],
                 D3D12_SHADER_VISIBILITY_ALL);
         }
         RaytracingGlobalRootSig.Finalize("RealtimeRaytracingGlobalRoot", D3D12_ROOT_SIGNATURE_FLAG_NONE);
@@ -239,24 +262,28 @@ void Renderer::SetupGpuRaytracingRootSignatures()
                 D3D12_DESCRIPTOR_RANGE_TYPE_CBV,
                 RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::LocalCB][RaytracingLocalRootSigSlot::Register],
                 RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::LocalCB][RaytracingLocalRootSigSlot::Count],
+                RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::LocalCB][RaytracingLocalRootSigSlot::Space],
                 D3D12_SHADER_VISIBILITY_ALL);
 
             RaytracingLocalRootSig[RaytracingLocalRootSigSlot::MaterialCB].InitAsDescriptorRange(
                 D3D12_DESCRIPTOR_RANGE_TYPE_CBV,
                 RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::MaterialCB][RaytracingLocalRootSigSlot::Register],
                 RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::MaterialCB][RaytracingLocalRootSigSlot::Count],
+                RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::MaterialCB][RaytracingLocalRootSigSlot::Space],
                 D3D12_SHADER_VISIBILITY_ALL);
 
             RaytracingLocalRootSig[RaytracingLocalRootSigSlot::VertexBuffer].InitAsDescriptorRange(
                 D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
                 RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::VertexBuffer][RaytracingLocalRootSigSlot::Register],
                 RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::VertexBuffer][RaytracingLocalRootSigSlot::Count],
+                RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::VertexBuffer][RaytracingLocalRootSigSlot::Space],
                 D3D12_SHADER_VISIBILITY_ALL);
 
             RaytracingLocalRootSig[RaytracingLocalRootSigSlot::IndexBuffer].InitAsDescriptorRange(
                 D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
                 RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::IndexBuffer][RaytracingLocalRootSigSlot::Register],
                 RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::IndexBuffer][RaytracingLocalRootSigSlot::Count],
+                RaytracingLocalRootSigSlot::Range[RaytracingLocalRootSigSlot::IndexBuffer][RaytracingLocalRootSigSlot::Space],
                 D3D12_SHADER_VISIBILITY_ALL);
         }
         RaytracingLocalRootSig.Finalize("RaytracerLocalRootSig", D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE);
@@ -301,6 +328,11 @@ void Renderer::SetupGpuRaytracingDescriptors()
     RaytracingDescriptorHeap->AllocateBufferCbv(
         RaytracingSceneConstantBuffer.GetGpuVirtualAddress(),
         (UINT)RaytracingSceneConstantBuffer.GetBufferSize());
+
+    // Lights CB
+    RaytracingDescriptorHeap->AllocateBufferCbv(
+        TheRenderScene->GetAreaLightsBuffer().GetGpuVirtualAddress(),
+        (UINT)TheRenderScene->GetAreaLightsBuffer().GetBufferSize());
 
     // Allocate descriptor for acceleration structures
     RaytracingDescriptorHeap->AllocateBufferSrvRaytracing(
@@ -533,6 +565,7 @@ void Renderer::RenderGpuRaytracing()
             sceneCB.NumRays                         = UserInput.GpuNumRaysPerPixel;
             sceneCB.AccumCount                      = AccumCount++;
             sceneCB.HitProgramCount                 = HitProgramCount;
+            sceneCB.NumLights                       = (UINT)TheRenderScene->GetAreaLights().size();
             sceneCB.AOHitGroupIndex                 = RaytracingShaderIndex[RaytracingShaderType_AOHitgroup];
             sceneCB.AOMissIndex                     = RaytracingShaderIndex[RaytracingShaderType_AOMiss];
             sceneCB.DirectLightingHitGroupIndex     = RaytracingShaderIndex[RaytracingShaderType_DirectLightingHitGroup];
@@ -544,6 +577,8 @@ void Renderer::RenderGpuRaytracing()
             computeContext.WriteBuffer(RaytracingSceneConstantBuffer, 0, &sceneCB, sizeof(sceneCB));
             computeContext.TransitionResource(RaytracingSceneConstantBuffer, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
         }
+
+        computeContext.TransitionResource(TheRenderScene->GetAreaLightsBuffer(), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
 
         // Set root sig and pipeline state
         computeContext.SetRootSignature(RaytracingGlobalRootSig);

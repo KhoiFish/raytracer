@@ -25,6 +25,7 @@
 // ----------------------------------------------------------------------------------------------------------------------------
 
 #define RAYTRACING_MAX_NUM_MATERIALS        1024
+#define RAYTRACING_MAX_NUM_LIGHTS           8
 
 #define RAYTRACING_INSTANCEMASK_ALL         (0xFF)
 #define RAYTRACING_INSTANCEMASK_OPAQUE      (1 << 0)
@@ -32,7 +33,7 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-ALIGN_BEGIN(16)
+//ALIGN_BEGIN(16)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -50,7 +51,7 @@ struct RenderNodeInstanceData
     XMMATRIX  WorldMatrix;
     XMFLOAT4  AverageAlbedo;
     UINT      InstanceId;
-    UINT      Padding[3];
+    int       LightIndex;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -66,42 +67,15 @@ struct RenderMaterial
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-struct SpotLight
+struct RealtimeAreaLight
 {
-    XMFLOAT4    PositionWS;
-    XMFLOAT4    PositionVS;
-    XMFLOAT4    DirectionWS;
-    XMFLOAT4    DirectionVS;
-    XMFLOAT4    LookAtWS;
-    XMFLOAT4    UpWS;
-    XMFLOAT4    SmapWS;
+    XMFLOAT4    NormalWS;   
     XMFLOAT4    Color;
-    float       SpotAngle;
-    float       ConstantAttenuation;
-    float       LinearAttenuation;
-    float       QuadraticAttenuation;
-};
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-struct DirLight
-{
-    XMFLOAT4    DirectionWS;
-    XMFLOAT4    DirectionVS;
-    XMFLOAT4    Color;
+    float       AreaCoverage;
+    float       PlaneA0, PlaneA1, PlaneB0, PlaneB1, PlaneC0, PlaneC1;
 };
 
 
-// ----------------------------------------------------------------------------------------------------------------------------
-
-struct PointLight
-{
-    XMFLOAT4    PositionWS;
-    XMFLOAT4    Color;
-};
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-ALIGN_END
+//ALIGN_END
 
 #endif

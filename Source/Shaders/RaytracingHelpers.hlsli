@@ -71,3 +71,33 @@ float3 getCosHemisphereSample(inout uint randSeed, float3 hitNorm)
     // Get our cosine-weighted hemisphere lobe sample direction
     return tangent * (r * cos(phi).x) + bitangent * (r * sin(phi)) + hitNorm.xyz * sqrt(1 - randVal.x);
 }
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+class ONB
+{
+    inline float3 U()               { return Axis[0]; }
+    inline float3 V()               { return Axis[1]; }
+    inline float3 W()               { return Axis[2]; }
+    inline float3 Local(float3 a)   { return (a.x * U()) + (a.y * V()) + (a.z * W()); }
+
+    void BuildFromW(float3 n)
+    {
+        Axis[2] = normalize(n);
+
+        float3 a;
+        if (abs(W().x) > 0.9f)
+        {
+            a = float3(0, 1, 0);
+        }
+        else
+        {
+            a = float3(1, 0, 0);
+        }
+
+        Axis[1] = normalize(cross(W(), a));
+        Axis[0] = cross(W(), V());
+    }
+    
+    float3 Axis[3];
+};

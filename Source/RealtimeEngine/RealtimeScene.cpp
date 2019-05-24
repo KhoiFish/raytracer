@@ -228,6 +228,23 @@ static void CreateCube(RealtimeSceneNode* renderNode, Core::Vec4 sideLengths)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+static const uint32_t* GetPlaneIndices(bool normalFlipped)
+{
+    static const uint32_t indices[6]        = { 0, 1, 2, 2, 3, 0 };
+    static const uint32_t indicesFlipped[6] = { 0, 3, 1, 1, 3, 2 };
+
+    if (normalFlipped)
+    {
+        return indicesFlipped;
+    }
+    else
+    {
+        return indices;
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 static void CreatePlaneFromPoints(RealtimeSceneNode* renderNode, const Core::Vec4* points, const Core::Vec4& normal, bool normalFlipped)
 {
     renderNode->Vertices.push_back({ ConvertToXMFloat3(points[0]), ConvertToXMFloat3(normal), XMFLOAT2(0.0f, 0.0f) });
@@ -235,20 +252,76 @@ static void CreatePlaneFromPoints(RealtimeSceneNode* renderNode, const Core::Vec
     renderNode->Vertices.push_back({ ConvertToXMFloat3(points[2]), ConvertToXMFloat3(normal), XMFLOAT2(1.0f, 1.0f) });
     renderNode->Vertices.push_back({ ConvertToXMFloat3(points[3]), ConvertToXMFloat3(normal), XMFLOAT2(0.0f, 1.0f) });
 
-    const uint32_t indices[6]        = { 0, 1, 2, 2, 3, 0 };
-    const uint32_t indicesFlipped[6] = { 0, 3, 1, 1, 3, 2 };
-
+    const uint32_t* indices = GetPlaneIndices(normalFlipped);
     for (int i = 0; i < 6; i++)
     {
-        if (normalFlipped)
+        renderNode->Indices.push_back(indices[i]);
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+RealtimeAreaLight CreateAreaLight(const Core::Vec4* points, const Core::XYZRect* pXYZRect, const Core::Vec4& normal, const XMMATRIX& worldMatrix, bool normalFlipped)
+{
+    RealtimeAreaLight areaLight;
+
+    // Get plane parameters
+    float a0, a1, b0, b1, k;
+    pXYZRect->GetParams(a0, a1, b0, b1, k);
+
+    // "Swizzle" the parameters
+    switch (pXYZRect->GetAxisPlane())
+    {
+        case Core::XYZRect::XY:
         {
-            renderNode->Indices.push_back(indicesFlipped[i]);
+            areaLight.PlaneA0 = a0;
+            areaLight.PlaneA1 = a1;
+
+            areaLight.PlaneB0 = b0;
+            areaLight.PlaneB1 = b1;
+
+            areaLight.PlaneC0 = k;
+            areaLight.PlaneC1 = k;
+            break;
         }
-        else
+
+        case Core::XYZRect::XZ:
         {
-            renderNode->Indices.push_back(indices[i]);
+            areaLight.PlaneA0 = a0;
+            areaLight.PlaneA1 = a1;
+
+            areaLight.PlaneB0 = k;
+            areaLight.PlaneB1 = k;
+
+            areaLight.PlaneC0 = b0;
+            areaLight.PlaneC1 = b1;
+            break;
+        }
+
+        case Core::XYZRect::YZ:
+        {
+            areaLight.PlaneA0 = k;
+            areaLight.PlaneA1 = k;
+
+            areaLight.PlaneB0 = a0;
+            areaLight.PlaneB1 = a1;
+
+            areaLight.PlaneC0 = b0;
+            areaLight.PlaneC1 = b1;
+            break;
         }
     }
+
+    // Normal
+    XMVECTOR normalWS = XMVector3Transform(ConvertToXMVector(normal), worldMatrix);
+    XMStoreFloat4(&areaLight.NormalWS, normalWS);
+    
+    // Area
+    Core::Vec4 cross0 = Cross((points[0] - points[1]), (points[0] - points[3]));
+    Core::Vec4 cross1 = Cross((points[2] - points[1]), (points[2] - points[3]));
+    areaLight.AreaCoverage = (cross0.Length() * 0.5f) + (cross1.Length() * 0.5f);
+
+    return areaLight;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -317,7 +390,7 @@ static RealtimeEngine::Texture* CreateTextureFromMaterial(const RenderMaterial& 
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RealtimeScene::GenerateRenderListFromWorld(const Core::IHitable* currentHead, RealtimeEngine::Texture* defaultTexture, std::vector<RealtimeSceneNode*>& outSceneList, std::vector<SpotLight>& spotLightsList, std::vector<DirectX::XMMATRIX>& matrixStack, std::vector<bool>& flipNormalStack)
+void RealtimeScene::GenerateRenderListFromWorld(const Core::IHitable* currentHead, RealtimeEngine::Texture* defaultTexture, std::vector<RealtimeSceneNode*>& outSceneList, std::vector<DirectX::XMMATRIX>& matrixStack, std::vector<bool>& flipNormalStack)
 {
     const std::type_info& tid = typeid(*currentHead);
 
@@ -328,17 +401,17 @@ void RealtimeScene::GenerateRenderListFromWorld(const Core::IHitable* currentHea
         const int          listSize = hitList->GetListSize();
         for (int i = 0; i < listSize; i++)
         {
-            GenerateRenderListFromWorld(list[i], defaultTexture, outSceneList, spotLightsList, matrixStack, flipNormalStack);
+            GenerateRenderListFromWorld(list[i], defaultTexture, outSceneList, matrixStack, flipNormalStack);
         }
     }
     else if (tid == typeid(Core::BVHNode))
     {
         Core::BVHNode* bvhNode = (Core::BVHNode*)currentHead;
 
-        GenerateRenderListFromWorld(bvhNode->GetLeft(), defaultTexture, outSceneList, spotLightsList, matrixStack, flipNormalStack);
+        GenerateRenderListFromWorld(bvhNode->GetLeft(), defaultTexture, outSceneList, matrixStack, flipNormalStack);
         if (bvhNode->GetLeft() != bvhNode->GetRight())
         {
-            GenerateRenderListFromWorld(bvhNode->GetRight(), defaultTexture, outSceneList, spotLightsList, matrixStack, flipNormalStack);
+            GenerateRenderListFromWorld(bvhNode->GetRight(), defaultTexture, outSceneList, matrixStack, flipNormalStack);
         }
     }
     else if (tid == typeid(Core::HitableTranslate))
@@ -348,7 +421,7 @@ void RealtimeScene::GenerateRenderListFromWorld(const Core::IHitable* currentHea
         XMMATRIX                translation      = XMMatrixTranslation(offset.X(), offset.Y(), offset.Z());
 
         matrixStack.push_back(translation);
-        GenerateRenderListFromWorld(translateHitable->GetHitObject(), defaultTexture, outSceneList, spotLightsList, matrixStack, flipNormalStack);
+        GenerateRenderListFromWorld(translateHitable->GetHitObject(), defaultTexture, outSceneList, matrixStack, flipNormalStack);
         matrixStack.pop_back();
     }
     else if (tid == typeid(Core::HitableRotateY))
@@ -357,7 +430,7 @@ void RealtimeScene::GenerateRenderListFromWorld(const Core::IHitable* currentHea
         XMMATRIX                rotation       = XMMatrixRotationY(XMConvertToRadians(rotateYHitable->GetAngleDegrees()));
 
         matrixStack.push_back(rotation);
-        GenerateRenderListFromWorld(rotateYHitable->GetHitObject(), defaultTexture, outSceneList, spotLightsList, matrixStack, flipNormalStack);
+        GenerateRenderListFromWorld(rotateYHitable->GetHitObject(), defaultTexture, outSceneList, matrixStack, flipNormalStack);
         matrixStack.pop_back();
     }
     else if (tid == typeid(Core::FlipNormals))
@@ -365,7 +438,7 @@ void RealtimeScene::GenerateRenderListFromWorld(const Core::IHitable* currentHea
         Core::FlipNormals* flipNormals = (Core::FlipNormals*)currentHead;
 
         flipNormalStack.push_back(true);
-        GenerateRenderListFromWorld(flipNormals->GetHitObject(), defaultTexture, outSceneList, spotLightsList, matrixStack, flipNormalStack);
+        GenerateRenderListFromWorld(flipNormals->GetHitObject(), defaultTexture, outSceneList, matrixStack, flipNormalStack);
         flipNormalStack.pop_back();
     }
     else if (tid == typeid(Core::Sphere) || tid == typeid(Core::MovingSphere))
@@ -488,6 +561,15 @@ void RealtimeScene::GenerateRenderListFromWorld(const Core::IHitable* currentHea
         newNode->Hitable        = currentHead;
         CreateResourceViews(newNode);
         outSceneList.push_back(newNode);
+
+        if (xyzRect->IsALightShape())
+        {
+            RealtimeAreaLight light = CreateAreaLight(planePoints, xyzRect, normal, newMatrix, normalFlipped);
+            light.Color = newNode->Material.Diffuse;
+
+            AreaLights.push_back(light);
+            newNode->LightIndex = (int32_t)(AreaLights.size() - 1);
+        }
     }
 }
 
@@ -562,10 +644,21 @@ RealtimeScene::RealtimeScene(Core::WorldScene* worldScene)
     // Generate the scene objects from the world scene
     std::vector<DirectX::XMMATRIX>  matrixStack;
     std::vector<bool>               flipNormalStack;
-    std::vector<SpotLight>          spotLightsList;
-    GenerateRenderListFromWorld(worldScene->GetWorld(), nullptr, RenderSceneList, spotLightsList, matrixStack, flipNormalStack);
+    GenerateRenderListFromWorld(worldScene->GetWorld(), nullptr, RenderSceneList, matrixStack, flipNormalStack);
     RTL_ASSERT(matrixStack.size() == 0);
     RTL_ASSERT(flipNormalStack.size() == 0);
+
+    // Create area lights buffer
+    if (AreaLights.size() > 0)
+    {
+        const uint32_t bufferSize = (uint32_t)AlignUp(sizeof(RealtimeAreaLight) * AreaLights.size(), 256);
+        RealtimeAreaLight* pLightData = (RealtimeAreaLight*)_aligned_malloc(bufferSize, 16);
+        {
+            memcpy(pLightData, &AreaLights[0], sizeof(RealtimeAreaLight) * AreaLights.size());
+            AreaLightsBuffer.Create(L"AreaLights Data", 1, bufferSize, pLightData);
+        }
+        _aligned_free(pLightData);
+    }
 
     // Now that scene objects are created, setup for raytracing
     RaytracingGeom = new RaytracingGeometry();
@@ -578,6 +671,7 @@ RealtimeScene::RealtimeScene(Core::WorldScene* worldScene)
             RenderNodeInstanceData* pInstanceData = (RenderNodeInstanceData * )_aligned_malloc(bufferSize, 16);
             {
                 pInstanceData->InstanceId  = RenderSceneList[i]->InstanceId;
+                pInstanceData->LightIndex  = RenderSceneList[i]->LightIndex;
                 pInstanceData->WorldMatrix = RenderSceneList[i]->WorldMatrix;
                 RenderSceneList[i]->InstanceDataBuffer.Create(L"Instance Data", 1, bufferSize, pInstanceData);
             }
@@ -659,7 +753,14 @@ RaytracingGeometry* RealtimeScene::GetRaytracingGeometry()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-const std::vector<PointLight>& RealtimeScene::GetPointLights()
+std::vector<RealtimeAreaLight>& RealtimeScene::GetAreaLights()
 {
-    return PointLightsList;
+    return AreaLights;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+RealtimeEngine::ByteAddressBuffer& RealtimeEngine::RealtimeScene::GetAreaLightsBuffer()
+{
+    return AreaLightsBuffer;
 }

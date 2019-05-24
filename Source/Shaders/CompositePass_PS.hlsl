@@ -30,15 +30,15 @@ struct PixelShaderInput
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-Texture2D                               DirectLightAO           : register(t0);
-Texture2D                               IndirectLight           : register(t1);
-Texture2D                               CpuResultsTex           : register(t2);
-Texture2D                               PositionsTexture        : register(t3);
-Texture2D                               NormalsTexture          : register(t4);
-Texture2D                               TexCoordsTexture        : register(t5);
-Texture2D                               DiffuseTexture          : register(t6);
-SamplerState                            LinearRepeatSampler     : register(s0);
-ConstantBuffer<SceneConstantBuffer>     SceneCb                 : register(b0);
+Texture2D                               DirectLightAO           : register(t0, space0);
+Texture2D                               IndirectLight           : register(t1, space0);
+Texture2D                               CpuResultsTex           : register(t2, space0);
+Texture2D                               PositionsTexture        : register(t3, space0);
+Texture2D                               NormalsTexture          : register(t4, space0);
+Texture2D                               TexCoordsTexture        : register(t5, space0);
+Texture2D                               DiffuseTexture          : register(t6, space0);
+SamplerState                            LinearRepeatSampler     : register(s0, space0);
+ConstantBuffer<SceneConstantBuffer>     SceneCb                 : register(b0, space0);
 
 // ----------------------------------------------------------------------------------------------------------------------------
 

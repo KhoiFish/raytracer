@@ -37,7 +37,7 @@ struct ShadowRayPayload
 
 struct DirectRayPayload
 {
-    float       Value;
+    int         LightIndex;
     XMFLOAT4    HitBaryAndDist;
     XMFLOAT3    LightColor;
 };
@@ -107,6 +107,7 @@ struct RaytracingGlobalCB
     int         NumRays;
     int         AccumCount;
     int         HitProgramCount;
+    int         NumLights;
 
     int         AOMissIndex;
     int         AOHitGroupIndex;

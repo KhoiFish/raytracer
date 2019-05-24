@@ -30,22 +30,28 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-RWTexture2D<float4>                         gPrevDirectAO       : register(u0);
-RWTexture2D<float4>                         gCurrDirectAO       : register(u1);
-RWTexture2D<float4>                         gPrevIndirect       : register(u2);
-RWTexture2D<float4>                         gCurrIndirect       : register(u3);
+// Global root signature
+RWTexture2D<float4>                         gPrevDirectAO       : register(u0, space0);
+RWTexture2D<float4>                         gCurrDirectAO       : register(u1, space0);
+RWTexture2D<float4>                         gPrevIndirect       : register(u2, space0);
+RWTexture2D<float4>                         gCurrIndirect       : register(u3, space0);
 
-ConstantBuffer<RaytracingGlobalCB>          gSceneCB            : register(b0);
-ConstantBuffer<RenderNodeInstanceData>      gInstanceCB         : register(b1);
-ConstantBuffer<RenderMaterial>              gMaterial           : register(b2);
+ConstantBuffer<RaytracingGlobalCB>          gSceneCB            : register(b0, space0);
+ConstantBuffer<RealtimeAreaLight>           gLightsCB[]         : register(b1, space0);
 
-RaytracingAccelerationStructure             gScene              : register(t0);
-Texture2D<float4>                           gPositions          : register(t1);
-Texture2D<float4>                           gNormals            : register(t2);
-Texture2D<float4>                           gTexCoordsAndDepth  : register(t3);
-Texture2D<float4>                           gAlbedo             : register(t4);
-ByteAddressBuffer                           gVertexBuffer       : register(t5);
-ByteAddressBuffer                           gIndexBuffer        : register(t6);
+RaytracingAccelerationStructure             gScene              : register(t0, space0);
+Texture2D<float4>                           gPositions          : register(t1, space0);
+Texture2D<float4>                           gNormals            : register(t2, space0);
+Texture2D<float4>                           gTexCoordsAndDepth  : register(t3, space0);
+Texture2D<float4>                           gAlbedo             : register(t4, space0);
+
+
+// Local root signature
+ConstantBuffer<RenderNodeInstanceData>      gInstanceCB         : register(b0, space1);
+ConstantBuffer<RenderMaterial>              gMaterial           : register(b1, space1);
+
+ByteAddressBuffer                           gVertexBuffer       : register(t0, space1);
+ByteAddressBuffer                           gIndexBuffer        : register(t1, space1);
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -113,7 +119,7 @@ inline float shadowRayVisibility(float3 origin, float3 direction, float minT, fl
 inline DirectRayPayload areaLightVisibility(float3 orig, float3 dir, float minT, float maxT)
 {
     DirectRayPayload payload;
-    payload.Value          = 0.0f;
+    payload.LightIndex     = -1;
     payload.HitBaryAndDist = float4(0, 0, 0, 0);
     payload.LightColor     = float3(0, 0, 0);
 
@@ -127,7 +133,7 @@ inline DirectRayPayload areaLightVisibility(float3 orig, float3 dir, float minT,
     (
         gScene,
         RAY_FLAG_NONE,
-        RAYTRACING_INSTANCEMASK_AREALIGHT,
+        RAYTRACING_INSTANCEMASK_ALL,
         gSceneCB.DirectLightingHitGroupIndex, gSceneCB.HitProgramCount, gSceneCB.DirectLightingMissIndex,
         ray, payload
     );
@@ -137,23 +143,53 @@ inline DirectRayPayload areaLightVisibility(float3 orig, float3 dir, float minT,
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+inline float3 getRandomPointOnAreaLight(uint randSeed, RealtimeAreaLight light)
+{
+    float A0 = light.PlaneA0, A1 = light.PlaneA1;
+    float B0 = light.PlaneB0, B1 = light.PlaneB1;
+    float C0 = light.PlaneC0, C1 = light.PlaneC1;
+
+    float a  = A0 + nextRand(randSeed) * (A1 - A0);
+    float b  = B0 + nextRand(randSeed) * (B1 - B0);
+    float c  = C0 + nextRand(randSeed) * (C1 - C0);
+
+    return float3(a, b, c);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 inline float3 computeLighting(uint randSeed, float minT, float3 worldPos, float3 worldNorm)
 {
-    // Shoot rays brute force to see if we hit an area light
-    // TODO: bias the sample towards lights and weight with a pdf
-    float3           lightResult  = float3(0, 0, 0);
-    float3           worldDir     = getCosHemisphereSample(randSeed, worldNorm);
-    DirectRayPayload lightPayload = areaLightVisibility(worldPos, worldDir, minT, SHADER_FLOAT_MAX);
-    if (lightPayload.Value > 0)
-    {
-        float distToLight = lightPayload.HitBaryAndDist.a;
-        float LdotN       = saturate(dot(worldNorm, worldDir));
-        float shadowMult  = shadowRayVisibility(worldPos, worldDir, minT, SHADER_FLOAT_MAX);
+    // The lighting is super dark, add this fudge factor for now
+    // TODO: investigate this
+    const float lightMultiplierFudge = 400.0f;
 
-        lightResult = LdotN * shadowMult * lightPayload.LightColor;
+    // What we're going to return
+    float3           lightResult = float3(0, 0, 0);
+
+    // Pick a random light to sample
+    int               lightIndex = min(int(nextRand(randSeed) * gSceneCB.NumLights), gSceneCB.NumLights - 1);
+    RealtimeAreaLight light      = gLightsCB[lightIndex];
+    float3            onLight    = getRandomPointOnAreaLight(randSeed, light);
+    float3            lightDir   = normalize(onLight - worldPos);
+
+    // See if we hit the light we selected
+    DirectRayPayload lightPayload = areaLightVisibility(worldPos, lightDir, minT, SHADER_FLOAT_MAX);
+    if (lightPayload.LightIndex == lightIndex)
+    {
+        float area            = light.AreaCoverage;
+        float len             = lightPayload.HitBaryAndDist.a;
+        float distanceSquared = len * len;
+        float cosine          = abs(dot(lightDir, worldNorm)) / len;
+        float pdf             = distanceSquared / (cosine * area);
+
+        if (cosine > 0 && dot(lightDir, worldNorm) >= 0)
+        {
+            lightResult = lightPayload.LightColor / pdf;
+        }
     }
 
-    return lightResult;
+    return (lightResult * lightMultiplierFudge);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -263,7 +299,7 @@ inline float shootAmbientOcclusionRays(int numRays, uint randSeed, float minT, f
 void DirectLightingMiss(inout DirectRayPayload payload)
 {
     // Missed the light
-    payload.Value = 0.0f;
+    payload.LightIndex = -1;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -274,7 +310,7 @@ void DirectLightingClosest(inout DirectRayPayload payload, in BuiltInTriangleInt
     float3 barycentrics = float3(1.f - attr.barycentrics.x - attr.barycentrics.y, attr.barycentrics.x, attr.barycentrics.y);
 
     // Hit the light
-    payload.Value          = 1.0f;
+    payload.LightIndex     = gInstanceCB.LightIndex;
     payload.HitBaryAndDist = float4(barycentrics, RayTCurrent());
     payload.LightColor     = gMaterial.Diffuse.rgb;
 }

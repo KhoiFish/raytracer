@@ -288,10 +288,10 @@ void RootParameter::InitAsBufferUAV(uint32_t reg, D3D12_SHADER_VISIBILITY visibi
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RootParameter::InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE type, uint32_t reg, uint32_t count, D3D12_SHADER_VISIBILITY visibility)
+void RootParameter::InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE type, uint32_t reg, uint32_t count, uint32_t space, D3D12_SHADER_VISIBILITY visibility)
 {
     InitAsDescriptorTable(1, visibility);
-    SetTableRange(0, type, reg, count);
+    SetTableRange(0, type, reg, count, space);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

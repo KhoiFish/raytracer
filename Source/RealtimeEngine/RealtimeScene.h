@@ -63,10 +63,11 @@ namespace RealtimeEngine
 
     struct RealtimeSceneNode
     {
-        RealtimeSceneNode() : Hitable(nullptr), DiffuseTexture(nullptr) {}
+        RealtimeSceneNode() : InstanceId(0), LightIndex(-1), Hitable(nullptr), DiffuseTexture(nullptr) {}
         ~RealtimeSceneNode() {}
 
         uint32_t                                InstanceId;
+        int32_t                                 LightIndex;
         const Core::IHitable*                   Hitable;
         std::vector<RealtimeSceneVertexEx>      Vertices;
         std::vector<uint32_t>                   Indices;
@@ -92,18 +93,20 @@ namespace RealtimeEngine
         std::vector<RealtimeSceneNode*>&    GetRenderSceneList();
         RealtimeCamera&                     GetCamera();
         RaytracingGeometry*                 GetRaytracingGeometry();
-        const std::vector<PointLight>&      GetPointLights();
+        std::vector<RealtimeAreaLight>&     GetAreaLights();
+        RealtimeEngine::ByteAddressBuffer&  GetAreaLightsBuffer();
 
     private:
 
         void                                GenerateRenderListFromWorld(const Core::IHitable* currentHead, RealtimeEngine::Texture* defaultTexture, std::vector<RealtimeSceneNode*>& outSceneList, 
-                                                std::vector<SpotLight>& spotLightsList, std::vector<DirectX::XMMATRIX>& matrixStack, std::vector<bool>& flipNormalStack);
+                                                std::vector<DirectX::XMMATRIX>& matrixStack, std::vector<bool>& flipNormalStack);
 
     private:
 
-        RealtimeCamera                  TheRenderCamera;
-        std::vector<RealtimeSceneNode*> RenderSceneList;
-        std::vector<PointLight>         PointLightsList;
-        RaytracingGeometry*             RaytracingGeom;
+        RealtimeCamera                      TheRenderCamera;
+        std::vector<RealtimeSceneNode*>     RenderSceneList;
+        std::vector<RealtimeAreaLight>      AreaLights;
+        RealtimeEngine::ByteAddressBuffer   AreaLightsBuffer;
+        RaytracingGeometry*                 RaytracingGeom;
     };
 }

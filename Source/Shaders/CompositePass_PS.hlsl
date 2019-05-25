@@ -38,6 +38,7 @@ Texture2D                               NormalsTexture          : register(t4, s
 Texture2D                               TexCoordsTexture        : register(t5, space0);
 Texture2D                               DiffuseTexture          : register(t6, space0);
 SamplerState                            LinearRepeatSampler     : register(s0, space0);
+SamplerState                            AnisoRepeatSampler      : register(s1, space0);
 ConstantBuffer<SceneConstantBuffer>     SceneCb                 : register(b0, space0);
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -48,11 +49,11 @@ float4 main(PixelShaderInput IN) : SV_Target
     float4 directLightAO = DirectLightAO.Sample(LinearRepeatSampler, IN.TexCoord);
 
     // Get all the buffer contributions
-    float4 directLight   = float4(directLightAO.rgb, 1)                            * SceneCb.TextureMultipliers[1] * SceneCb.DirectIndirectLightMult.x;
-    float4 indirectLight = IndirectLight.Sample(LinearRepeatSampler, IN.TexCoord)  * SceneCb.TextureMultipliers[2] * SceneCb.DirectIndirectLightMult.y;
-    float4 ao            = directLightAO.a                                         * SceneCb.TextureMultipliers[3];
-    float4 diffuse       = DiffuseTexture.Sample(LinearRepeatSampler, IN.TexCoord) * SceneCb.TextureMultipliers[4];
-    float4 cpuRT         = CpuResultsTex.Sample(LinearRepeatSampler, IN.TexCoord)  * SceneCb.TextureMultipliers[5];
+    float4 directLight   = float4(directLightAO.rgb, 1)                           * SceneCb.TextureMultipliers[1] * SceneCb.DirectIndirectLightMult.x;
+    float4 indirectLight = IndirectLight.Sample(AnisoRepeatSampler, IN.TexCoord)  * SceneCb.TextureMultipliers[2] * SceneCb.DirectIndirectLightMult.y;
+    float4 ao            = directLightAO.a                                        * SceneCb.TextureMultipliers[3];
+    float4 diffuse       = DiffuseTexture.Sample(AnisoRepeatSampler, IN.TexCoord) * SceneCb.TextureMultipliers[4];
+    float4 cpuRT         = CpuResultsTex.Sample(AnisoRepeatSampler, IN.TexCoord)  * SceneCb.TextureMultipliers[5];
 
     float4 composited    = (directLight + indirectLight);
     float4 selected      = (directLight + indirectLight + ao + diffuse + cpuRT);

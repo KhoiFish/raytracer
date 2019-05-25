@@ -27,7 +27,7 @@
 #include "RealtimeEngine/RenderInterface.h"
 #include "RealtimeEngine/RootSignature.h"
 #include "RealtimeEngine/PipelineStateObject.h"
-#include "RealtimeEngine/ColorBuffer.h"
+#include "RealtimeEngine/RenderTarget.h"
 #include "RealtimeEngine/RealtimeCamera.h"
 #include "RealtimeEngine/RealtimeScene.h"
 #include "RealtimeEngine/DescriptorHeapStack.h"
@@ -191,10 +191,10 @@ private:
     DXGI_FORMAT                     RaytracingBufferType;
     DXGI_FORMAT                     CPURaytracerTexType;
 
-    ColorBuffer                     CPURaytracerTex;
-    ColorBuffer                     DeferredBuffers[DeferredBufferType_Num];
-    ColorBuffer                     DirectLightingAOBuffer[2];
-    ColorBuffer                     IndirectLightingBuffer[2];
+    RenderTarget                    CPURaytracerTex;
+    RenderTarget                    DeferredBuffers[DeferredBufferType_Num];
+    RenderTarget                    DirectLightingAOBuffer[2];
+    RenderTarget                    IndirectLightingBuffer[2];
 
     RootSignature                   RasterRootSignature;
     GraphicsPSO                     RasterGeometryPassPSO;

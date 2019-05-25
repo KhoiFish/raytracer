@@ -21,9 +21,6 @@
     <ClInclude Include="..\..\ThirdParty\StbImage\stb_image.h">
       <Filter>ThirdParty\StbImage</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\RealtimeEngine\ColorBuffer.h">
-      <Filter>Realtime</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Source\RealtimeEngine\CommandContext.h">
       <Filter>Realtime</Filter>
     </ClInclude>
@@ -186,13 +183,13 @@
     <ClInclude Include="..\..\Source\RealtimeEngine\DescriptorHeapStack.h">
       <Filter>Realtime</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\RenderTarget.h">
+      <Filter>Realtime</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\ThirdParty\StbImage\StbImageImpl.cpp">
       <Filter>ThirdParty\StbImage</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\RealtimeEngine\ColorBuffer.cpp">
-      <Filter>Realtime</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\RealtimeEngine\CommandContext.cpp">
       <Filter>Realtime</Filter>
@@ -306,6 +303,9 @@
       <Filter>Realtime</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\RealtimeEngine\DescriptorHeapStack.cpp">
+      <Filter>Realtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\RealtimeEngine\RenderTarget.cpp">
       <Filter>Realtime</Filter>
     </ClCompile>
   </ItemGroup>

@@ -25,7 +25,7 @@
 #include "RootSignature.h"
 #include "GpuBuffer.h"
 #include "RTTexture.h"
-#include "ColorBuffer.h"
+#include "RenderTarget.h"
 #include "LinearAllocator.h"
 
 #include <vector>
@@ -45,8 +45,8 @@ namespace RealtimeEngine
 {
     // ----------------------------------------------------------------------------------------------------------------------------
 
-    class ColorBuffer;
-    class DepthBuffer;
+    class RenderTarget;
+    class DepthTarget;
     class Texture;
     class GraphicsContext;
     class ComputeContext;
@@ -116,7 +116,7 @@ namespace RealtimeEngine
         static void                 InitializeTexture(GpuResource& dest, uint32_t numSubresources, D3D12_SUBRESOURCE_DATA subData[]);
         static void                 InitializeBuffer(GpuResource& dest, const void* Data, size_t numBytes, size_t offset = 0);
         static void                 InitializeTextureArraySlice(GpuResource& dest, uint32_t sliceIndex, GpuResource& src);
-        static void                 ReadbackTexture2D(GpuResource& readbackBuffer, ColorBuffer& srcBuffer);
+        static void                 ReadbackTexture2D(GpuResource& readbackBuffer, RenderTarget& srcBuffer);
 
         void                        WriteBuffer(GpuResource& dest, size_t destOffset, const void* data, size_t numBytes);
         void                        FillBuffer(GpuResource& dest, size_t destOffset, DWParam value, size_t numBytes);
@@ -186,10 +186,10 @@ namespace RealtimeEngine
             return CommandContext::Begin(id).GetGraphicsContext();
         }
 
-        void ClearColor(ColorBuffer& target);
-        void ClearDepth(DepthBuffer& target);
-        void ClearStencil(DepthBuffer& target);
-        void ClearDepthAndStencil(DepthBuffer& target);
+        void ClearColor(RenderTarget& target);
+        void ClearDepth(DepthTarget& target);
+        void ClearStencil(DepthTarget& target);
+        void ClearDepthAndStencil(DepthTarget& target);
 
         void BeginQuery(ID3D12QueryHeap* queryHeap, D3D12_QUERY_TYPE type, uint32_t heapIndex);
         void EndQuery(ID3D12QueryHeap* queryHeap, D3D12_QUERY_TYPE type, uint32_t heapIndex);
@@ -253,7 +253,7 @@ namespace RealtimeEngine
         static ComputeContext& Begin(const string_t& id = "", bool async = false);
 
         void ClearUAV(GpuBuffer& target);
-        void ClearUAV(ColorBuffer& target);
+        void ClearUAV(RenderTarget& target);
         void SetRootSignature(const RootSignature& rootSig);
         void SetPipelineState(const ComputePSO& pso);
         void SetPipelineState(RaytracingPSO& pso);

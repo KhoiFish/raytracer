@@ -24,7 +24,7 @@
 #include "DescriptorHeapStack.h"
 #include "RootSignature.h"
 #include "PipelineStateObject.h"
-#include "ColorBuffer.h"
+#include "RenderTarget.h"
 #include <algorithm>
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -81,8 +81,8 @@ namespace RealtimeEngine
         ID3D12Device5*                                      GetD3DDevice()                   { return D3DDevice.Get(); }
         IDXGIFactory4*                                      GetDXGIFactory()                 { return DXGIFactory.Get(); }
         IDXGISwapChain3*                                    GetSwapChain()                   { return SwapChain.Get(); }
-        ColorBuffer&                                        GetRenderTarget()                { return RenderTargets[BackBufferIndex]; }
-        DepthBuffer&                                        GetDepthStencil()                { return DepthStencil; }
+        RenderTarget&                                       GetRenderTarget()                { return RenderTargets[BackBufferIndex]; }
+        DepthTarget&                                        GetDepthStencil()                { return DepthStencil; }
 
         bool                                                IsWindowVisible() const          { return IsWindowVisibleState; }
         bool                                                IsTearingSupported() const       { return Options & AllowTearing; }
@@ -138,8 +138,8 @@ namespace RealtimeEngine
         DXGI_FORMAT                                         DepthBufferFormat;
         uint32_t                                            BackBufferIndex;
         uint32_t                                            BackBufferCount;
-        ColorBuffer                                         RenderTargets[MAX_BACK_BUFFER_COUNT];
-        DepthBuffer                                         DepthStencil;
+        RenderTarget                                        RenderTargets[MAX_BACK_BUFFER_COUNT];
+        DepthTarget                                         DepthStencil;
 
         D3D12_VIEWPORT                                      ScreenViewport;
         D3D12_RECT                                          ScissorRect;

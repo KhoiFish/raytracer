@@ -18,7 +18,7 @@
 // ----------------------------------------------------------------------------------------------------------------------------
 
 #include "CommandContext.h"
-#include "ColorBuffer.h"
+#include "RenderTarget.h"
 #include "DescriptorHeapStack.h"
 #include "RenderDevice.h"
 
@@ -507,28 +507,28 @@ void ComputeContext::SetDescriptorTable(uint32_t rootIndex, D3D12_GPU_DESCRIPTOR
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void GraphicsContext::ClearColor(ColorBuffer& target)
+void GraphicsContext::ClearColor(RenderTarget& target)
 {
     TheCommandList->ClearRenderTargetView(target.GetRTV(), target.GetClearColor(), 0, nullptr);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void GraphicsContext::ClearDepth(DepthBuffer& target)
+void GraphicsContext::ClearDepth(DepthTarget& target)
 {
     TheCommandList->ClearDepthStencilView(target.GetDSV(), D3D12_CLEAR_FLAG_DEPTH, target.GetClearDepth(), target.GetClearStencil(), 0, nullptr );
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void GraphicsContext::ClearStencil(DepthBuffer& target)
+void GraphicsContext::ClearStencil(DepthTarget& target)
 {
     TheCommandList->ClearDepthStencilView(target.GetDSV(), D3D12_CLEAR_FLAG_STENCIL, target.GetClearDepth(), target.GetClearStencil(), 0, nullptr);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void GraphicsContext::ClearDepthAndStencil(DepthBuffer& target)
+void GraphicsContext::ClearDepthAndStencil(DepthTarget& target)
 {
     TheCommandList->ClearDepthStencilView(target.GetDSV(), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, target.GetClearDepth(), target.GetClearStencil(), 0, nullptr);
 }
@@ -1197,7 +1197,7 @@ void CommandContext::ResolveTimeStamps(ID3D12Resource* pReadbackHeap, ID3D12Quer
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RealtimeEngine::CommandContext::ReadbackTexture2D(GpuResource& readbackBuffer, ColorBuffer& srcBuffer)
+void RealtimeEngine::CommandContext::ReadbackTexture2D(GpuResource& readbackBuffer, RenderTarget& srcBuffer)
 {
     D3D12_PLACED_SUBRESOURCE_FOOTPRINT PlacedFootprint;
     RenderDevice::Get().GetD3DDevice()->GetCopyableFootprints(&srcBuffer.GetResource()->GetDesc(), 0, 1, 0, &PlacedFootprint, nullptr, nullptr, nullptr);

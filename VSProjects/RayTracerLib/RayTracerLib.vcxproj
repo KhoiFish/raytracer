@@ -194,7 +194,7 @@
     <ClInclude Include="..\..\Source\Core\Vec4.h" />
     <ClInclude Include="..\..\Source\Core\WorldScene.h" />
     <ClInclude Include="..\..\Source\Core\XYZRect.h" />
-    <ClInclude Include="..\..\Source\RealtimeEngine\ColorBuffer.h" />
+    <ClInclude Include="..\..\Source\RealtimeEngine\RenderTarget.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\CommandContext.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\CommandList.h" />
     <ClInclude Include="..\..\Source\RealtimeEngine\DescriptorHeapStack.h" />
@@ -242,7 +242,7 @@
     <ClCompile Include="..\..\Source\Core\TriMesh.cpp" />
     <ClCompile Include="..\..\Source\Core\Util.cpp" />
     <ClCompile Include="..\..\Source\Core\XYZRect.cpp" />
-    <ClCompile Include="..\..\Source\RealtimeEngine\ColorBuffer.cpp" />
+    <ClCompile Include="..\..\Source\RealtimeEngine\RenderTarget.cpp" />
     <ClCompile Include="..\..\Source\RealtimeEngine\CommandContext.cpp" />
     <ClCompile Include="..\..\Source\RealtimeEngine\CommandList.cpp" />
     <ClCompile Include="..\..\Source\RealtimeEngine\DescriptorHeapStack.cpp" />

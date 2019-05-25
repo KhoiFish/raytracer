@@ -17,7 +17,7 @@
 // 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-#include "ColorBuffer.h"
+#include "RenderTarget.h"
 #include "CommandContext.h"
 #include "RenderDevice.h"
 
@@ -366,7 +366,7 @@ static void CreateTextureResource(GpuResource* pGpuResource, const string_t& nam
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-ColorBuffer::ColorBuffer()
+RenderTarget::RenderTarget()
     : numMipMaps(0), FragmentCount(1), SampleCount(1)
 {
     SRVHandle.ptr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN;
@@ -381,7 +381,7 @@ ColorBuffer::ColorBuffer()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void ColorBuffer::CreateDerivedViews(ID3D12Device* device, DXGI_FORMAT format, uint32_t arraySize, uint32_t numMips)
+void RenderTarget::CreateDerivedViews(ID3D12Device* device, DXGI_FORMAT format, uint32_t arraySize, uint32_t numMips)
 {
     ASSERT(arraySize == 1 || numMips == 1, "We don't support auto-mips on texture arrays");
 
@@ -470,7 +470,7 @@ void ColorBuffer::CreateDerivedViews(ID3D12Device* device, DXGI_FORMAT format, u
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void ColorBuffer::CreateFromSwapChain(const string_t& name, ID3D12Resource* baseResource)
+void RenderTarget::CreateFromSwapChain(const string_t& name, ID3D12Resource* baseResource)
 {
     RTVHandle = RenderDevice::Get().AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
     AssociateWithResource(RenderDevice::Get().GetD3DDevice(), name, baseResource, D3D12_RESOURCE_STATE_PRESENT);
@@ -479,7 +479,7 @@ void ColorBuffer::CreateFromSwapChain(const string_t& name, ID3D12Resource* base
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void ColorBuffer::Create(const string_t& name, uint32_t width, uint32_t height, uint32_t numMips, DXGI_FORMAT format, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr)
+void RenderTarget::Create(const string_t& name, uint32_t width, uint32_t height, uint32_t numMips, DXGI_FORMAT format, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr)
 {
     numMips = (numMips == 0 ? ComputeNumMips(width, height) : numMips);    
 
@@ -505,7 +505,7 @@ void ColorBuffer::Create(const string_t& name, uint32_t width, uint32_t height, 
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RealtimeEngine::ColorBuffer::CreateEx(const string_t& name, uint32_t width, uint32_t height, uint32_t numMips, DXGI_FORMAT format, D3D12_CLEAR_VALUE* clearValue, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr, D3D12_RESOURCE_FLAGS resourceFlags, D3D12_RESOURCE_STATES usageStates, bool createViews)
+void RealtimeEngine::RenderTarget::CreateEx(const string_t& name, uint32_t width, uint32_t height, uint32_t numMips, DXGI_FORMAT format, D3D12_CLEAR_VALUE* clearValue, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr, D3D12_RESOURCE_FLAGS resourceFlags, D3D12_RESOURCE_STATES usageStates, bool createViews)
 {
     numMips = (numMips == 0 ? ComputeNumMips(width, height) : numMips);
 
@@ -531,7 +531,7 @@ void RealtimeEngine::ColorBuffer::CreateEx(const string_t& name, uint32_t width,
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void ColorBuffer::CreateArray(const string_t& name, uint32_t width, uint32_t height, uint32_t arrayCount, DXGI_FORMAT format, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr)
+void RenderTarget::CreateArray(const string_t& name, uint32_t width, uint32_t height, uint32_t arrayCount, DXGI_FORMAT format, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr)
 {
     Width               = width;
     Height              = height;
@@ -553,7 +553,7 @@ void ColorBuffer::CreateArray(const string_t& name, uint32_t width, uint32_t hei
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void ColorBuffer::AssociateWithResource(ID3D12Device* device, const string_t& name, ID3D12Resource* resource, D3D12_RESOURCE_STATES currentState)
+void RenderTarget::AssociateWithResource(ID3D12Device* device, const string_t& name, ID3D12Resource* resource, D3D12_RESOURCE_STATES currentState)
 {
     ASSERT(resource != nullptr);
     D3D12_RESOURCE_DESC resourceDesc = resource->GetDesc();
@@ -574,14 +574,14 @@ void ColorBuffer::AssociateWithResource(ID3D12Device* device, const string_t& na
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void ColorBuffer::SetClearColor(float clearColor[4])
+void RenderTarget::SetClearColor(float clearColor[4])
 {
     memcpy(&ClearColor, clearColor, sizeof(clearColor));
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void ColorBuffer::SetMsaaMode(uint32_t numColorSamples, uint32_t numCoverageSamples)
+void RenderTarget::SetMsaaMode(uint32_t numColorSamples, uint32_t numCoverageSamples)
 {
     ASSERT(numCoverageSamples >= numColorSamples);
     FragmentCount = numColorSamples;
@@ -590,7 +590,7 @@ void ColorBuffer::SetMsaaMode(uint32_t numColorSamples, uint32_t numCoverageSamp
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-D3D12_RESOURCE_FLAGS ColorBuffer::CombineResourceFlags() const
+D3D12_RESOURCE_FLAGS RenderTarget::CombineResourceFlags() const
 {
     D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE;
 
@@ -605,7 +605,7 @@ D3D12_RESOURCE_FLAGS ColorBuffer::CombineResourceFlags() const
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-DepthBuffer::DepthBuffer(float clearDepth, uint8_t clearStencil)
+DepthTarget::DepthTarget(float clearDepth, uint8_t clearStencil)
     : ClearDepth(clearDepth), ClearStencil(clearStencil)
 {
     DSVHandle[0].ptr       = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN;
@@ -618,7 +618,7 @@ DepthBuffer::DepthBuffer(float clearDepth, uint8_t clearStencil)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void DepthBuffer::Create(const string_t& name, uint32_t width, uint32_t height, DXGI_FORMAT format, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr)
+void DepthTarget::Create(const string_t& name, uint32_t width, uint32_t height, DXGI_FORMAT format, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr)
 {    
     Width               = width;
     Height              = height;
@@ -640,7 +640,7 @@ void DepthBuffer::Create(const string_t& name, uint32_t width, uint32_t height, 
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void DepthBuffer::Create(const string_t& name, uint32_t width, uint32_t height, uint32_t samples, DXGI_FORMAT format, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr)
+void DepthTarget::Create(const string_t& name, uint32_t width, uint32_t height, uint32_t samples, DXGI_FORMAT format, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr)
 {    
     Width               = width;
     Height              = height;
@@ -663,7 +663,7 @@ void DepthBuffer::Create(const string_t& name, uint32_t width, uint32_t height, 
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void DepthBuffer::CreateDerivedViews(ID3D12Device* device, DXGI_FORMAT format)
+void DepthTarget::CreateDerivedViews(ID3D12Device* device, DXGI_FORMAT format)
 {
     ID3D12Resource* resource = ResourcePtr.Get();
 

@@ -30,11 +30,11 @@ namespace RealtimeEngine
 
     // ----------------------------------------------------------------------------------------------------------------------------
 
-    class ColorBuffer : public GpuResource
+    class RenderTarget : public GpuResource
     {
     public:
 
-        ColorBuffer();
+        RenderTarget();
 
         void                                CreateFromSwapChain(const string_t& name, ID3D12Resource* baseResource);
         void                                Create(const string_t& name, uint32_t width, uint32_t height, uint32_t numMips, DXGI_FORMAT format, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN);
@@ -78,10 +78,11 @@ namespace RealtimeEngine
 
     // ----------------------------------------------------------------------------------------------------------------------------
 
-    class DepthBuffer : public GpuResource
+    class DepthTarget : public GpuResource
     {
     public:
-        DepthBuffer(float clearDepth = 0.0f, uint8_t clearStencil = 0);
+
+        DepthTarget(float clearDepth = 0.0f, uint8_t clearStencil = 0);
 
         void                                Create(const string_t& name, uint32_t width, uint32_t height, DXGI_FORMAT format, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN);
         void                                Create(const string_t& name, uint32_t width, uint32_t height, uint32_t numSamples, DXGI_FORMAT format, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN);

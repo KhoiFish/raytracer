@@ -24,114 +24,14 @@ using namespace RealtimeEngine;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-std::mutex                                                DescriptorAllocator::AllocationMutex;
-std::vector<Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>> DescriptorAllocator::DescriptorHeapPool;
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-void DescriptorAllocator::DestroyAll()
-{
-    DescriptorHeapPool.clear();
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-ID3D12DescriptorHeap* DescriptorAllocator::RequestNewHeap(D3D12_DESCRIPTOR_HEAP_TYPE type)
-{
-    std::lock_guard<std::mutex> lockGuard(AllocationMutex);
-
-    D3D12_DESCRIPTOR_HEAP_DESC Desc;
-    Desc.Type           = type;
-    Desc.NumDescriptors = NumDescriptorsPerHeap;
-    Desc.Flags          = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-    Desc.NodeMask       = 1;
-
-    Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> pHeap;
-    ASSERT_SUCCEEDED(RenderDevice::Get().GetD3DDevice()->CreateDescriptorHeap(&Desc, IID_PPV_ARGS(&pHeap)));
-    DescriptorHeapPool.emplace_back(pHeap);
-
-    return pHeap.Get();
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-D3D12_CPU_DESCRIPTOR_HANDLE DescriptorAllocator::Allocate(uint32_t count)
-{
-    if (CurrentHeap == nullptr || RemainingFreeHandles < count)
-    {
-        CurrentHeap = RequestNewHeap(Type);
-        CurrentHandle = CurrentHeap->GetCPUDescriptorHandleForHeapStart();
-        RemainingFreeHandles = NumDescriptorsPerHeap;
-
-        if (DescriptorSize == 0)
-        {
-            DescriptorSize = RenderDevice::Get().GetD3DDevice()->GetDescriptorHandleIncrementSize(Type);
-        }
-    }
-
-    D3D12_CPU_DESCRIPTOR_HANDLE ret = CurrentHandle;
-    CurrentHandle.ptr += count * DescriptorSize;
-    RemainingFreeHandles -= count;
-
-    return ret;
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-void UserDescriptorHeap::Create(const string_t& debugHeapName)
-{
-    ASSERT_SUCCEEDED(RenderDevice::Get().GetD3DDevice()->CreateDescriptorHeap(&HeapDesc, IID_PPV_ARGS(Heap.ReleaseAndGetAddressOf())));
-
-    #ifdef RELEASE
-        (void)debugHeapName;
-    #else
-        Heap->SetName(MakeWStr(debugHeapName).c_str());
-    #endif
-
-    DescriptorSize     = RenderDevice::Get().GetD3DDevice()->GetDescriptorHandleIncrementSize(HeapDesc.Type);
-    NumFreeDescriptors = HeapDesc.NumDescriptors;
-    FirstHandle        = DescriptorHandle( Heap->GetCPUDescriptorHandleForHeapStart(),  Heap->GetGPUDescriptorHandleForHeapStart() );
-    NextFreeHandle     = FirstHandle;
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-DescriptorHandle UserDescriptorHeap::Alloc(uint32_t count)
-{
-    ASSERT(HasAvailableSpace(count), "Descriptor Heap out of space.  Increase heap size.");
-    DescriptorHandle ret = NextFreeHandle;
-    NextFreeHandle += count * DescriptorSize;
-
-    return ret;
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-bool UserDescriptorHeap::ValidateHandle(const DescriptorHandle& dHandle) const
-{
-    if (dHandle.GetCpuHandle().ptr < FirstHandle.GetCpuHandle().ptr ||
-        dHandle.GetCpuHandle().ptr >= FirstHandle.GetCpuHandle().ptr + HeapDesc.NumDescriptors * DescriptorSize)
-    {
-        return false;
-    }
-
-    if (dHandle.GetGpuHandle().ptr - FirstHandle.GetGpuHandle().ptr !=
-        dHandle.GetCpuHandle().ptr - FirstHandle.GetCpuHandle().ptr)
-    {
-        return false;
-    }
-
-    return true;
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
 DescriptorHeapStack::DescriptorHeapStack(UINT numDescriptors, D3D12_DESCRIPTOR_HEAP_TYPE type, UINT nodeMask)
 {
+    
+
     D3D12_DESCRIPTOR_HEAP_DESC desc = {};
     desc.NumDescriptors = numDescriptors;
     desc.Type           = type;
-    desc.Flags          = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+    desc.Flags          = (type == D3D12_DESCRIPTOR_HEAP_TYPE_DSV || type == D3D12_DESCRIPTOR_HEAP_TYPE_RTV) ? D3D12_DESCRIPTOR_HEAP_FLAG_NONE : D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
     desc.NodeMask       = nodeMask;
 
     RenderDevice::Get().GetD3DDevice()->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&DescriptorHeap));

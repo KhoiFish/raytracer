@@ -138,10 +138,10 @@ void RenderDevice::CleanupDevice()
         RenderTargets[n].Destroy();
     }
 
-    if (DescriptorStack != nullptr)
+    for (int i = 0; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; i++)
     {
-        delete DescriptorStack;
-        DescriptorStack = nullptr;
+        delete DescriptorAllocators[i];
+        DescriptorAllocators[i] = nullptr;
     }
 
     if (ImguiDescriptorStack != nullptr)
@@ -154,7 +154,6 @@ void RenderDevice::CleanupDevice()
     RootSignature::DestroyAll();
     PSO::DestroyAll();
     DepthStencil.Destroy();
-    DescriptorAllocator::DestroyAll();
     SwapChain.Reset();
     D3DDevice.Reset();
     DXGIFactory.Reset();
@@ -328,7 +327,10 @@ void RenderDevice::CreateDeviceResources()
         D3dFeatureLevel = D3dMinFeatureLevel;
     }
 
-    DescriptorStack = new DescriptorHeapStack(256, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 0);
+    for (int i = 0; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; i++)
+    {
+        DescriptorAllocators[i] = new DescriptorHeapStack(1024, (D3D12_DESCRIPTOR_HEAP_TYPE)i, 0);
+    }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -691,16 +693,20 @@ void RenderDevice::RegisterDeviceNotify(IDeviceNotify* deviceNotify)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-D3D12_CPU_DESCRIPTOR_HANDLE RenderDevice::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE type, uint32_t count /*= 1*/)
+D3D12_CPU_DESCRIPTOR_HANDLE RenderDevice::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE type)
 {
-    return DescriptorAllocators[type].Allocate(count);
+    D3D12_CPU_DESCRIPTOR_HANDLE handle;
+    UINT                        descriptorHeapIndex;
+    DescriptorAllocators[type]->AllocateDescriptor(handle, descriptorHeapIndex);
+
+    return handle;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-DescriptorHeapStack& RenderDevice::GetDefaultDescriptorHeapStack()
+DescriptorHeapStack& RenderDevice::GetDefaultDescriptorHeapStack(D3D12_DESCRIPTOR_HEAP_TYPE type)
 {
-    return *DescriptorStack;
+    return *DescriptorAllocators[type];
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

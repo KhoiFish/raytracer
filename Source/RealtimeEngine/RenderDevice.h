@@ -69,9 +69,11 @@ namespace RealtimeEngine
     public:
 
         void                                                Present();
-        D3D12_CPU_DESCRIPTOR_HANDLE                         AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE type, uint32_t count = 1);
-        DescriptorHeapStack&                                GetDefaultDescriptorHeapStack();
+
+        D3D12_CPU_DESCRIPTOR_HANDLE                         AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE type);
+        DescriptorHeapStack&                                GetDefaultDescriptorHeapStack(D3D12_DESCRIPTOR_HEAP_TYPE type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
         DescriptorHeapStack&                                GetImguiDescriptorHeapStack();
+        
         bool                                                WindowSizeChanged(int width, int height, bool minimized);
         
     public:
@@ -151,15 +153,7 @@ namespace RealtimeEngine
         unsigned int                                        Options;
         IDeviceNotify*                                      DeviceNotify;
 
-        DescriptorAllocator                                 DescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES] =
-        {
-            D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
-            D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER,
-            D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
-            D3D12_DESCRIPTOR_HEAP_TYPE_DSV,
-        };
-
-        DescriptorHeapStack*                                DescriptorStack = nullptr;
+        DescriptorHeapStack*                                DescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
         DescriptorHeapStack*                                ImguiDescriptorStack = nullptr;
     };
 }

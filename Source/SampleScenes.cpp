@@ -219,7 +219,7 @@ static WorldScene* sampleSceneCornellBox(bool smoke)
     Material* red   = new MLambertian(new ConstantTexture(Vec4(.65f, .05f, .05f)));
     Material* white = new MLambertian(new ConstantTexture(Vec4(.73f, .73f, .73f)));
     Material* green = new MLambertian(new ConstantTexture(Vec4(.12f, .45f, .15f)));
-    Material* light = new MDiffuseLight(new ConstantTexture(Vec4(50, 50, 50)));
+    Material* light = new MDiffuseLight(new ConstantTexture(Vec4(30, 30, 30)));
     Material* glass = new MDielectric(1.5f);
 
     list[i++] = new FlipNormals(new XYZRect(XYZRect::YZ, 0, 555, 0, 555, 555, green));

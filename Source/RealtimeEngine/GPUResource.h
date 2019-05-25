@@ -62,11 +62,12 @@ namespace RealtimeEngine
             }
         }
 
-        ID3D12Resource*            operator->()                  { return ResourcePtr.Get(); }
-        const ID3D12Resource*      operator->() const            { return ResourcePtr.Get(); }
-        ID3D12Resource*            GetResource()                 { return ResourcePtr.Get(); }
-        const ID3D12Resource*      GetResource() const           { return ResourcePtr.Get(); }
-        D3D12_GPU_VIRTUAL_ADDRESS  GetGpuVirtualAddress() const  { return GpuVirtualAddress; }
+        ID3D12Resource*                         operator->()                    { return ResourcePtr.Get(); }
+        const ID3D12Resource*                   operator->() const              { return ResourcePtr.Get(); }
+        ID3D12Resource*                         GetResource()                   { return ResourcePtr.Get(); }
+        const ID3D12Resource*                   GetResource() const             { return ResourcePtr.Get(); }
+        Microsoft::WRL::ComPtr<ID3D12Resource>& GetResourceRef()                { return ResourcePtr; }
+        D3D12_GPU_VIRTUAL_ADDRESS               GetGpuVirtualAddress() const    { return GpuVirtualAddress; }
 
     protected:
 

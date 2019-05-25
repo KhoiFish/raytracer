@@ -30,42 +30,7 @@ namespace RealtimeEngine
 
     // ----------------------------------------------------------------------------------------------------------------------------
 
-    class PixelBuffer : public GpuResource
-    {
-    public:
-        PixelBuffer() : Width(0), Height(0), ArraySize(0), Format(DXGI_FORMAT_UNKNOWN) {}
-
-        uint32_t            GetWidth(void) const    { return Width; }
-        uint32_t            GetHeight(void) const   { return Height; }
-        uint32_t            GetDepth(void) const    { return ArraySize; }
-        const DXGI_FORMAT&  GetFormat(void) const   { return Format; }
-
-        static size_t       BytesPerPixel(DXGI_FORMAT format);
-
-    protected:
-
-        D3D12_RESOURCE_DESC DescribeTex2D(uint32_t width, uint32_t height, uint32_t depthOrArraySize, uint32_t numMips, DXGI_FORMAT format, D3D12_RESOURCE_FLAGS resourceFlags);
-        void                AssociateWithResource(ID3D12Device* device, const string_t& name, ID3D12Resource* resource, D3D12_RESOURCE_STATES currentState);
-        void                CreateTextureResource(ID3D12Device* device, const string_t& name, const D3D12_RESOURCE_DESC& resourceDesc, D3D12_CLEAR_VALUE* clearValue, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_STATES usageStates = D3D12_RESOURCE_STATE_COMMON);
-
-        static DXGI_FORMAT  GetBaseFormat(DXGI_FORMAT format);
-        static DXGI_FORMAT  GetUAVFormat(DXGI_FORMAT format);
-        static DXGI_FORMAT  GetDSVFormat(DXGI_FORMAT format);
-        static DXGI_FORMAT  GetDepthFormat(DXGI_FORMAT format);
-        static DXGI_FORMAT  GetStencilFormat(DXGI_FORMAT format);
-
-    protected:
-
-        uint32_t                Width;
-        uint32_t                Height;
-        uint32_t                ArraySize;
-        DXGI_FORMAT             Format;
-        D3D12_RESOURCE_FLAGS    ResourceFlags;
-    };
-
-    // ----------------------------------------------------------------------------------------------------------------------------
-
-    class ColorBuffer : public PixelBuffer
+    class ColorBuffer : public GpuResource
     {
     public:
 
@@ -78,17 +43,29 @@ namespace RealtimeEngine
         void                                SetClearColor(float clearColor[4]);
         void                                SetMsaaMode(uint32_t numColorSamples, uint32_t numCoverageSamples);
 
+        uint32_t                            GetWidth(void) const        { return Width; }
+        uint32_t                            GetHeight(void) const       { return Height; }
+        uint32_t                            GetDepth(void) const        { return ArraySize; }
+        const DXGI_FORMAT&                  GetFormat(void) const       { return Format; }
+
         const D3D12_CPU_DESCRIPTOR_HANDLE&  GetSRV(void) const          { return SRVHandle; }
         const D3D12_CPU_DESCRIPTOR_HANDLE&  GetRTV(void) const          { return RTVHandle; }
         const D3D12_CPU_DESCRIPTOR_HANDLE&  GetUAV(void) const          { return UAVHandle[0]; }
         const float*                        GetClearColor() const       { return ClearColor; }
 
-    protected:
+    private:
 
         D3D12_RESOURCE_FLAGS                CombineResourceFlags(void) const;
         void                                CreateDerivedViews(ID3D12Device* device, DXGI_FORMAT format, uint32_t arraySize, uint32_t numMips = 1);
+        void                                AssociateWithResource(ID3D12Device* device, const string_t& name, ID3D12Resource* resource, D3D12_RESOURCE_STATES currentState);
 
-    protected:
+    private:
+
+        uint32_t                            Width;
+        uint32_t                            Height;
+        uint32_t                            ArraySize;
+        DXGI_FORMAT                         Format;
+        D3D12_RESOURCE_FLAGS                ResourceFlags;
 
         float                               ClearColor[4];
         D3D12_CPU_DESCRIPTOR_HANDLE         SRVHandle;
@@ -101,13 +78,18 @@ namespace RealtimeEngine
 
     // ----------------------------------------------------------------------------------------------------------------------------
 
-    class DepthBuffer : public PixelBuffer
+    class DepthBuffer : public GpuResource
     {
     public:
         DepthBuffer(float clearDepth = 0.0f, uint8_t clearStencil = 0);
 
         void                                Create(const string_t& name, uint32_t width, uint32_t height, DXGI_FORMAT format, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN);
         void                                Create(const string_t& name, uint32_t width, uint32_t height, uint32_t numSamples, DXGI_FORMAT format, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN);
+
+        uint32_t                            GetWidth(void) const                { return Width; }
+        uint32_t                            GetHeight(void) const               { return Height; }
+        uint32_t                            GetDepth(void) const                { return ArraySize; }
+        const DXGI_FORMAT&                  GetFormat(void) const               { return Format; }
 
         const D3D12_CPU_DESCRIPTOR_HANDLE&  GetDSV() const                      { return DSVHandle[0]; }
         const D3D12_CPU_DESCRIPTOR_HANDLE&  GetDSV_DepthReadOnly() const        { return DSVHandle[1]; }
@@ -126,6 +108,12 @@ namespace RealtimeEngine
         void                                CreateDerivedViews(ID3D12Device* Device, DXGI_FORMAT Format);
 
     private:
+
+        uint32_t                            Width;
+        uint32_t                            Height;
+        uint32_t                            ArraySize;
+        DXGI_FORMAT                         Format;
+        D3D12_RESOURCE_FLAGS                ResourceFlags;
 
         float                               ClearDepth;
         uint8_t                             ClearStencil;

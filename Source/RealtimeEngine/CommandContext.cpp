@@ -1197,7 +1197,7 @@ void CommandContext::ResolveTimeStamps(ID3D12Resource* pReadbackHeap, ID3D12Quer
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RealtimeEngine::CommandContext::ReadbackTexture2D(GpuResource& readbackBuffer, PixelBuffer& srcBuffer)
+void RealtimeEngine::CommandContext::ReadbackTexture2D(GpuResource& readbackBuffer, ColorBuffer& srcBuffer)
 {
     D3D12_PLACED_SUBRESOURCE_FOOTPRINT PlacedFootprint;
     RenderDevice::Get().GetD3DDevice()->GetCopyableFootprints(&srcBuffer.GetResource()->GetDesc(), 0, 1, 0, &PlacedFootprint, nullptr, nullptr, nullptr);

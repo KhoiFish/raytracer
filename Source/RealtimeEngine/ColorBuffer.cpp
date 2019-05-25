@@ -34,7 +34,7 @@ static inline uint32_t ComputeNumMips(uint32_t width, uint32_t height)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-DXGI_FORMAT PixelBuffer::GetBaseFormat(DXGI_FORMAT defaultFormat)
+static DXGI_FORMAT GetBaseFormat(DXGI_FORMAT defaultFormat)
 {
     switch (defaultFormat)
     {
@@ -83,7 +83,7 @@ DXGI_FORMAT PixelBuffer::GetBaseFormat(DXGI_FORMAT defaultFormat)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-DXGI_FORMAT PixelBuffer::GetUAVFormat(DXGI_FORMAT defaultFormat)
+static DXGI_FORMAT GetUAVFormat(DXGI_FORMAT defaultFormat)
 {
     switch (defaultFormat)
     {
@@ -128,7 +128,7 @@ DXGI_FORMAT PixelBuffer::GetUAVFormat(DXGI_FORMAT defaultFormat)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-DXGI_FORMAT PixelBuffer::GetDSVFormat(DXGI_FORMAT defaultFormat)
+static DXGI_FORMAT GetDSVFormat(DXGI_FORMAT defaultFormat)
 {
     switch (defaultFormat)
     {
@@ -165,7 +165,7 @@ DXGI_FORMAT PixelBuffer::GetDSVFormat(DXGI_FORMAT defaultFormat)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-DXGI_FORMAT PixelBuffer::GetDepthFormat(DXGI_FORMAT defaultFormat)
+static DXGI_FORMAT GetDepthFormat(DXGI_FORMAT defaultFormat)
 {
     switch (defaultFormat)
     {
@@ -202,7 +202,7 @@ DXGI_FORMAT PixelBuffer::GetDepthFormat(DXGI_FORMAT defaultFormat)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-DXGI_FORMAT PixelBuffer::GetStencilFormat(DXGI_FORMAT defaultFormat)
+static DXGI_FORMAT GetStencilFormat(DXGI_FORMAT defaultFormat)
 {
     switch (defaultFormat)
     {
@@ -227,7 +227,7 @@ DXGI_FORMAT PixelBuffer::GetStencilFormat(DXGI_FORMAT defaultFormat)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-size_t PixelBuffer::BytesPerPixel(DXGI_FORMAT format)
+static size_t BytesPerPixel(DXGI_FORMAT format)
 {
     switch(format)
     {
@@ -330,65 +330,35 @@ size_t PixelBuffer::BytesPerPixel(DXGI_FORMAT format)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void PixelBuffer::AssociateWithResource(ID3D12Device* device, const string_t& name, ID3D12Resource* resource, D3D12_RESOURCE_STATES currentState)
+static D3D12_RESOURCE_DESC DescribeTex2D(uint32_t width, uint32_t height, uint32_t depthOrArraySize, uint32_t numMips, DXGI_FORMAT format, D3D12_RESOURCE_FLAGS resourceFlags)
 {
-    ASSERT(resource != nullptr);
-    D3D12_RESOURCE_DESC resourceDesc = resource->GetDesc();
-
-    ResourcePtr.Attach(resource);
-    UsageState = currentState;
-    Width      = (uint32_t)resourceDesc.Width;
-    Height     = resourceDesc.Height;
-    ArraySize  = resourceDesc.DepthOrArraySize;
-    Format     = resourceDesc.Format;
-
-    #ifndef RELEASE
-        ResourcePtr->SetName(MakeWStr(name).c_str());
-    #else
-        (name);
-    #endif
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-D3D12_RESOURCE_DESC PixelBuffer::DescribeTex2D(uint32_t width, uint32_t height, uint32_t depthOrArraySize, uint32_t numMips, DXGI_FORMAT format, D3D12_RESOURCE_FLAGS resourceFlags)
-{
-    Width           = width;
-    Height          = height;
-    ArraySize       = depthOrArraySize;
-    Format          = format;
-    ResourceFlags   = resourceFlags;
-
     D3D12_RESOURCE_DESC desc = {};
     desc.Alignment          = 0;
     desc.DepthOrArraySize   = (UINT16)depthOrArraySize;
     desc.Dimension          = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-    desc.Flags              = ResourceFlags;
+    desc.Flags              = resourceFlags;
     desc.Format             = GetBaseFormat(format);
-    desc.Height             = (uint32_t)Height;
+    desc.Height             = (uint32_t)height;
     desc.Layout             = D3D12_TEXTURE_LAYOUT_UNKNOWN;
     desc.MipLevels          = (UINT16)numMips;
     desc.SampleDesc.Count   = 1;
     desc.SampleDesc.Quality = 0;
-    desc.Width              = (UINT64)Width;
+    desc.Width              = (UINT64)width;
 
     return desc;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void PixelBuffer::CreateTextureResource(ID3D12Device* device, const string_t& name, const D3D12_RESOURCE_DESC& resourceDesc, D3D12_CLEAR_VALUE* clearValue, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr, D3D12_RESOURCE_STATES usageStates)
+static void CreateTextureResource(GpuResource* pGpuResource, const string_t& name, const D3D12_RESOURCE_DESC& resourceDesc, D3D12_CLEAR_VALUE* clearValue, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr, D3D12_RESOURCE_STATES usageStates)
 {
-    Destroy();
+    pGpuResource->Destroy();
 
-    CD3DX12_HEAP_PROPERTIES HeapProps(D3D12_HEAP_TYPE_DEFAULT);
-    ASSERT_SUCCEEDED(device->CreateCommittedResource( &HeapProps, D3D12_HEAP_FLAG_NONE, &resourceDesc, usageStates, clearValue, IID_PPV_ARGS(&ResourcePtr)));
-
-    UsageState        = usageStates;
-    GpuVirtualAddress = D3D12_GPU_VIRTUAL_ADDRESS_NULL;
+    CD3DX12_HEAP_PROPERTIES heapProps(D3D12_HEAP_TYPE_DEFAULT);
+    ASSERT_SUCCEEDED(RenderDevice::Get().GetD3DDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &resourceDesc, usageStates, clearValue, IID_PPV_ARGS(&pGpuResource->GetResourceRef())));
 
     #ifndef RELEASE
-        ResourcePtr->SetName(MakeWStr(name).c_str());
+        gpuResource->SetName(MakeWStr(name).c_str());
     #else
         (name);
     #endif
@@ -511,9 +481,17 @@ void ColorBuffer::CreateFromSwapChain(const string_t& name, ID3D12Resource* base
 
 void ColorBuffer::Create(const string_t& name, uint32_t width, uint32_t height, uint32_t numMips, DXGI_FORMAT format, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr)
 {
-    numMips = (numMips == 0 ? ComputeNumMips(width, height) : numMips);
+    numMips = (numMips == 0 ? ComputeNumMips(width, height) : numMips);    
 
-    D3D12_RESOURCE_DESC resourceDesc = DescribeTex2D(width, height, 1, numMips, format, CombineResourceFlags());
+    Width             = width;
+    Height            = height;
+    ArraySize         = 1;
+    Format            = format;
+    ResourceFlags     = CombineResourceFlags();
+    UsageState        = D3D12_RESOURCE_STATE_COMMON;
+    GpuVirtualAddress = D3D12_GPU_VIRTUAL_ADDRESS_NULL;
+
+    D3D12_RESOURCE_DESC resourceDesc = DescribeTex2D(width, height, ArraySize, numMips, format, ResourceFlags);
     resourceDesc.SampleDesc.Count   = FragmentCount;
     resourceDesc.SampleDesc.Quality = 0;
 
@@ -521,7 +499,7 @@ void ColorBuffer::Create(const string_t& name, uint32_t width, uint32_t height, 
     clearValue.Format   = format;
     memcpy(&clearValue.Color, ClearColor, sizeof(ClearColor));
 
-    CreateTextureResource(RenderDevice::Get().GetD3DDevice(), name, resourceDesc, &clearValue, vidMemPtr);
+    CreateTextureResource(this, name, resourceDesc, &clearValue, vidMemPtr, UsageState);
     CreateDerivedViews(RenderDevice::Get().GetD3DDevice(), format, 1, numMips);
 }
 
@@ -531,11 +509,19 @@ void RealtimeEngine::ColorBuffer::CreateEx(const string_t& name, uint32_t width,
 {
     numMips = (numMips == 0 ? ComputeNumMips(width, height) : numMips);
 
-    D3D12_RESOURCE_DESC resourceDesc = DescribeTex2D(width, height, 1, numMips, format, resourceFlags);
+    Width               = width;
+    Height              = height;
+    ArraySize           = 1;
+    Format              = format;
+    ResourceFlags       = resourceFlags;
+    UsageState          = usageStates;
+    GpuVirtualAddress   = D3D12_GPU_VIRTUAL_ADDRESS_NULL;
+
+    D3D12_RESOURCE_DESC resourceDesc = DescribeTex2D(width, height, ArraySize, numMips, format, resourceFlags);
     resourceDesc.SampleDesc.Count = FragmentCount;
     resourceDesc.SampleDesc.Quality = 0;
 
-    CreateTextureResource(RenderDevice::Get().GetD3DDevice(), name, resourceDesc, clearValue, vidMemPtr, usageStates);
+    CreateTextureResource(this, name, resourceDesc, clearValue, vidMemPtr, usageStates);
 
     if (createViews)
     {
@@ -547,14 +533,43 @@ void RealtimeEngine::ColorBuffer::CreateEx(const string_t& name, uint32_t width,
 
 void ColorBuffer::CreateArray(const string_t& name, uint32_t width, uint32_t height, uint32_t arrayCount, DXGI_FORMAT format, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr)
 {
-    D3D12_RESOURCE_DESC resourceDesc = DescribeTex2D(width, height, arrayCount, 1, format, CombineResourceFlags());
+    Width               = width;
+    Height              = height;
+    ArraySize           = arrayCount;
+    Format              = format;
+    ResourceFlags       = CombineResourceFlags();
+    UsageState          = D3D12_RESOURCE_STATE_COMMON;
+    GpuVirtualAddress   = D3D12_GPU_VIRTUAL_ADDRESS_NULL;
+
+    D3D12_RESOURCE_DESC resourceDesc = DescribeTex2D(width, height, ArraySize, 1, format, ResourceFlags);
 
     D3D12_CLEAR_VALUE clearValue = {};
     clearValue.Format   = format;
     memcpy(&clearValue.Color, ClearColor, sizeof(ClearColor));
 
-    CreateTextureResource(RenderDevice::Get().GetD3DDevice(), name, resourceDesc, &clearValue, vidMemPtr);
+    CreateTextureResource(this, name, resourceDesc, &clearValue, vidMemPtr, UsageState);
     CreateDerivedViews(RenderDevice::Get().GetD3DDevice(), format, arrayCount, 1);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void ColorBuffer::AssociateWithResource(ID3D12Device* device, const string_t& name, ID3D12Resource* resource, D3D12_RESOURCE_STATES currentState)
+{
+    ASSERT(resource != nullptr);
+    D3D12_RESOURCE_DESC resourceDesc = resource->GetDesc();
+
+    ResourcePtr.Attach(resource);
+    UsageState = currentState;
+    Width      = (uint32_t)resourceDesc.Width;
+    Height     = resourceDesc.Height;
+    ArraySize  = resourceDesc.DepthOrArraySize;
+    Format     = resourceDesc.Format;
+
+    #ifndef RELEASE
+        ResourcePtr->SetName(MakeWStr(name).c_str());
+    #else
+        (name);
+    #endif
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -603,30 +618,46 @@ DepthBuffer::DepthBuffer(float clearDepth, uint8_t clearStencil)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void DepthBuffer::Create( const string_t& name, uint32_t width, uint32_t height, DXGI_FORMAT format, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr )
-{
-    D3D12_RESOURCE_DESC resourceDesc = DescribeTex2D(width, height, 1, 1, format, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
+void DepthBuffer::Create(const string_t& name, uint32_t width, uint32_t height, DXGI_FORMAT format, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr)
+{    
+    Width               = width;
+    Height              = height;
+    ArraySize           = 1;
+    Format              = format;
+    ResourceFlags       = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+    UsageState          = D3D12_RESOURCE_STATE_COMMON;
+    GpuVirtualAddress   = D3D12_GPU_VIRTUAL_ADDRESS_NULL;
+
+    D3D12_RESOURCE_DESC resourceDesc = DescribeTex2D(width, height, ArraySize, 1, format, ResourceFlags);
 
     D3D12_CLEAR_VALUE clearValue = {};
     clearValue.Color[0] = clearValue.Color[1] = clearValue.Color[2] = clearValue.Color[3] = ClearDepth;
     clearValue.Format = format;
 
-    CreateTextureResource(RenderDevice::Get().GetD3DDevice(), name, resourceDesc, &clearValue, vidMemPtr);
+    CreateTextureResource(this, name, resourceDesc, &clearValue, vidMemPtr, UsageState);
     CreateDerivedViews(RenderDevice::Get().GetD3DDevice(), format);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
 void DepthBuffer::Create(const string_t& name, uint32_t width, uint32_t height, uint32_t samples, DXGI_FORMAT format, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr)
-{
-    D3D12_RESOURCE_DESC resourceDesc = DescribeTex2D(width, height, 1, 1, format, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
+{    
+    Width               = width;
+    Height              = height;
+    ArraySize           = 1;
+    Format              = format;
+    ResourceFlags       = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+    UsageState          = D3D12_RESOURCE_STATE_COMMON;
+    GpuVirtualAddress   = D3D12_GPU_VIRTUAL_ADDRESS_NULL;
+
+    D3D12_RESOURCE_DESC resourceDesc = DescribeTex2D(width, height, ArraySize, 1, format, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
     resourceDesc.SampleDesc.Count = samples;
 
     D3D12_CLEAR_VALUE clearValue = {};
     clearValue.Color[0] = clearValue.Color[1] = clearValue.Color[2] = clearValue.Color[3] = ClearDepth;
     clearValue.Format = format;
 
-    CreateTextureResource(RenderDevice::Get().GetD3DDevice(), name, resourceDesc, &clearValue, vidMemPtr);
+    CreateTextureResource(this, name, resourceDesc, &clearValue, vidMemPtr, UsageState);
     CreateDerivedViews(RenderDevice::Get().GetD3DDevice(), format);
 }
 

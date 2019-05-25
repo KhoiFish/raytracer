@@ -459,37 +459,37 @@ void Renderer::RenderCompositePass()
             }
 
             // Setup constants
-            SceneConstantBuffer sceneCB;
+            CompositeConstantBuffer compositeCB;
             {
                 // The following multipliers let us select which buffer to display
                 // See the CompositePass shader for more details.
                 const XMFLOAT4 bufferOn  = XMFLOAT4(1, 1, 1, 1);
                 const XMFLOAT4 bufferOff = XMFLOAT4(0, 0, 0, 0);
-                for (int i = 0; i < ARRAY_SIZE(sceneCB.TextureMultipliers); i++)
+                for (int i = 0; i < ARRAY_SIZE(compositeCB.TextureMultipliers); i++)
                 {
                     if (SelectedBufferIndex == i || SelectedBufferIndex == 0)
                     {
-                        sceneCB.TextureMultipliers[i] = bufferOn;
+                        compositeCB.TextureMultipliers[i] = bufferOn;
                     }
                     else
                     {
-                        sceneCB.TextureMultipliers[i] = bufferOff;
+                        compositeCB.TextureMultipliers[i] = bufferOff;
                     }
                 }
 
                 if (SelectedBufferIndex == 0)
                 {
-                    sceneCB.CompositeMultipliers[0] = bufferOn;
-                    sceneCB.CompositeMultipliers[1] = bufferOff;
+                    compositeCB.CompositeMultipliers[0] = bufferOn;
+                    compositeCB.CompositeMultipliers[1] = bufferOff;
                 }
                 else
                 {
-                    sceneCB.CompositeMultipliers[0] = bufferOff;
-                    sceneCB.CompositeMultipliers[1] = bufferOn;
+                    compositeCB.CompositeMultipliers[0] = bufferOff;
+                    compositeCB.CompositeMultipliers[1] = bufferOn;
                 }
 
                 // Setup direct/indirect multipliers
-                sceneCB.DirectIndirectLightMult = XMFLOAT2(UserInput.GpuDirectLightMult, UserInput.GpuIndirectLightMult);
+                compositeCB.DirectIndirectLightMult = XMFLOAT2(UserInput.GpuDirectLightMult, UserInput.GpuIndirectLightMult);
             }
 
             // Transition resources
@@ -511,7 +511,7 @@ void Renderer::RenderCompositePass()
             }
 
             // Setup rest of the pipeline
-            renderContext.SetDynamicConstantBufferView(RasterRenderRootSig::ConstantBuffer0, sizeof(sceneCB), &sceneCB);
+            renderContext.SetDynamicConstantBufferView(RasterRenderRootSig::ConstantBuffer0, sizeof(compositeCB), &compositeCB);
             renderContext.SetRenderTarget(RenderDevice::Get().GetRenderTarget().GetRTV(), RenderDevice::Get().GetDepthStencil().GetDSV());
             renderContext.SetPipelineState(RasterCompositePassPSO);
             renderContext.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);

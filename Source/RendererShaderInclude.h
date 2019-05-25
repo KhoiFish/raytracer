@@ -39,10 +39,16 @@ struct SceneConstantBuffer
     XMFLOAT4X4  InverseTransposeModelViewMatrix;
     XMFLOAT4X4  InverseViewProjectionMatrix;
     XMFLOAT4X4  InverseTransposeViewProjectionMatrix;
+    float       FarClipDist;
+};
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+struct CompositeConstantBuffer
+{
     XMFLOAT4    TextureMultipliers[9];
     XMFLOAT4    CompositeMultipliers[2];
     XMFLOAT2    DirectIndirectLightMult;
-    float       FarClipDist;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------

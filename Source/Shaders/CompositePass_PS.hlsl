@@ -39,7 +39,7 @@ Texture2D                               TexCoordsTexture        : register(t5, s
 Texture2D                               DiffuseTexture          : register(t6, space0);
 SamplerState                            LinearRepeatSampler     : register(s0, space0);
 SamplerState                            AnisoRepeatSampler      : register(s1, space0);
-ConstantBuffer<SceneConstantBuffer>     SceneCb                 : register(b0, space0);
+ConstantBuffer<CompositeConstantBuffer> SceneCb                 : register(b0, space0);
 
 // ----------------------------------------------------------------------------------------------------------------------------
 

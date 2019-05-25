@@ -65,45 +65,23 @@ namespace RealtimeEngine
 
     // ----------------------------------------------------------------------------------------------------------------------------
 
-    struct Color
-    {
-        Color(float r, float g, float b, float a)
-        {
-            Data[0] = r;
-            Data[1] = g;
-            Data[2] = b;
-            Data[3] = a;
-        }
-
-        float        R() const                   { return Data[0]; }
-        float        G() const                   { return Data[1]; }
-        float        B() const                   { return Data[2]; }
-        float        A() const                   { return Data[3]; }
-        float&       operator[] (uint32_t index) { return Data[index]; }
-        const float* GetPtr()                    { return Data; }
-
-        float Data[4];
-    };
-
-    // ----------------------------------------------------------------------------------------------------------------------------
-
     class ColorBuffer : public PixelBuffer
     {
     public:
 
-        ColorBuffer(Color ClearColor = Color(0.0f, 0.0f, 0.0f, 0.0f));
+        ColorBuffer();
 
         void                                CreateFromSwapChain(const string_t& name, ID3D12Resource* baseResource);
         void                                Create(const string_t& name, uint32_t width, uint32_t height, uint32_t numMips, DXGI_FORMAT format, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN);
         void                                CreateEx(const string_t& name, uint32_t width, uint32_t height, uint32_t numMips, DXGI_FORMAT format, D3D12_CLEAR_VALUE* clearValue = nullptr, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAGS resourceFlags = D3D12_RESOURCE_FLAG_NONE, D3D12_RESOURCE_STATES usageStates = D3D12_RESOURCE_STATE_COMMON, bool createViews = true);
         void                                CreateArray(const string_t& name, uint32_t width, uint32_t height, uint32_t arrayCount, DXGI_FORMAT format, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN);
-        void                                SetClearColor(Color clearColor);
+        void                                SetClearColor(float clearColor[4]);
         void                                SetMsaaMode(uint32_t numColorSamples, uint32_t numCoverageSamples);
 
         const D3D12_CPU_DESCRIPTOR_HANDLE&  GetSRV(void) const          { return SRVHandle; }
         const D3D12_CPU_DESCRIPTOR_HANDLE&  GetRTV(void) const          { return RTVHandle; }
         const D3D12_CPU_DESCRIPTOR_HANDLE&  GetUAV(void) const          { return UAVHandle[0]; }
-        Color                               GetClearColor(void) const   { return ClearColor; }
+        const float*                        GetClearColor() const       { return ClearColor; }
 
     protected:
 
@@ -112,7 +90,7 @@ namespace RealtimeEngine
 
     protected:
 
-        Color                               ClearColor;
+        float                               ClearColor[4];
         D3D12_CPU_DESCRIPTOR_HANDLE         SRVHandle;
         D3D12_CPU_DESCRIPTOR_HANDLE         RTVHandle;
         D3D12_CPU_DESCRIPTOR_HANDLE         UAVHandle[12];

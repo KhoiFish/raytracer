@@ -209,7 +209,7 @@ namespace RealtimeEngine
         void SetViewportAndScissor(const D3D12_VIEWPORT& vp, const D3D12_RECT& rect);
         void SetViewportAndScissor(uint32_t x, uint32_t y, uint32_t w, uint32_t h);
         void SetStencilRef(uint32_t stencilRef);
-        void SetBlendFactor(Color blendFactor);
+        void SetBlendFactor(float blendFactor[4]);
         void SetPrimitiveTopology(D3D12_PRIMITIVE_TOPOLOGY topology);
 
         void SetPipelineState(const GraphicsPSO& pso);

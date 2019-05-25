@@ -396,12 +396,17 @@ void PixelBuffer::CreateTextureResource(ID3D12Device* device, const string_t& na
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-ColorBuffer::ColorBuffer(Color clearColor)
-    : ClearColor(clearColor), numMipMaps(0), FragmentCount(1), SampleCount(1)
+ColorBuffer::ColorBuffer()
+    : numMipMaps(0), FragmentCount(1), SampleCount(1)
 {
     SRVHandle.ptr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN;
     RTVHandle.ptr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN;
     std::memset(UAVHandle, 0xFF, sizeof(UAVHandle));
+
+    for (int i = 0; i < 4; i++)
+    {
+        ClearColor[i] = 0.0f;
+    }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -514,10 +519,7 @@ void ColorBuffer::Create(const string_t& name, uint32_t width, uint32_t height, 
 
     D3D12_CLEAR_VALUE clearValue = {};
     clearValue.Format   = format;
-    clearValue.Color[0] = ClearColor.R();
-    clearValue.Color[1] = ClearColor.G();
-    clearValue.Color[2] = ClearColor.B();
-    clearValue.Color[3] = ClearColor.A();
+    memcpy(&clearValue.Color, ClearColor, sizeof(ClearColor));
 
     CreateTextureResource(RenderDevice::Get().GetD3DDevice(), name, resourceDesc, &clearValue, vidMemPtr);
     CreateDerivedViews(RenderDevice::Get().GetD3DDevice(), format, 1, numMips);
@@ -549,10 +551,7 @@ void ColorBuffer::CreateArray(const string_t& name, uint32_t width, uint32_t hei
 
     D3D12_CLEAR_VALUE clearValue = {};
     clearValue.Format   = format;
-    clearValue.Color[0] = ClearColor.R();
-    clearValue.Color[1] = ClearColor.G();
-    clearValue.Color[2] = ClearColor.B();
-    clearValue.Color[3] = ClearColor.A();
+    memcpy(&clearValue.Color, ClearColor, sizeof(ClearColor));
 
     CreateTextureResource(RenderDevice::Get().GetD3DDevice(), name, resourceDesc, &clearValue, vidMemPtr);
     CreateDerivedViews(RenderDevice::Get().GetD3DDevice(), format, arrayCount, 1);
@@ -560,9 +559,9 @@ void ColorBuffer::CreateArray(const string_t& name, uint32_t width, uint32_t hei
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void ColorBuffer::SetClearColor(Color clearColor)
+void ColorBuffer::SetClearColor(float clearColor[4])
 {
-    ClearColor = clearColor;
+    memcpy(&ClearColor, clearColor, sizeof(clearColor));
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

@@ -509,7 +509,7 @@ void ComputeContext::SetDescriptorTable(uint32_t rootIndex, D3D12_GPU_DESCRIPTOR
 
 void GraphicsContext::ClearColor(ColorBuffer& target)
 {
-    TheCommandList->ClearRenderTargetView(target.GetRTV(), target.GetClearColor().GetPtr(), 0, nullptr);
+    TheCommandList->ClearRenderTargetView(target.GetRTV(), target.GetClearColor(), 0, nullptr);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -621,9 +621,9 @@ void GraphicsContext::SetStencilRef(uint32_t ref)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void GraphicsContext::SetBlendFactor(Color blendFactor)
+void GraphicsContext::SetBlendFactor(float blendFactor[4])
 {
-    TheCommandList->OMSetBlendFactor(blendFactor.GetPtr());
+    TheCommandList->OMSetBlendFactor(blendFactor);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

@@ -32,6 +32,8 @@
 #include "RealtimeEngine/RealtimeScene.h"
 #include "RealtimeEngine/DescriptorHeap.h"
 #include "RendererShaderInclude.h"
+#include <chrono>
+#include <random>
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -164,6 +166,8 @@ private:
         float   GpuIndirectLightMult    = 0.5f;
     };
 
+    typedef std::uniform_real_distribution<float> RandFloatDist;
+
 private:
 
     Core::Raytracer*                TheRaytracer;
@@ -178,6 +182,9 @@ private:
     bool                            IsCameraDirty;
     bool                            LoadSceneRequested;
     int                             MaxNumCpuThreads;
+
+    RandFloatDist                   RandDist;
+    std::mt19937                    RandGen;
 
     DXGI_FORMAT                     BackbufferFormat;
     DXGI_FORMAT                     DeferredBuffersRTTypes[DeferredBufferType_Num];

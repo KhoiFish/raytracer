@@ -18,47 +18,54 @@
 // ----------------------------------------------------------------------------------------------------------------------------
 
 #include "RaytracingShaderInclude.h"
-#include <chrono>
-#include <random>
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static std::uniform_real_distribution<float>    sRngDist;
-static std::mt19937                             sRng;
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-enum RealtimeRenderingRootIndex
+namespace RasterRenderRootSig
 {
-    RealtimeRenderingRootIndex_ConstantBuffer0 = 0,
-    RealtimeRenderingRootIndex_ConstantBuffer1,
-    RealtimeRenderingRootIndex_Texture0,
-    RealtimeRenderingRootIndex_Texture1,
-    RealtimeRenderingRootIndex_Texture2,
-    RealtimeRenderingRootIndex_Texture3,
-    RealtimeRenderingRootIndex_Texture4,
-    RealtimeRenderingRootIndex_Texture5,
-    RealtimeRenderingRootIndex_Texture6,
-    RealtimeRenderingRootIndex_Texture7,
+    enum EnumTypes
+    {
+        TextureStart = 0,
+        Texture0     = TextureStart,
+        Texture1,
+        Texture2,
+        Texture3,
+        Texture4,
+        Texture5,
+        Texture6,
+        Texture7,
+        TextureEnd   = Texture7,
 
-    RealtimeRenderingRootIndex_Num
-};
+        ConstantBuffer0,
+        ConstantBuffer1,
 
-enum RealtimeRenderingRegisters
-{
-    RealtimeRenderingRegisters_ConstantBuffer0  = 0,
-    RealtimeRenderingRegisters_ConstantBuffer1  = 1,
-    RealtimeRenderingRegisters_Texture0         = 0,
-    RealtimeRenderingRegisters_Texture1         = 1,
-    RealtimeRenderingRegisters_Texture2         = 2,
-    RealtimeRenderingRegisters_Texture3         = 3,
-    RealtimeRenderingRegisters_Texture4         = 4,
-    RealtimeRenderingRegisters_Texture5         = 5,
-    RealtimeRenderingRegisters_Texture6         = 6,
-    RealtimeRenderingRegisters_Texture7         = 7,
-    RealtimeRenderingRegisters_LinearSampler    = 0,
-    RealtimeRenderingRegisters_AnisoSampler     = 1,
-};
+        Num,
+    };
+
+    enum IndexTypes
+    {
+        Register = 0,
+        Count,
+        Space,
+        RangeType,
+    };
+
+    // [register, count, space, D3D12_DESCRIPTOR_RANGE_TYPE]
+    static UINT Range[RasterRenderRootSig::Num][4] =
+    {
+        { 0, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // Texture0
+        { 1, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // Texture1
+        { 2, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // Texture2
+        { 3, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // Texture3
+        { 4, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // Texture4
+        { 5, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // Texture5
+        { 6, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // Texture6
+        { 7, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // Texture7
+
+        { 0, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_CBV },   // ConstantBuffer0
+        { 1, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_CBV },   // ConstantBuffer1
+    };
+}
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -251,35 +258,39 @@ static inline D3D12_DEPTH_STENCIL_DESC getDepthDisabledState()
 
 void Renderer::SetupRasterPipeline()
 {
-    CpuResultsBufferIndex = RealtimeRenderingRegisters_Texture4 + 1;   
+    CpuResultsBufferIndex = RasterRenderRootSig::Texture4 + 1;
 
     // Init random generator
     {
         auto currentTime    = std::chrono::high_resolution_clock::now();
         auto timeInMillisec = std::chrono::time_point_cast<std::chrono::milliseconds>(currentTime);
-        sRng                = std::mt19937(uint32_t(timeInMillisec.time_since_epoch().count()));
+        RandGen             = std::mt19937(uint32_t(timeInMillisec.time_since_epoch().count()));
     }
 
     // Root sig setup
     {
         const int numSamplers = 2;
-        RasterRootSignature.Reset(RealtimeRenderingRootIndex_Num, numSamplers);
-        RasterRootSignature[RealtimeRenderingRootIndex_ConstantBuffer0].InitAsConstantBuffer(RealtimeRenderingRegisters_ConstantBuffer0, D3D12_SHADER_VISIBILITY_ALL);
-        RasterRootSignature[RealtimeRenderingRootIndex_ConstantBuffer1].InitAsConstantBuffer(RealtimeRenderingRegisters_ConstantBuffer1, D3D12_SHADER_VISIBILITY_ALL);
-        RasterRootSignature[RealtimeRenderingRootIndex_Texture0].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RealtimeRenderingRegisters_Texture0, 1, 0);
-        RasterRootSignature[RealtimeRenderingRootIndex_Texture1].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RealtimeRenderingRegisters_Texture1, 1, 0);
-        RasterRootSignature[RealtimeRenderingRootIndex_Texture2].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RealtimeRenderingRegisters_Texture2, 1, 0);
-        RasterRootSignature[RealtimeRenderingRootIndex_Texture3].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RealtimeRenderingRegisters_Texture3, 1, 0);
-        RasterRootSignature[RealtimeRenderingRootIndex_Texture4].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RealtimeRenderingRegisters_Texture4, 1, 0);
-        RasterRootSignature[RealtimeRenderingRootIndex_Texture5].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RealtimeRenderingRegisters_Texture5, 1, 0);
-        RasterRootSignature[RealtimeRenderingRootIndex_Texture6].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RealtimeRenderingRegisters_Texture6, 1, 0);
-        RasterRootSignature[RealtimeRenderingRootIndex_Texture7].InitAsDescriptorRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RealtimeRenderingRegisters_Texture7, 1, 0);
-        RasterRootSignature.InitStaticSampler(RealtimeRenderingRegisters_LinearSampler, getLinearSamplerDesc(), D3D12_SHADER_VISIBILITY_PIXEL);
-        RasterRootSignature.InitStaticSampler(RealtimeRenderingRegisters_AnisoSampler, getAnisoSamplerDesc(), D3D12_SHADER_VISIBILITY_PIXEL);
-        RasterRootSignature.Finalize("RealtimeRender", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+        RasterRootSignature.Reset(RasterRenderRootSig::Num, numSamplers);
+        {
+            // Setup textures
+            for (int i = RasterRenderRootSig::TextureStart; i <= RasterRenderRootSig::TextureEnd; i++)
+            {
+                RasterRootSignature[i].InitAsDescriptorRange(
+                    (D3D12_DESCRIPTOR_RANGE_TYPE)RasterRenderRootSig::Range[i][RasterRenderRootSig::RangeType],
+                    RasterRenderRootSig::Range[i][RasterRenderRootSig::Register],
+                    RasterRenderRootSig::Range[i][RasterRenderRootSig::Count],
+                    RasterRenderRootSig::Range[i][RasterRenderRootSig::Space],
+                    D3D12_SHADER_VISIBILITY_ALL);
+            }
 
-        // This will create descriptors
-        OnResizeRasterRender();
+            // Constant buffers currently live outside the heap :(
+            RasterRootSignature[RasterRenderRootSig::ConstantBuffer0].InitAsConstantBuffer(RasterRenderRootSig::Range[RasterRenderRootSig::ConstantBuffer0][RasterRenderRootSig::Register]);
+            RasterRootSignature[RasterRenderRootSig::ConstantBuffer1].InitAsConstantBuffer(RasterRenderRootSig::Range[RasterRenderRootSig::ConstantBuffer1][RasterRenderRootSig::Register]);
+
+            RasterRootSignature.InitStaticSampler(0, getLinearSamplerDesc(), D3D12_SHADER_VISIBILITY_PIXEL);
+            RasterRootSignature.InitStaticSampler(1, getAnisoSamplerDesc(), D3D12_SHADER_VISIBILITY_PIXEL);
+        }
+        RasterRootSignature.Finalize("RealtimeRender", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
     }
 
     // Geometry pass PSO setup
@@ -319,6 +330,52 @@ void Renderer::SetupRasterPipeline()
         RasterCompositePassPSO.SetPixelShader(pixelShaderBlob->GetBufferPointer(), pixelShaderBlob->GetBufferSize());
         RasterCompositePassPSO.Finalize();
     }
+
+    // This will create descriptors
+    OnResizeRasterRender();
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void Renderer::SetupSceneConstantBuffer(const FXMMATRIX& model, SceneConstantBuffer& sceneCB)
+{
+    RealtimeCamera& camera = TheRenderScene->GetCamera();
+
+    sceneCB.FarClipDist = camera.GetZFar();
+
+    XMStoreFloat4(&sceneCB.CameraPosition, camera.GetEye());
+    XMStoreFloat4x4(&sceneCB.ModelMatrix, XMMatrixTranspose(model));
+    XMStoreFloat4x4(&sceneCB.ViewMatrix, XMMatrixTranspose(camera.GetViewMatrix()));
+    XMStoreFloat4x4(&sceneCB.ProjectionMatrix, XMMatrixTranspose(camera.GetProjectionMatrix()));
+    XMStoreFloat4x4(&sceneCB.ModelViewMatrix, XMMatrixTranspose(model * camera.GetViewMatrix()));
+    XMStoreFloat4x4(&sceneCB.ViewProjectionMatrix, XMMatrixTranspose(camera.GetViewMatrix() * camera.GetProjectionMatrix()));
+    XMStoreFloat4x4(&sceneCB.ModelViewProjectionMatrix, XMMatrixTranspose(model * camera.GetViewMatrix() * camera.GetProjectionMatrix()));
+    XMStoreFloat4x4(&sceneCB.InverseTransposeModelViewMatrix, XMMatrixInverse(nullptr, model * camera.GetViewMatrix()));
+    XMStoreFloat4x4(&sceneCB.InverseViewProjectionMatrix, XMMatrixTranspose(XMMatrixInverse(nullptr, camera.GetViewMatrix() * camera.GetProjectionMatrix())));
+    XMStoreFloat4x4(&sceneCB.InverseTransposeViewProjectionMatrix, XMMatrixInverse(nullptr, camera.GetViewMatrix() * camera.GetProjectionMatrix()));
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void Renderer::RenderSceneList(GraphicsContext& renderContext)
+{
+    for (int i = 0; i < TheRenderScene->GetRenderSceneList().size(); i++)
+    {
+        RealtimeEngine::Texture* defaultTexture = &RealtimeEngine::TextureManager::GetWhiteTex2D();
+        RealtimeEngine::Texture* diffuseTex     = (TheRenderScene->GetRenderSceneList()[i]->DiffuseTexture != nullptr) ? TheRenderScene->GetRenderSceneList()[i]->DiffuseTexture : defaultTexture;
+        RenderMaterial&          renderMaterial = TheRenderScene->GetRenderSceneList()[i]->Material;
+        SceneConstantBuffer      sceneCB;
+
+        SetupSceneConstantBuffer(TheRenderScene->GetRenderSceneList()[i]->WorldMatrix, sceneCB);
+
+        renderContext.SetDynamicConstantBufferView(RasterRenderRootSig::ConstantBuffer0, sizeof(sceneCB), &sceneCB);
+        renderContext.SetDynamicConstantBufferView(RasterRenderRootSig::ConstantBuffer1, sizeof(renderMaterial), &renderMaterial);
+        renderContext.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, RenderDevice::Get().GetDefaultDescriptorHeapStack().GetDescriptorHeap());
+        renderContext.SetDescriptorTable(RasterRenderRootSig::Texture0, diffuseTex->GetGpuHandle());
+        renderContext.SetVertexBuffer(0, TheRenderScene->GetRenderSceneList()[i]->VertexBuffer.VertexBufferView());
+        renderContext.SetIndexBuffer(TheRenderScene->GetRenderSceneList()[i]->IndexBuffer.IndexBufferView());
+        renderContext.DrawIndexed((uint32_t)TheRenderScene->GetRenderSceneList()[i]->Indices.size());
+    }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -330,8 +387,8 @@ void Renderer::RenderGeometryPass()
         if (UserInput.GpuCameraJitter)
         {
             // Half pixel offset
-            float xOff = (float(sRngDist(sRng)) - 0.5f);
-            float yOff = (float(sRngDist(sRng)) - 0.5f);
+            float xOff = (float(RandDist(RandGen)) - 0.5f);
+            float yOff = (float(RandDist(RandGen)) - 0.5f);
             TheRenderScene->GetCamera().SetJitter(xOff / float(Width), yOff / float(Height));
         }
         else
@@ -340,7 +397,7 @@ void Renderer::RenderGeometryPass()
         }
     }
 
-    GraphicsContext& renderContext = GraphicsContext::Begin("RenderRealtimeResults");
+    GraphicsContext& renderContext = GraphicsContext::Begin("Geometry Pass");
     {
         renderContext.SetRootSignature(RasterRootSignature);
         renderContext.SetViewport(RenderDevice::Get().GetScreenViewport());
@@ -383,7 +440,7 @@ void Renderer::RenderGeometryPass()
 
 void Renderer::RenderCompositePass()
 {
-    GraphicsContext& renderContext = GraphicsContext::Begin("RenderCompositePass");
+    GraphicsContext& renderContext = GraphicsContext::Begin("Composite Pass");
     {
         renderContext.SetRootSignature(RasterRootSignature);
         renderContext.SetViewport(RenderDevice::Get().GetScreenViewport());
@@ -402,37 +459,37 @@ void Renderer::RenderCompositePass()
             }
 
             // Setup constants
-            SceneConstantBuffer sceneCb;
+            SceneConstantBuffer sceneCB;
             {
                 // The following multipliers let us select which buffer to display
                 // See the CompositePass shader for more details.
                 const XMFLOAT4 bufferOn  = XMFLOAT4(1, 1, 1, 1);
                 const XMFLOAT4 bufferOff = XMFLOAT4(0, 0, 0, 0);
-                for (int i = 0; i < ARRAY_SIZE(sceneCb.TextureMultipliers); i++)
+                for (int i = 0; i < ARRAY_SIZE(sceneCB.TextureMultipliers); i++)
                 {
                     if (SelectedBufferIndex == i || SelectedBufferIndex == 0)
                     {
-                        sceneCb.TextureMultipliers[i] = bufferOn;
+                        sceneCB.TextureMultipliers[i] = bufferOn;
                     }
                     else
                     {
-                        sceneCb.TextureMultipliers[i] = bufferOff;
+                        sceneCB.TextureMultipliers[i] = bufferOff;
                     }
                 }
 
                 if (SelectedBufferIndex == 0)
                 {
-                    sceneCb.CompositeMultipliers[0] = bufferOn;
-                    sceneCb.CompositeMultipliers[1] = bufferOff;
+                    sceneCB.CompositeMultipliers[0] = bufferOn;
+                    sceneCB.CompositeMultipliers[1] = bufferOff;
                 }
                 else
                 {
-                    sceneCb.CompositeMultipliers[0] = bufferOff;
-                    sceneCb.CompositeMultipliers[1] = bufferOn;
+                    sceneCB.CompositeMultipliers[0] = bufferOff;
+                    sceneCB.CompositeMultipliers[1] = bufferOn;
                 }
 
                 // Setup direct/indirect multipliers
-                sceneCb.DirectIndirectLightMult = XMFLOAT2(UserInput.GpuDirectLightMult, UserInput.GpuIndirectLightMult);
+                sceneCB.DirectIndirectLightMult = XMFLOAT2(UserInput.GpuDirectLightMult, UserInput.GpuIndirectLightMult);
             }
 
             // Transition resources
@@ -448,14 +505,13 @@ void Renderer::RenderCompositePass()
 
             // Set descriptor heaps and tables
             renderContext.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, RasterDescriptorHeap->GetDescriptorHeap());
-            for (uint32_t i = 0; i < RasterDescriptorHeap->GetCount(); i++)
+            for (uint32_t i = RasterRenderRootSig::TextureStart; i <= RasterRenderRootSig::TextureEnd; i++)
             {
-                uint32_t rootIndex = RealtimeRenderingRootIndex_Texture0 + i;
-                renderContext.SetDescriptorTable(rootIndex, RasterDescriptorHeap->GetGpuHandle(i));
+                renderContext.SetDescriptorTable(i, RasterDescriptorHeap->GetGpuHandle(i));
             }
 
             // Setup rest of the pipeline
-            renderContext.SetDynamicConstantBufferView(RealtimeRenderingRootIndex_ConstantBuffer0, sizeof(sceneCb), &sceneCb);
+            renderContext.SetDynamicConstantBufferView(RasterRenderRootSig::ConstantBuffer0, sizeof(sceneCB), &sceneCB);
             renderContext.SetRenderTarget(RenderDevice::Get().GetRenderTarget().GetRTV(), RenderDevice::Get().GetDepthStencil().GetDSV());
             renderContext.SetPipelineState(RasterCompositePassPSO);
             renderContext.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -468,48 +524,4 @@ void Renderer::RenderCompositePass()
         }
     }
     renderContext.Finish();
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-void Renderer::SetupSceneConstantBuffer(const FXMMATRIX& model, SceneConstantBuffer& sceneCB)
-{
-    RealtimeCamera& camera = TheRenderScene->GetCamera();
-
-    sceneCB.FarClipDist = camera.GetZFar();
-
-    XMStoreFloat4(&sceneCB.CameraPosition, camera.GetEye());
-    XMStoreFloat4x4(&sceneCB.ModelMatrix, XMMatrixTranspose(model));
-    XMStoreFloat4x4(&sceneCB.ViewMatrix, XMMatrixTranspose(camera.GetViewMatrix()));
-    XMStoreFloat4x4(&sceneCB.ProjectionMatrix, XMMatrixTranspose(camera.GetProjectionMatrix()));
-    XMStoreFloat4x4(&sceneCB.ModelViewMatrix, XMMatrixTranspose(model * camera.GetViewMatrix()));
-    XMStoreFloat4x4(&sceneCB.ViewProjectionMatrix, XMMatrixTranspose(camera.GetViewMatrix() * camera.GetProjectionMatrix()));
-    XMStoreFloat4x4(&sceneCB.ModelViewProjectionMatrix, XMMatrixTranspose(model * camera.GetViewMatrix() * camera.GetProjectionMatrix()));
-    XMStoreFloat4x4(&sceneCB.InverseTransposeModelViewMatrix, XMMatrixInverse(nullptr, model * camera.GetViewMatrix()));
-    XMStoreFloat4x4(&sceneCB.InverseViewProjectionMatrix, XMMatrixTranspose(XMMatrixInverse(nullptr, camera.GetViewMatrix() * camera.GetProjectionMatrix())));
-    XMStoreFloat4x4(&sceneCB.InverseTransposeViewProjectionMatrix, XMMatrixInverse(nullptr, camera.GetViewMatrix() * camera.GetProjectionMatrix()));
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-void Renderer::RenderSceneList(GraphicsContext& renderContext)
-{
-    for (int i = 0; i < TheRenderScene->GetRenderSceneList().size(); i++)
-    {
-        SceneConstantBuffer matrices;
-        SetupSceneConstantBuffer(TheRenderScene->GetRenderSceneList()[i]->WorldMatrix, matrices);
-
-        RealtimeEngine::Texture* defaultTexture = &RealtimeEngine::TextureManager::GetWhiteTex2D();
-        RealtimeEngine::Texture* diffuseTex     = (TheRenderScene->GetRenderSceneList()[i]->DiffuseTexture != nullptr) ? TheRenderScene->GetRenderSceneList()[i]->DiffuseTexture : defaultTexture;
-
-        renderContext.SetDynamicConstantBufferView(RealtimeRenderingRootIndex_ConstantBuffer0, sizeof(matrices), &matrices);
-        renderContext.SetDynamicConstantBufferView(RealtimeRenderingRootIndex_ConstantBuffer1, sizeof(TheRenderScene->GetRenderSceneList()[i]->Material), &TheRenderScene->GetRenderSceneList()[i]->Material);
-
-        renderContext.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, RenderDevice::Get().GetDefaultDescriptorHeapStack().GetDescriptorHeap());
-        renderContext.SetDescriptorTable(RealtimeRenderingRootIndex_Texture0, diffuseTex->GetGpuHandle());
-
-        renderContext.SetVertexBuffer(0, TheRenderScene->GetRenderSceneList()[i]->VertexBuffer.VertexBufferView());
-        renderContext.SetIndexBuffer(TheRenderScene->GetRenderSceneList()[i]->IndexBuffer.IndexBufferView());
-        renderContext.DrawIndexed((uint32_t)TheRenderScene->GetRenderSceneList()[i]->Indices.size());
-    }
 }

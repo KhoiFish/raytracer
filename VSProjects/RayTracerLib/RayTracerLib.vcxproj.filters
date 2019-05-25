@@ -30,9 +30,6 @@
     <ClInclude Include="..\..\Source\RealtimeEngine\CommandList.h">
       <Filter>Realtime</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\RealtimeEngine\DepthBuffer.h">
-      <Filter>Realtime</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Source\RealtimeEngine\Globals.h">
       <Filter>Realtime</Filter>
     </ClInclude>
@@ -46,9 +43,6 @@
       <Filter>Realtime</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\RealtimeEngine\PipelineStateObject.h">
-      <Filter>Realtime</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\RealtimeEngine\PixelBuffer.h">
       <Filter>Realtime</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\RealtimeEngine\PlatformApp.h">
@@ -206,9 +200,6 @@
     <ClCompile Include="..\..\Source\RealtimeEngine\CommandList.cpp">
       <Filter>Realtime</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\RealtimeEngine\DepthBuffer.cpp">
-      <Filter>Realtime</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Source\RealtimeEngine\Globals.cpp">
       <Filter>Realtime</Filter>
     </ClCompile>
@@ -219,9 +210,6 @@
       <Filter>Realtime</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\RealtimeEngine\PipelineStateObject.cpp">
-      <Filter>Realtime</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\RealtimeEngine\PixelBuffer.cpp">
       <Filter>Realtime</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\RealtimeEngine\PlatformApp.cpp">

@@ -25,7 +25,6 @@
 #include "RootSignature.h"
 #include "PipelineStateObject.h"
 #include "ColorBuffer.h"
-#include "DepthBuffer.h"
 #include <algorithm>
 
 // ----------------------------------------------------------------------------------------------------------------------------

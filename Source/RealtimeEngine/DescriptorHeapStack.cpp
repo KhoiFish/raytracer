@@ -17,7 +17,7 @@
 // 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-#include "DescriptorHeap.h"
+#include "DescriptorHeapStack.h"
 #include "RenderDevice.h"
 
 using namespace RealtimeEngine;

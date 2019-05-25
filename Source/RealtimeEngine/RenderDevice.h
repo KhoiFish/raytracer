@@ -21,7 +21,7 @@
 
 #include "Globals.h"
 #include "GPUResource.h"
-#include "DescriptorHeap.h"
+#include "DescriptorHeapStack.h"
 #include "RootSignature.h"
 #include "PipelineStateObject.h"
 #include "ColorBuffer.h"

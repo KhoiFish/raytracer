@@ -33,9 +33,6 @@
     <ClInclude Include="..\..\Source\RealtimeEngine\DepthBuffer.h">
       <Filter>Realtime</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\RealtimeEngine\DescriptorHeap.h">
-      <Filter>Realtime</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Source\RealtimeEngine\Globals.h">
       <Filter>Realtime</Filter>
     </ClInclude>
@@ -192,6 +189,9 @@
     <ClInclude Include="..\..\Source\RealtimeEngine\RaytracingGeometry.h">
       <Filter>Realtime</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\DescriptorHeapStack.h">
+      <Filter>Realtime</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\ThirdParty\StbImage\StbImageImpl.cpp">
@@ -207,9 +207,6 @@
       <Filter>Realtime</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\RealtimeEngine\DepthBuffer.cpp">
-      <Filter>Realtime</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\RealtimeEngine\DescriptorHeap.cpp">
       <Filter>Realtime</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\RealtimeEngine\Globals.cpp">
@@ -318,6 +315,9 @@
       <Filter>Realtime</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\RealtimeEngine\RaytracingGeometry.cpp">
+      <Filter>Realtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\RealtimeEngine\DescriptorHeapStack.cpp">
       <Filter>Realtime</Filter>
     </ClCompile>
   </ItemGroup>

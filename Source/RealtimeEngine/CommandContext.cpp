@@ -20,7 +20,7 @@
 #include "CommandContext.h"
 #include "ColorBuffer.h"
 #include "DepthBuffer.h"
-#include "DescriptorHeap.h"
+#include "DescriptorHeapStack.h"
 #include "RenderDevice.h"
 
 using namespace RealtimeEngine;

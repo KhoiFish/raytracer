@@ -21,7 +21,7 @@
 
 #include "Globals.h"
 #include "RootSignature.h"
-#include "DescriptorHeap.h"
+#include "DescriptorHeapStack.h"
 #include "GpuBuffer.h"
 #include <map>
 

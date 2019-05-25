@@ -30,7 +30,7 @@
 #include "RealtimeEngine/ColorBuffer.h"
 #include "RealtimeEngine/RealtimeCamera.h"
 #include "RealtimeEngine/RealtimeScene.h"
-#include "RealtimeEngine/DescriptorHeap.h"
+#include "RealtimeEngine/DescriptorHeapStack.h"
 #include "RendererShaderInclude.h"
 #include <chrono>
 #include <random>

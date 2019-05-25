@@ -21,7 +21,7 @@
 
 #include "Globals.h"
 #include "GpuResource.h"
-#include "DescriptorHeap.h"
+#include "DescriptorHeapStack.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 

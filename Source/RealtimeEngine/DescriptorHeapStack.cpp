@@ -25,9 +25,8 @@ using namespace RealtimeEngine;
 // ----------------------------------------------------------------------------------------------------------------------------
 
 DescriptorHeapStack::DescriptorHeapStack(UINT numDescriptors, D3D12_DESCRIPTOR_HEAP_TYPE type, UINT nodeMask)
+    : DescriptorHeapMaxCount(numDescriptors)
 {
-    
-
     D3D12_DESCRIPTOR_HEAP_DESC desc = {};
     desc.NumDescriptors = numDescriptors;
     desc.Type           = type;
@@ -51,10 +50,14 @@ ID3D12DescriptorHeapPtr DescriptorHeapStack::GetDescriptorHeap()
 
 void DescriptorHeapStack::AllocateDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle, UINT& descriptorHeapIndex)
 {
-    descriptorHeapIndex = DescriptorsAllocated;
-    cpuHandle           = CD3DX12_CPU_DESCRIPTOR_HANDLE(DescriptorHeapCpuBase, descriptorHeapIndex, DescriptorSize);
-    CpuHandles.push_back(cpuHandle);
-    DescriptorsAllocated++;
+    ASSERT(DescriptorsAllocated < DescriptorHeapMaxCount);
+    if (DescriptorsAllocated < DescriptorHeapMaxCount)
+    {
+        descriptorHeapIndex = DescriptorsAllocated;
+        cpuHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(DescriptorHeapCpuBase, descriptorHeapIndex, DescriptorSize);
+        CpuHandles.push_back(cpuHandle);
+        DescriptorsAllocated++;
+    }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

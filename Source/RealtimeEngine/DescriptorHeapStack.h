@@ -51,6 +51,7 @@ namespace RealtimeEngine
 
         ID3D12DescriptorHeapPtr                     DescriptorHeap;
         UINT                                        DescriptorsAllocated = 0;
+        UINT                                        DescriptorHeapMaxCount = 0;
         UINT                                        DescriptorSize;
         D3D12_CPU_DESCRIPTOR_HANDLE                 DescriptorHeapCpuBase;
         std::vector<D3D12_CPU_DESCRIPTOR_HANDLE>    CpuHandles;

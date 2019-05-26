@@ -25,19 +25,17 @@ namespace RasterRenderRootSig
 {
     enum EnumTypes
     {
-        TextureStart = 0,
-        Texture0     = TextureStart,
+        ConstantBuffer0 = 0,
+        ConstantBuffer1,
+        ConstantBuffer2,
+
+        Texture0,
         Texture1,
         Texture2,
         Texture3,
         Texture4,
         Texture5,
         Texture6,
-        Texture7,
-        TextureEnd   = Texture7,
-
-        ConstantBuffer0,
-        ConstantBuffer1,
 
         Num,
     };
@@ -53,6 +51,10 @@ namespace RasterRenderRootSig
     // [register, count, space, D3D12_DESCRIPTOR_RANGE_TYPE]
     static UINT Range[RasterRenderRootSig::Num][4] =
     {
+        { 0, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_CBV },   // ConstantBuffer0
+        { 1, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_CBV },   // ConstantBuffer1
+        { 2, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_CBV },   // ConstantBuffer2
+
         { 0, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // Texture0
         { 1, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // Texture1
         { 2, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // Texture2
@@ -60,10 +62,6 @@ namespace RasterRenderRootSig
         { 4, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // Texture4
         { 5, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // Texture5
         { 6, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // Texture6
-        { 7, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // Texture7
-
-        { 0, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_CBV },   // ConstantBuffer0
-        { 1, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_CBV },   // ConstantBuffer1
     };
 }
 
@@ -102,26 +100,7 @@ void Renderer::CleanupRasterRender()
 
 void Renderer::OnResizeRasterRender()
 {
-    RasterDescriptorIndexStart = RendererDescriptorHeap->GetCount();
-
-    RendererDescriptorHeap->AllocateTexture2DSrv(
-        DirectLightingAOBuffer[1].GetResource(),
-        RaytracingBufferType);
-
-    RendererDescriptorHeap->AllocateTexture2DSrv(
-        IndirectLightingBuffer[1].GetResource(),
-        RaytracingBufferType);
-
-    RendererDescriptorHeap->AllocateTexture2DSrv(
-        CPURaytracerTex.GetResource(),
-        CPURaytracerTexType);
-
-    for (int i = 0; i < DeferredBufferType_Num; i++)
-    {
-        RendererDescriptorHeap->AllocateTexture2DSrv(
-            DeferredBuffers[i].GetResource(),
-            DeferredBuffersRTTypes[i]);
-    }
+    SetupRasterDescriptors();
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -251,13 +230,17 @@ void Renderer::SetupRasterPipeline()
         RandGen             = std::mt19937(uint32_t(timeInMillisec.time_since_epoch().count()));
     }
 
+    // Constant buffers
+    RasterSceneConstantBuffer.Create(L"Raster Scene Constant Buffer", 1, (uint32_t)AlignUp(sizeof(SceneConstantBuffer), 256));
+    RasterMaterialConstantBuffer.Create(L"Raster Material Constant Buffer", 1, (uint32_t)AlignUp(sizeof(RenderMaterial), 256));
+    RasterCompositeConstantBuffer.Create(L"Raster Composite Constant Buffer", 1, (uint32_t)AlignUp(sizeof(CompositeConstantBuffer), 256));
+
     // Root sig setup
     {
         const int numSamplers = 2;
         RasterRootSignature.Reset(RasterRenderRootSig::Num, numSamplers);
         {
-            // Setup textures
-            for (int i = RasterRenderRootSig::TextureStart; i <= RasterRenderRootSig::TextureEnd; i++)
+            for (int i = 0; i < RasterRenderRootSig::Num; i++)
             {
                 RasterRootSignature[i].InitAsDescriptorRange(
                     (D3D12_DESCRIPTOR_RANGE_TYPE)RasterRenderRootSig::Range[i][RasterRenderRootSig::RangeType],
@@ -267,14 +250,10 @@ void Renderer::SetupRasterPipeline()
                     D3D12_SHADER_VISIBILITY_ALL);
             }
 
-            // Constant buffers currently live outside the heap :(
-            RasterRootSignature[RasterRenderRootSig::ConstantBuffer0].InitAsConstantBuffer(RasterRenderRootSig::Range[RasterRenderRootSig::ConstantBuffer0][RasterRenderRootSig::Register]);
-            RasterRootSignature[RasterRenderRootSig::ConstantBuffer1].InitAsConstantBuffer(RasterRenderRootSig::Range[RasterRenderRootSig::ConstantBuffer1][RasterRenderRootSig::Register]);
-
             RasterRootSignature.InitStaticSampler(0, getLinearSamplerDesc(), D3D12_SHADER_VISIBILITY_PIXEL);
             RasterRootSignature.InitStaticSampler(1, getAnisoSamplerDesc(), D3D12_SHADER_VISIBILITY_PIXEL);
         }
-        RasterRootSignature.Finalize("RealtimeRender", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+        RasterRootSignature.Finalize("RasterRootSignature", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
     }
 
     // Geometry pass PSO setup
@@ -315,8 +294,46 @@ void Renderer::SetupRasterPipeline()
         RasterCompositePassPSO.Finalize();
     }
 
-    // This will create descriptors
-    OnResizeRasterRender();
+    // Setup descriptors
+    SetupRasterDescriptors();
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void Renderer::SetupRasterDescriptors()
+{
+    RasterDescriptorIndexStart = RendererDescriptorHeap->GetCount();
+
+    RendererDescriptorHeap->AllocateBufferCbv(
+        RasterSceneConstantBuffer.GetGpuVirtualAddress(),
+        (UINT)RasterSceneConstantBuffer.GetBufferSize());
+
+    RendererDescriptorHeap->AllocateBufferCbv(
+        RasterMaterialConstantBuffer.GetGpuVirtualAddress(),
+        (UINT)RasterMaterialConstantBuffer.GetBufferSize());
+
+    RendererDescriptorHeap->AllocateBufferCbv(
+        RasterCompositeConstantBuffer.GetGpuVirtualAddress(),
+        (UINT)RasterCompositeConstantBuffer.GetBufferSize());
+
+    RendererDescriptorHeap->AllocateTexture2DSrv(
+        DirectLightingAOBuffer[1].GetResource(),
+        RaytracingBufferType);
+
+    RendererDescriptorHeap->AllocateTexture2DSrv(
+        IndirectLightingBuffer[1].GetResource(),
+        RaytracingBufferType);
+
+    RendererDescriptorHeap->AllocateTexture2DSrv(
+        CPURaytracerTex.GetResource(),
+        CPURaytracerTexType);
+
+    for (int i = 0; i < DeferredBufferType_Num; i++)
+    {
+        RendererDescriptorHeap->AllocateTexture2DSrv(
+            DeferredBuffers[i].GetResource(),
+            DeferredBuffersRTTypes[i]);
+    }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -350,11 +367,12 @@ void Renderer::RenderSceneList(GraphicsContext& renderContext)
         SceneConstantBuffer      sceneCB;
         SetupSceneConstantBuffer(TheRenderScene->GetRenderSceneList()[i]->WorldMatrix, sceneCB);
 
-        renderContext.SetDynamicConstantBufferView(RasterRenderRootSig::ConstantBuffer0, sizeof(sceneCB), &sceneCB);
-        renderContext.SetDynamicConstantBufferView(RasterRenderRootSig::ConstantBuffer1, sizeof(renderMaterial), &renderMaterial);
+        renderContext.WriteBuffer(RasterSceneConstantBuffer, 0, &sceneCB, sizeof(sceneCB));
+        renderContext.WriteBuffer(RasterMaterialConstantBuffer, 0, &renderMaterial, sizeof(renderMaterial));
         renderContext.SetDescriptorTable(RasterRenderRootSig::Texture0, RendererDescriptorHeap->GetGpuHandle(textureHeapIndex));
         renderContext.SetVertexBuffer(0, TheRenderScene->GetRenderSceneList()[i]->VertexBuffer.VertexBufferView());
         renderContext.SetIndexBuffer(TheRenderScene->GetRenderSceneList()[i]->IndexBuffer.IndexBufferView());
+        renderContext.FlushResourceBarriers();
         renderContext.DrawIndexed((uint32_t)TheRenderScene->GetRenderSceneList()[i]->Indices.size());
     }
 }
@@ -390,7 +408,9 @@ void Renderer::RenderGeometryPass()
             {
                 renderContext.TransitionResource(DeferredBuffers[i], D3D12_RESOURCE_STATE_RENDER_TARGET);
             }
-            renderContext.TransitionResource(RenderDevice::Get().GetDepthStencil(), D3D12_RESOURCE_STATE_DEPTH_WRITE, true);
+            renderContext.TransitionResource(RenderDevice::Get().GetDepthStencil(), D3D12_RESOURCE_STATE_DEPTH_WRITE);
+            renderContext.TransitionResource(RasterSceneConstantBuffer, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+            renderContext.TransitionResource(RasterMaterialConstantBuffer, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
             
             // Bind gbuffer
             D3D12_CPU_DESCRIPTOR_HANDLE rtvs[]
@@ -407,7 +427,14 @@ void Renderer::RenderGeometryPass()
                 renderContext.ClearColor(DeferredBuffers[i]);
             }
 
+            // Set descriptor heaps and tables
             renderContext.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, RendererDescriptorHeap->GetDescriptorHeap());
+            for (uint32_t i = 0; i < RasterRenderRootSig::Num; i++)
+            {
+                uint32_t heapIndex = (RasterDescriptorIndexStart + i);
+                renderContext.SetDescriptorTable(i, RendererDescriptorHeap->GetGpuHandle(heapIndex));
+            }
+
             renderContext.ClearDepth(RenderDevice::Get().GetDepthStencil());
             renderContext.SetPipelineState(RasterGeometryPassPSO);
             renderContext.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -473,8 +500,10 @@ void Renderer::RenderCompositePass()
                 // Setup direct/indirect multipliers
                 compositeCB.DirectIndirectLightMult = XMFLOAT2(UserInput.GpuDirectLightMult, UserInput.GpuIndirectLightMult);
             }
+            renderContext.WriteBuffer(RasterCompositeConstantBuffer, 0, &compositeCB, sizeof(compositeCB));
 
             // Transition resources
+            renderContext.TransitionResource(RasterCompositeConstantBuffer, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
             renderContext.TransitionResource(CPURaytracerTex, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
             renderContext.TransitionResource(DirectLightingAOBuffer[1], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
             renderContext.TransitionResource(IndirectLightingBuffer[1], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
@@ -487,14 +516,13 @@ void Renderer::RenderCompositePass()
 
             // Set descriptor heaps and tables
             renderContext.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, RendererDescriptorHeap->GetDescriptorHeap());
-            for (uint32_t i = RasterRenderRootSig::TextureStart; i <= RasterRenderRootSig::TextureEnd; i++)
+            for (uint32_t i = 0; i < RasterRenderRootSig::Num; i++)
             {
                 uint32_t heapIndex = (RasterDescriptorIndexStart + i);
                 renderContext.SetDescriptorTable(i, RendererDescriptorHeap->GetGpuHandle(heapIndex));
             }
 
             // Setup rest of the pipeline
-            renderContext.SetDynamicConstantBufferView(RasterRenderRootSig::ConstantBuffer0, sizeof(compositeCB), &compositeCB);
             renderContext.SetRenderTarget(RenderDevice::Get().GetRenderTarget().GetRTV(), RenderDevice::Get().GetDepthStencil().GetDSV());
             renderContext.SetPipelineState(RasterCompositePassPSO);
             renderContext.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);

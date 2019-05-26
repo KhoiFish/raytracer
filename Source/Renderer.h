@@ -76,6 +76,7 @@ private:
     void            LoadScene();
 
     void            SetupDescriptorHeap();
+    void            SetupRasterDescriptors();
     void            SetupGpuRaytracingRootSignatures();
     void            SetupGpuRaytracingDescriptors();
     void            SetupGpuRaytracingPSO();
@@ -203,6 +204,9 @@ private:
     GraphicsPSO                     RasterGeometryPassPSO;
     GraphicsPSO                     RasterCompositePassPSO;
     uint32_t                        RasterDescriptorIndexStart;
+    GpuBuffer                       RasterSceneConstantBuffer;
+    GpuBuffer                       RasterMaterialConstantBuffer;
+    GpuBuffer                       RasterCompositeConstantBuffer;
     
     RootSignature                   RaytracingGlobalRootSig;
     RootSignature                   RaytracingLocalRootSig;

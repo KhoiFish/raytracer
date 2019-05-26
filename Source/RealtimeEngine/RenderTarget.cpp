@@ -358,7 +358,7 @@ static void CreateTextureResource(GpuResource* pGpuResource, const string_t& nam
     ASSERT_SUCCEEDED(RenderDevice::Get().GetD3DDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &resourceDesc, usageStates, clearValue, IID_PPV_ARGS(&pGpuResource->GetResourceRef())));
 
     #ifndef RELEASE
-        gpuResource->SetName(MakeWStr(name).c_str());
+        pGpuResource->GetResource()->SetName(MakeWStr(name).c_str());
     #else
         (name);
     #endif

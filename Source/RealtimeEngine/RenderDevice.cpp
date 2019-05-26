@@ -329,7 +329,8 @@ void RenderDevice::CreateDeviceResources()
 
     for (int i = 0; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; i++)
     {
-        DescriptorAllocators[i] = new DescriptorHeapStack(1024, (D3D12_DESCRIPTOR_HEAP_TYPE)i, 0);
+        UINT numDescriptors     = (i == D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER) ? 2048 : (4096 * 4);
+        DescriptorAllocators[i] = new DescriptorHeapStack(numDescriptors, (D3D12_DESCRIPTOR_HEAP_TYPE)i, 0);
     }
 }
 

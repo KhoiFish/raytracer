@@ -69,8 +69,6 @@ namespace RealtimeEngine
 
         void                                                Present();
 
-        D3D12_CPU_DESCRIPTOR_HANDLE                         AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE type);
-        DescriptorHeapStack&                                GetDefaultDescriptorHeapStack(D3D12_DESCRIPTOR_HEAP_TYPE type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
         DescriptorHeapStack&                                GetImguiDescriptorHeapStack();
         
         bool                                                WindowSizeChanged(int width, int height, bool minimized);
@@ -81,7 +79,7 @@ namespace RealtimeEngine
         ID3D12Device5*                                      GetD3DDevice()                   { return D3DDevice.Get(); }
         IDXGIFactory4*                                      GetDXGIFactory()                 { return DXGIFactory.Get(); }
         IDXGISwapChain3*                                    GetSwapChain()                   { return SwapChain.Get(); }
-        RenderTarget&                                       GetRenderTarget()                { return RenderTargets[BackBufferIndex]; }
+        ColorTarget&                                        GetRenderTarget()                { return ColorTargets[BackBufferIndex]; }
         DepthTarget&                                        GetDepthStencil()                { return DepthStencil; }
 
         bool                                                IsWindowVisible() const          { return IsWindowVisibleState; }
@@ -138,7 +136,7 @@ namespace RealtimeEngine
         DXGI_FORMAT                                         DepthBufferFormat;
         uint32_t                                            BackBufferIndex;
         uint32_t                                            BackBufferCount;
-        RenderTarget                                        RenderTargets[MAX_BACK_BUFFER_COUNT];
+        ColorTarget                                         ColorTargets[MAX_BACK_BUFFER_COUNT];
         DepthTarget                                         DepthStencil;
 
         D3D12_VIEWPORT                                      ScreenViewport;
@@ -152,7 +150,6 @@ namespace RealtimeEngine
         unsigned int                                        Options;
         IDeviceNotify*                                      DeviceNotify;
 
-        DescriptorHeapStack*                                DescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
         DescriptorHeapStack*                                ImguiDescriptorStack = nullptr;
     };
 }

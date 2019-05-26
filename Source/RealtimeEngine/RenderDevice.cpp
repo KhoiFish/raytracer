@@ -123,6 +123,7 @@ void RenderDevice::SetupDevice()
     InitializeDXGIAdapter();
     CreateDeviceResources();
     CommandListManager::Get().Create(D3DDevice.Get());
+    RenderTarget::Init();
     CreateWindowSizeDependentResources();
     SetupImgui();
 }
@@ -135,13 +136,7 @@ void RenderDevice::CleanupDevice()
 
     for (uint32_t n = 0; n < BackBufferCount; n++)
     {
-        RenderTargets[n].Destroy();
-    }
-
-    for (int i = 0; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; i++)
-    {
-        delete DescriptorAllocators[i];
-        DescriptorAllocators[i] = nullptr;
+        ColorTargets[n].Destroy();
     }
 
     if (ImguiDescriptorStack != nullptr)
@@ -155,6 +150,7 @@ void RenderDevice::CleanupDevice()
     PSO::DestroyAll();
     DepthStencil.Destroy();
     SwapChain.Reset();
+    RenderTarget::Shutdown();
     D3DDevice.Reset();
     DXGIFactory.Reset();
     Adapter.Reset();
@@ -326,12 +322,6 @@ void RenderDevice::CreateDeviceResources()
     {
         D3dFeatureLevel = D3dMinFeatureLevel;
     }
-
-    for (int i = 0; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; i++)
-    {
-        UINT numDescriptors     = (i == D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER) ? 2048 : (4096 * 128);
-        DescriptorAllocators[i] = new DescriptorHeapStack(numDescriptors, (D3D12_DESCRIPTOR_HEAP_TYPE)i, 0);
-    }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -349,7 +339,7 @@ void RenderDevice::CreateWindowSizeDependentResources()
     // Release resources that are tied to the swap chain and update fence values.
     for (uint32_t n = 0; n < BackBufferCount; n++)
     {
-        RenderTargets[n].Destroy();
+        ColorTargets[n].Destroy();
     }
 
     // Determine the render target size in pixels.
@@ -493,7 +483,7 @@ void RenderDevice::CreateDisplayTargets()
     {
         ComPtr<ID3D12Resource> renderTargetResource;
         ASSERT_SUCCEEDED(SwapChain->GetBuffer(i, IID_PPV_ARGS(&renderTargetResource)));
-        RenderTargets[i].CreateFromSwapChain("Primary SwapChain Buffer", renderTargetResource.Detach());
+        ColorTargets[i].CreateFromSwapChain("Primary SwapChain Buffer", renderTargetResource.Detach());
     }
 
     // Create depth buffer
@@ -565,7 +555,7 @@ void RenderDevice::Present()
 {
     // Now prepare for present
     GraphicsContext& context = GraphicsContext::Begin("Present");
-    context.TransitionResource(RenderTargets[BackBufferIndex], D3D12_RESOURCE_STATE_PRESENT);
+    context.TransitionResource(ColorTargets[BackBufferIndex], D3D12_RESOURCE_STATE_PRESENT);
     context.FlushResourceBarriers();
     uint64_t presentFenceValue = context.Finish();
 
@@ -690,24 +680,6 @@ void RenderDevice::RegisterDeviceNotify(IDeviceNotify* deviceNotify)
             }
         }
     }
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-D3D12_CPU_DESCRIPTOR_HANDLE RenderDevice::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE type)
-{
-    D3D12_CPU_DESCRIPTOR_HANDLE handle;
-    UINT                        descriptorHeapIndex;
-    DescriptorAllocators[type]->AllocateDescriptor(handle, descriptorHeapIndex);
-
-    return handle;
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-DescriptorHeapStack& RenderDevice::GetDefaultDescriptorHeapStack(D3D12_DESCRIPTOR_HEAP_TYPE type)
-{
-    return *DescriptorAllocators[type];
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

@@ -25,6 +25,42 @@ using namespace RealtimeEngine;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+DescriptorHeapStack* RenderTarget::DescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void RenderTarget::Init()
+{
+    for (int i = 0; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; i++)
+    {
+        DescriptorAllocators[i] = new DescriptorHeapStack(2048, (D3D12_DESCRIPTOR_HEAP_TYPE)i, 0);
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void RenderTarget::Shutdown()
+{
+    for (int i = 0; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; i++)
+    {
+        delete DescriptorAllocators[i];
+        DescriptorAllocators[i] = nullptr;
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+D3D12_CPU_DESCRIPTOR_HANDLE RenderTarget::AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE type)
+{
+    D3D12_CPU_DESCRIPTOR_HANDLE ret;
+    UINT                        unusedHeapIndex;
+    DescriptorAllocators[type]->AllocateDescriptor(ret, unusedHeapIndex);
+
+    return ret;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 static inline uint32_t ComputeNumMips(uint32_t width, uint32_t height)
 {
     uint32_t HighBit;
@@ -362,7 +398,7 @@ static void CreateTextureResource(GpuResource* pGpuResource, const string_t& nam
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-RenderTarget::RenderTarget()
+ColorTarget::ColorTarget()
     : numMipMaps(0), FragmentCount(1), SampleCount(1)
 {
     SRVHandle.ptr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN;
@@ -377,7 +413,7 @@ RenderTarget::RenderTarget()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RenderTarget::CreateDerivedViews(ID3D12Device* device, DXGI_FORMAT format, uint32_t arraySize, uint32_t numMips)
+void ColorTarget::CreateDerivedViews(ID3D12Device* device, DXGI_FORMAT format, uint32_t arraySize, uint32_t numMips)
 {
     ASSERT(arraySize == 1 || numMips == 1, "We don't support auto-mips on texture arrays");
 
@@ -430,8 +466,8 @@ void RenderTarget::CreateDerivedViews(ID3D12Device* device, DXGI_FORMAT format, 
 
     if (SRVHandle.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
     {
-        RTVHandle = RenderDevice::Get().AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-        SRVHandle = RenderDevice::Get().AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+        RTVHandle = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+        SRVHandle = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
     }
 
     ID3D12Resource* Resource = ResourcePtr.Get();
@@ -455,7 +491,7 @@ void RenderTarget::CreateDerivedViews(ID3D12Device* device, DXGI_FORMAT format, 
     {
         if (UAVHandle[i].ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
         {
-            UAVHandle[i] = RenderDevice::Get().AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+            UAVHandle[i] = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
         }
 
         device->CreateUnorderedAccessView(Resource, nullptr, &uavDesc, UAVHandle[i]);
@@ -466,16 +502,16 @@ void RenderTarget::CreateDerivedViews(ID3D12Device* device, DXGI_FORMAT format, 
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RenderTarget::CreateFromSwapChain(const string_t& name, ID3D12Resource* baseResource)
+void ColorTarget::CreateFromSwapChain(const string_t& name, ID3D12Resource* baseResource)
 {
-    RTVHandle = RenderDevice::Get().AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+    RTVHandle = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
     AssociateWithResource(RenderDevice::Get().GetD3DDevice(), name, baseResource, D3D12_RESOURCE_STATE_PRESENT);
     RenderDevice::Get().GetD3DDevice()->CreateRenderTargetView(ResourcePtr.Get(), nullptr, RTVHandle);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RenderTarget::Create(const string_t& name, uint32_t width, uint32_t height, uint32_t numMips, DXGI_FORMAT format, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr)
+void ColorTarget::Create(const string_t& name, uint32_t width, uint32_t height, uint32_t numMips, DXGI_FORMAT format, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr)
 {
     numMips = (numMips == 0 ? ComputeNumMips(width, height) : numMips);    
 
@@ -501,7 +537,7 @@ void RenderTarget::Create(const string_t& name, uint32_t width, uint32_t height,
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RealtimeEngine::RenderTarget::CreateEx(const string_t& name, uint32_t width, uint32_t height, uint32_t numMips, DXGI_FORMAT format, D3D12_CLEAR_VALUE* clearValue, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr, D3D12_RESOURCE_FLAGS resourceFlags, D3D12_RESOURCE_STATES usageStates, bool createViews)
+void RealtimeEngine::ColorTarget::CreateEx(const string_t& name, uint32_t width, uint32_t height, uint32_t numMips, DXGI_FORMAT format, D3D12_CLEAR_VALUE* clearValue, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr, D3D12_RESOURCE_FLAGS resourceFlags, D3D12_RESOURCE_STATES usageStates, bool createViews)
 {
     numMips = (numMips == 0 ? ComputeNumMips(width, height) : numMips);
 
@@ -527,7 +563,7 @@ void RealtimeEngine::RenderTarget::CreateEx(const string_t& name, uint32_t width
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RenderTarget::CreateArray(const string_t& name, uint32_t width, uint32_t height, uint32_t arrayCount, DXGI_FORMAT format, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr)
+void ColorTarget::CreateArray(const string_t& name, uint32_t width, uint32_t height, uint32_t arrayCount, DXGI_FORMAT format, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr)
 {
     Width               = width;
     Height              = height;
@@ -549,7 +585,7 @@ void RenderTarget::CreateArray(const string_t& name, uint32_t width, uint32_t he
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RenderTarget::AssociateWithResource(ID3D12Device* device, const string_t& name, ID3D12Resource* resource, D3D12_RESOURCE_STATES currentState)
+void ColorTarget::AssociateWithResource(ID3D12Device* device, const string_t& name, ID3D12Resource* resource, D3D12_RESOURCE_STATES currentState)
 {
     ASSERT(resource != nullptr);
     D3D12_RESOURCE_DESC resourceDesc = resource->GetDesc();
@@ -566,14 +602,14 @@ void RenderTarget::AssociateWithResource(ID3D12Device* device, const string_t& n
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RenderTarget::SetClearColor(float clearColor[4])
+void ColorTarget::SetClearColor(float clearColor[4])
 {
     memcpy(&ClearColor, clearColor, sizeof(clearColor));
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RenderTarget::SetMsaaMode(uint32_t numColorSamples, uint32_t numCoverageSamples)
+void ColorTarget::SetMsaaMode(uint32_t numColorSamples, uint32_t numCoverageSamples)
 {
     ASSERT(numCoverageSamples >= numColorSamples);
     FragmentCount = numColorSamples;
@@ -582,7 +618,7 @@ void RenderTarget::SetMsaaMode(uint32_t numColorSamples, uint32_t numCoverageSam
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-D3D12_RESOURCE_FLAGS RenderTarget::CombineResourceFlags() const
+D3D12_RESOURCE_FLAGS ColorTarget::CombineResourceFlags() const
 {
     D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE;
 
@@ -673,8 +709,8 @@ void DepthTarget::CreateDerivedViews(ID3D12Device* device, DXGI_FORMAT format)
 
     if (DSVHandle[0].ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
     {
-        DSVHandle[0] = RenderDevice::Get().AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
-        DSVHandle[1] = RenderDevice::Get().AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+        DSVHandle[0] = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+        DSVHandle[1] = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
     }
 
     dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
@@ -688,8 +724,8 @@ void DepthTarget::CreateDerivedViews(ID3D12Device* device, DXGI_FORMAT format)
     {
         if (DSVHandle[2].ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
         {
-            DSVHandle[2] = RenderDevice::Get().AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
-            DSVHandle[3] = RenderDevice::Get().AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+            DSVHandle[2] = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+            DSVHandle[3] = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
         }
 
         dsvDesc.Flags = D3D12_DSV_FLAG_READ_ONLY_STENCIL;
@@ -706,7 +742,7 @@ void DepthTarget::CreateDerivedViews(ID3D12Device* device, DXGI_FORMAT format)
 
     if (DepthSRVHandle.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
     {
-        DepthSRVHandle = RenderDevice::Get().AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+        DepthSRVHandle = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
     }
 
     // Create the shader resource view
@@ -728,7 +764,7 @@ void DepthTarget::CreateDerivedViews(ID3D12Device* device, DXGI_FORMAT format)
     {
         if (StencilSRVHandle.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
         {
-            StencilSRVHandle = RenderDevice::Get().AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+            StencilSRVHandle = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
         }
 
         srvDesc.Format = stencilReadFormat;

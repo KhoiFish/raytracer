@@ -195,10 +195,10 @@ private:
 
     DescriptorHeapStack*            RendererDescriptorHeap;
 
-    RenderTarget                    CPURaytracerTex;
-    RenderTarget                    DeferredBuffers[DeferredBufferType_Num];
-    RenderTarget                    DirectLightingAOBuffer[2];
-    RenderTarget                    IndirectLightingBuffer[2];
+    ColorTarget                     CPURaytracerTex;
+    ColorTarget                     DeferredBuffers[DeferredBufferType_Num];
+    ColorTarget                     DirectLightingAOBuffer[2];
+    ColorTarget                     IndirectLightingBuffer[2];
 
     RootSignature                   RasterRootSignature;
     GraphicsPSO                     RasterGeometryPassPSO;

@@ -507,7 +507,7 @@ void ComputeContext::SetDescriptorTable(uint32_t rootIndex, D3D12_GPU_DESCRIPTOR
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void GraphicsContext::ClearColor(RenderTarget& target)
+void GraphicsContext::ClearColor(ColorTarget& target)
 {
     TheCommandList->ClearRenderTargetView(target.GetRTV(), target.GetClearColor(), 0, nullptr);
 }
@@ -1179,7 +1179,7 @@ void CommandContext::ResolveTimeStamps(ID3D12Resource* pReadbackHeap, ID3D12Quer
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RealtimeEngine::CommandContext::ReadbackTexture2D(GpuResource& readbackBuffer, RenderTarget& srcBuffer)
+void RealtimeEngine::CommandContext::ReadbackTexture2D(GpuResource& readbackBuffer, ColorTarget& srcBuffer)
 {
     D3D12_PLACED_SUBRESOURCE_FOOTPRINT PlacedFootprint;
     RenderDevice::Get().GetD3DDevice()->GetCopyableFootprints(&srcBuffer.GetResource()->GetDesc(), 0, 1, 0, &PlacedFootprint, nullptr, nullptr, nullptr);

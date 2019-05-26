@@ -21,6 +21,7 @@
 
 #include "Globals.h"
 #include "GPUResource.h"
+#include "DescriptorHeapStack.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -34,24 +35,48 @@ namespace RealtimeEngine
     {
     public:
 
-        RenderTarget();
-
-        void                                CreateFromSwapChain(const string_t& name, ID3D12Resource* baseResource);
-        void                                Create(const string_t& name, uint32_t width, uint32_t height, uint32_t numMips, DXGI_FORMAT format, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN);
-        void                                CreateEx(const string_t& name, uint32_t width, uint32_t height, uint32_t numMips, DXGI_FORMAT format, D3D12_CLEAR_VALUE* clearValue = nullptr, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAGS resourceFlags = D3D12_RESOURCE_FLAG_NONE, D3D12_RESOURCE_STATES usageStates = D3D12_RESOURCE_STATE_COMMON, bool createViews = true);
-        void                                CreateArray(const string_t& name, uint32_t width, uint32_t height, uint32_t arrayCount, DXGI_FORMAT format, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN);
-        void                                SetClearColor(float clearColor[4]);
-        void                                SetMsaaMode(uint32_t numColorSamples, uint32_t numCoverageSamples);
+        static void                         Init();
+        static void                         Shutdown();
 
         uint32_t                            GetWidth(void) const        { return Width; }
         uint32_t                            GetHeight(void) const       { return Height; }
         uint32_t                            GetDepth(void) const        { return ArraySize; }
         const DXGI_FORMAT&                  GetFormat(void) const       { return Format; }
 
+    protected:
+
+        D3D12_CPU_DESCRIPTOR_HANDLE         AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE type);
+
+    protected:
+
+        uint32_t                            Width;
+        uint32_t                            Height;
+        uint32_t                            ArraySize;
+        DXGI_FORMAT                         Format;
+        D3D12_RESOURCE_FLAGS                ResourceFlags;
+        static DescriptorHeapStack*         DescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
+    };
+
+    // ----------------------------------------------------------------------------------------------------------------------------
+
+    class ColorTarget : public RenderTarget
+    {
+    public:
+
+        ColorTarget();
+
+        void                                CreateFromSwapChain(const string_t& name, ID3D12Resource* baseResource);
+        void                                Create(const string_t& name, uint32_t width, uint32_t height, uint32_t numMips, DXGI_FORMAT format, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN);
+        void                                CreateEx(const string_t& name, uint32_t width, uint32_t height, uint32_t numMips, DXGI_FORMAT format, D3D12_CLEAR_VALUE* clearValue = nullptr, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAGS resourceFlags = D3D12_RESOURCE_FLAG_NONE, D3D12_RESOURCE_STATES usageStates = D3D12_RESOURCE_STATE_COMMON, bool createViews = true);
+        void                                CreateArray(const string_t& name, uint32_t width, uint32_t height, uint32_t arrayCount, DXGI_FORMAT format, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN);
+
         const D3D12_CPU_DESCRIPTOR_HANDLE&  GetSRV(void) const          { return SRVHandle; }
         const D3D12_CPU_DESCRIPTOR_HANDLE&  GetRTV(void) const          { return RTVHandle; }
         const D3D12_CPU_DESCRIPTOR_HANDLE&  GetUAV(void) const          { return UAVHandle[0]; }
         const float*                        GetClearColor() const       { return ClearColor; }
+
+        void                                SetClearColor(float clearColor[4]);
+        void                                SetMsaaMode(uint32_t numColorSamples, uint32_t numCoverageSamples);
 
     private:
 
@@ -60,12 +85,6 @@ namespace RealtimeEngine
         void                                AssociateWithResource(ID3D12Device* device, const string_t& name, ID3D12Resource* resource, D3D12_RESOURCE_STATES currentState);
 
     private:
-
-        uint32_t                            Width;
-        uint32_t                            Height;
-        uint32_t                            ArraySize;
-        DXGI_FORMAT                         Format;
-        D3D12_RESOURCE_FLAGS                ResourceFlags;
 
         float                               ClearColor[4];
         D3D12_CPU_DESCRIPTOR_HANDLE         SRVHandle;
@@ -78,7 +97,7 @@ namespace RealtimeEngine
 
     // ----------------------------------------------------------------------------------------------------------------------------
 
-    class DepthTarget : public GpuResource
+    class DepthTarget : public RenderTarget
     {
     public:
 
@@ -86,11 +105,6 @@ namespace RealtimeEngine
 
         void                                Create(const string_t& name, uint32_t width, uint32_t height, DXGI_FORMAT format, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN);
         void                                Create(const string_t& name, uint32_t width, uint32_t height, uint32_t numSamples, DXGI_FORMAT format, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN);
-
-        uint32_t                            GetWidth(void) const                { return Width; }
-        uint32_t                            GetHeight(void) const               { return Height; }
-        uint32_t                            GetDepth(void) const                { return ArraySize; }
-        const DXGI_FORMAT&                  GetFormat(void) const               { return Format; }
 
         const D3D12_CPU_DESCRIPTOR_HANDLE&  GetDSV() const                      { return DSVHandle[0]; }
         const D3D12_CPU_DESCRIPTOR_HANDLE&  GetDSV_DepthReadOnly() const        { return DSVHandle[1]; }
@@ -109,12 +123,6 @@ namespace RealtimeEngine
         void                                CreateDerivedViews(ID3D12Device* Device, DXGI_FORMAT Format);
 
     private:
-
-        uint32_t                            Width;
-        uint32_t                            Height;
-        uint32_t                            ArraySize;
-        DXGI_FORMAT                         Format;
-        D3D12_RESOURCE_FLAGS                ResourceFlags;
 
         float                               ClearDepth;
         uint8_t                             ClearStencil;

@@ -1165,24 +1165,6 @@ void CommandContext::CopyBufferRegion(GpuResource& dest, size_t destOffset, GpuR
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void CommandContext::CopyCounter(GpuResource& dest, size_t destOffset, StructuredBuffer& src)
-{
-    TransitionResource(dest, D3D12_RESOURCE_STATE_COPY_DEST);
-    TransitionResource(src.GetCounterBuffer(), D3D12_RESOURCE_STATE_COPY_SOURCE);
-    FlushResourceBarriers();
-    TheCommandList->CopyBufferRegion(dest.GetResource(), destOffset, src.GetCounterBuffer().GetResource(), 0, 4);
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-void CommandContext::ResetCounter(StructuredBuffer& buf, uint32_t value)
-{
-    FillBuffer(buf.GetCounterBuffer(), 0, value, sizeof(uint32_t));
-    TransitionResource(buf.GetCounterBuffer(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
 void CommandContext::InsertTimeStamp(ID3D12QueryHeap* pQueryHeap, uint32_t queryIdx)
 {
     TheCommandList->EndQuery(pQueryHeap, D3D12_QUERY_TYPE_TIMESTAMP, queryIdx);

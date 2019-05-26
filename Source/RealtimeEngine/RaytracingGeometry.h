@@ -40,7 +40,7 @@ namespace RealtimeEngine
                 uint32_t instanceId,
                 uint32_t instanceMask,
                 uint32_t numVertices, uint32_t numIndices,
-                StructuredBuffer* vertexBuffer, StructuredBuffer* indexBuffer,
+                GpuBuffer* vertexBuffer, GpuBuffer* indexBuffer,
                 const DirectX::XMMATRIX& worldMatrix)
                     : InstanceId(instanceId), InstanceMask(instanceMask),
                       NumVertices(numVertices), NumIndices(numIndices), 
@@ -52,8 +52,8 @@ namespace RealtimeEngine
             uint32_t            InstanceMask    = RAYTRACING_INSTANCEMASK_ALL;
             uint32_t            NumVertices     = 0;
             uint32_t            NumIndices      = 0;
-            StructuredBuffer*   VertexBuffer    = nullptr;
-            StructuredBuffer*   IndexBuffer     = nullptr;
+            GpuBuffer*          VertexBuffer    = nullptr;
+            GpuBuffer*          IndexBuffer     = nullptr;
             DirectX::XMMATRIX   WorldMatrix;
         };
 
@@ -72,7 +72,7 @@ namespace RealtimeEngine
         std::vector<GpuBuffer*>         BLASBuffers;
         GpuBuffer*                      TLASBuffer;
         GpuBuffer*                      ScratchBuffer;
-        ByteAddressBuffer               InstanceDataBuffer;
+        GpuBuffer                       InstanceDataBuffer;
     };
 
 }

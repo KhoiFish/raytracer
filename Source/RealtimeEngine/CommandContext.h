@@ -110,8 +110,6 @@ namespace RealtimeEngine
         void                        CopyBuffer(GpuResource& dest, GpuResource& src);
         void                        CopyBufferRegion(GpuResource& dest, size_t destOffset, GpuResource& src, size_t srcOffset, size_t numBytes);
         void                        CopySubresource(GpuResource& dest, uint32_t destSubIndex, GpuResource& src, uint32_t srcSubIndex);
-        void                        CopyCounter(GpuResource& dest, size_t destOffset, StructuredBuffer& src);
-        void                        ResetCounter(StructuredBuffer& buf, uint32_t value = 0);
 
         static void                 InitializeTexture(GpuResource& dest, uint32_t numSubresources, D3D12_SUBRESOURCE_DATA subData[]);
         static void                 InitializeBuffer(GpuResource& dest, const void* Data, size_t numBytes, size_t offset = 0);

@@ -30,40 +30,12 @@ using namespace RealtimeEngine;
 GpuBuffer::GpuBuffer() 
     : BufferSize(0), ElementCount(0), ElementSize(0)
 {
-    ResourceFlags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
-    UAV.ptr       = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN;
-    SRV.ptr       = D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN;
-
+    ResourceFlags                  = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
     HeapProps.Type                 = D3D12_HEAP_TYPE_DEFAULT;
     HeapProps.CPUPageProperty      = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
     HeapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
     HeapProps.CreationNodeMask     = 0;
     HeapProps.VisibleNodeMask      = 0;
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-UploadBuffer::UploadBuffer()
-{
-    HeapProps.Type                 = D3D12_HEAP_TYPE_UPLOAD;
-    HeapProps.CPUPageProperty      = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-    HeapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-    HeapProps.CreationNodeMask     = 0;
-    HeapProps.VisibleNodeMask      = 0;
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-void UploadBuffer::Map(void** ppBuffer)
-{
-    ResourcePtr->Map(0, nullptr, ppBuffer);
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-void UploadBuffer::Unmap()
-{
-    ResourcePtr->Unmap(0, nullptr);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -97,13 +69,11 @@ void GpuBuffer::Create(const std::wstring& name, uint32_t numElements, uint32_t 
         CommandContext::InitializeBuffer(*this, initialData, BufferSize);
     }
 
-#ifdef RELEASE
-    (name);
-#else
-    ResourcePtr->SetName(name.c_str());
-#endif
-
-    CreateDerivedViews();
+    #ifdef RELEASE
+        (name);
+    #else
+        ResourcePtr->SetName(name.c_str());
+    #endif
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -125,37 +95,11 @@ void GpuBuffer::CreatePlaced(const std::wstring& name, ID3D12Heap* pBackingHeap,
         CommandContext::InitializeBuffer(*this, initialData, BufferSize);
     }
 
-#ifdef RELEASE
-    (name);
-#else
-    ResourcePtr->SetName(name.c_str());
-#endif
-
-    CreateDerivedViews();
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-D3D12_GPU_VIRTUAL_ADDRESS GpuBuffer::RootConstantBufferView() const
-{
-    return GpuVirtualAddress;
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-D3D12_CPU_DESCRIPTOR_HANDLE GpuBuffer::CreateConstantBufferView(uint32_t offset, uint32_t size) const
-{
-    ASSERT(offset + size <= BufferSize);
-    size = AlignUp(size, 16);
-
-    D3D12_CONSTANT_BUFFER_VIEW_DESC CBVDesc;
-    CBVDesc.BufferLocation  = GpuVirtualAddress + (size_t)offset;
-    CBVDesc.SizeInBytes     = size;
-
-    D3D12_CPU_DESCRIPTOR_HANDLE hCBV = RenderDevice::Get().AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-    RenderDevice::Get().GetD3DDevice()->CreateConstantBufferView(&CBVDesc, hCBV);
-
-    return hCBV;
+    #ifdef RELEASE
+        (name);
+    #else
+        ResourcePtr->SetName(name.c_str());
+    #endif
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -222,6 +166,31 @@ D3D12_RESOURCE_DESC GpuBuffer::DescribeBuffer()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+UploadBuffer::UploadBuffer()
+{
+    HeapProps.Type                 = D3D12_HEAP_TYPE_UPLOAD;
+    HeapProps.CPUPageProperty      = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+    HeapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+    HeapProps.CreationNodeMask     = 0;
+    HeapProps.VisibleNodeMask      = 0;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void UploadBuffer::Map(void** ppBuffer)
+{
+    ResourcePtr->Map(0, nullptr, ppBuffer);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void UploadBuffer::Unmap()
+{
+    ResourcePtr->Unmap(0, nullptr);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 void ReadbackBuffer::Create(const std::wstring& name, uint32_t numElements, uint32_t elementSize)
 {
     Destroy();
@@ -279,141 +248,4 @@ void* ReadbackBuffer::Map(void)
 void ReadbackBuffer::Unmap(void)
 {
     ResourcePtr->Unmap(0, &CD3DX12_RANGE(0, 0));
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-void ByteAddressBuffer::CreateDerivedViews()
-{
-    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-    srvDesc.ViewDimension            = D3D12_SRV_DIMENSION_BUFFER;
-    srvDesc.Format                   = DXGI_FORMAT_R32_TYPELESS;
-    srvDesc.Shader4ComponentMapping  = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-    srvDesc.Buffer.NumElements       = (uint32_t)BufferSize / 4;
-    srvDesc.Buffer.Flags             = D3D12_BUFFER_SRV_FLAG_RAW;
-
-    if (SRV.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
-    {
-        SRV = RenderDevice::Get().AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-    }
-
-    RenderDevice::Get().GetD3DDevice()->CreateShaderResourceView(ResourcePtr.Get(), &srvDesc, SRV);
-
-    if (ResourceFlags & D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS)
-    {
-        D3D12_UNORDERED_ACCESS_VIEW_DESC UAVDesc = {};
-        UAVDesc.ViewDimension       = D3D12_UAV_DIMENSION_BUFFER;
-        UAVDesc.Format              = DXGI_FORMAT_R32_TYPELESS;
-        UAVDesc.Buffer.NumElements  = (uint32_t)BufferSize / 4;
-        UAVDesc.Buffer.Flags        = D3D12_BUFFER_UAV_FLAG_RAW;
-
-        if (UAV.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
-        {
-            UAV = RenderDevice::Get().AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-        }
-
-        RenderDevice::Get().GetD3DDevice()->CreateUnorderedAccessView(ResourcePtr.Get(), nullptr, &UAVDesc, UAV );
-    }
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-void StructuredBuffer::Destroy()
-{
-    CounterBuffer.Destroy();
-    GpuBuffer::Destroy();
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-void StructuredBuffer::CreateDerivedViews()
-{
-    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-    srvDesc.ViewDimension              = D3D12_SRV_DIMENSION_BUFFER;
-    srvDesc.Format                     = DXGI_FORMAT_UNKNOWN;
-    srvDesc.Shader4ComponentMapping    = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-    srvDesc.Buffer.NumElements         = ElementCount;
-    srvDesc.Buffer.StructureByteStride = ElementSize;
-    srvDesc.Buffer.Flags               = D3D12_BUFFER_SRV_FLAG_NONE;
-
-    if (SRV.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
-    {
-        SRV = RenderDevice::Get().AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-    }
-    RenderDevice::Get().GetD3DDevice()->CreateShaderResourceView(ResourcePtr.Get(), &srvDesc, SRV);
-
-    if (ResourceFlags & D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS)
-    {
-        D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
-        uavDesc.ViewDimension               = D3D12_UAV_DIMENSION_BUFFER;
-        uavDesc.Format                      = DXGI_FORMAT_UNKNOWN;
-        uavDesc.Buffer.CounterOffsetInBytes = 0;
-        uavDesc.Buffer.NumElements          = ElementCount;
-        uavDesc.Buffer.StructureByteStride  = ElementSize;
-        uavDesc.Buffer.Flags                = D3D12_BUFFER_UAV_FLAG_NONE;
-
-        CounterBuffer.Create(L"StructuredBuffer::Counter", 1, 4);
-
-        if (UAV.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
-        {
-            UAV = RenderDevice::Get().AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-        }
-        RenderDevice::Get().GetD3DDevice()->CreateUnorderedAccessView(ResourcePtr.Get(), CounterBuffer.GetResource(), &uavDesc, UAV);
-    }
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-ByteAddressBuffer& StructuredBuffer::GetCounterBuffer()
-{
-    return CounterBuffer;
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-void TypedBuffer::CreateDerivedViews()
-{
-    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-    srvDesc.ViewDimension           = D3D12_SRV_DIMENSION_BUFFER;
-    srvDesc.Format                  = DataFormat;
-    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-    srvDesc.Buffer.NumElements      = ElementCount;
-    srvDesc.Buffer.Flags            = D3D12_BUFFER_SRV_FLAG_NONE;
-
-    if (SRV.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
-    {
-        SRV = RenderDevice::Get().AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-    }
-    RenderDevice::Get().GetD3DDevice()->CreateShaderResourceView(ResourcePtr.Get(), &srvDesc, SRV);
-
-    if (ResourceFlags & D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS)
-    {
-        D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
-        uavDesc.ViewDimension      = D3D12_UAV_DIMENSION_BUFFER;
-        uavDesc.Format             = DataFormat;
-        uavDesc.Buffer.NumElements = ElementCount;
-        uavDesc.Buffer.Flags       = D3D12_BUFFER_UAV_FLAG_NONE;
-
-        if (UAV.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
-        {
-            UAV = RenderDevice::Get().AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-        }
-        RenderDevice::Get().GetD3DDevice()->CreateUnorderedAccessView(ResourcePtr.Get(), nullptr, &uavDesc, UAV);
-    }
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-const D3D12_CPU_DESCRIPTOR_HANDLE& StructuredBuffer::GetCounterSRV(CommandContext& context)
-{
-    context.TransitionResource(CounterBuffer, D3D12_RESOURCE_STATE_GENERIC_READ);
-    return CounterBuffer.GetSRV();
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-const D3D12_CPU_DESCRIPTOR_HANDLE& StructuredBuffer::GetCounterUAV(CommandContext& context)
-{
-    context.TransitionResource(CounterBuffer, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-    return CounterBuffer.GetUAV();
 }

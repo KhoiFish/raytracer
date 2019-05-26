@@ -71,10 +71,10 @@ namespace RealtimeEngine
         const Core::IHitable*                   Hitable;
         std::vector<RealtimeSceneVertexEx>      Vertices;
         std::vector<uint32_t>                   Indices;
-        RealtimeEngine::StructuredBuffer        VertexBuffer;
-        RealtimeEngine::StructuredBuffer        IndexBuffer;
-        RealtimeEngine::StructuredBuffer        InstanceDataBuffer;
-        RealtimeEngine::StructuredBuffer        MaterialBuffer;
+        RealtimeEngine::GpuBuffer               VertexBuffer;
+        RealtimeEngine::GpuBuffer               IndexBuffer;
+        RealtimeEngine::GpuBuffer               InstanceDataBuffer;
+        RealtimeEngine::GpuBuffer               MaterialBuffer;
         DirectX::XMMATRIX                       WorldMatrix;
         RenderMaterial                          Material;
         RealtimeEngine::Texture*                DiffuseTexture;
@@ -94,7 +94,7 @@ namespace RealtimeEngine
         RealtimeCamera&                     GetCamera();
         RaytracingGeometry*                 GetRaytracingGeometry();
         std::vector<RealtimeAreaLight>&     GetAreaLights();
-        RealtimeEngine::ByteAddressBuffer&  GetAreaLightsBuffer();
+        RealtimeEngine::GpuBuffer&          GetAreaLightsBuffer();
 
     private:
 
@@ -106,7 +106,7 @@ namespace RealtimeEngine
         RealtimeCamera                      TheRenderCamera;
         std::vector<RealtimeSceneNode*>     RenderSceneList;
         std::vector<RealtimeAreaLight>      AreaLights;
-        RealtimeEngine::ByteAddressBuffer   AreaLightsBuffer;
+        RealtimeEngine::GpuBuffer           AreaLightsBuffer;
         RaytracingGeometry*                 RaytracingGeom;
     };
 }

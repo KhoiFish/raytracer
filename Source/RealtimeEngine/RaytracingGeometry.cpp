@@ -138,11 +138,11 @@ void RaytracingGeometry::Build()
     }
 
     // Allocate scratch buffer
-    ByteAddressBuffer scratchBuffer;
+    GpuBuffer scratchBuffer;
     scratchBuffer.Create(L"Acceleration Structure Scratch Buffer", (UINT)scratchBufferSizeNeeded, 1);
 
     // Allocate TLAS buffer
-    TLASBuffer = new StructuredBuffer();
+    TLASBuffer = new GpuBuffer();
     TLASBuffer->Create(L"TLAS Buffer", 1, (uint32_t)tlasPrebuildInfo.ResultDataMaxSizeInBytes, nullptr, D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE);
 
     // Point TLAS description to the allocated buffers
@@ -155,7 +155,7 @@ void RaytracingGeometry::Build()
     for (UINT i = 0; i < blasDescs.size(); i++)
     {
         // Allocate buffer
-        BLASBuffers[i] = new StructuredBuffer();
+        BLASBuffers[i] = new GpuBuffer();
         BLASBuffers[i]->Create(L"BLAS Buffer", 1, (uint32_t)blasSizes[i], nullptr, D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE);
 
         // Point to buffers

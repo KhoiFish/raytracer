@@ -760,7 +760,7 @@ std::vector<RealtimeAreaLight>& RealtimeScene::GetAreaLights()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-RealtimeEngine::ByteAddressBuffer& RealtimeEngine::RealtimeScene::GetAreaLightsBuffer()
+RealtimeEngine::GpuBuffer& RealtimeEngine::RealtimeScene::GetAreaLightsBuffer()
 {
     return AreaLightsBuffer;
 }

@@ -357,11 +357,7 @@ static void CreateTextureResource(GpuResource* pGpuResource, const string_t& nam
     CD3DX12_HEAP_PROPERTIES heapProps(D3D12_HEAP_TYPE_DEFAULT);
     ASSERT_SUCCEEDED(RenderDevice::Get().GetD3DDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &resourceDesc, usageStates, clearValue, IID_PPV_ARGS(&pGpuResource->GetResourceRef())));
 
-    #ifndef RELEASE
-        pGpuResource->GetResource()->SetName(MakeWStr(name).c_str());
-    #else
-        (name);
-    #endif
+    pGpuResource->GetResource()->SetName(MakeWStr(name).c_str());
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -565,11 +561,7 @@ void RenderTarget::AssociateWithResource(ID3D12Device* device, const string_t& n
     ArraySize  = resourceDesc.DepthOrArraySize;
     Format     = resourceDesc.Format;
 
-    #ifndef RELEASE
-        ResourcePtr->SetName(MakeWStr(name).c_str());
-    #else
-        (name);
-    #endif
+    ResourcePtr->SetName(MakeWStr(name).c_str());
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

@@ -69,11 +69,7 @@ void GpuBuffer::Create(const std::wstring& name, uint32_t numElements, uint32_t 
         CommandContext::InitializeBuffer(*this, initialData, BufferSize);
     }
 
-    #ifdef RELEASE
-        (name);
-    #else
-        ResourcePtr->SetName(name.c_str());
-    #endif
+    ResourcePtr->SetName(name.c_str());
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -95,11 +91,7 @@ void GpuBuffer::CreatePlaced(const std::wstring& name, ID3D12Heap* pBackingHeap,
         CommandContext::InitializeBuffer(*this, initialData, BufferSize);
     }
 
-    #ifdef RELEASE
-        (name);
-    #else
-        ResourcePtr->SetName(name.c_str());
-    #endif
+    ResourcePtr->SetName(name.c_str());
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -226,11 +218,7 @@ void ReadbackBuffer::Create(const std::wstring& name, uint32_t numElements, uint
 
     GpuVirtualAddress = ResourcePtr->GetGPUVirtualAddress();
 
-    #ifdef RELEASE
-        (name);
-    #else
-        ResourcePtr->SetName(name.c_str());
-    #endif
+    ResourcePtr->SetName(name.c_str());
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

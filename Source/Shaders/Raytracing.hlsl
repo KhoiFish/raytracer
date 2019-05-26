@@ -172,10 +172,17 @@ inline float3 computeLighting(uint randSeed, float minT, float3 worldPos, float3
 
 inline float3 sampleDirectLighting(int numRays, uint randSeed, float minT, float3 worldPos, float3 worldNorm, float4 albedo)
 {
-    float3 shadeColor     = float3(0, 0, 0);
-    for(int i = 0; i < numRays; i++)
+    float3 shadeColor = float3(0, 0, 0);
+    if (gSceneCB.NumLights > 0)
     {
-        shadeColor += computeLighting(randSeed, minT, worldPos, worldNorm);
+        for (int i = 0; i < numRays; i++)
+        {
+            shadeColor += computeLighting(randSeed, minT, worldPos, worldNorm);
+        }
+    }
+    else
+    {
+        shadeColor = float3(1, 1, 1);
     }
 
     // Modulate based on the physically based Lambertian term (albedo/pi)
@@ -219,7 +226,11 @@ inline float3 shootIndirectLightingRay(int numRays, uint randSeed, float minT, f
 inline float3 sampleIndirectLighting(int numRays, uint randSeed, float minT, float3 worldPos, float3 worldNorm)
 {
     // Get the bounce color from indirect lighting
-    float3 bounceColor = shootIndirectLightingRay(numRays, randSeed, minT, worldPos, worldNorm);
+    float3 bounceColor = float3(1, 1, 1);
+    if (gSceneCB.NumLights > 0)
+    {
+        bounceColor = shootIndirectLightingRay(numRays, randSeed, minT, worldPos, worldNorm);
+    }
 
     // The following uses this formula
     //   NdotL      = saturate(dot(worldNorm, bounceDir));

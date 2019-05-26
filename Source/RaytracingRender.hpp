@@ -492,7 +492,10 @@ void Renderer::RenderGpuRaytracing()
             computeContext.TransitionResource(RaytracingSceneConstantBuffer, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
         }
 
-        computeContext.TransitionResource(TheRenderScene->GetAreaLightsBuffer(), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+        if (TheRenderScene->GetAreaLights().size() > 0)
+        {
+            computeContext.TransitionResource(TheRenderScene->GetAreaLightsBuffer(), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+        }
 
         // Set root sig and pipeline state
         computeContext.SetRootSignature(RaytracingGlobalRootSig);

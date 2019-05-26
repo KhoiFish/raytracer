@@ -25,17 +25,17 @@ namespace RasterRenderRootSig
 {
     enum EnumTypes
     {
-        ConstantBuffer0 = 0,
-        ConstantBuffer1,
-        ConstantBuffer2,
+        SceneCB = 0,
+        MaterialCB,
+        CompositeCB,
 
-        Texture0,
-        Texture1,
-        Texture2,
-        Texture3,
-        Texture4,
-        Texture5,
-        Texture6,
+        DirectLightAOTex,
+        IndirectLightTex,
+        CpuResultsTex,
+        PositionsTex,
+        NormalsTex,
+        TexCoordsTex,
+        DiffuseTex,
 
         Num,
     };
@@ -51,17 +51,17 @@ namespace RasterRenderRootSig
     // [register, count, space, D3D12_DESCRIPTOR_RANGE_TYPE]
     static UINT Range[RasterRenderRootSig::Num][4] =
     {
-        { 0, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_CBV },   // ConstantBuffer0
-        { 1, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_CBV },   // ConstantBuffer1
-        { 2, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_CBV },   // ConstantBuffer2
+        { 0, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_CBV },   // SceneCB
+        { 1, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_CBV },   // MaterialCB
+        { 2, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_CBV },   // CompositeCB
 
-        { 0, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // Texture0
-        { 1, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // Texture1
-        { 2, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // Texture2
-        { 3, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // Texture3
-        { 4, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // Texture4
-        { 5, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // Texture5
-        { 6, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // Texture6
+        { 0, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // DirectLightAOTex   
+        { 1, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // IndirectLightTex   
+        { 2, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // CpuResultsTex   
+        { 3, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // PositionsTex
+        { 4, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // NormalsTex  
+        { 5, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // TexCoordsTex
+        { 6, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // DiffuseTex  
     };
 }
 
@@ -221,7 +221,7 @@ static inline D3D12_DEPTH_STENCIL_DESC getDepthDisabledState()
 
 void Renderer::SetupRasterPipeline()
 {
-    CpuResultsBufferIndex = RasterRenderRootSig::Texture4 + 1;
+    CpuResultsBufferIndex = RasterRenderRootSig::CpuResultsTex;
 
     // Init random generator
     {
@@ -369,7 +369,7 @@ void Renderer::RenderSceneList(GraphicsContext& renderContext)
 
         renderContext.WriteBuffer(RasterSceneConstantBuffer, 0, &sceneCB, sizeof(sceneCB));
         renderContext.WriteBuffer(RasterMaterialConstantBuffer, 0, &renderMaterial, sizeof(renderMaterial));
-        renderContext.SetDescriptorTable(RasterRenderRootSig::Texture0, RendererDescriptorHeap->GetGpuHandle(textureHeapIndex));
+        renderContext.SetDescriptorTable(RasterRenderRootSig::DiffuseTex, RendererDescriptorHeap->GetGpuHandle(textureHeapIndex));
         renderContext.SetVertexBuffer(0, TheRenderScene->GetRenderSceneList()[i]->VertexBuffer.VertexBufferView());
         renderContext.SetIndexBuffer(TheRenderScene->GetRenderSceneList()[i]->IndexBuffer.IndexBufferView());
         renderContext.FlushResourceBarriers();

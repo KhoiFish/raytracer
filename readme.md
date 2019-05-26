@@ -1,5 +1,5 @@
-# Realtime GPU Raytracer and CPU "Slowtime" Raytracer
-This is a raytracing rendering application. It currently has CPU based and Realtime (via DXR) based raytracing. The core CPU rendering code builds for Windows, Mac and Linux. The realtime raytracing is currently only supported under Windows 10. This project initially grew from working through the great "Raytracing in a Weekend" series by Peter Shirley.
+# Realtime GPU Raytracer and "Slowtime" CPU Raytracer
+This is a raytracing rendering application. It currently has CPU based and GPU based realtime (via DXR) raytracing. The core CPU rendering code builds for Windows, Mac and Linux. The GPU realtime raytracing is currently only supported under Windows 10. This project initially grew from working through the great "Raytracing In One Weekend" series by Peter Shirley.
 <br>
 
 ![alt text](https://github.com/KhoiFish/raytracer/blob/master/SavedImages/final.png "CPU traced image")
@@ -18,9 +18,9 @@ This is a raytracing rendering application. It currently has CPU based and Realt
 ![alt text](https://github.com/KhoiFish/raytracer/blob/master/SavedImages/realtime.png "GPU traced image")
 <br>
 
-## Literature
+## Reference Literature
 
-The following are really good references for someone looking into getting into raytracing. If any of the following people are reading this, thank you for sharing your knowledge and for inspiring this project.
+The following are really good references for someone getting into raytracing. If any of the following people are reading this, thank you for sharing your knowledge and the inspiration for this project.
 
 **Peter Shirley**
 <br>

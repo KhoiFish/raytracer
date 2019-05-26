@@ -55,7 +55,7 @@ float4 main(PixelShaderInput IN) : SV_Target
     float4 diffuse       = DiffuseTexture.Sample(AnisoRepeatSampler, IN.TexCoord) * SceneCb.TextureMultipliers[4];
     float4 cpuRT         = CpuResultsTex.Sample(AnisoRepeatSampler, IN.TexCoord)  * SceneCb.TextureMultipliers[5];
 
-    float4 composited    = (directLight + indirectLight);
+    float4 composited    = (directLight + indirectLight) * ao;
     float4 selected      = (directLight + indirectLight + ao + diffuse + cpuRT);
 
     // Compute final color

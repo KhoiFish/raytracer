@@ -732,6 +732,16 @@ RealtimeScene::~RealtimeScene()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+void RealtimeEngine::RealtimeScene::SetupTextureViews(RealtimeEngine::DescriptorHeapStack& descriptorHeap)
+{
+    for (size_t i = 0; i < RenderSceneList.size(); i++)
+    {
+        RenderSceneList[i]->DiffuseTextureHeapIndex = descriptorHeap.AllocateTexture2DSrv(RenderSceneList[i]->DiffuseTexture->GetResource(), RenderSceneList[i]->DiffuseTexture->GetFormat());
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 std::vector<RealtimeSceneNode*>& RealtimeScene::GetRenderSceneList()
 {
     return RenderSceneList;

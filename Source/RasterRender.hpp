@@ -95,48 +95,32 @@ const char* Renderer::GetSelectedBufferName()
 
 void Renderer::CleanupRasterRender()
 {
-    if (RasterDescriptorHeap != nullptr)
-    {
-        delete RasterDescriptorHeap;
-        RasterDescriptorHeap = nullptr;
-    }
+    ;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
 void Renderer::OnResizeRasterRender()
 {
-    // Delete old one, if it exists
-    if (RasterDescriptorHeap != nullptr)
-    {
-        delete RasterDescriptorHeap;
-        RasterDescriptorHeap = nullptr;
-    }
+    RasterDescriptorIndexStart = RendererDescriptorHeap->GetCount();
 
-    // Create heap for descriptors
-    RasterDescriptorHeap = new DescriptorHeapStack(64, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 0);
-
-    RasterDescriptorHeap->AllocateTexture2DSrv(
+    RendererDescriptorHeap->AllocateTexture2DSrv(
         DirectLightingAOBuffer[1].GetResource(),
-        RaytracingBufferType,
-        D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
+        RaytracingBufferType);
 
-    RasterDescriptorHeap->AllocateTexture2DSrv(
+    RendererDescriptorHeap->AllocateTexture2DSrv(
         IndirectLightingBuffer[1].GetResource(),
-        RaytracingBufferType,
-        D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
+        RaytracingBufferType);
 
-    RasterDescriptorHeap->AllocateTexture2DSrv(
+    RendererDescriptorHeap->AllocateTexture2DSrv(
         CPURaytracerTex.GetResource(),
-        CPURaytracerTexType,
-        D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
+        CPURaytracerTexType);
 
     for (int i = 0; i < DeferredBufferType_Num; i++)
     {
-        RasterDescriptorHeap->AllocateTexture2DSrv(
+        RendererDescriptorHeap->AllocateTexture2DSrv(
             DeferredBuffers[i].GetResource(),
-            DeferredBuffersRTTypes[i],
-            D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
+            DeferredBuffersRTTypes[i]);
     }
 }
 
@@ -361,17 +345,14 @@ void Renderer::RenderSceneList(GraphicsContext& renderContext)
 {
     for (int i = 0; i < TheRenderScene->GetRenderSceneList().size(); i++)
     {
-        RealtimeEngine::Texture* defaultTexture = &RealtimeEngine::TextureManager::GetWhiteTex2D();
-        RealtimeEngine::Texture* diffuseTex     = (TheRenderScene->GetRenderSceneList()[i]->DiffuseTexture != nullptr) ? TheRenderScene->GetRenderSceneList()[i]->DiffuseTexture : defaultTexture;
-        RenderMaterial&          renderMaterial = TheRenderScene->GetRenderSceneList()[i]->Material;
+        uint32_t                 textureHeapIndex = TheRenderScene->GetRenderSceneList()[i]->DiffuseTextureHeapIndex;
+        RenderMaterial&          renderMaterial   = TheRenderScene->GetRenderSceneList()[i]->Material;
         SceneConstantBuffer      sceneCB;
-
         SetupSceneConstantBuffer(TheRenderScene->GetRenderSceneList()[i]->WorldMatrix, sceneCB);
 
         renderContext.SetDynamicConstantBufferView(RasterRenderRootSig::ConstantBuffer0, sizeof(sceneCB), &sceneCB);
         renderContext.SetDynamicConstantBufferView(RasterRenderRootSig::ConstantBuffer1, sizeof(renderMaterial), &renderMaterial);
-        renderContext.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, RenderDevice::Get().GetDefaultDescriptorHeapStack().GetDescriptorHeap());
-        renderContext.SetDescriptorTable(RasterRenderRootSig::Texture0, diffuseTex->GetGpuHandle());
+        renderContext.SetDescriptorTable(RasterRenderRootSig::Texture0, RendererDescriptorHeap->GetGpuHandle(textureHeapIndex));
         renderContext.SetVertexBuffer(0, TheRenderScene->GetRenderSceneList()[i]->VertexBuffer.VertexBufferView());
         renderContext.SetIndexBuffer(TheRenderScene->GetRenderSceneList()[i]->IndexBuffer.IndexBufferView());
         renderContext.DrawIndexed((uint32_t)TheRenderScene->GetRenderSceneList()[i]->Indices.size());
@@ -426,6 +407,7 @@ void Renderer::RenderGeometryPass()
                 renderContext.ClearColor(DeferredBuffers[i]);
             }
 
+            renderContext.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, RendererDescriptorHeap->GetDescriptorHeap());
             renderContext.ClearDepth(RenderDevice::Get().GetDepthStencil());
             renderContext.SetPipelineState(RasterGeometryPassPSO);
             renderContext.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -504,10 +486,11 @@ void Renderer::RenderCompositePass()
             renderContext.TransitionResource(RenderDevice::Get().GetDepthStencil(), D3D12_RESOURCE_STATE_DEPTH_READ);
 
             // Set descriptor heaps and tables
-            renderContext.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, RasterDescriptorHeap->GetDescriptorHeap());
+            renderContext.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, RendererDescriptorHeap->GetDescriptorHeap());
             for (uint32_t i = RasterRenderRootSig::TextureStart; i <= RasterRenderRootSig::TextureEnd; i++)
             {
-                renderContext.SetDescriptorTable(i, RasterDescriptorHeap->GetGpuHandle(i));
+                uint32_t heapIndex = (RasterDescriptorIndexStart + i);
+                renderContext.SetDescriptorTable(i, RendererDescriptorHeap->GetGpuHandle(heapIndex));
             }
 
             // Setup rest of the pipeline

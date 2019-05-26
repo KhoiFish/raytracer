@@ -224,8 +224,6 @@ void Texture::Create(size_t pitch, size_t width, size_t height, DXGI_FORMAT form
     texResource.SlicePitch = texResource.RowPitch * height;
 
     CommandContext::InitializeTexture(*this, 1, &texResource);
-
-    DescriptorIndex = RenderDevice::Get().GetDefaultDescriptorHeapStack().AllocateTexture2DSrv(ResourcePtr.Get(), format);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -241,21 +239,6 @@ void RealtimeEngine::Texture::Destroy()
 {
     GpuResource::Destroy();
 }
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-D3D12_CPU_DESCRIPTOR_HANDLE Texture::GetCpuHandle() const
-{
-    return RenderDevice::Get().GetDefaultDescriptorHeapStack().GetCpuHandle(DescriptorIndex);
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-D3D12_GPU_DESCRIPTOR_HANDLE Texture::GetGpuHandle() const
-{
-    return RenderDevice::Get().GetDefaultDescriptorHeapStack().GetGpuHandle(DescriptorIndex);
-}
-
 
 // ----------------------------------------------------------------------------------------------------------------------------
 

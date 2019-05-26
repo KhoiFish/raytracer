@@ -32,7 +32,6 @@ DescriptorHeapStack::DescriptorHeapStack(UINT numDescriptors, D3D12_DESCRIPTOR_H
     desc.Type           = type;
     desc.Flags          = (type == D3D12_DESCRIPTOR_HEAP_TYPE_DSV || type == D3D12_DESCRIPTOR_HEAP_TYPE_RTV) ? D3D12_DESCRIPTOR_HEAP_FLAG_NONE : D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
     desc.NodeMask       = nodeMask;
-
     RenderDevice::Get().GetD3DDevice()->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&DescriptorHeap));
 
     DescriptorSize          = RenderDevice::Get().GetD3DDevice()->GetDescriptorHandleIncrementSize(type);
@@ -41,14 +40,14 @@ DescriptorHeapStack::DescriptorHeapStack(UINT numDescriptors, D3D12_DESCRIPTOR_H
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-ID3D12DescriptorHeapPtr DescriptorHeapStack::GetDescriptorHeap()
+DescriptorHeapStack::~DescriptorHeapStack()
 {
-    return DescriptorHeap;
+    ;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void DescriptorHeapStack::AllocateDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle, UINT& descriptorHeapIndex)
+bool DescriptorHeapStack::AllocateDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle, UINT& descriptorHeapIndex)
 {
     ASSERT(DescriptorsAllocated < DescriptorHeapMaxCount);
     if (DescriptorsAllocated < DescriptorHeapMaxCount)
@@ -57,12 +56,16 @@ void DescriptorHeapStack::AllocateDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE& cpuHan
         cpuHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(DescriptorHeapCpuBase, descriptorHeapIndex, DescriptorSize);
         CpuHandles.push_back(cpuHandle);
         DescriptorsAllocated++;
+
+        return true;
     }
+
+    return false;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-UINT RealtimeEngine::DescriptorHeapStack::AllocateTexture2DSrv(ID3D12Resource* resource, DXGI_FORMAT format, UINT shader4ComponentMapping)
+UINT RealtimeEngine::DescriptorHeapStack::AllocateTexture2DSrv(ID3D12Resource* resource, DXGI_FORMAT format)
 {
     UINT                        descriptorHeapIndex;
     D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
@@ -72,17 +75,10 @@ UINT RealtimeEngine::DescriptorHeapStack::AllocateTexture2DSrv(ID3D12Resource* r
     srvDesc.ViewDimension           = D3D12_SRV_DIMENSION_TEXTURE2D;
     srvDesc.Texture2D.MipLevels     = 1;
     srvDesc.Format                  = format;
-    srvDesc.Shader4ComponentMapping = shader4ComponentMapping;
+    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
     RenderDevice::Get().GetD3DDevice()->CreateShaderResourceView(resource, &srvDesc, cpuHandle);
 
     return descriptorHeapIndex;
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-UINT DescriptorHeapStack::GetCount()
-{
-    return DescriptorsAllocated;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -161,6 +157,13 @@ UINT DescriptorHeapStack::AllocateBufferUav(ID3D12Resource & resource, D3D12_UAV
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+ID3D12DescriptorHeapPtr DescriptorHeapStack::GetDescriptorHeap()
+{
+    return DescriptorHeap;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 D3D12_GPU_DESCRIPTOR_HANDLE DescriptorHeapStack::GetGpuHandle(UINT descriptorIndex)
 {
     return CD3DX12_GPU_DESCRIPTOR_HANDLE(DescriptorHeap->GetGPUDescriptorHandleForHeapStart(), descriptorIndex, DescriptorSize);
@@ -171,4 +174,11 @@ D3D12_GPU_DESCRIPTOR_HANDLE DescriptorHeapStack::GetGpuHandle(UINT descriptorInd
 D3D12_CPU_DESCRIPTOR_HANDLE DescriptorHeapStack::GetCpuHandle(UINT descriptorIndex)
 {
     return CpuHandles[descriptorIndex];
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+UINT DescriptorHeapStack::GetCount()
+{
+    return DescriptorsAllocated;
 }

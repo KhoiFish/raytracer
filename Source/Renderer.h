@@ -75,6 +75,7 @@ private:
     void            SetupGui();
     void            LoadScene();
 
+    void            SetupDescriptorHeap();
     void            SetupGpuRaytracingRootSignatures();
     void            SetupGpuRaytracingDescriptors();
     void            SetupGpuRaytracingPSO();
@@ -191,6 +192,8 @@ private:
     DXGI_FORMAT                     RaytracingBufferType;
     DXGI_FORMAT                     CPURaytracerTexType;
 
+    DescriptorHeapStack*            RendererDescriptorHeap;
+
     RenderTarget                    CPURaytracerTex;
     RenderTarget                    DeferredBuffers[DeferredBufferType_Num];
     RenderTarget                    DirectLightingAOBuffer[2];
@@ -199,14 +202,14 @@ private:
     RootSignature                   RasterRootSignature;
     GraphicsPSO                     RasterGeometryPassPSO;
     GraphicsPSO                     RasterCompositePassPSO;
-    DescriptorHeapStack*            RasterDescriptorHeap;
-
+    uint32_t                        RasterDescriptorIndexStart;
+    
     RootSignature                   RaytracingGlobalRootSig;
     RootSignature                   RaytracingLocalRootSig;
     RaytracingPSO*                  TheRaytracingPSO;
-    DescriptorHeapStack*            RaytracingDescriptorHeap;
     GpuBuffer                       RaytracingSceneConstantBuffer;
     int32_t                         RaytracingShaderIndex[RaytracingShaderType_Num];
     int32_t                         HitProgramCount;
-    uint32_t                        LocalSigDataIndexStart;
+    uint32_t                        RaytracingGlobalSigDataIndexStart;
+    uint32_t                        RaytracingLocalSigDataIndexStart;
 };

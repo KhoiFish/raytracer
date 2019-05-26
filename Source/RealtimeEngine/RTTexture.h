@@ -31,21 +31,20 @@ namespace RealtimeEngine
     {
     public:
 
-        Texture() : Width(0), Height(0), DescriptorIndex(0) {}
+        Texture() : Width(0), Height(0), Format(DXGI_FORMAT_UNKNOWN) {}
 
-        void                                Create(size_t pitch, size_t width, size_t height, DXGI_FORMAT Format, const void* initData);
-        void                                Create(size_t width, size_t height, DXGI_FORMAT format, const void* initData);
-        virtual void                        Destroy() override;
-        D3D12_CPU_DESCRIPTOR_HANDLE         GetCpuHandle() const;
-        D3D12_GPU_DESCRIPTOR_HANDLE         GetGpuHandle() const;
+        void            Create(size_t pitch, size_t width, size_t height, DXGI_FORMAT Format, const void* initData);
+        void            Create(size_t width, size_t height, DXGI_FORMAT format, const void* initData);
+        virtual void    Destroy() override;
+        DXGI_FORMAT     GetFormat() const { return Format; }
 
     protected:
 
         friend class TextureManager;
 
-        int32_t Width;
-        int32_t Height;
-        UINT    DescriptorIndex;
+        int32_t         Width;
+        int32_t         Height;
+        DXGI_FORMAT     Format;
     };
 
     // ----------------------------------------------------------------------------------------------------------------------------

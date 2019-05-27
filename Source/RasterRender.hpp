@@ -223,7 +223,8 @@ static inline D3D12_DEPTH_STENCIL_DESC getDepthDisabledState()
 
 void Renderer::SetupRasterPipeline()
 {
-    CpuResultsBufferIndex = RasterRenderRootSig::CpuResultsTex;
+    // Refer to composite shader and match this to the TextureMultipliers[] index
+    CpuResultsBufferIndex = 5;
 
     // Init random generator
     {

@@ -75,7 +75,6 @@ private:
     void            SetupGui();
     void            LoadScene();
 
-    void            SetupDescriptorHeap();
     void            SetupRasterDescriptors();
     void            SetupGpuRaytracingRootSignatures();
     void            SetupGpuRaytracingDescriptors();
@@ -193,6 +192,7 @@ private:
     DXGI_FORMAT                     RaytracingBufferType;
     DXGI_FORMAT                     CPURaytracerTexType;
 
+    DescriptorHeapCollection        RendererDescriptorHeapCollection;
     DescriptorHeapStack*            RendererDescriptorHeap;
 
     ColorTarget                     CPURaytracerTex;

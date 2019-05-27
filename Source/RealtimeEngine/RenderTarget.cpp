@@ -25,27 +25,20 @@ using namespace RealtimeEngine;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-DescriptorHeapStack* RenderTarget::DescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
+DescriptorHeapCollection* RenderTarget::DescriptorHeap;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RenderTarget::Init()
+void RenderTarget::Init(DescriptorHeapCollection* pDescriptorHeap)
 {
-    for (int i = 0; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; i++)
-    {
-        DescriptorAllocators[i] = new DescriptorHeapStack(2048, (D3D12_DESCRIPTOR_HEAP_TYPE)i, 0);
-    }
+    DescriptorHeap = pDescriptorHeap;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
 void RenderTarget::Shutdown()
 {
-    for (int i = 0; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; i++)
-    {
-        delete DescriptorAllocators[i];
-        DescriptorAllocators[i] = nullptr;
-    }
+    ;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -54,7 +47,7 @@ D3D12_CPU_DESCRIPTOR_HANDLE RenderTarget::AllocateDescriptor(D3D12_DESCRIPTOR_HE
 {
     D3D12_CPU_DESCRIPTOR_HANDLE ret;
     UINT                        unusedHeapIndex;
-    DescriptorAllocators[type]->AllocateDescriptor(ret, unusedHeapIndex);
+    DescriptorHeap->Get(type).AllocateDescriptor(ret, unusedHeapIndex);
 
     return ret;
 }
@@ -464,11 +457,8 @@ void ColorTarget::CreateDerivedViews(ID3D12Device* device, DXGI_FORMAT format, u
         srvDesc.Texture2D.MostDetailedMip       = 0;
     }
 
-    if (SRVHandle.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
-    {
-        RTVHandle = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-        SRVHandle = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-    }
+    RTVHandle = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+    SRVHandle = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
     ID3D12Resource* Resource = ResourcePtr.Get();
 
@@ -489,10 +479,7 @@ void ColorTarget::CreateDerivedViews(ID3D12Device* device, DXGI_FORMAT format, u
     // Create the UAVs for each mip level (RWTexture2D)
     for (uint32_t i = 0; i < numMips; ++i)
     {
-        if (UAVHandle[i].ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
-        {
-            UAVHandle[i] = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-        }
+        UAVHandle[i] = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
         device->CreateUnorderedAccessView(Resource, nullptr, &uavDesc, UAVHandle[i]);
 
@@ -707,11 +694,8 @@ void DepthTarget::CreateDerivedViews(ID3D12Device* device, DXGI_FORMAT format)
         dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DMS;
     }
 
-    if (DSVHandle[0].ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
-    {
-        DSVHandle[0] = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
-        DSVHandle[1] = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
-    }
+    DSVHandle[0] = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+    DSVHandle[1] = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 
     dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
     device->CreateDepthStencilView(resource, &dsvDesc, DSVHandle[0]);
@@ -722,11 +706,8 @@ void DepthTarget::CreateDerivedViews(ID3D12Device* device, DXGI_FORMAT format)
     DXGI_FORMAT stencilReadFormat = GetStencilFormat(format);
     if (stencilReadFormat != DXGI_FORMAT_UNKNOWN)
     {
-        if (DSVHandle[2].ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
-        {
-            DSVHandle[2] = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
-            DSVHandle[3] = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
-        }
+        DSVHandle[2] = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+        DSVHandle[3] = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 
         dsvDesc.Flags = D3D12_DSV_FLAG_READ_ONLY_STENCIL;
         device->CreateDepthStencilView(resource, &dsvDesc, DSVHandle[2]);
@@ -740,10 +721,7 @@ void DepthTarget::CreateDerivedViews(ID3D12Device* device, DXGI_FORMAT format)
         DSVHandle[3] = DSVHandle[1];
     }
 
-    if (DepthSRVHandle.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
-    {
-        DepthSRVHandle = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-    }
+    DepthSRVHandle = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
     // Create the shader resource view
     D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
@@ -762,10 +740,7 @@ void DepthTarget::CreateDerivedViews(ID3D12Device* device, DXGI_FORMAT format)
 
     if (stencilReadFormat != DXGI_FORMAT_UNKNOWN)
     {
-        if (StencilSRVHandle.ptr == D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN)
-        {
-            StencilSRVHandle = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-        }
+        StencilSRVHandle = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
         srvDesc.Format = stencilReadFormat;
         device->CreateShaderResourceView(resource, &srvDesc, StencilSRVHandle);

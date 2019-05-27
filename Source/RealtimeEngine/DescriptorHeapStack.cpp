@@ -17,6 +17,7 @@
 // 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+#include <algorithm>
 #include "DescriptorHeapStack.h"
 #include "RenderDevice.h"
 
@@ -25,17 +26,13 @@ using namespace RealtimeEngine;
 // ----------------------------------------------------------------------------------------------------------------------------
 
 DescriptorHeapStack::DescriptorHeapStack(UINT numDescriptors, D3D12_DESCRIPTOR_HEAP_TYPE type, UINT nodeMask)
-    : DescriptorHeapMaxCount(numDescriptors)
+    : DescriptorHeap(nullptr), DescriptorHeapMaxCount(numDescriptors), Type(type), NodeMask(nodeMask)
 {
-    D3D12_DESCRIPTOR_HEAP_DESC desc = {};
-    desc.NumDescriptors = numDescriptors;
-    desc.Type           = type;
-    desc.Flags          = (type == D3D12_DESCRIPTOR_HEAP_TYPE_DSV || type == D3D12_DESCRIPTOR_HEAP_TYPE_RTV) ? D3D12_DESCRIPTOR_HEAP_FLAG_NONE : D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-    desc.NodeMask       = nodeMask;
-    RenderDevice::Get().GetD3DDevice()->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&DescriptorHeap));
-
-    DescriptorSize          = RenderDevice::Get().GetD3DDevice()->GetDescriptorHandleIncrementSize(type);
-    DescriptorHeapCpuBase   = DescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+    // Clamp for sampler descriptor heaps
+    if (type == D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER)
+    {
+        DescriptorHeapMaxCount = std::min(DescriptorHeapMaxCount, (UINT)2048);
+    }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -43,6 +40,26 @@ DescriptorHeapStack::DescriptorHeapStack(UINT numDescriptors, D3D12_DESCRIPTOR_H
 DescriptorHeapStack::~DescriptorHeapStack()
 {
     ;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void DescriptorHeapStack::Reset()
+{
+    // Smart com ptr will release this
+    DescriptorHeap = nullptr;
+
+    D3D12_DESCRIPTOR_HEAP_DESC desc = {};
+    desc.NumDescriptors = DescriptorHeapMaxCount;
+    desc.Type           = Type;
+    desc.Flags          = (Type == D3D12_DESCRIPTOR_HEAP_TYPE_DSV || Type == D3D12_DESCRIPTOR_HEAP_TYPE_RTV) ? D3D12_DESCRIPTOR_HEAP_FLAG_NONE : D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+    desc.NodeMask       = NodeMask;
+    RenderDevice::Get().GetD3DDevice()->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&DescriptorHeap));
+
+    DescriptorsAllocated    = 0;
+    DescriptorSize          = RenderDevice::Get().GetD3DDevice()->GetDescriptorHandleIncrementSize(Type);
+    DescriptorHeapCpuBase   = DescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+    CpuHandles.clear();
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -181,4 +198,42 @@ D3D12_CPU_DESCRIPTOR_HANDLE DescriptorHeapStack::GetCpuHandle(UINT descriptorInd
 UINT DescriptorHeapStack::GetCount()
 {
     return DescriptorsAllocated;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+DescriptorHeapCollection::DescriptorHeapCollection(UINT numDescriptors, UINT nodeMask)
+{
+    for (int i = 0; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; i++)
+    {
+        DescriptorAllocators[i] = new DescriptorHeapStack(numDescriptors, (D3D12_DESCRIPTOR_HEAP_TYPE)i, nodeMask);
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+DescriptorHeapCollection::~DescriptorHeapCollection()
+{
+    for (int i = 0; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; i++)
+    {
+        delete DescriptorAllocators[i];
+        DescriptorAllocators[i] = nullptr;
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+DescriptorHeapStack& DescriptorHeapCollection::Get(D3D12_DESCRIPTOR_HEAP_TYPE type)
+{
+    return *DescriptorAllocators[type];
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void DescriptorHeapCollection::Reset()
+{
+    for (int i = 0; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; i++)
+    {
+        DescriptorAllocators[i]->Reset();
+    }
 }

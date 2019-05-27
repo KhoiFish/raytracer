@@ -54,6 +54,7 @@ namespace RealtimeEngine
 
         static void                                         Initialize(
                                                                 HWND window, int width, int height, IDeviceNotify* deviceNotify,
+                                                                DescriptorHeapCollection* pDescriptorHeap,
                                                                 DXGI_FORMAT backBufferFormat = DXGI_FORMAT_B8G8R8A8_UNORM,
                                                                 DXGI_FORMAT depthBufferFormat = DXGI_FORMAT_D32_FLOAT,
                                                                 uint32_t backBufferCount = 2,
@@ -103,7 +104,7 @@ namespace RealtimeEngine
 
     private:
 
-        RenderDevice(DXGI_FORMAT backBufferFormat, DXGI_FORMAT depthBufferFormat, uint32_t backBufferCount, D3D_FEATURE_LEVEL minFeatureLevel, uint32_t flags, uint32_t adapterIDoverride, float depthClearValue);
+        RenderDevice(DescriptorHeapCollection* pDescriptorHeap, DXGI_FORMAT backBufferFormat, DXGI_FORMAT depthBufferFormat, uint32_t backBufferCount, D3D_FEATURE_LEVEL minFeatureLevel, uint32_t flags, uint32_t adapterIDoverride, float depthClearValue);
         ~RenderDevice();
 
         void                                                SetupDevice();
@@ -151,5 +152,6 @@ namespace RealtimeEngine
         IDeviceNotify*                                      DeviceNotify;
 
         DescriptorHeapStack*                                ImguiDescriptorStack = nullptr;
+        DescriptorHeapCollection*                           DescriptorHeapPtr;
     };
 }

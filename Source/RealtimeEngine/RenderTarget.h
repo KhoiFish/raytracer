@@ -33,10 +33,7 @@ namespace RealtimeEngine
 
     class RenderTarget : public GpuResource
     {
-    public:
-
-        static void                         Init();
-        static void                         Shutdown();
+    public:       
 
         uint32_t                            GetWidth(void) const        { return Width; }
         uint32_t                            GetHeight(void) const       { return Height; }
@@ -45,6 +42,10 @@ namespace RealtimeEngine
 
     protected:
 
+        friend class RenderDevice;
+
+        static void                         Init(DescriptorHeapCollection* pDescriptorHeap);
+        static void                         Shutdown();
         D3D12_CPU_DESCRIPTOR_HANDLE         AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE type);
 
     protected:
@@ -54,7 +55,7 @@ namespace RealtimeEngine
         uint32_t                            ArraySize;
         DXGI_FORMAT                         Format;
         D3D12_RESOURCE_FLAGS                ResourceFlags;
-        static DescriptorHeapStack*         DescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
+        static DescriptorHeapCollection*    DescriptorHeap;
     };
 
     // ----------------------------------------------------------------------------------------------------------------------------

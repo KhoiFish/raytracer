@@ -90,7 +90,7 @@ namespace RealtimeEngine
         RealtimeScene(Core::WorldScene* worldScene);
         ~RealtimeScene();
 
-        void                                SetupTextureViews(RealtimeEngine::DescriptorHeapStack& descriptorHeap);
+        void                                SetupTextureViews(DescriptorHeapStack& descriptorHeap);
         void                                UpdateCamera(float newVertFov, float forwardAmount, float strafeAmount, float upDownAmount, int mouseDx, int mouseDy, Core::Camera& worldCamera);
 
         std::vector<RealtimeSceneNode*>&    GetRenderSceneList();

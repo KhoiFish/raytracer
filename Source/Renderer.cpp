@@ -43,6 +43,7 @@ Renderer::Renderer(uint32_t width, uint32_t height)
     , FrameCount(0)
     , SelectedBufferIndex(0)
     , AccumCount(0)
+    , RendererDescriptorHeapCollection(4096 * 16, 0)
     , RendererDescriptorHeap(nullptr)
     , IsCameraDirty(true)
     , LoadSceneRequested(false)
@@ -86,12 +87,6 @@ Renderer::~Renderer()
         TheRenderScene = nullptr;
     }
 
-    if (RendererDescriptorHeap != nullptr)
-    {
-        delete RendererDescriptorHeap;
-        RendererDescriptorHeap = nullptr;
-    }
-
     RenderDevice::Shutdown();
 }
 
@@ -120,10 +115,10 @@ void Renderer::OnInit()
     MaxNumCpuThreads = UserInput.CpuNumThreads = sysInfo.dwNumberOfProcessors;
 
     // Init the render device
-    RenderDevice::Initialize(PlatformApp::GetHwnd(), Width, Height, this, BackbufferFormat);
+    RenderDevice::Initialize(PlatformApp::GetHwnd(), Width, Height, this, &RendererDescriptorHeapCollection, BackbufferFormat);
+    RendererDescriptorHeap = &RendererDescriptorHeapCollection.Get(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
     // Setup render pipelines
-    SetupDescriptorHeap();
     SetupRenderBuffers();
     SetupRasterPipeline();
 
@@ -193,21 +188,6 @@ void Renderer::LoadScene()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::SetupDescriptorHeap()
-{
-    // Delete old one, if it exists
-    if (RendererDescriptorHeap != nullptr)
-    {
-        delete RendererDescriptorHeap;
-        RendererDescriptorHeap = nullptr;
-    }
-
-    // Create heap for descriptors
-    RendererDescriptorHeap = new DescriptorHeapStack(4096 * 16, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 0);
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
 void Renderer::OnResizeCpuRaytracer()
 {
     int backbufferWidth  = RenderDevice::Get().GetBackbufferWidth();
@@ -239,7 +219,6 @@ void Renderer::OnSizeChanged(uint32_t width, uint32_t height, bool minimized)
     }
 
     CommandListManager::Get().IdleGPU();
-    SetupDescriptorHeap();
     SetupRenderBuffers();
     TheRenderScene->SetupTextureViews(*RendererDescriptorHeap);
     OnResizeCpuRaytracer();

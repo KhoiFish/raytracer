@@ -30,12 +30,16 @@
 
 namespace RealtimeEngine
 {
+    // ----------------------------------------------------------------------------------------------------------------------------
+
     class DescriptorHeapStack
     {
     public:
 
         DescriptorHeapStack(UINT numDescriptors, D3D12_DESCRIPTOR_HEAP_TYPE type, UINT nodeMask);
         ~DescriptorHeapStack();
+
+        void                        Reset();
 
         bool                        AllocateDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle, UINT& descriptorHeapIndex);
         UINT                        AllocateTexture2DSrv(ID3D12Resource* resource, DXGI_FORMAT format);
@@ -51,11 +55,32 @@ namespace RealtimeEngine
 
     private:
 
+        D3D12_DESCRIPTOR_HEAP_TYPE                  Type;
+        UINT                                        NodeMask;
         ID3D12DescriptorHeapPtr                     DescriptorHeap;
         UINT                                        DescriptorsAllocated = 0;
         UINT                                        DescriptorHeapMaxCount = 0;
         UINT                                        DescriptorSize;
         D3D12_CPU_DESCRIPTOR_HANDLE                 DescriptorHeapCpuBase;
         std::vector<D3D12_CPU_DESCRIPTOR_HANDLE>    CpuHandles;
+    };
+
+    // ----------------------------------------------------------------------------------------------------------------------------
+
+    class DescriptorHeapCollection
+    {
+    public:
+
+        DescriptorHeapCollection(UINT numDescriptors, UINT nodeMask);
+        ~DescriptorHeapCollection();
+
+        DescriptorHeapStack& Get(D3D12_DESCRIPTOR_HEAP_TYPE type);
+        void                 Reset();
+
+    private:
+
+        D3D12_DESCRIPTOR_HEAP_TYPE  Type;
+        UINT                        NodeMask;
+        DescriptorHeapStack*        DescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
     };
 }

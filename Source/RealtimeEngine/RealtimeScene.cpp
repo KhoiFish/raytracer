@@ -732,7 +732,7 @@ RealtimeScene::~RealtimeScene()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RealtimeEngine::RealtimeScene::SetupTextureViews(RealtimeEngine::DescriptorHeapStack& descriptorHeap)
+void RealtimeEngine::RealtimeScene::SetupTextureViews(DescriptorHeapStack& descriptorHeap)
 {
     for (size_t i = 0; i < RenderSceneList.size(); i++)
     {

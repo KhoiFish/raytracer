@@ -82,7 +82,7 @@ static inline DXGI_FORMAT NoSRGB(DXGI_FORMAT fmt)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RenderDevice::Initialize(HWND window, int width, int height, IDeviceNotify* deviceNotify,
+void RenderDevice::Initialize(HWND window, int width, int height, IDeviceNotify* deviceNotify, DescriptorHeapCollection* pDescriptorHeap,
     DXGI_FORMAT backBufferFormat, DXGI_FORMAT depthBufferFormat, uint32_t backBufferCount, D3D_FEATURE_LEVEL minFeatureLevel, uint32_t flags, uint32_t adapterIDoverride, float depthClearValue)
 {
     if (sRenderDevicePtr == nullptr)
@@ -90,6 +90,7 @@ void RenderDevice::Initialize(HWND window, int width, int height, IDeviceNotify*
         // Render device create
         sRenderDevicePtr = new RenderDevice
         (
+            pDescriptorHeap,
             backBufferFormat,
             depthBufferFormat,
             backBufferCount,
@@ -120,10 +121,18 @@ void RenderDevice::Shutdown()
 
 void RenderDevice::SetupDevice()
 {
+    // Create the main device
     InitializeDXGIAdapter();
     CreateDeviceResources();
+
+    // Command manager
     CommandListManager::Get().Create(D3DDevice.Get());
-    RenderTarget::Init();
+
+    // Setup descriptor
+    DescriptorHeapPtr->Reset();
+    RenderTarget::Init(DescriptorHeapPtr);
+
+    // Init the rest
     CreateWindowSizeDependentResources();
     SetupImgui();
 }
@@ -154,6 +163,8 @@ void RenderDevice::CleanupDevice()
     D3DDevice.Reset();
     DXGIFactory.Reset();
     Adapter.Reset();
+
+    DescriptorHeapPtr = nullptr;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -165,7 +176,7 @@ RenderDevice& RenderDevice::Get()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-RenderDevice::RenderDevice(DXGI_FORMAT backBufferFormat, DXGI_FORMAT depthBufferFormat, uint32_t backBufferCount, D3D_FEATURE_LEVEL minFeatureLevel, uint32_t flags, uint32_t adapterIDoverride, float depthClearValue) :
+RenderDevice::RenderDevice(DescriptorHeapCollection* pDescriptorHeap, DXGI_FORMAT backBufferFormat, DXGI_FORMAT depthBufferFormat, uint32_t backBufferCount, D3D_FEATURE_LEVEL minFeatureLevel, uint32_t flags, uint32_t adapterIDoverride, float depthClearValue) :
     BackBufferFormat(backBufferFormat),
     DepthBufferFormat(depthBufferFormat),
     DepthStencil(depthClearValue),
@@ -181,7 +192,8 @@ RenderDevice::RenderDevice(DXGI_FORMAT backBufferFormat, DXGI_FORMAT depthBuffer
     DeviceNotify(nullptr),
     IsWindowVisibleState(true),
     AdapterIDoverride(adapterIDoverride),
-    AdapterID(UINT_MAX)
+    AdapterID(UINT_MAX),
+    DescriptorHeapPtr(pDescriptorHeap)
 {
     if (backBufferCount > MAX_BACK_BUFFER_COUNT)
     {
@@ -451,6 +463,7 @@ void RenderDevice::CreateWindowSizeDependentResources()
 void RenderDevice::SetupImgui()
 {
     ImguiDescriptorStack = new DescriptorHeapStack(128, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 0);
+    ImguiDescriptorStack->Reset();
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -524,6 +537,9 @@ bool RenderDevice::WindowSizeChanged(int width, int height, bool minimized)
     {
         return false;
     }
+
+    // Reset the descriptor heap
+    DescriptorHeapPtr->Reset();
 
     OutputSize = newRc;
     CreateWindowSizeDependentResources();

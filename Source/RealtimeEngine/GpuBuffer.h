@@ -39,7 +39,7 @@ namespace RealtimeEngine
 
     public:
 
-        void                                Create(const std::wstring& name, uint32_t numElements, uint32_t elementSize, const void* initialData = nullptr, D3D12_RESOURCE_STATES usageState = D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_FLAGS resourceFlags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+        void                                Create(const std::wstring& name, uint32_t numElements, uint32_t elementSize, const void* initialData = nullptr, D3D12_RESOURCE_STATES usageState = D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_FLAGS resourceFlags = D3D12_RESOURCE_FLAG_NONE);
         void                                CreatePlaced(const std::wstring& name, ID3D12Heap* pBackingHeap, uint32_t heapOffset, uint32_t numElements, uint32_t elementSize, const void* initialData = nullptr);
 
         D3D12_VERTEX_BUFFER_VIEW            VertexBufferView(size_t offset, uint32_t size, uint32_t stride) const;
@@ -73,8 +73,8 @@ namespace RealtimeEngine
     public:
 
         void    Create(const std::wstring& name, uint32_t numElements, uint32_t elementSize);
-        void*   Map(void);
-        void    Unmap(void);
+        void*   Map();
+        void    Unmap();
     };
 
     // ----------------------------------------------------------------------------------------------------------------------------
@@ -87,5 +87,6 @@ namespace RealtimeEngine
 
         void    Map(void** ppBuffer);
         void    Unmap();
+        void    Upload(const void* pUploadData, uint32_t size);
     };
 }

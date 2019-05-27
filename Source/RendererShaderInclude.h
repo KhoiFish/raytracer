@@ -30,13 +30,9 @@ ALIGN_BEGIN(16)
 struct SceneConstantBuffer
 {
     XMFLOAT4    CameraPosition;
-    XMFLOAT4X4  ModelMatrix;
     XMFLOAT4X4  ViewMatrix;
     XMFLOAT4X4  ProjectionMatrix;
-    XMFLOAT4X4  ModelViewMatrix;
     XMFLOAT4X4  ViewProjectionMatrix;
-    XMFLOAT4X4  ModelViewProjectionMatrix;
-    XMFLOAT4X4  InverseTransposeModelViewMatrix;
     XMFLOAT4X4  InverseViewProjectionMatrix;
     XMFLOAT4X4  InverseTransposeViewProjectionMatrix;
     float       FarClipDist;

@@ -160,6 +160,7 @@ D3D12_RESOURCE_DESC GpuBuffer::DescribeBuffer()
 
 UploadBuffer::UploadBuffer()
 {
+    ResourceFlags                  = D3D12_RESOURCE_FLAG_NONE;
     HeapProps.Type                 = D3D12_HEAP_TYPE_UPLOAD;
     HeapProps.CPUPageProperty      = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
     HeapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
@@ -179,6 +180,18 @@ void UploadBuffer::Map(void** ppBuffer)
 void UploadBuffer::Unmap()
 {
     ResourcePtr->Unmap(0, nullptr);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void UploadBuffer::Upload(const void* pUploadData, uint32_t size)
+{
+    void* pDest = nullptr;
+    Map(&pDest);
+    {
+        memcpy(pDest, pUploadData, size);
+    }
+    Unmap();
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

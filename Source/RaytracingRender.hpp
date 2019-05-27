@@ -470,8 +470,7 @@ void Renderer::RenderGpuRaytracing()
             sceneCB.IndirectLightingMissIndex       = RaytracingShaderIndex[RaytracingShaderType_IndirectLightingMiss];
             
             // Update GPU buffer
-            computeContext.WriteBuffer(RaytracingSceneConstantBuffer, 0, &sceneCB, sizeof(sceneCB));
-            computeContext.TransitionResource(RaytracingSceneConstantBuffer, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+            RaytracingSceneConstantBuffer.Upload(&sceneCB, sizeof(sceneCB));
         }
 
         if (TheRenderScene->GetAreaLights().size() > 0)

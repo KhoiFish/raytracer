@@ -78,6 +78,9 @@ namespace RealtimeEngine
         DirectX::XMMATRIX                       WorldMatrix;
         RenderMaterial                          Material;
         RealtimeEngine::Texture*                DiffuseTexture;
+
+        uint32_t                                InstanceDataHeapIndex;
+        uint32_t                                MaterialHeapIndex;
         uint32_t                                DiffuseTextureHeapIndex;
     };
 
@@ -90,7 +93,7 @@ namespace RealtimeEngine
         RealtimeScene(Core::WorldScene* worldScene);
         ~RealtimeScene();
 
-        void                                SetupTextureViews(DescriptorHeapStack& descriptorHeap);
+        void                                SetupViews(DescriptorHeapStack& descriptorHeap);
         void                                UpdateCamera(float newVertFov, float forwardAmount, float strafeAmount, float upDownAmount, int mouseDx, int mouseDy, Core::Camera& worldCamera);
 
         std::vector<RealtimeSceneNode*>&    GetRenderSceneList();

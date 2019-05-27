@@ -92,7 +92,7 @@ private:
 
     void            SetEnableCpuRaytrace(bool enable);
     void            SetCameraDirty();
-    void            SetupSceneConstantBuffer(const FXMMATRIX& model, SceneConstantBuffer& sceneCB);
+    void            SetupSceneConstantBuffer(SceneConstantBuffer& sceneCB);
 
     void            RenderSceneList(GraphicsContext& renderContext);
     void            RenderGeometryPass();
@@ -204,14 +204,13 @@ private:
     GraphicsPSO                     RasterGeometryPassPSO;
     GraphicsPSO                     RasterCompositePassPSO;
     uint32_t                        RasterDescriptorIndexStart;
-    GpuBuffer                       RasterSceneConstantBuffer;
-    GpuBuffer                       RasterMaterialConstantBuffer;
-    GpuBuffer                       RasterCompositeConstantBuffer;
+    UploadBuffer                    RasterSceneConstantBuffer;
+    UploadBuffer                    RasterCompositeConstantBuffer;
     
     RootSignature                   RaytracingGlobalRootSig;
     RootSignature                   RaytracingLocalRootSig;
     RaytracingPSO*                  RaytracingPSOPtr;
-    GpuBuffer                       RaytracingSceneConstantBuffer;
+    UploadBuffer                    RaytracingSceneConstantBuffer;
     int32_t                         RaytracingShaderIndex[RaytracingShaderType_Num];
     int32_t                         RaytracingHitProgramCount;
     uint32_t                        RaytracingGlobalSigDataIndexStart;

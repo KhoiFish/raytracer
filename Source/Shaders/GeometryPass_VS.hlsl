@@ -41,7 +41,8 @@ struct VertexShaderOutput
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-ConstantBuffer<SceneConstantBuffer> SceneCb : register(b0);
+ConstantBuffer<SceneConstantBuffer>     SceneCb     : register(b0);
+ConstantBuffer<RenderNodeInstanceData>  InstanceCb  : register(b1);
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -49,11 +50,11 @@ VertexShaderOutput main(VertexPositionNormalTexture IN)
 {
     VertexShaderOutput OUT;
 
-    float4 worldPos = mul(float4(IN.Position, 1.0f), SceneCb.ModelMatrix);
+    float4 worldPos = mul(float4(IN.Position, 1.0f), InstanceCb.WorldMatrix);
 
-    OUT.Position    = mul(float4(IN.Position, 1.0f), SceneCb.ModelViewProjectionMatrix);
-    OUT.PositionWS  = mul(float4(IN.Position, 1.0f), SceneCb.ModelMatrix);
-    OUT.NormalWS    = mul(IN.Normal, (float3x3)SceneCb.ModelMatrix);
+    OUT.Position    = mul(worldPos, SceneCb.ViewProjectionMatrix);
+    OUT.PositionWS  = worldPos;
+    OUT.NormalWS    = mul(IN.Normal, (float3x3)InstanceCb.WorldMatrix);
     OUT.LinearDepth = mul(float4(OUT.PositionWS.xyz, 1.0f), SceneCb.ViewMatrix).z / SceneCb.FarClipDist;
     OUT.TexCoord    = IN.TexCoord;
 

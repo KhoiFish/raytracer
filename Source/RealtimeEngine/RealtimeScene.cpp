@@ -672,7 +672,7 @@ RealtimeScene::RealtimeScene(Core::WorldScene* worldScene)
             {
                 pInstanceData->InstanceId  = RenderSceneList[i]->InstanceId;
                 pInstanceData->LightIndex  = RenderSceneList[i]->LightIndex;
-                pInstanceData->WorldMatrix = RenderSceneList[i]->WorldMatrix;
+                pInstanceData->WorldMatrix = XMMatrixTranspose(RenderSceneList[i]->WorldMatrix);
                 RenderSceneList[i]->InstanceDataBuffer.Create(L"Instance Data", 1, bufferSize, pInstanceData);
             }
             _aligned_free(pInstanceData);
@@ -732,10 +732,12 @@ RealtimeScene::~RealtimeScene()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RealtimeEngine::RealtimeScene::SetupTextureViews(DescriptorHeapStack& descriptorHeap)
+void RealtimeEngine::RealtimeScene::SetupViews(DescriptorHeapStack& descriptorHeap)
 {
     for (size_t i = 0; i < RenderSceneList.size(); i++)
     {
+        RenderSceneList[i]->InstanceDataHeapIndex   = descriptorHeap.AllocateBufferCbv(RenderSceneList[i]->InstanceDataBuffer.GetGpuVirtualAddress(), (UINT)RenderSceneList[i]->InstanceDataBuffer.GetBufferSize());
+        RenderSceneList[i]->MaterialHeapIndex       = descriptorHeap.AllocateBufferCbv(RenderSceneList[i]->MaterialBuffer.GetGpuVirtualAddress(), (UINT)RenderSceneList[i]->MaterialBuffer.GetBufferSize());
         RenderSceneList[i]->DiffuseTextureHeapIndex = descriptorHeap.AllocateTexture2DSrv(RenderSceneList[i]->DiffuseTexture->GetResource(), RenderSceneList[i]->DiffuseTexture->GetFormat());
     }
 }

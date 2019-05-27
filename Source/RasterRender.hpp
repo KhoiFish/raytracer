@@ -26,6 +26,7 @@ namespace RasterRenderRootSig
     enum EnumTypes
     {
         SceneCB = 0,
+        InstanceCB,
         MaterialCB,
         CompositeCB,
 
@@ -52,8 +53,9 @@ namespace RasterRenderRootSig
     static UINT Range[RasterRenderRootSig::Num][4] =
     {
         { 0, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_CBV },   // SceneCB
-        { 1, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_CBV },   // MaterialCB
-        { 2, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_CBV },   // CompositeCB
+        { 1, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_CBV },   // InstanceCB
+        { 2, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_CBV },   // MaterialCB
+        { 3, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_CBV },   // CompositeCB
 
         { 0, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // DirectLightAOTex   
         { 1, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // IndirectLightTex   
@@ -232,7 +234,6 @@ void Renderer::SetupRasterPipeline()
 
     // Constant buffers
     RasterSceneConstantBuffer.Create(L"Raster Scene Constant Buffer", 1, (uint32_t)AlignUp(sizeof(SceneConstantBuffer), 256));
-    RasterMaterialConstantBuffer.Create(L"Raster Material Constant Buffer", 1, (uint32_t)AlignUp(sizeof(RenderMaterial), 256));
     RasterCompositeConstantBuffer.Create(L"Raster Composite Constant Buffer", 1, (uint32_t)AlignUp(sizeof(CompositeConstantBuffer), 256));
 
     // Root sig setup
@@ -308,9 +309,15 @@ void Renderer::SetupRasterDescriptors()
         RasterSceneConstantBuffer.GetGpuVirtualAddress(),
         (UINT)RasterSceneConstantBuffer.GetBufferSize());
 
+    // Hack, this a placeholder for instance CB
     RendererDescriptorHeap->AllocateBufferCbv(
-        RasterMaterialConstantBuffer.GetGpuVirtualAddress(),
-        (UINT)RasterMaterialConstantBuffer.GetBufferSize());
+        RasterSceneConstantBuffer.GetGpuVirtualAddress(),
+        (UINT)RasterSceneConstantBuffer.GetBufferSize());
+
+    // Hack, this a placeholder for material CB
+    RendererDescriptorHeap->AllocateBufferCbv(
+        RasterSceneConstantBuffer.GetGpuVirtualAddress(),
+        (UINT)RasterSceneConstantBuffer.GetBufferSize());
 
     RendererDescriptorHeap->AllocateBufferCbv(
         RasterCompositeConstantBuffer.GetGpuVirtualAddress(),
@@ -338,20 +345,16 @@ void Renderer::SetupRasterDescriptors()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::SetupSceneConstantBuffer(const FXMMATRIX& model, SceneConstantBuffer& sceneCB)
+void Renderer::SetupSceneConstantBuffer(SceneConstantBuffer& sceneCB)
 {
     RealtimeCamera& camera = TheRenderScene->GetCamera();
 
     sceneCB.FarClipDist = camera.GetZFar();
 
     XMStoreFloat4(&sceneCB.CameraPosition, camera.GetEye());
-    XMStoreFloat4x4(&sceneCB.ModelMatrix, XMMatrixTranspose(model));
     XMStoreFloat4x4(&sceneCB.ViewMatrix, XMMatrixTranspose(camera.GetViewMatrix()));
     XMStoreFloat4x4(&sceneCB.ProjectionMatrix, XMMatrixTranspose(camera.GetProjectionMatrix()));
-    XMStoreFloat4x4(&sceneCB.ModelViewMatrix, XMMatrixTranspose(model * camera.GetViewMatrix()));
     XMStoreFloat4x4(&sceneCB.ViewProjectionMatrix, XMMatrixTranspose(camera.GetViewMatrix() * camera.GetProjectionMatrix()));
-    XMStoreFloat4x4(&sceneCB.ModelViewProjectionMatrix, XMMatrixTranspose(model * camera.GetViewMatrix() * camera.GetProjectionMatrix()));
-    XMStoreFloat4x4(&sceneCB.InverseTransposeModelViewMatrix, XMMatrixInverse(nullptr, model * camera.GetViewMatrix()));
     XMStoreFloat4x4(&sceneCB.InverseViewProjectionMatrix, XMMatrixTranspose(XMMatrixInverse(nullptr, camera.GetViewMatrix() * camera.GetProjectionMatrix())));
     XMStoreFloat4x4(&sceneCB.InverseTransposeViewProjectionMatrix, XMMatrixInverse(nullptr, camera.GetViewMatrix() * camera.GetProjectionMatrix()));
 }
@@ -362,14 +365,11 @@ void Renderer::RenderSceneList(GraphicsContext& renderContext)
 {
     for (int i = 0; i < TheRenderScene->GetRenderSceneList().size(); i++)
     {
-        uint32_t                 textureHeapIndex = TheRenderScene->GetRenderSceneList()[i]->DiffuseTextureHeapIndex;
-        RenderMaterial&          renderMaterial   = TheRenderScene->GetRenderSceneList()[i]->Material;
-        SceneConstantBuffer      sceneCB;
-        SetupSceneConstantBuffer(TheRenderScene->GetRenderSceneList()[i]->WorldMatrix, sceneCB);
+        RealtimeSceneNode* pNode = TheRenderScene->GetRenderSceneList()[i];
 
-        renderContext.WriteBuffer(RasterSceneConstantBuffer, 0, &sceneCB, sizeof(sceneCB));
-        renderContext.WriteBuffer(RasterMaterialConstantBuffer, 0, &renderMaterial, sizeof(renderMaterial));
-        renderContext.SetDescriptorTable(RasterRenderRootSig::DiffuseTex, RendererDescriptorHeap->GetGpuHandle(textureHeapIndex));
+        renderContext.SetDescriptorTable(RasterRenderRootSig::InstanceCB, RendererDescriptorHeap->GetGpuHandle(pNode->InstanceDataHeapIndex));
+        renderContext.SetDescriptorTable(RasterRenderRootSig::MaterialCB, RendererDescriptorHeap->GetGpuHandle(pNode->MaterialHeapIndex));
+        renderContext.SetDescriptorTable(RasterRenderRootSig::DiffuseTex, RendererDescriptorHeap->GetGpuHandle(pNode->DiffuseTextureHeapIndex));
         renderContext.SetVertexBuffer(0, TheRenderScene->GetRenderSceneList()[i]->VertexBuffer.VertexBufferView());
         renderContext.SetIndexBuffer(TheRenderScene->GetRenderSceneList()[i]->IndexBuffer.IndexBufferView());
         renderContext.FlushResourceBarriers();
@@ -404,13 +404,17 @@ void Renderer::RenderGeometryPass()
 
         // Geometry pass
         {
+            // Update scene constant buffer
+            SceneConstantBuffer sceneCB;
+            SetupSceneConstantBuffer(sceneCB);
+            RasterSceneConstantBuffer.Upload(&sceneCB, sizeof(sceneCB));
+
+            // Transition resources
             for (int i = 0; i < DeferredBufferType_Num; i++)
             {
                 renderContext.TransitionResource(DeferredBuffers[i], D3D12_RESOURCE_STATE_RENDER_TARGET);
             }
             renderContext.TransitionResource(RenderDevice::Get().GetDepthStencil(), D3D12_RESOURCE_STATE_DEPTH_WRITE, true);
-            renderContext.TransitionResource(RasterSceneConstantBuffer, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
-            renderContext.TransitionResource(RasterMaterialConstantBuffer, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
             
             // Bind gbuffer
             D3D12_CPU_DESCRIPTOR_HANDLE rtvs[]
@@ -500,10 +504,10 @@ void Renderer::RenderCompositePass()
                 // Setup direct/indirect multipliers
                 compositeCB.DirectIndirectLightMult = XMFLOAT2(TheUserInputData.GpuDirectLightMult, TheUserInputData.GpuIndirectLightMult);
             }
-            renderContext.WriteBuffer(RasterCompositeConstantBuffer, 0, &compositeCB, sizeof(compositeCB));
+            RasterCompositeConstantBuffer.Upload(&compositeCB, sizeof(compositeCB));
 
             // Transition resources
-            renderContext.TransitionResource(RasterCompositeConstantBuffer, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+            //renderContext.TransitionResource(RasterCompositeConstantBuffer, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
             renderContext.TransitionResource(CPURaytracerTex, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
             renderContext.TransitionResource(DirectLightingAOBuffer[1], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
             renderContext.TransitionResource(IndirectLightingBuffer[1], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);

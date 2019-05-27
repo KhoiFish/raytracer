@@ -30,7 +30,7 @@ struct PixelShaderInput
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-ConstantBuffer<CompositeConstantBuffer> CompositeCB             : register(b2, space0);
+ConstantBuffer<CompositeConstantBuffer> CompositeCB             : register(b3, space0);
 
 Texture2D                               DirectLightAO           : register(t0, space0);
 Texture2D                               IndirectLight           : register(t1, space0);

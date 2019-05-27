@@ -181,7 +181,7 @@ void Renderer::LoadScene()
     TheWorldScene->GetCamera().SetFocusDistanceToLookAt();
     
     TheRenderScene = new RealtimeEngine::RealtimeScene(TheWorldScene);
-    TheRenderScene->SetupTextureViews(*RendererDescriptorHeap);
+    TheRenderScene->SetupViews(*RendererDescriptorHeap);
 
     TheUserInputData.VertFov = TheWorldScene->GetCamera().GetVertFov();
 }
@@ -220,7 +220,7 @@ void Renderer::OnSizeChanged(uint32_t width, uint32_t height, bool minimized)
 
     CommandListManager::Get().IdleGPU();
     SetupRenderBuffers();
-    TheRenderScene->SetupTextureViews(*RendererDescriptorHeap);
+    TheRenderScene->SetupViews(*RendererDescriptorHeap);
     OnResizeCpuRaytracer();
     OnResizeGpuRaytracer();
     OnResizeRasterRender();

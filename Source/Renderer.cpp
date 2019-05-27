@@ -149,10 +149,10 @@ void Renderer::SetupRenderBuffers()
     for (int i = 0; i < 2; i++)
     {
         DirectLightingAOBuffer[i].Destroy();
-        DirectLightingAOBuffer[i].CreateEx("Direct Lighting + AO", width, height, 1, RaytracingBufferType, nullptr, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
+        DirectLightingAOBuffer[i].CreateEx("Direct Lighting + AO", width, height, 1, RaytracingBufferType, nullptr, D3D12_HEAP_TYPE_DEFAULT, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
 
         IndirectLightingBuffer[i].Destroy();
-        IndirectLightingBuffer[i].CreateEx("Indirect Lighting", width, height, 1, RaytracingBufferType, nullptr, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
+        IndirectLightingBuffer[i].CreateEx("Indirect Lighting", width, height, 1, RaytracingBufferType, nullptr, D3D12_HEAP_TYPE_DEFAULT, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
     }
 }
 

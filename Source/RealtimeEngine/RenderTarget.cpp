@@ -379,11 +379,11 @@ static D3D12_RESOURCE_DESC DescribeTex2D(uint32_t width, uint32_t height, uint32
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static void CreateTextureResource(GpuResource* pGpuResource, const string_t& name, const D3D12_RESOURCE_DESC& resourceDesc, D3D12_CLEAR_VALUE* clearValue, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr, D3D12_RESOURCE_STATES usageStates)
+static void CreateTextureResource(GpuResource* pGpuResource, const string_t& name, const D3D12_RESOURCE_DESC& resourceDesc, D3D12_CLEAR_VALUE* clearValue, D3D12_HEAP_TYPE heapType, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr, D3D12_RESOURCE_STATES usageStates)
 {
     pGpuResource->Destroy();
 
-    CD3DX12_HEAP_PROPERTIES heapProps(D3D12_HEAP_TYPE_DEFAULT);
+    CD3DX12_HEAP_PROPERTIES heapProps(heapType);
     ASSERT_SUCCEEDED(RenderDevice::Get().GetD3DDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &resourceDesc, usageStates, clearValue, IID_PPV_ARGS(&pGpuResource->GetResourceRef())));
 
     pGpuResource->GetResource()->SetName(MakeWStr(name).c_str());
@@ -518,13 +518,13 @@ void ColorTarget::Create(const string_t& name, uint32_t width, uint32_t height, 
     clearValue.Format   = format;
     memcpy(&clearValue.Color, ClearColor, sizeof(ClearColor));
 
-    CreateTextureResource(this, name, resourceDesc, &clearValue, vidMemPtr, UsageState);
+    CreateTextureResource(this, name, resourceDesc, &clearValue, D3D12_HEAP_TYPE_DEFAULT, vidMemPtr, UsageState);
     CreateDerivedViews(RenderDevice::Get().GetD3DDevice(), format, 1, numMips);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RealtimeEngine::ColorTarget::CreateEx(const string_t& name, uint32_t width, uint32_t height, uint32_t numMips, DXGI_FORMAT format, D3D12_CLEAR_VALUE* clearValue, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr, D3D12_RESOURCE_FLAGS resourceFlags, D3D12_RESOURCE_STATES usageStates, bool createViews)
+void RealtimeEngine::ColorTarget::CreateEx(const string_t& name, uint32_t width, uint32_t height, uint32_t numMips, DXGI_FORMAT format, D3D12_CLEAR_VALUE* clearValue, D3D12_HEAP_TYPE heapType, D3D12_GPU_VIRTUAL_ADDRESS vidMemPtr, D3D12_RESOURCE_FLAGS resourceFlags, D3D12_RESOURCE_STATES usageStates, bool createViews)
 {
     numMips = (numMips == 0 ? ComputeNumMips(width, height) : numMips);
 
@@ -540,7 +540,7 @@ void RealtimeEngine::ColorTarget::CreateEx(const string_t& name, uint32_t width,
     resourceDesc.SampleDesc.Count = FragmentCount;
     resourceDesc.SampleDesc.Quality = 0;
 
-    CreateTextureResource(this, name, resourceDesc, clearValue, vidMemPtr, usageStates);
+    CreateTextureResource(this, name, resourceDesc, clearValue, heapType, vidMemPtr, usageStates);
 
     if (createViews)
     {
@@ -566,7 +566,7 @@ void ColorTarget::CreateArray(const string_t& name, uint32_t width, uint32_t hei
     clearValue.Format   = format;
     memcpy(&clearValue.Color, ClearColor, sizeof(ClearColor));
 
-    CreateTextureResource(this, name, resourceDesc, &clearValue, vidMemPtr, UsageState);
+    CreateTextureResource(this, name, resourceDesc, &clearValue, D3D12_HEAP_TYPE_DEFAULT, vidMemPtr, UsageState);
     CreateDerivedViews(RenderDevice::Get().GetD3DDevice(), format, arrayCount, 1);
 }
 
@@ -649,7 +649,7 @@ void DepthTarget::Create(const string_t& name, uint32_t width, uint32_t height, 
     clearValue.Color[0] = clearValue.Color[1] = clearValue.Color[2] = clearValue.Color[3] = ClearDepth;
     clearValue.Format = format;
 
-    CreateTextureResource(this, name, resourceDesc, &clearValue, vidMemPtr, UsageState);
+    CreateTextureResource(this, name, resourceDesc, &clearValue, D3D12_HEAP_TYPE_DEFAULT, vidMemPtr, UsageState);
     CreateDerivedViews(RenderDevice::Get().GetD3DDevice(), format);
 }
 
@@ -672,7 +672,7 @@ void DepthTarget::Create(const string_t& name, uint32_t width, uint32_t height, 
     clearValue.Color[0] = clearValue.Color[1] = clearValue.Color[2] = clearValue.Color[3] = ClearDepth;
     clearValue.Format = format;
 
-    CreateTextureResource(this, name, resourceDesc, &clearValue, vidMemPtr, UsageState);
+    CreateTextureResource(this, name, resourceDesc, &clearValue, D3D12_HEAP_TYPE_DEFAULT, vidMemPtr, UsageState);
     CreateDerivedViews(RenderDevice::Get().GetD3DDevice(), format);
 }
 

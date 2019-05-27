@@ -134,10 +134,10 @@ namespace RaytracingLocalRootSigSlot
 
 void Renderer::CleanupGpuRaytracer()
 {
-    if (TheRaytracingPSO != nullptr)
+    if (RaytracingPSOPtr != nullptr)
     {
-        delete TheRaytracingPSO;
-        TheRaytracingPSO = nullptr;
+        delete RaytracingPSOPtr;
+        RaytracingPSOPtr = nullptr;
     }
 }
 
@@ -299,14 +299,14 @@ void Renderer::SetupGpuRaytracingDescriptors()
 void Renderer::SetupGpuRaytracingPSO()
 {
     // Delete old one, if it exists
-    if (TheRaytracingPSO != nullptr)
+    if (RaytracingPSOPtr != nullptr)
     {
-        delete TheRaytracingPSO;
-        TheRaytracingPSO = nullptr;
+        delete RaytracingPSOPtr;
+        RaytracingPSOPtr = nullptr;
     }
 
     // Create the PSO
-    TheRaytracingPSO = new RaytracingPSO();
+    RaytracingPSOPtr = new RaytracingPSO();
 
     // Setup shaders and configs for the PSO
     {
@@ -314,42 +314,42 @@ void Renderer::SetupGpuRaytracingPSO()
         {
             ID3DBlobPtr pDxilLib;
             ThrowIfFailed(D3DReadFileToBlob(SHADERBUILD_DIR L"\\Raytracing.cso", &pDxilLib));
-            TheRaytracingPSO->SetDxilLibrary(pDxilLib, sDxilLibEntryPoints, ARRAY_SIZE(sDxilLibEntryPoints));
+            RaytracingPSOPtr->SetDxilLibrary(pDxilLib, sDxilLibEntryPoints, ARRAY_SIZE(sDxilLibEntryPoints));
         }
 
         // Add hit groups
-        TheRaytracingPSO->AddHitGroup(nullptr, sAoClosestHitShaderName, sAoHitGroupName);
-        TheRaytracingPSO->AddHitGroup(nullptr, sDirectLightingClosestHitShaderName, sDirectLightingHitGroupName);
-        TheRaytracingPSO->AddHitGroup(nullptr, sIndirectLightingClosestHitShaderName, sIndirectLightingHitGroupName);
-        HitProgramCount = 3;
+        RaytracingPSOPtr->AddHitGroup(nullptr, sAoClosestHitShaderName, sAoHitGroupName);
+        RaytracingPSOPtr->AddHitGroup(nullptr, sDirectLightingClosestHitShaderName, sDirectLightingHitGroupName);
+        RaytracingPSOPtr->AddHitGroup(nullptr, sIndirectLightingClosestHitShaderName, sIndirectLightingHitGroupName);
+        RaytracingHitProgramCount = 3;
 
         // Add local root signatures
-        TheRaytracingPSO->SetRootSignature(RaytracingGlobalRootSig);
-        TheRaytracingPSO->AddLocalRootSignature(&RaytracingLocalRootSig);
+        RaytracingPSOPtr->SetRootSignature(RaytracingGlobalRootSig);
+        RaytracingPSOPtr->AddLocalRootSignature(&RaytracingLocalRootSig);
 
         // Associate shaders with local root signature
-        TheRaytracingPSO->AddExportAssociationWithLocalRootSignature(sDxilLibEntryPoints, ARRAY_SIZE(sDxilLibEntryPoints), &RaytracingLocalRootSig);
+        RaytracingPSOPtr->AddExportAssociationWithLocalRootSignature(sDxilLibEntryPoints, ARRAY_SIZE(sDxilLibEntryPoints), &RaytracingLocalRootSig);
 
         // Bind data (like descriptor data) to shaders
         {
             // Raygen
-            TheRaytracingPSO->GetRaygenShaderTable().AddShaderRecordData(
+            RaytracingPSOPtr->GetRaygenShaderTable().AddShaderRecordData(
                 sRaygenShaderName,
                 nullptr,
                 0);
 
             // Miss
-            RaytracingShaderIndex[RaytracingShaderType_DirectLightingMiss] = TheRaytracingPSO->GetMissShaderTable().AddShaderRecordData(
+            RaytracingShaderIndex[RaytracingShaderType_DirectLightingMiss] = RaytracingPSOPtr->GetMissShaderTable().AddShaderRecordData(
                 sDirectLightingMissShaderName,
                 nullptr,
                 0);
 
-            RaytracingShaderIndex[RaytracingShaderType_IndirectLightingMiss] = TheRaytracingPSO->GetMissShaderTable().AddShaderRecordData(
+            RaytracingShaderIndex[RaytracingShaderType_IndirectLightingMiss] = RaytracingPSOPtr->GetMissShaderTable().AddShaderRecordData(
                 sIndirectLightingMissShaderName,
                 nullptr,
                 0);
 
-            RaytracingShaderIndex[RaytracingShaderType_AOMiss] = TheRaytracingPSO->GetMissShaderTable().AddShaderRecordData(
+            RaytracingShaderIndex[RaytracingShaderType_AOMiss] = RaytracingPSOPtr->GetMissShaderTable().AddShaderRecordData(
                 sAoMissShaderName,
                 nullptr,
                 0);
@@ -385,7 +385,7 @@ void Renderer::SetupGpuRaytracingPSO()
                 for (int i = 0; i < TheRenderScene->GetRenderSceneList().size(); i++)
                 {
                     uint32_t dataOffset = (i * localDataStride);
-                    uint32_t index = TheRaytracingPSO->GetHitGroupShaderTable().AddShaderRecordData(
+                    uint32_t index = RaytracingPSOPtr->GetHitGroupShaderTable().AddShaderRecordData(
                         sDirectLightingHitGroupName,
                         pHitGroupData + dataOffset,
                         localDataStride);
@@ -399,7 +399,7 @@ void Renderer::SetupGpuRaytracingPSO()
                 for (int i = 0; i < TheRenderScene->GetRenderSceneList().size(); i++)
                 {
                     uint32_t dataOffset = (i * localDataStride);
-                    uint32_t index = TheRaytracingPSO->GetHitGroupShaderTable().AddShaderRecordData(
+                    uint32_t index = RaytracingPSOPtr->GetHitGroupShaderTable().AddShaderRecordData(
                         sIndirectLightingHitGroupName,
                         pHitGroupData + dataOffset,
                         localDataStride);
@@ -413,7 +413,7 @@ void Renderer::SetupGpuRaytracingPSO()
                 for (int i = 0; i < TheRenderScene->GetRenderSceneList().size(); i++)
                 {
                     uint32_t dataOffset = (i * localDataStride);
-                    uint32_t index = TheRaytracingPSO->GetHitGroupShaderTable().AddShaderRecordData(
+                    uint32_t index = RaytracingPSOPtr->GetHitGroupShaderTable().AddShaderRecordData(
                         sAoHitGroupName,
                         pHitGroupData + dataOffset,
                         localDataStride);
@@ -430,17 +430,17 @@ void Renderer::SetupGpuRaytracingPSO()
         }
 
         // Shader config
-        TheRaytracingPSO->SetShaderConfig(D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES, RAYTRACER_MAX_PAYLOAD_SIZE);
+        RaytracingPSOPtr->SetShaderConfig(D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES, RAYTRACER_MAX_PAYLOAD_SIZE);
 
         // Associate shaders with shader config
-        TheRaytracingPSO->AddExportAssociationWithShaderConfig(sDxilLibEntryPoints, ARRAY_SIZE(sDxilLibEntryPoints));
+        RaytracingPSOPtr->AddExportAssociationWithShaderConfig(sDxilLibEntryPoints, ARRAY_SIZE(sDxilLibEntryPoints));
 
         // Pipeline config
-        TheRaytracingPSO->SetPipelineConfig(UserInput.GpuMaxRayRecursionDepth);
+        RaytracingPSOPtr->SetPipelineConfig(TheUserInputData.GpuMaxRayRecursionDepth);
     }
 
     // Done, finalize
-    TheRaytracingPSO->Finalize();
+    RaytracingPSOPtr->Finalize();
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -456,11 +456,11 @@ void Renderer::RenderGpuRaytracing()
             XMStoreFloat4(&sceneCB.CameraPosition, TheRenderScene->GetCamera().GetEye());
             XMStoreFloat4x4(&sceneCB.InverseTransposeViewProjectionMatrix, XMMatrixInverse(nullptr, TheRenderScene->GetCamera().GetViewMatrix() * TheRenderScene->GetCamera().GetProjectionMatrix()));
             sceneCB.OutputResolution                = DirectX::XMFLOAT2((float)Width, (float)Height);
-            sceneCB.AORadius                        = UserInput.GpuAORadius;
+            sceneCB.AORadius                        = TheUserInputData.GpuAORadius;
             sceneCB.FrameCount                      = FrameCount;
-            sceneCB.NumRays                         = UserInput.GpuNumRaysPerPixel;
+            sceneCB.NumRays                         = TheUserInputData.GpuNumRaysPerPixel;
             sceneCB.AccumCount                      = AccumCount++;
-            sceneCB.HitProgramCount                 = HitProgramCount;
+            sceneCB.HitProgramCount                 = RaytracingHitProgramCount;
             sceneCB.NumLights                       = (UINT)TheRenderScene->GetAreaLights().size();
             sceneCB.AOHitGroupIndex                 = RaytracingShaderIndex[RaytracingShaderType_AOHitgroup];
             sceneCB.AOMissIndex                     = RaytracingShaderIndex[RaytracingShaderType_AOMiss];
@@ -481,7 +481,7 @@ void Renderer::RenderGpuRaytracing()
 
         // Set root sig and pipeline state
         computeContext.SetRootSignature(RaytracingGlobalRootSig);
-        computeContext.SetPipelineState(*TheRaytracingPSO);
+        computeContext.SetPipelineState(*RaytracingPSOPtr);
 
         // Set descriptor heaps and tables
         computeContext.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, RendererDescriptorHeap->GetDescriptorHeap());
@@ -502,7 +502,7 @@ void Renderer::RenderGpuRaytracing()
         computeContext.FlushResourceBarriers();
 
         // Finally dispatch rays
-        computeContext.DispatchRays(*TheRaytracingPSO, Width, Height);
+        computeContext.DispatchRays(*RaytracingPSOPtr, Width, Height);
 
         // Copy current results to previous
         computeContext.CopyBuffer(DirectLightingAOBuffer[0], DirectLightingAOBuffer[1]);

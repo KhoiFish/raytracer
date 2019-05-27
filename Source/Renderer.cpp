@@ -47,7 +47,7 @@ Renderer::Renderer(uint32_t width, uint32_t height)
     , RendererDescriptorHeap(nullptr)
     , IsCameraDirty(true)
     , LoadSceneRequested(false)
-    , HitProgramCount(0)
+    , RaytracingHitProgramCount(0)
     , RasterDescriptorIndexStart(0)
     , RaytracingGlobalSigDataIndexStart(0)
     , RaytracingLocalSigDataIndexStart(0)
@@ -112,7 +112,7 @@ void Renderer::OnInit()
     // Get the number of cores on this system
     SYSTEM_INFO sysInfo;
     GetSystemInfo(&sysInfo);
-    MaxNumCpuThreads = UserInput.CpuNumThreads = sysInfo.dwNumberOfProcessors;
+    MaxNumCpuThreads = TheUserInputData.CpuNumThreads = sysInfo.dwNumberOfProcessors;
 
     // Init the render device
     RenderDevice::Initialize(PlatformApp::GetHwnd(), Width, Height, this, &RendererDescriptorHeapCollection, BackbufferFormat);
@@ -176,14 +176,14 @@ void Renderer::LoadScene()
     }
 
     // Load the selected scene
-    TheWorldScene = GetSampleScene(SampleScene(UserInput.SampleScene));
+    TheWorldScene = GetSampleScene(SampleScene(TheUserInputData.SampleScene));
     TheWorldScene->GetCamera().SetAspect((float)RenderDevice::Get().GetBackbufferWidth() / (float)RenderDevice::Get().GetBackbufferHeight());
     TheWorldScene->GetCamera().SetFocusDistanceToLookAt();
     
     TheRenderScene = new RealtimeEngine::RealtimeScene(TheWorldScene);
     TheRenderScene->SetupTextureViews(*RendererDescriptorHeap);
 
-    UserInput.VertFov = TheWorldScene->GetCamera().GetVertFov();
+    TheUserInputData.VertFov = TheWorldScene->GetCamera().GetVertFov();
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -200,7 +200,7 @@ void Renderer::OnResizeCpuRaytracer()
     }
 
     // Create the ray tracer
-    TheRaytracer = new Raytracer(backbufferWidth, backbufferHeight, UserInput.CpuNumSamplesPerRay, UserInput.CpuMaxScatterDepth, UserInput.CpuNumThreads, true);
+    TheRaytracer = new Raytracer(backbufferWidth, backbufferHeight, TheUserInputData.CpuNumSamplesPerRay, TheUserInputData.CpuMaxScatterDepth, TheUserInputData.CpuNumThreads, true);
 
     // Reset the aspect ratio on the scene camera
     if (TheWorldScene != nullptr)
@@ -294,17 +294,17 @@ void Renderer::OnUpdate(float dtSeconds)
 
     // Handle camera updates
     {
-        float scale          = (UserInput.ShiftKeyPressed ? 64.f : 32.0f) * 16.f * dtSeconds;
-        float forwardAmount  = (UserInput.Forward - UserInput.Backward) * scale;
-        float strafeAmount   = (UserInput.Left    - UserInput.Right)    * scale;
-        float upDownAmount   = (UserInput.Up      - UserInput.Down)     * scale;
+        float scale          = (TheUserInputData.ShiftKeyPressed ? 64.f : 32.0f) * 16.f * dtSeconds;
+        float forwardAmount  = (TheUserInputData.Forward - TheUserInputData.Backward) * scale;
+        float strafeAmount   = (TheUserInputData.Left    - TheUserInputData.Right)    * scale;
+        float upDownAmount   = (TheUserInputData.Up      - TheUserInputData.Down)     * scale;
 
         // Camera needs update
         if (IsCameraDirty || !CompareFloatEqual(forwardAmount, 0) || !CompareFloatEqual(strafeAmount, 0) || !CompareFloatEqual(upDownAmount, 0))
         {
-            TheRenderScene->UpdateCamera(UserInput.VertFov, forwardAmount, strafeAmount, upDownAmount, UserInput.MouseDx, UserInput.MouseDy, TheWorldScene->GetCamera());
-            UserInput.MouseDx = 0;
-            UserInput.MouseDy = 0;
+            TheRenderScene->UpdateCamera(TheUserInputData.VertFov, forwardAmount, strafeAmount, upDownAmount, TheUserInputData.MouseDx, TheUserInputData.MouseDy, TheWorldScene->GetCamera());
+            TheUserInputData.MouseDx = 0;
+            TheUserInputData.MouseDy = 0;
 
             // Restart raytrace
             if (TheRaytracer != nullptr && SelectedBufferIndex == CpuResultsBufferIndex)
@@ -323,7 +323,7 @@ void Renderer::OnUpdate(float dtSeconds)
 void Renderer::OnRender()
 {
     // Allow multiple temporal accumulation per frame
-    for (int i = 0; i < UserInput.GpuNumAccumPasses; i++)
+    for (int i = 0; i < TheUserInputData.GpuNumAccumPasses; i++)
     {
         RenderGeometryPass();
         RenderGpuRaytracing();

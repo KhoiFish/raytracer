@@ -71,9 +71,9 @@ void Renderer::RenderGui()
                 ImGui::BulletText("Completion: %d%%", percentInt);
                 ImGui::BulletText("Time: %dm:%ds", numMinutes, numSeconds);
                 ImGui::BulletText("Resolution: %dx%d", Width, Height);
-                ImGui::BulletText("Scatter Depth: %d", UserInput.CpuMaxScatterDepth);
-                ImGui::BulletText("Num Threads: %d", UserInput.CpuNumThreads);
-                ImGui::BulletText("Num Samples: %d", UserInput.CpuNumSamplesPerRay);
+                ImGui::BulletText("Scatter Depth: %d", TheUserInputData.CpuMaxScatterDepth);
+                ImGui::BulletText("Num Threads: %d", TheUserInputData.CpuNumThreads);
+                ImGui::BulletText("Num Samples: %d", TheUserInputData.CpuNumSamplesPerRay);
                 ImGui::BulletText("Done Samples: %d", stats.CompletedSampleCount);
                 ImGui::BulletText("Rays Fired: %" PRId64 "", stats.TotalRaysFired);
                 ImGui::BulletText("Num Pixels Sampled: %" PRId64 "", stats.NumPixelSamples);
@@ -109,7 +109,7 @@ void Renderer::RenderGui()
             ImGui::Separator();
             ImGui::Text("GLOBAL OPTIONS");
             ImGui::Separator();
-            if (ImGui::ListBox("Scene Select", &UserInput.SampleScene, SampleSceneNames, IM_ARRAYSIZE(SampleSceneNames), MaxScene))
+            if (ImGui::ListBox("Scene Select", &TheUserInputData.SampleScene, SampleSceneNames, IM_ARRAYSIZE(SampleSceneNames), MaxScene))
             {
                 LoadSceneRequested = true;
             }
@@ -121,21 +121,21 @@ void Renderer::RenderGui()
             ImGui::Text("CPU RAYTRACE OPTIONS");
             ImGui::Separator();
 
-            _itoa_s(UserInput.CpuNumSamplesPerRay, stringBuf, 10);
+            _itoa_s(TheUserInputData.CpuNumSamplesPerRay, stringBuf, 10);
             if (ImGui::InputText("Cpu Num Rays Per Pixel", stringBuf, IM_ARRAYSIZE(stringBuf), ImGuiInputTextFlags_CharsDecimal))
             {
-                UserInput.CpuNumSamplesPerRay = atoi(stringBuf);
+                TheUserInputData.CpuNumSamplesPerRay = atoi(stringBuf);
                 cpuOptionsChanged = true;
             }
 
-            _itoa_s(UserInput.CpuMaxScatterDepth, stringBuf, 10);
+            _itoa_s(TheUserInputData.CpuMaxScatterDepth, stringBuf, 10);
             if (ImGui::InputText("Cpu Recursion Depth", stringBuf, IM_ARRAYSIZE(stringBuf), ImGuiInputTextFlags_CharsDecimal))
             {
-                UserInput.CpuMaxScatterDepth = atoi(stringBuf);
+                TheUserInputData.CpuMaxScatterDepth = atoi(stringBuf);
                 cpuOptionsChanged = true;
             }
 
-            if (ImGui::SliderInt("Cpu Num Threads", &UserInput.CpuNumThreads, 1, MaxNumCpuThreads))
+            if (ImGui::SliderInt("Cpu Num Threads", &TheUserInputData.CpuNumThreads, 1, MaxNumCpuThreads))
             {
                 cpuOptionsChanged = true;
             }
@@ -154,32 +154,32 @@ void Renderer::RenderGui()
             ImGui::Separator();
 
 
-            if (ImGui::SliderInt("Num Accum. Passes Per Frame", &UserInput.GpuNumAccumPasses, 1, 16))
+            if (ImGui::SliderInt("Num Accum. Passes Per Frame", &TheUserInputData.GpuNumAccumPasses, 1, 16))
             {
                 gpuOptionsChanged = true;
             }
 
-            if (ImGui::SliderInt("Rays Per Pixel", &UserInput.GpuNumRaysPerPixel, 1, 100))
+            if (ImGui::SliderInt("Rays Per Pixel", &TheUserInputData.GpuNumRaysPerPixel, 1, 100))
             {
                 gpuOptionsChanged = true;
             }
 
-            if (ImGui::SliderFloat("Direct Light Scale", &UserInput.GpuDirectLightMult, 0.0f, 10.0f))
+            if (ImGui::SliderFloat("Direct Light Scale", &TheUserInputData.GpuDirectLightMult, 0.0f, 10.0f))
             {
                 gpuOptionsChanged = true;
             }
 
-            if (ImGui::SliderFloat("Indirect Light Scale", &UserInput.GpuIndirectLightMult, 0.0f, 10.0f))
+            if (ImGui::SliderFloat("Indirect Light Scale", &TheUserInputData.GpuIndirectLightMult, 0.0f, 10.0f))
             {
                 gpuOptionsChanged = true;
             }
 
-            if (ImGui::SliderFloat("AO Radius", &UserInput.GpuAORadius, 1.0f, 1000.0f))
+            if (ImGui::SliderFloat("AO Radius", &TheUserInputData.GpuAORadius, 1.0f, 1000.0f))
             {
                 gpuOptionsChanged = true;
             }
 
-            if (ImGui::Checkbox("Enable Camera Jitter", &UserInput.GpuCameraJitter))
+            if (ImGui::Checkbox("Enable Camera Jitter", &TheUserInputData.GpuCameraJitter))
             {
                 gpuOptionsChanged = true;
             }

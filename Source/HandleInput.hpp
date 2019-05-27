@@ -36,7 +36,7 @@ void Renderer::OnKeyDown(UINT8 key)
 
         case VK_SHIFT:
         {
-            UserInput.ShiftKeyPressed = true;
+            TheUserInputData.ShiftKeyPressed = true;
             break;
         }
 
@@ -44,7 +44,7 @@ void Renderer::OnKeyDown(UINT8 key)
         case 'W':
         case 'w':
         {
-            UserInput.Forward = 1.0f;
+            TheUserInputData.Forward = 1.0f;
             SetCameraDirty();
             break;
         }
@@ -53,7 +53,7 @@ void Renderer::OnKeyDown(UINT8 key)
         case 'S':
         case 's':
         {
-            UserInput.Backward = 1.0f;
+            TheUserInputData.Backward = 1.0f;
             SetCameraDirty();
             break;
         }
@@ -62,7 +62,7 @@ void Renderer::OnKeyDown(UINT8 key)
         case 'A':
         case 'a':
         {
-            UserInput.Left = 1.0f;
+            TheUserInputData.Left = 1.0f;
             SetCameraDirty();
             break;
         }
@@ -71,7 +71,7 @@ void Renderer::OnKeyDown(UINT8 key)
         case 'D':
         case 'd':
         {
-            UserInput.Right = 1.0f;
+            TheUserInputData.Right = 1.0f;
             SetCameraDirty();
             break;
         }
@@ -79,7 +79,7 @@ void Renderer::OnKeyDown(UINT8 key)
         case 'Q':
         case 'q':
         {
-            UserInput.Down = 1.0f;
+            TheUserInputData.Down = 1.0f;
             SetCameraDirty();
             break;
         }
@@ -88,7 +88,7 @@ void Renderer::OnKeyDown(UINT8 key)
         case 'E':
         case 'e':
         {
-            UserInput.Up = 1.0f;
+            TheUserInputData.Up = 1.0f;
             SetCameraDirty();
             break;
         }
@@ -103,7 +103,7 @@ void Renderer::OnKeyUp(uint8_t key)
     {
         case VK_SHIFT:
         {
-            UserInput.ShiftKeyPressed = false;
+            TheUserInputData.ShiftKeyPressed = false;
             break;
         }
 
@@ -111,7 +111,7 @@ void Renderer::OnKeyUp(uint8_t key)
         case 'W':
         case 'w':
         {
-            UserInput.Forward = 0.0f;
+            TheUserInputData.Forward = 0.0f;
             SetCameraDirty();
             break;
         }
@@ -120,7 +120,7 @@ void Renderer::OnKeyUp(uint8_t key)
         case 'S':
         case 's':
         {
-            UserInput.Backward = 0.0f;
+            TheUserInputData.Backward = 0.0f;
             SetCameraDirty();
             break;
         }
@@ -129,7 +129,7 @@ void Renderer::OnKeyUp(uint8_t key)
         case 'A':
         case 'a':
         {
-            UserInput.Left = 0.0f;
+            TheUserInputData.Left = 0.0f;
             SetCameraDirty();
             break;
         }
@@ -138,7 +138,7 @@ void Renderer::OnKeyUp(uint8_t key)
         case 'D':
         case 'd':
         {
-            UserInput.Right = 0.0f;
+            TheUserInputData.Right = 0.0f;
             SetCameraDirty();
             break;
         }
@@ -146,7 +146,7 @@ void Renderer::OnKeyUp(uint8_t key)
         case 'Q':
         case 'q':
         {
-            UserInput.Down = 0.0f;
+            TheUserInputData.Down = 0.0f;
             SetCameraDirty();
             break;
         }
@@ -154,7 +154,7 @@ void Renderer::OnKeyUp(uint8_t key)
         case 'E':
         case 'e':
         {
-            UserInput.Up = 0.0f;
+            TheUserInputData.Up = 0.0f;
             SetCameraDirty();
             break;
         }
@@ -186,12 +186,12 @@ bool Renderer::OverrideImguiInput()
 
 void Renderer::OnMouseMove(int32_t x, int32_t y)
 {
-    if (UserInput.LeftMouseButtonPressed)
+    if (TheUserInputData.LeftMouseButtonPressed)
     {
-        UserInput.MouseDx    = int(x) - UserInput.PrevMouseX;
-        UserInput.MouseDy    = int(y) - UserInput.PrevMouseY;
-        UserInput.PrevMouseX = x;
-        UserInput.PrevMouseY = y;
+        TheUserInputData.MouseDx    = int(x) - TheUserInputData.PrevMouseX;
+        TheUserInputData.MouseDy    = int(y) - TheUserInputData.PrevMouseY;
+        TheUserInputData.PrevMouseX = x;
+        TheUserInputData.PrevMouseY = y;
         SetCameraDirty();
     }
 }
@@ -200,9 +200,9 @@ void Renderer::OnMouseMove(int32_t x, int32_t y)
 
 void Renderer::OnLeftButtonDown(int32_t x, int32_t y)
 {
-    UserInput.LeftMouseButtonPressed = true;
-    UserInput.PrevMouseX             = x;
-    UserInput.PrevMouseY             = y;
+    TheUserInputData.LeftMouseButtonPressed = true;
+    TheUserInputData.PrevMouseX             = x;
+    TheUserInputData.PrevMouseY             = y;
     SetCameraDirty();
 }
 
@@ -210,8 +210,8 @@ void Renderer::OnLeftButtonDown(int32_t x, int32_t y)
 
 void Renderer::OnLeftButtonUp(int32_t x, int32_t y)
 {
-    UserInput.LeftMouseButtonPressed = false;
-    UserInput.PrevMouseX             = x;
-    UserInput.PrevMouseY             = y;
+    TheUserInputData.LeftMouseButtonPressed = false;
+    TheUserInputData.PrevMouseX             = x;
+    TheUserInputData.PrevMouseY             = y;
     SetCameraDirty();
 }

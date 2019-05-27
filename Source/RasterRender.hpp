@@ -383,7 +383,7 @@ void Renderer::RenderGeometryPass()
 {
     // Jitter camera
     {
-        if (UserInput.GpuCameraJitter)
+        if (TheUserInputData.GpuCameraJitter)
         {
             // Half pixel offset
             float xOff = (float(RandDist(RandGen)) - 0.5f);
@@ -498,7 +498,7 @@ void Renderer::RenderCompositePass()
                 }
 
                 // Setup direct/indirect multipliers
-                compositeCB.DirectIndirectLightMult = XMFLOAT2(UserInput.GpuDirectLightMult, UserInput.GpuIndirectLightMult);
+                compositeCB.DirectIndirectLightMult = XMFLOAT2(TheUserInputData.GpuDirectLightMult, TheUserInputData.GpuIndirectLightMult);
             }
             renderContext.WriteBuffer(RasterCompositeConstantBuffer, 0, &compositeCB, sizeof(compositeCB));
 

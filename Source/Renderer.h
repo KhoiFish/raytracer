@@ -174,7 +174,7 @@ private:
     Core::Raytracer*                TheRaytracer;
     Core::WorldScene*               TheWorldScene;
     RealtimeEngine::RealtimeScene*  TheRenderScene;
-    UserInputData                   UserInput;
+    UserInputData                   TheUserInputData;
 
     int                             FrameCount;
     int                             AccumCount;
@@ -210,10 +210,10 @@ private:
     
     RootSignature                   RaytracingGlobalRootSig;
     RootSignature                   RaytracingLocalRootSig;
-    RaytracingPSO*                  TheRaytracingPSO;
+    RaytracingPSO*                  RaytracingPSOPtr;
     GpuBuffer                       RaytracingSceneConstantBuffer;
     int32_t                         RaytracingShaderIndex[RaytracingShaderType_Num];
-    int32_t                         HitProgramCount;
+    int32_t                         RaytracingHitProgramCount;
     uint32_t                        RaytracingGlobalSigDataIndexStart;
     uint32_t                        RaytracingLocalSigDataIndexStart;
 };

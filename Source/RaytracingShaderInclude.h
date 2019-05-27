@@ -24,12 +24,6 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static const XMFLOAT4   ChromiumReflectance = XMFLOAT4(0.549f, 0.556f, 0.554f, 1.0f);
-static const XMFLOAT4   BackgroundColor     = XMFLOAT4(0.8f, 0.9f, 1.0f, 1.0f);
-static const float      InShadowRadiance    = 0.35f;
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
 struct ShadowRayPayload
 {
     float       Value;
@@ -54,48 +48,7 @@ struct IndirectRayPayload
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-namespace RayType
-{
-    enum Enum
-    {
-        Radiance = 0,   // ~ Primary, reflected camera/view rays calculating color for each hit.
-        Shadow,         // ~ Shadow/visibility rays, only testing for occlusion
-        Count
-    };
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-namespace TraceRayParameters
-{
-    static const UINT InstanceMask = ~0;   // Everything is visible.
-    namespace HitGroup
-    {
-        static const UINT Offset[RayType::Count] =
-        {
-            0, // Radiance ray
-            1  // Shadow ray
-        };
-
-        static const UINT GeometryStride = RayType::Count;
-    }
-
-    namespace MissShader
-    {
-        static const UINT Offset[RayType::Count] =
-        {
-            0, // Radiance ray
-            1  // Shadow ray
-        };
-    }
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
 ALIGN_BEGIN(16)
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
 struct RaytracingGlobalCB
 {
     XMFLOAT4    CameraPosition;
@@ -116,9 +69,6 @@ struct RaytracingGlobalCB
     int         IndirectLightingMissIndex;
     int         IndirectLightingHitGroupIndex;
 };
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
 ALIGN_END
 
 #endif

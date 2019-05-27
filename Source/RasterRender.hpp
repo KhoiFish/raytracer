@@ -370,10 +370,9 @@ void Renderer::RenderSceneList(GraphicsContext& renderContext)
         renderContext.SetDescriptorTable(RasterRenderRootSig::InstanceCB, RendererDescriptorHeap->GetGpuHandle(pNode->InstanceDataHeapIndex));
         renderContext.SetDescriptorTable(RasterRenderRootSig::MaterialCB, RendererDescriptorHeap->GetGpuHandle(pNode->MaterialHeapIndex));
         renderContext.SetDescriptorTable(RasterRenderRootSig::DiffuseTex, RendererDescriptorHeap->GetGpuHandle(pNode->DiffuseTextureHeapIndex));
-        renderContext.SetVertexBuffer(0, TheRenderScene->GetRenderSceneList()[i]->VertexBuffer.VertexBufferView());
-        renderContext.SetIndexBuffer(TheRenderScene->GetRenderSceneList()[i]->IndexBuffer.IndexBufferView());
-        renderContext.FlushResourceBarriers();
-        renderContext.DrawIndexed((uint32_t)TheRenderScene->GetRenderSceneList()[i]->Indices.size());
+        renderContext.SetVertexBuffer(0, pNode->VertexBuffer.VertexBufferView());
+        renderContext.SetIndexBuffer(pNode->IndexBuffer.IndexBufferView());
+        renderContext.DrawIndexed((uint32_t)pNode->Indices.size());
     }
 }
 

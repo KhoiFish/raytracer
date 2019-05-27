@@ -326,7 +326,7 @@ RealtimeAreaLight CreateAreaLight(const Core::Vec4* points, const Core::XYZRect*
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static void CreateResourceViews(RealtimeSceneNode* renderNode)
+static void CreateVertexIndexBuffers(RealtimeSceneNode* renderNode)
 {
     renderNode->VertexBuffer.Create
     (
@@ -470,7 +470,7 @@ void RealtimeScene::GenerateRenderListFromWorld(const Core::IHitable* currentHea
         newNode->Material       = ConvertFromCoreMaterial(material);
         newNode->DiffuseTexture = CreateTextureFromMaterial(newNode->Material);
         newNode->Hitable        = currentHead;
-        CreateResourceViews(newNode);
+        CreateVertexIndexBuffers(newNode);
         outSceneList.push_back(newNode);
     }
     else if (tid == typeid(Core::HitableBox))
@@ -492,7 +492,7 @@ void RealtimeScene::GenerateRenderListFromWorld(const Core::IHitable* currentHea
         newNode->Material       = ConvertFromCoreMaterial(material);
         newNode->DiffuseTexture = CreateTextureFromMaterial(newNode->Material);
         newNode->Hitable        = currentHead;
-        CreateResourceViews(newNode);
+        CreateVertexIndexBuffers(newNode);
         outSceneList.push_back(newNode);
     }
     else if (tid == typeid(Core::TriMesh))
@@ -537,7 +537,7 @@ void RealtimeScene::GenerateRenderListFromWorld(const Core::IHitable* currentHea
         newNode->Material       = ConvertFromCoreMaterial(triMesh->GetMaterial());
         newNode->DiffuseTexture = (newTexture != nullptr) ? newTexture : CreateTextureFromMaterial(newNode->Material);
         newNode->Hitable        = currentHead;
-        CreateResourceViews(newNode);
+        CreateVertexIndexBuffers(newNode);
         outSceneList.push_back(newNode);
     }
     else if (tid == typeid(Core::XYZRect))
@@ -559,7 +559,7 @@ void RealtimeScene::GenerateRenderListFromWorld(const Core::IHitable* currentHea
         newNode->Material       = ConvertFromCoreMaterial(material);;
         newNode->DiffuseTexture = CreateTextureFromMaterial(newNode->Material);
         newNode->Hitable        = currentHead;
-        CreateResourceViews(newNode);
+        CreateVertexIndexBuffers(newNode);
         outSceneList.push_back(newNode);
 
         if (xyzRect->IsALightShape())

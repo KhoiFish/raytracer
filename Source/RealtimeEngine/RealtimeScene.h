@@ -63,25 +63,30 @@ namespace RealtimeEngine
 
     struct RealtimeSceneNode
     {
-        RealtimeSceneNode() : InstanceId(0), LightIndex(-1), Hitable(nullptr), DiffuseTexture(nullptr) {}
+        RealtimeSceneNode()
+            : Hitable(nullptr), DiffuseTexture(nullptr), InstanceId(0), LightIndex(-1)
+            , InstanceDataHeapIndex(0), MaterialHeapIndex(0), DiffuseTextureHeapIndex(0)
+        {}
+
         ~RealtimeSceneNode() {}
 
+        const Core::IHitable*                   Hitable;
+        RealtimeEngine::Texture*                DiffuseTexture;
         uint32_t                                InstanceId;
         int32_t                                 LightIndex;
-        const Core::IHitable*                   Hitable;
+        uint32_t                                InstanceDataHeapIndex;
+        uint32_t                                MaterialHeapIndex;
+        uint32_t                                DiffuseTextureHeapIndex;
+
         std::vector<RealtimeSceneVertexEx>      Vertices;
         std::vector<uint32_t>                   Indices;
         RealtimeEngine::GpuBuffer               VertexBuffer;
         RealtimeEngine::GpuBuffer               IndexBuffer;
-        RealtimeEngine::GpuBuffer               InstanceDataBuffer;
-        RealtimeEngine::GpuBuffer               MaterialBuffer;
+
         DirectX::XMMATRIX                       WorldMatrix;
         RenderMaterial                          Material;
-        RealtimeEngine::Texture*                DiffuseTexture;
-
-        uint32_t                                InstanceDataHeapIndex;
-        uint32_t                                MaterialHeapIndex;
-        uint32_t                                DiffuseTextureHeapIndex;
+        RealtimeEngine::GpuBuffer               InstanceDataBuffer;
+        RealtimeEngine::GpuBuffer               MaterialBuffer;
     };
 
     // ----------------------------------------------------------------------------------------------------------------------------

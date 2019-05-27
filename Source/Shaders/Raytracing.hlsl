@@ -381,6 +381,10 @@ void RayGeneration()
     float4 finalDirectAO = temporalAccumulate(gPrevDirectAO[launchIndex.xy], float4(direct, ao));
     float4 finalIndirect = temporalAccumulate(gPrevIndirect[launchIndex.xy], float4(indirect, 1));
 
+    // Zero out nan, inf, etc.
+    finalDirectAO = any(isnan(finalDirectAO)) ? float4(1, 1, 1, 1) : finalDirectAO;
+    finalIndirect = any(isnan(finalIndirect)) ? float4(1, 1, 1, 1) : finalIndirect;
+
     // Write final results to the output
     gCurrDirectAO[launchIndex.xy] = finalDirectAO;
     gCurrIndirect[launchIndex.xy] = finalIndirect;

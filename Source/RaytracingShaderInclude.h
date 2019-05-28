@@ -59,7 +59,6 @@ struct RaytracingGlobalCB
     int         FrameCount;
     int         NumRays;
     int         AccumCount;
-    int         HitProgramCount;
     int         NumLights;
 
     int         AOMissIndex;

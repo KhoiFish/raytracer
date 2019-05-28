@@ -24,6 +24,9 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+// Change this as you add/remove # of hit shaders
+#define RAYTRACING_NUM_HIT_PROGRAMS         3
+
 #define RAYTRACING_MAX_NUM_MATERIALS        1024
 #define RAYTRACING_MAX_NUM_LIGHTS           8
 
@@ -50,8 +53,10 @@ struct RenderNodeInstanceData
 {
     XMMATRIX  WorldMatrix;
     XMFLOAT4  AverageAlbedo;
-    UINT      InstanceId;
     int       LightIndex;
+    UINT      InstanceId;
+    UINT      Padding0;
+    UINT      Padding1;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------

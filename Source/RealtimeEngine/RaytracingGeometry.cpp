@@ -26,8 +26,9 @@ using namespace RealtimeEngine;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-RealtimeEngine::RaytracingGeometry::RaytracingGeometry()
-    : TLASBuffer(nullptr)
+RealtimeEngine::RaytracingGeometry::RaytracingGeometry(uint32_t hitProgramCount)
+    : HitProgramCount(hitProgramCount)
+    , TLASBuffer(nullptr)
     , ScratchBuffer(nullptr)
 {
     ;
@@ -173,7 +174,7 @@ void RaytracingGeometry::Build()
         instanceDesc.Flags                                  = D3D12_RAYTRACING_INSTANCE_FLAG_NONE;
         instanceDesc.InstanceID                             = GeometryInfoList[i].InstanceId;
         instanceDesc.InstanceMask                           = GeometryInfoList[i].InstanceMask;
-        instanceDesc.InstanceContributionToHitGroupIndex    = i;
+        instanceDesc.InstanceContributionToHitGroupIndex    = (i * HitProgramCount);
     }
 
     // Allocate instance data buffer and update TLAS desc

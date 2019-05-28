@@ -212,7 +212,6 @@ private:
     RaytracingPSO*                  RaytracingPSOPtr;
     UploadBuffer                    RaytracingSceneConstantBuffer;
     int32_t                         RaytracingShaderIndex[RaytracingShaderType_Num];
-    int32_t                         RaytracingHitProgramCount;
     uint32_t                        RaytracingGlobalSigDataIndexStart;
     uint32_t                        RaytracingLocalSigDataIndexStart;
 };

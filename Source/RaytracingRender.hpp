@@ -321,7 +321,6 @@ void Renderer::SetupGpuRaytracingPSO()
         RaytracingPSOPtr->AddHitGroup(nullptr, sAoClosestHitShaderName, sAoHitGroupName);
         RaytracingPSOPtr->AddHitGroup(nullptr, sDirectLightingClosestHitShaderName, sDirectLightingHitGroupName);
         RaytracingPSOPtr->AddHitGroup(nullptr, sIndirectLightingClosestHitShaderName, sIndirectLightingHitGroupName);
-        RaytracingHitProgramCount = 3;
 
         // Add local root signatures
         RaytracingPSOPtr->SetRootSignature(RaytracingGlobalRootSig);
@@ -356,76 +355,39 @@ void Renderer::SetupGpuRaytracingPSO()
 
             // Hit groups
             {
-                // Prepare the local data for the hitgroups
-                const uint32_t numDescriptorsPerInstance = 4;
-                const uint32_t localDataStride           = sizeof(D3D12_GPU_DESCRIPTOR_HANDLE) * numDescriptorsPerInstance;
-                uint8_t*       pHitGroupData             = new uint8_t[TheRenderScene->GetRenderSceneList().size() * localDataStride];
+                // Set the right indexes to the hit program
+                RaytracingShaderIndex[RaytracingShaderType_DirectLightingHitGroup]   = 0;
+                RaytracingShaderIndex[RaytracingShaderType_IndirectLightingHitGroup] = 1;
+                RaytracingShaderIndex[RaytracingShaderType_AOHitgroup]               = 2;
+
+                // Setup hit group shader tables
                 for (int i = 0; i < TheRenderScene->GetRenderSceneList().size(); i++)
                 {
-                    uint32_t offset = (i * localDataStride);
+                    const uint32_t              numDesc      = 4;
+                    const uint32_t              descOffset   = RaytracingLocalSigDataIndexStart + (i * numDesc);
+                    D3D12_GPU_DESCRIPTOR_HANDLE descArray [] =
                     {
-                        const uint32_t              descOffset    = RaytracingLocalSigDataIndexStart + (i * numDescriptorsPerInstance);
-                        D3D12_GPU_DESCRIPTOR_HANDLE localCbVA     = RendererDescriptorHeap->GetGpuHandle(descOffset + 0);
-                        D3D12_GPU_DESCRIPTOR_HANDLE materialCbVA  = RendererDescriptorHeap->GetGpuHandle(descOffset + 1);
-                        D3D12_GPU_DESCRIPTOR_HANDLE vertBufferVA  = RendererDescriptorHeap->GetGpuHandle(descOffset + 2);
-                        D3D12_GPU_DESCRIPTOR_HANDLE indexBufferVA = RendererDescriptorHeap->GetGpuHandle(descOffset + 3);
+                        RendererDescriptorHeap->GetGpuHandle(descOffset + 0), // LocalCB
+                        RendererDescriptorHeap->GetGpuHandle(descOffset + 1), // MaterialCB
+                        RendererDescriptorHeap->GetGpuHandle(descOffset + 2), // Vertex Buffer
+                        RendererDescriptorHeap->GetGpuHandle(descOffset + 3), // Index Buffer
+                    };
 
-                        memcpy(pHitGroupData + offset, &localCbVA, sizeof(localCbVA));
-                        offset += sizeof(localCbVA);
-                        memcpy(pHitGroupData + offset, &materialCbVA, sizeof(materialCbVA));
-                        offset += sizeof(materialCbVA);
-                        memcpy(pHitGroupData + offset, &vertBufferVA, sizeof(vertBufferVA));
-                        offset += sizeof(vertBufferVA);
-                        memcpy(pHitGroupData + offset, &indexBufferVA, sizeof(indexBufferVA));
-                        offset += sizeof(indexBufferVA);
-                    }
-                }
-
-                // Add data to the hitgroups
-                for (int i = 0; i < TheRenderScene->GetRenderSceneList().size(); i++)
-                {
-                    uint32_t dataOffset = (i * localDataStride);
-                    uint32_t index = RaytracingPSOPtr->GetHitGroupShaderTable().AddShaderRecordData(
+                    RaytracingPSOPtr->GetHitGroupShaderTable().AddShaderRecordData(
                         sDirectLightingHitGroupName,
-                        pHitGroupData + dataOffset,
-                        localDataStride);
+                        descArray,
+                        sizeof(descArray));
 
-                    if (i == 0)
-                    {
-                        RaytracingShaderIndex[RaytracingShaderType_DirectLightingHitGroup] = index;
-                    }
-                }
-
-                for (int i = 0; i < TheRenderScene->GetRenderSceneList().size(); i++)
-                {
-                    uint32_t dataOffset = (i * localDataStride);
-                    uint32_t index = RaytracingPSOPtr->GetHitGroupShaderTable().AddShaderRecordData(
+                    RaytracingPSOPtr->GetHitGroupShaderTable().AddShaderRecordData(
                         sIndirectLightingHitGroupName,
-                        pHitGroupData + dataOffset,
-                        localDataStride);
+                        descArray,
+                        sizeof(descArray));
 
-                    if (i == 0)
-                    {
-                        RaytracingShaderIndex[RaytracingShaderType_IndirectLightingHitGroup] = index;
-                    }
-                }
-
-                for (int i = 0; i < TheRenderScene->GetRenderSceneList().size(); i++)
-                {
-                    uint32_t dataOffset = (i * localDataStride);
-                    uint32_t index = RaytracingPSOPtr->GetHitGroupShaderTable().AddShaderRecordData(
+                    RaytracingPSOPtr->GetHitGroupShaderTable().AddShaderRecordData(
                         sAoHitGroupName,
-                        pHitGroupData + dataOffset,
-                        localDataStride);
-
-                    if (i == 0)
-                    {
-                        RaytracingShaderIndex[RaytracingShaderType_AOHitgroup] = index;
-                    }
+                        descArray,
+                        sizeof(descArray));
                 }
-
-                delete[] pHitGroupData;
-                pHitGroupData = nullptr;
             }
         }
 
@@ -460,7 +422,6 @@ void Renderer::RenderGpuRaytracing()
             sceneCB.FrameCount                      = FrameCount;
             sceneCB.NumRays                         = TheUserInputData.GpuNumRaysPerPixel;
             sceneCB.AccumCount                      = AccumCount++;
-            sceneCB.HitProgramCount                 = RaytracingHitProgramCount;
             sceneCB.NumLights                       = (UINT)TheRenderScene->GetAreaLights().size();
             sceneCB.AOHitGroupIndex                 = RaytracingShaderIndex[RaytracingShaderType_AOHitgroup];
             sceneCB.AOMissIndex                     = RaytracingShaderIndex[RaytracingShaderType_AOMiss];

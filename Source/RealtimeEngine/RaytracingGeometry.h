@@ -59,7 +59,7 @@ namespace RealtimeEngine
 
     public:
 
-        RaytracingGeometry();
+        RaytracingGeometry(uint32_t hitProgramCount);
         ~RaytracingGeometry();
 
         void                                AddGeometry(const GeometryInfo& info);
@@ -68,6 +68,7 @@ namespace RealtimeEngine
 
     private:
 
+        uint32_t                        HitProgramCount;
         std::vector<GeometryInfo>       GeometryInfoList;
         std::vector<GpuBuffer*>         BLASBuffers;
         GpuBuffer*                      TLASBuffer;

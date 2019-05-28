@@ -110,7 +110,7 @@ inline DirectRayPayload areaLightVisibility(float3 orig, float3 dir, float minT,
         gScene,
         RAY_FLAG_NONE,
         RAYTRACING_INSTANCEMASK_ALL,
-        gSceneCB.DirectLightingHitGroupIndex, gSceneCB.HitProgramCount, gSceneCB.DirectLightingMissIndex,
+        gSceneCB.DirectLightingHitGroupIndex, RAYTRACING_NUM_HIT_PROGRAMS, gSceneCB.DirectLightingMissIndex,
         ray, payload
     );
 
@@ -214,7 +214,7 @@ inline float3 shootIndirectLightingRay(int numRays, uint randSeed, float minT, f
         gScene,
         RAY_FLAG_NONE,
         RAYTRACING_INSTANCEMASK_OPAQUE,
-        gSceneCB.IndirectLightingHitGroupIndex, gSceneCB.HitProgramCount, gSceneCB.IndirectLightingMissIndex,
+        gSceneCB.IndirectLightingHitGroupIndex, RAYTRACING_NUM_HIT_PROGRAMS, gSceneCB.IndirectLightingMissIndex,
         ray, payload
     );
 
@@ -269,7 +269,7 @@ inline float shootAmbientOcclusionRays(int numRays, uint randSeed, float minT, f
             gScene,
             RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER,
             RAYTRACING_INSTANCEMASK_OPAQUE,
-            gSceneCB.AOHitGroupIndex, gSceneCB.HitProgramCount, gSceneCB.AOMissIndex,
+            gSceneCB.AOHitGroupIndex, RAYTRACING_NUM_HIT_PROGRAMS, gSceneCB.AOMissIndex,
             ray, payload
         );
 

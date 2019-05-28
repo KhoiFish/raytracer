@@ -661,7 +661,7 @@ RealtimeScene::RealtimeScene(Core::WorldScene* worldScene)
     }
 
     // Now that scene objects are created, setup for raytracing
-    RaytracingGeom = new RaytracingGeometry();
+    RaytracingGeom = new RaytracingGeometry(RAYTRACING_NUM_HIT_PROGRAMS);
     for (size_t i = 0; i < RenderSceneList.size(); i++)
     {
         // Set instance id and prepare the data buffer

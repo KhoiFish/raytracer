@@ -329,8 +329,8 @@ void RaytracingPSO::AddHitGroup(LPCWSTR ahsExport, LPCWSTR chsExport, const std:
     pHitGroup->CHSExport      = (chsExport != nullptr) ? chsExport : L"";
 
     pHitGroup->HitProgramDesc = {};
-    pHitGroup->HitProgramDesc.HitGroupExport = pHitGroup->HitGroupName.c_str();
-    pHitGroup->HitProgramDesc.AnyHitShaderImport = (ahsExport != nullptr) ? pHitGroup->AHSExport.c_str() : nullptr;
+    pHitGroup->HitProgramDesc.HitGroupExport         = pHitGroup->HitGroupName.c_str();
+    pHitGroup->HitProgramDesc.AnyHitShaderImport     = (ahsExport != nullptr) ? pHitGroup->AHSExport.c_str() : nullptr;
     pHitGroup->HitProgramDesc.ClosestHitShaderImport = (chsExport != nullptr) ? pHitGroup->CHSExport.c_str() : nullptr;
 
     pHitGroup->SubobjectIndex = AddSuboject(D3D12_STATE_SUBOBJECT_TYPE_HIT_GROUP, &pHitGroup->HitProgramDesc);

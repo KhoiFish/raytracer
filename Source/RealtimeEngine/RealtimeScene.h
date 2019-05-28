@@ -71,22 +71,26 @@ namespace RealtimeEngine
         ~RealtimeSceneNode() {}
 
         const Core::IHitable*                   Hitable;
-        RealtimeEngine::Texture*                DiffuseTexture;
         uint32_t                                InstanceId;
-        int32_t                                 LightIndex;
-        uint32_t                                InstanceDataHeapIndex;
-        uint32_t                                MaterialHeapIndex;
-        uint32_t                                DiffuseTextureHeapIndex;
+        DirectX::XMMATRIX                       WorldMatrix;
 
         std::vector<RealtimeSceneVertexEx>      Vertices;
         std::vector<uint32_t>                   Indices;
         RealtimeEngine::GpuBuffer               VertexBuffer;
         RealtimeEngine::GpuBuffer               IndexBuffer;
 
-        DirectX::XMMATRIX                       WorldMatrix;
+        uint32_t                                DiffuseTextureHeapIndex;
+        RealtimeEngine::Texture*                DiffuseTexture;
+
+        uint32_t                                InstanceDataHeapIndex;
+        uint32_t                                MaterialHeapIndex;
         RenderMaterial                          Material;
         RealtimeEngine::GpuBuffer               InstanceDataBuffer;
         RealtimeEngine::GpuBuffer               MaterialBuffer;
+
+        int32_t                                 LightIndex;
+        RealtimeAreaLight                       AreaLight;
+        RealtimeEngine::GpuBuffer               AreaLightBuffer;
     };
 
     // ----------------------------------------------------------------------------------------------------------------------------
@@ -104,8 +108,7 @@ namespace RealtimeEngine
         std::vector<RealtimeSceneNode*>&    GetRenderSceneList();
         RealtimeCamera&                     GetCamera();
         RaytracingGeometry*                 GetRaytracingGeometry();
-        std::vector<RealtimeAreaLight>&     GetAreaLights();
-        RealtimeEngine::GpuBuffer&          GetAreaLightsBuffer();
+        std::vector<RealtimeSceneNode*>&    GetAreaLightsList();
 
     private:
 
@@ -116,8 +119,7 @@ namespace RealtimeEngine
 
         RealtimeCamera                      TheRenderCamera;
         std::vector<RealtimeSceneNode*>     RenderSceneList;
-        std::vector<RealtimeAreaLight>      AreaLights;
-        RealtimeEngine::GpuBuffer           AreaLightsBuffer;
+        std::vector<RealtimeSceneNode*>     AreaLightsList;
         RaytracingGeometry*                 RaytracingGeom;
     };
 }

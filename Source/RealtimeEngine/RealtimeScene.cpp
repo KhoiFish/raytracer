@@ -564,11 +564,11 @@ void RealtimeScene::GenerateRenderListFromWorld(const Core::IHitable* currentHea
 
         if (xyzRect->IsALightShape())
         {
-            RealtimeAreaLight light = CreateAreaLight(planePoints, xyzRect, normal, newMatrix, normalFlipped);
-            light.Color = newNode->Material.Diffuse;
+            newNode->AreaLight       = CreateAreaLight(planePoints, xyzRect, normal, newMatrix, normalFlipped);
+            newNode->AreaLight.Color = newNode->Material.Diffuse;
+            newNode->LightIndex      = (int32_t)AreaLightsList.size();
 
-            AreaLights.push_back(light);
-            newNode->LightIndex = (int32_t)(AreaLights.size() - 1);
+            AreaLightsList.push_back(newNode);
         }
     }
 }
@@ -648,32 +648,34 @@ RealtimeScene::RealtimeScene(Core::WorldScene* worldScene)
     RTL_ASSERT(matrixStack.size() == 0);
     RTL_ASSERT(flipNormalStack.size() == 0);
 
-    // Create area lights buffer
-    if (AreaLights.size() > 0)
-    {
-        const uint32_t bufferSize = (uint32_t)AlignUp(sizeof(RealtimeAreaLight) * AreaLights.size(), 256);
-        RealtimeAreaLight* pLightData = (RealtimeAreaLight*)_aligned_malloc(bufferSize, 16);
-        {
-            memcpy(pLightData, &AreaLights[0], sizeof(RealtimeAreaLight) * AreaLights.size());
-            AreaLightsBuffer.Create(L"AreaLights Data", 1, bufferSize, pLightData);
-        }
-        _aligned_free(pLightData);
-    }
-
     // Now that scene objects are created, setup for raytracing
     RaytracingGeom = new RaytracingGeometry(RAYTRACING_NUM_HIT_PROGRAMS);
     for (size_t i = 0; i < RenderSceneList.size(); i++)
     {
+        RealtimeSceneNode* pNode = RenderSceneList[i];
+
+        // Prepare area light
+        if (pNode->Hitable->IsALightShape())
+        {
+            const uint32_t     bufferSize = (uint32_t)AlignUp(sizeof(RealtimeAreaLight), 256);
+            RealtimeAreaLight* pLightData = (RealtimeAreaLight*)_aligned_malloc(bufferSize, 16);
+            {
+                memcpy(pLightData, &pNode->AreaLight, sizeof(RealtimeAreaLight));
+                pNode->AreaLightBuffer.Create(L"AreaLight", 1, bufferSize, pLightData);
+            }
+            _aligned_free(pLightData);
+        }
+
         // Set instance id and prepare the data buffer
-        RenderSceneList[i]->InstanceId = (uint32_t)i;
+        pNode->InstanceId = (uint32_t)i;
         {
             const uint32_t          bufferSize    = (uint32_t)AlignUp(sizeof(RenderNodeInstanceData), 256);
             RenderNodeInstanceData* pInstanceData = (RenderNodeInstanceData * )_aligned_malloc(bufferSize, 16);
             {
-                pInstanceData->InstanceId  = RenderSceneList[i]->InstanceId;
-                pInstanceData->LightIndex  = RenderSceneList[i]->LightIndex;
-                pInstanceData->WorldMatrix = XMMatrixTranspose(RenderSceneList[i]->WorldMatrix);
-                RenderSceneList[i]->InstanceDataBuffer.Create(L"Instance Data", 1, bufferSize, pInstanceData);
+                pInstanceData->InstanceId  = pNode->InstanceId;
+                pInstanceData->LightIndex  = pNode->LightIndex;
+                pInstanceData->WorldMatrix = XMMatrixTranspose(pNode->WorldMatrix);
+                pNode->InstanceDataBuffer.Create(L"Instance Data", 1, bufferSize, pInstanceData);
             }
             _aligned_free(pInstanceData);
             pInstanceData = nullptr;
@@ -684,8 +686,8 @@ RealtimeScene::RealtimeScene(Core::WorldScene* worldScene)
             const uint32_t  bufferSize      = (uint32_t)AlignUp(sizeof(RenderMaterial), 256);
             RenderMaterial* pRenderMaterial = (RenderMaterial*)_aligned_malloc(bufferSize, 16);
             {
-                memcpy(pRenderMaterial, &RenderSceneList[i]->Material, sizeof(RenderMaterial));
-                RenderSceneList[i]->MaterialBuffer.Create(L"Material Data", 1, bufferSize, pRenderMaterial);
+                memcpy(pRenderMaterial, &pNode->Material, sizeof(RenderMaterial));
+                pNode->MaterialBuffer.Create(L"Material Data", 1, bufferSize, pRenderMaterial);
             }
             _aligned_free(pRenderMaterial);
             pRenderMaterial = nullptr;
@@ -693,20 +695,20 @@ RealtimeScene::RealtimeScene(Core::WorldScene* worldScene)
 
         // Get the instance mask
         uint32_t instanceMask = 
-            RenderSceneList[i]->Hitable->IsALightShape() ? RAYTRACING_INSTANCEMASK_AREALIGHT : RAYTRACING_INSTANCEMASK_OPAQUE;
+            pNode->Hitable->IsALightShape() ? RAYTRACING_INSTANCEMASK_AREALIGHT : RAYTRACING_INSTANCEMASK_OPAQUE;
 
         // Add geometry to the raytracing builder
         RaytracingGeom->AddGeometry
         (
             RaytracingGeometry::GeometryInfo
             (
-                RenderSceneList[i]->InstanceId,
+                pNode->InstanceId,
                 instanceMask,
-                (uint32_t)RenderSceneList[i]->Vertices.size(),
-                (uint32_t)RenderSceneList[i]->Indices.size(),
-                &RenderSceneList[i]->VertexBuffer,
-                &RenderSceneList[i]->IndexBuffer,
-                RenderSceneList[i]->WorldMatrix
+                (uint32_t)pNode->Vertices.size(),
+                (uint32_t)pNode->Indices.size(),
+                &pNode->VertexBuffer,
+                &pNode->IndexBuffer,
+                pNode->WorldMatrix
             )
         );
     }
@@ -765,14 +767,8 @@ RaytracingGeometry* RealtimeScene::GetRaytracingGeometry()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-std::vector<RealtimeAreaLight>& RealtimeScene::GetAreaLights()
+std::vector<RealtimeSceneNode*>& RealtimeScene::GetAreaLightsList()
 {
-    return AreaLights;
+    return AreaLightsList;
 }
 
-// ----------------------------------------------------------------------------------------------------------------------------
-
-RealtimeEngine::GpuBuffer& RealtimeEngine::RealtimeScene::GetAreaLightsBuffer()
-{
-    return AreaLightsBuffer;
-}

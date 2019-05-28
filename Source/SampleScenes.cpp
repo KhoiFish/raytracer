@@ -353,9 +353,10 @@ static WorldScene* sampleSceneFinal()
     IHitable** list = new IHitable*[30];
     IHitable** boxlist = new IHitable*[10000];
     IHitable** boxlist2 = new IHitable*[10000];
+    Vec4       colorPurple = Vec4(0.621f, 0.351f, 0.988f);
     Material*  white = new MLambertian(new ConstantTexture(Vec4(0.73f, 0.73f, 0.73f)));
     Material*  ground = new MLambertian(new ConstantTexture(Vec4(0.48f, 0.83f, 0.53f)));
-    IHitable** lsList = new IHitable*[2];
+    IHitable** lsList = new IHitable*[30];
     int numLs = 0;
 
     // Create random hitable boxes, in BVH tree
@@ -383,6 +384,13 @@ static WorldScene* sampleSceneFinal()
     {
         Material* lightMaterial = new MDiffuseLight(new ConstantTexture(Vec4(7, 7, 7)));
         IHitable* lightShape = new XYZRect(XYZRect::XZ, 123, 423, 147, 412, 554, lightMaterial, true);
+        list[total++] = new FlipNormals(lightShape);
+        lsList[numLs++] = lightShape;
+    }
+
+    {
+        Material* lightMaterial = new MDiffuseLight(new ConstantTexture(colorPurple * 100));
+        IHitable* lightShape = new XYZRect(XYZRect::XZ, -200, -100, -200, -100, 554, lightMaterial, true);
         list[total++] = new FlipNormals(lightShape);
         lsList[numLs++] = lightShape;
     }

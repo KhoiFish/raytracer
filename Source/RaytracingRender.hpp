@@ -97,6 +97,9 @@ namespace RaytracingGlobalRootSigSlot
         { 3, 1,  0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // TexCoordsAndDepth
         { 4, 1,  0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // Albedo
     };
+
+    // To be filled in by descriptors creation
+    static UINT DescriptorHeapOffsets[RaytracingGlobalRootSigSlot::Num];
 }
 
 namespace RaytracingLocalRootSigSlot
@@ -204,7 +207,11 @@ void Renderer::SetupGpuRaytracingDescriptors()
 {
     RaytracingGlobalSigDataIndexStart = RendererDescriptorHeap->GetCount();
 
+    UINT currOffset = 0;
+
     // Allocate descriptors for prev and current direct lighting + ao
+    RaytracingGlobalRootSigSlot::DescriptorHeapOffsets[RaytracingGlobalRootSigSlot::PrevDirectLightAO] = currOffset++;
+    RaytracingGlobalRootSigSlot::DescriptorHeapOffsets[RaytracingGlobalRootSigSlot::CurrDirectLightAO] = currOffset++;
     for (int i = 0; i < 2; i++)
     {
         RendererDescriptorHeap->AllocateBufferUav(
@@ -215,6 +222,8 @@ void Renderer::SetupGpuRaytracingDescriptors()
     }
 
     // Allocate descriptors for prev and current indirect lighting
+    RaytracingGlobalRootSigSlot::DescriptorHeapOffsets[RaytracingGlobalRootSigSlot::PrevIndirectLight] = currOffset++;
+    RaytracingGlobalRootSigSlot::DescriptorHeapOffsets[RaytracingGlobalRootSigSlot::CurrIndirectLight] = currOffset++;
     for (int i = 0; i < 2; i++)
     {
         RendererDescriptorHeap->AllocateBufferUav(
@@ -225,16 +234,24 @@ void Renderer::SetupGpuRaytracingDescriptors()
     }
 
     // Scene CB
+    RaytracingGlobalRootSigSlot::DescriptorHeapOffsets[RaytracingGlobalRootSigSlot::SceneCB] = currOffset++;
     RendererDescriptorHeap->AllocateBufferCbv(
         RaytracingSceneConstantBuffer.GetGpuVirtualAddress(),
         (UINT)RaytracingSceneConstantBuffer.GetBufferSize());
 
     // Lights CB
-    RendererDescriptorHeap->AllocateBufferCbv(
-        TheRenderScene->GetAreaLightsBuffer().GetGpuVirtualAddress(),
-        (UINT)TheRenderScene->GetAreaLightsBuffer().GetBufferSize());
+    RaytracingGlobalRootSigSlot::DescriptorHeapOffsets[RaytracingGlobalRootSigSlot::LightsCB] = currOffset;
+    for (size_t i = 0; i < TheRenderScene->GetAreaLightsList().size(); i++)
+    {
+        RendererDescriptorHeap->AllocateBufferCbv(
+            TheRenderScene->GetAreaLightsList()[i]->AreaLightBuffer.GetGpuVirtualAddress(),
+            (UINT)TheRenderScene->GetAreaLightsList()[i]->AreaLightBuffer.GetBufferSize());
 
+        currOffset++;
+    }
+    
     // Allocate descriptor for acceleration structures
+    RaytracingGlobalRootSigSlot::DescriptorHeapOffsets[RaytracingGlobalRootSigSlot::AccelerationStructure] = currOffset++;
     RendererDescriptorHeap->AllocateBufferSrvRaytracing(
         TheRenderScene->GetRaytracingGeometry()->GetTLASVirtualAddress(),
         D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE,
@@ -243,21 +260,25 @@ void Renderer::SetupGpuRaytracingDescriptors()
         D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
 
     // Positions
+    RaytracingGlobalRootSigSlot::DescriptorHeapOffsets[RaytracingGlobalRootSigSlot::Positions] = currOffset++;
     RendererDescriptorHeap->AllocateTexture2DSrv(
         DeferredBuffers[DeferredBufferType_Position].GetResource(),
         DeferredBuffersRTTypes[DeferredBufferType_Position]);
 
     // Normals
+    RaytracingGlobalRootSigSlot::DescriptorHeapOffsets[RaytracingGlobalRootSigSlot::Normals] = currOffset++;
     RendererDescriptorHeap->AllocateTexture2DSrv(
         DeferredBuffers[DeferredBufferType_Normal].GetResource(),
         DeferredBuffersRTTypes[DeferredBufferType_Normal]);
 
     // TexCoords and Depth
+    RaytracingGlobalRootSigSlot::DescriptorHeapOffsets[RaytracingGlobalRootSigSlot::TexCoordsAndDepth] = currOffset++;
     RendererDescriptorHeap->AllocateTexture2DSrv(
         DeferredBuffers[DeferredBufferType_TexCoordAndDepth].GetResource(),
         DeferredBuffersRTTypes[DeferredBufferType_TexCoordAndDepth]);
 
     // Albedo
+    RaytracingGlobalRootSigSlot::DescriptorHeapOffsets[RaytracingGlobalRootSigSlot::Albedo] = currOffset++;
     RendererDescriptorHeap->AllocateTexture2DSrv(
         DeferredBuffers[DeferredBufferType_Albedo].GetResource(),
         DeferredBuffersRTTypes[DeferredBufferType_Albedo]);
@@ -422,7 +443,7 @@ void Renderer::RenderGpuRaytracing()
             sceneCB.FrameCount                      = FrameCount;
             sceneCB.NumRays                         = TheUserInputData.GpuNumRaysPerPixel;
             sceneCB.AccumCount                      = AccumCount++;
-            sceneCB.NumLights                       = (UINT)TheRenderScene->GetAreaLights().size();
+            sceneCB.NumLights                       = (UINT)TheRenderScene->GetAreaLightsList().size();
             sceneCB.AOHitGroupIndex                 = RaytracingShaderIndex[RaytracingShaderType_AOHitgroup];
             sceneCB.AOMissIndex                     = RaytracingShaderIndex[RaytracingShaderType_AOMiss];
             sceneCB.DirectLightingHitGroupIndex     = RaytracingShaderIndex[RaytracingShaderType_DirectLightingHitGroup];
@@ -434,11 +455,6 @@ void Renderer::RenderGpuRaytracing()
             RaytracingSceneConstantBuffer.Upload(&sceneCB, sizeof(sceneCB));
         }
 
-        if (TheRenderScene->GetAreaLights().size() > 0)
-        {
-            computeContext.TransitionResource(TheRenderScene->GetAreaLightsBuffer(), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
-        }
-
         // Set root sig and pipeline state
         computeContext.SetRootSignature(RaytracingGlobalRootSig);
         computeContext.SetPipelineState(*RaytracingPSOPtr);
@@ -447,7 +463,7 @@ void Renderer::RenderGpuRaytracing()
         computeContext.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, RendererDescriptorHeap->GetDescriptorHeap());
         for (uint32_t i = 0; i < RaytracingGlobalRootSigSlot::Num; i++)
         {
-            uint32_t heapIndex = (RaytracingGlobalSigDataIndexStart + i);
+            uint32_t heapIndex = (RaytracingGlobalSigDataIndexStart + RaytracingGlobalRootSigSlot::DescriptorHeapOffsets[i]);
             computeContext.SetDescriptorTable(i, RendererDescriptorHeap->GetGpuHandle(heapIndex));
         }
         

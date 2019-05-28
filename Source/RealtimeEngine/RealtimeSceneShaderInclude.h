@@ -77,7 +77,9 @@ struct RealtimeAreaLight
     XMFLOAT4    NormalWS;   
     XMFLOAT4    Color;
     float       AreaCoverage;
-    float       PlaneA0, PlaneA1, PlaneB0, PlaneB1, PlaneC0, PlaneC1;
+    float       PlaneA0, PlaneA1, PlaneB0;
+    float       PlaneB1, PlaneC0, PlaneC1;
+    float       Pad0;
 };
 
 

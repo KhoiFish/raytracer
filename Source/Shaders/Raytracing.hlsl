@@ -138,7 +138,7 @@ inline float3 computeLighting(uint randSeed, float minT, float3 worldPos, float3
 {
     // The lighting is super dark, add this fudge factor for now
     // TODO: investigate this
-    const float lightMultiplierFudge = 400.0f;
+    const float lightMultiplierFudge = 500.0f;
 
     // What we're going to return
     float3           lightResult = float3(0, 0, 0);
@@ -149,9 +149,9 @@ inline float3 computeLighting(uint randSeed, float minT, float3 worldPos, float3
     float3            onLight    = getRandomPointOnAreaLight(randSeed, light);
     float3            lightDir   = normalize(onLight - worldPos);
 
-    // See if we hit the light we selected
+    // Shoot a ray at the light
     DirectRayPayload lightPayload = areaLightVisibility(worldPos, lightDir, minT, SHADER_FLOAT_MAX);
-    if (lightPayload.LightIndex == lightIndex)
+    if (lightPayload.LightIndex >= 0)
     {
         float area            = light.AreaCoverage;
         float len             = lightPayload.HitBaryAndDist.a;

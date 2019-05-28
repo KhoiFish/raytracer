@@ -301,6 +301,12 @@ static inline pair<ManagedTexture*, bool> FindOrLoadTexture(const string_t& file
 
 static inline uint32_t rgbaToHex(float r, float g, float b, float a)
 {
+    // Clamp
+    r = std::min(r, 1.0f);
+    g = std::min(g, 1.0f);
+    b = std::min(b, 1.0f);
+    a = std::min(a, 1.0f);
+
     uint8_t cR = uint8_t(r * 255.0f);
     uint8_t cG = uint8_t(g * 255.0f);
     uint8_t cB = uint8_t(b * 255.0f);

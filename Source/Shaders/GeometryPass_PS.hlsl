@@ -43,17 +43,25 @@ struct MRT
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-SamplerState                    LinearRepeatSampler : register(s0);
-SamplerState                    AnisoRepeatSampler  : register(s1);
-Texture2D                       DiffuseTexture      : register(t6);
-ConstantBuffer<RenderMaterial>  MaterialCb          : register(b2);
+SamplerState                            LinearRepeatSampler : register(s0);
+SamplerState                            AnisoRepeatSampler  : register(s1);
+
+Texture2D                               DiffuseTexture      : register(t6);
+
+ConstantBuffer<RenderNodeInstanceData>  InstanceCb          : register(b1);
+ConstantBuffer<RenderMaterial>          MaterialCb          : register(b2);
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
 MRT main(PixelShaderInput IN)
 {
+    // Have lights be pass through like the background
+    float4 outPos = (InstanceCb.LightIndex < 0) 
+                        ? float4(IN.PositionWS.xyz, 1) 
+                        : float4(0, 0, 0, 0);
+
     MRT mrt;
-    mrt.Position         = IN.PositionWS;
+    mrt.Position         = outPos;
     mrt.Normal           = float4(IN.NormalWS, 1);
     mrt.TexCoordAndDepth = float4(IN.TexCoord, IN.LinearDepth, 0);
     mrt.Diffuse          = DiffuseTexture.Sample(AnisoRepeatSampler, IN.TexCoord);

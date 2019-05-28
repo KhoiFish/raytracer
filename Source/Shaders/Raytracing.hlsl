@@ -366,16 +366,22 @@ void RayGeneration()
     uint3   launchIndex  = DispatchRaysIndex();
     uint3   launchDim    = DispatchRaysDimensions();
     uint    randSeed     = initRand(launchIndex.x + launchIndex.y * launchDim.x, gSceneCB.FrameCount, 16);
-    float3  worldPos     = gPositions[launchIndex.xy].xyz;
+    float4  worldPos     = gPositions[launchIndex.xy];
     float3  worldNorm    = gNormals[launchIndex.xy].xyz;
     float4  albedo       = gAlbedo[launchIndex.xy];
     float   aoRadius     = gSceneCB.AORadius;
     float   minT         = 0.01f;
 
     // Get direct, indirect and AO contributions
-    float3 direct        = sampleDirectLighting(numRays, randSeed, minT, worldPos, worldNorm, albedo);
-    float3 indirect      = sampleIndirectLighting(numRays, randSeed, minT, worldPos, worldNorm);
+    float3 direct        = sampleDirectLighting(numRays, randSeed, minT, worldPos.xyz, worldNorm, albedo);
+    float3 indirect      = sampleIndirectLighting(numRays, randSeed, minT, worldPos.xyz, worldNorm);
     float  ao            = shootAmbientOcclusionRays(numRays, randSeed, minT, aoRadius, worldPos.xyz, worldNorm);
+    
+    // Pass through background/lights
+    float2 backSelect    = float2(worldPos.w, 1 - worldPos.w);
+    direct               = (direct * backSelect.x)   + (albedo.rgb * backSelect.y);
+    indirect             = (indirect * backSelect.x) + (float3(0, 0, 0) * backSelect.y);
+    ao                   = (ao * backSelect.x)       + (1.0f * backSelect.y);
 
     // Accumulate results
     float4 finalDirectAO = temporalAccumulate(gPrevDirectAO[launchIndex.xy], float4(direct, ao));

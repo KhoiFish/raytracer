@@ -108,7 +108,7 @@ inline DirectRayPayload areaLightVisibility(float3 orig, float3 dir, float minT,
     TraceRay
     (
         gScene,
-        RAY_FLAG_NONE,
+        RAY_FLAG_CULL_FRONT_FACING_TRIANGLES,
         RAYTRACING_INSTANCEMASK_ALL,
         gSceneCB.DirectLightingHitGroupIndex, RAYTRACING_NUM_HIT_PROGRAMS, gSceneCB.DirectLightingMissIndex,
         ray, payload

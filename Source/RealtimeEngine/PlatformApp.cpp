@@ -21,6 +21,7 @@
 #include "windowsx.h"
 #include <imgui/imgui.h>
 #include <imgui/examples/imgui_impl_win32.h>
+#include <shellscalingapi.h>
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -75,6 +76,9 @@ int PlatformApp::Run(RenderInterface* pRenderInterface, HINSTANCE hInstance, int
         LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
         pSample->ParseCommandLineArgs(argv, argc);
         LocalFree(argv);*/
+
+        // Tell windows we're DPI aware so it doesn't do crappy scaling on our window
+        SetProcessDpiAwareness(PROCESS_DPI_AWARENESS::PROCESS_SYSTEM_DPI_AWARE);
 
         // Initialize the window class.
         WNDCLASSEX windowClass = { 0 };

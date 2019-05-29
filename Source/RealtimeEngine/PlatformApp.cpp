@@ -292,7 +292,6 @@ LRESULT CALLBACK PlatformApp::WindowProc(HWND hWnd, uint32_t message, WPARAM wPa
                 PrevCounter = li.QuadPart;
             }
 
-            RenderDebugPrintf("WM_PAINT\n");
             pRenderInterface->OnUpdate(dtSeconds);
             pRenderInterface->OnRender();
         }

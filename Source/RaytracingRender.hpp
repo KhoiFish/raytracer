@@ -484,5 +484,5 @@ void Renderer::RenderGpuRaytracing()
         computeContext.CopyBuffer(DirectLightingAOBuffer[0], DirectLightingAOBuffer[1]);
         computeContext.CopyBuffer(IndirectLightingBuffer[0], IndirectLightingBuffer[1]);
     }
-    computeContext.Finish(true);
+    computeContext.Finish();
 }

@@ -93,7 +93,6 @@ Renderer::~Renderer()
 
 void Renderer::OnDeviceLost()
 {
-    ;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -114,7 +113,7 @@ void Renderer::OnInit()
     MaxNumCpuThreads = TheUserInputData.CpuNumThreads = sysInfo.dwNumberOfProcessors;
 
     // Init the render device
-    RenderDevice::Initialize(PlatformApp::GetHwnd(), Width, Height, this, &RendererDescriptorHeapCollection, BackbufferFormat);
+    RenderDevice::Initialize(Width, Height, this, &RendererDescriptorHeapCollection, BackbufferFormat);
     RendererDescriptorHeap = &RendererDescriptorHeapCollection.Get(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
     // Setup render pipelines

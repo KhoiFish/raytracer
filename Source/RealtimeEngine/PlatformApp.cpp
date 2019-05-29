@@ -28,17 +28,15 @@
 using Microsoft::WRL::ComPtr;
 using namespace RealtimeEngine;
 
-// ----------------------------------------------------------------------------------------------------------------------------
-
-HWND    PlatformApp::Hwnd = nullptr;
 bool    PlatformApp::FullscreenMode = false;
-RECT    PlatformApp::WindowRect;
-double  PlatformApp::PCFreq = 0;
-__int64 PlatformApp::PrevCounter = 0;
+IMGUI_IMPL_API LRESULT  ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-IMGUI_IMPL_API LRESULT  ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+HWND    PlatformApp::Hwnd        = nullptr;
+double  PlatformApp::PCFreq      = 0;
+__int64 PlatformApp::PrevCounter = 0;
+RECT    PlatformApp::WindowRect;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -58,6 +56,8 @@ static void centerWindow(HWND hWnd)
 
 int PlatformApp::Run(RenderInterface* pRenderInterface, HINSTANCE hInstance, int nCmdShow)
 {
+    int retValue = 0;
+
     try
     {
         // Init performance counter
@@ -71,29 +71,23 @@ int PlatformApp::Run(RenderInterface* pRenderInterface, HINSTANCE hInstance, int
             PrevCounter = li.QuadPart;
         }
 
-        // Parse the command line parameters
-        /*int argc;
-        LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
-        pSample->ParseCommandLineArgs(argv, argc);
-        LocalFree(argv);*/
-
         // Tell windows we're DPI aware so it doesn't do crappy scaling on our window
         SetProcessDpiAwareness(PROCESS_DPI_AWARENESS::PROCESS_SYSTEM_DPI_AWARE);
 
-        // Initialize the window class.
+        // Windows init
         WNDCLASSEX windowClass = { 0 };
-        windowClass.cbSize          = sizeof(WNDCLASSEX);
-        windowClass.style           = CS_HREDRAW | CS_VREDRAW;
-        windowClass.lpfnWndProc     = WindowProc;
-        windowClass.hInstance       = hInstance;
-        windowClass.hCursor         = LoadCursor(NULL, IDC_ARROW);
-        windowClass.lpszClassName   = L"PlatformApp";
+        windowClass.cbSize = sizeof(WNDCLASSEX);
+        windowClass.style = CS_HREDRAW | CS_VREDRAW;
+        windowClass.lpfnWndProc = WindowProc;
+        windowClass.hInstance = hInstance;
+        windowClass.hCursor = LoadCursor(NULL, IDC_ARROW);
+        windowClass.lpszClassName = L"PlatformApp";
         RegisterClassEx(&windowClass);
 
         RECT windowRect = { 0, 0, static_cast<LONG>(pRenderInterface->GetWidth()), static_cast<LONG>(pRenderInterface->GetHeight()) };
         AdjustWindowRect(&windowRect, WS_OVERLAPPEDWINDOW, FALSE);
 
-        // Create the window and store a handle to it.
+        // Create window
         Hwnd = CreateWindow(
             windowClass.lpszClassName,
             MakeWStr(pRenderInterface->GetName()).c_str(),
@@ -102,22 +96,21 @@ int PlatformApp::Run(RenderInterface* pRenderInterface, HINSTANCE hInstance, int
             CW_USEDEFAULT,
             windowRect.right - windowRect.left,
             windowRect.bottom - windowRect.top,
-            nullptr,        // We have no parent window.
-            nullptr,        // We aren't using menus.
+            nullptr,
+            nullptr,
             hInstance,
             pRenderInterface);
 
-        // Initialize the sample. OnInit is defined in each child-implementation of DXSample.
+        // Init rendering
         pRenderInterface->OnInit();
 
         ShowWindow(Hwnd, nCmdShow);
         centerWindow(Hwnd);
 
-        // Main sample loop.
+        // Main windows message loop
         MSG msg = {};
         while (msg.message != WM_QUIT)
         {
-            // Process any messages in the queue.
             if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
             {
                 TranslateMessage(&msg);
@@ -125,20 +118,19 @@ int PlatformApp::Run(RenderInterface* pRenderInterface, HINSTANCE hInstance, int
             }
         }
 
-        pRenderInterface->OnDestroy();
-
-        // Return this part of the WM_QUIT message to Windows.
-        return static_cast<char>(msg.wParam);
+        retValue = (int)msg.wParam;
     }
-    catch (std::exception & e)
+    catch (std::exception& e)
     {
-        OutputDebugString(L"Application hit a problem: ");
-        OutputDebugStringA(e.what());
-        OutputDebugString(L"\nTerminating.\n");
-
+        RenderDebugPrintf("Application hit a problem: %s", e.what());
         pRenderInterface->OnDestroy();
-        return EXIT_FAILURE;
+        retValue = EXIT_FAILURE;
     }
+
+    // Tell rendering to shutdown
+    pRenderInterface->OnDestroy();
+
+    return retValue;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -282,7 +274,8 @@ LRESULT CALLBACK PlatformApp::WindowProc(HWND hWnd, uint32_t message, WPARAM wPa
         // Handle ALT+ENTER:
         if ((wParam == VK_RETURN) && (lParam & (1 << 29)))
         {
-            ;
+            ToggleFullscreenWindow(RenderDevice::Get().GetSwapChain());
+            return 0;
         }
         break;
 
@@ -299,6 +292,7 @@ LRESULT CALLBACK PlatformApp::WindowProc(HWND hWnd, uint32_t message, WPARAM wPa
                 PrevCounter = li.QuadPart;
             }
 
+            RenderDebugPrintf("WM_PAINT\n");
             pRenderInterface->OnUpdate(dtSeconds);
             pRenderInterface->OnRender();
         }
@@ -374,4 +368,11 @@ LRESULT CALLBACK PlatformApp::WindowProc(HWND hWnd, uint32_t message, WPARAM wPa
 
     // Handle any messages the switch statement didn't.
     return DefWindowProc(hWnd, message, wParam, lParam);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void PlatformApp::SetWindowTitle(const string_t& title)
+{
+    SetWindowTextA(Hwnd, title.c_str());
 }

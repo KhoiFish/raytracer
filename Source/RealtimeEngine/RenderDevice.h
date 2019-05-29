@@ -29,10 +29,14 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+#define RENDERDEVICE_FLAGS_NONE                     (0)
+#define RENDERDEVICE_FLAGS_ALLOWTEARING             (1 << 0)
+#define RENDERDEVICE_FLAGS_REQUIRETEARINGSUPPORT    (1 << 1)
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 namespace RealtimeEngine
 {
-    class GraphicsContext;
-
     // ----------------------------------------------------------------------------------------------------------------------------
 
     struct IDeviceNotify
@@ -47,34 +51,28 @@ namespace RealtimeEngine
     {
     public:
 
-        static const unsigned int AllowTearing          = 0x1;
-        static const unsigned int RequireTearingSupport = 0x2;
-
-    public:
-
-        static void                                         Initialize(
-                                                                HWND window, int width, int height, IDeviceNotify* deviceNotify,
-                                                                DescriptorHeapCollection* pDescriptorHeap,
-                                                                DXGI_FORMAT backBufferFormat = DXGI_FORMAT_B8G8R8A8_UNORM,
-                                                                DXGI_FORMAT depthBufferFormat = DXGI_FORMAT_D32_FLOAT,
-                                                                uint32_t backBufferCount = 2,
-                                                                D3D_FEATURE_LEVEL minFeatureLevel = D3D_FEATURE_LEVEL_12_1,
-                                                                uint32_t flags = 0,
-                                                                uint32_t adapterIDoverride = UINT_MAX,
-                                                                float depthClearValue = 1.0f);
-
-        static void                                         Shutdown();
         static RenderDevice&                                Get();
 
-    public:
+        static void                                         Initialize(
+                                                                int width, int height, IDeviceNotify* deviceNotify, DescriptorHeapCollection* pDescriptorHeap,
+                                                                DXGI_FORMAT         backBufferFormat    = DXGI_FORMAT_B8G8R8A8_UNORM,
+                                                                DXGI_FORMAT         depthBufferFormat   = DXGI_FORMAT_D32_FLOAT,
+                                                                uint32_t            backBufferCount     = 2,
+                                                                D3D_FEATURE_LEVEL   minFeatureLevel     = D3D_FEATURE_LEVEL_12_1,
+                                                                uint32_t            flags               = RENDERDEVICE_FLAGS_REQUIRETEARINGSUPPORT,
+                                                                uint32_t            adapterIDoverride   = UINT_MAX,
+                                                                float               depthClearValue     = 1.0f);
+
+        static void                                         Shutdown();
 
         void                                                Present();
-
+        bool                                                WindowSizeChanged(int width, int height, bool minimized);
         DescriptorHeapStack&                                GetImguiDescriptorHeapStack();
         
-        bool                                                WindowSizeChanged(int width, int height, bool minimized);
-        
     public:
+
+        bool                                                IsWindowVisible() const          { return IsWindowVisibleState; }
+        bool                                                IsTearingSupported() const       { return Options & RENDERDEVICE_FLAGS_ALLOWTEARING; }
 
         IDXGIAdapter1*                                      GetAdapter()                     { return Adapter.Get(); }
         ID3D12Device5*                                      GetD3DDevice()                   { return D3DDevice.Get(); }
@@ -82,9 +80,6 @@ namespace RealtimeEngine
         IDXGISwapChain3*                                    GetSwapChain()                   { return SwapChain.Get(); }
         ColorTarget&                                        GetRenderTarget()                { return ColorTargets[BackBufferIndex]; }
         DepthTarget&                                        GetDepthStencil()                { return DepthStencil; }
-
-        bool                                                IsWindowVisible() const          { return IsWindowVisibleState; }
-        bool                                                IsTearingSupported() const       { return Options & AllowTearing; }
 
         D3D_FEATURE_LEVEL                                   GetDeviceFeatureLevel() const    { return D3dFeatureLevel; }
         DXGI_FORMAT                                         GetBackBufferFormat() const      { return BackBufferFormat; }

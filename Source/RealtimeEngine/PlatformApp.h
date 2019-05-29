@@ -33,6 +33,7 @@ namespace RealtimeEngine
         static int               Run(RenderInterface* pRenderInterface, HINSTANCE hInstance, int nCmdShow);
         static void              ToggleFullscreenWindow(IDXGISwapChain* pOutput = nullptr);
         static void              SetWindowZorderToTopMost(bool setToTopMost);
+        static void              SetWindowTitle(const string_t& title);
         static HWND              GetHwnd() { return Hwnd; }
         static bool              IsFullscreen() { return FullscreenMode; }
 

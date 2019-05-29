@@ -28,10 +28,6 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-#define FRAME_COUNT 3
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
 using namespace RealtimeEngine;
 using namespace std;
 
@@ -69,20 +65,7 @@ static ReportOnExit  sReportOnExitObject;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static inline DXGI_FORMAT NoSRGB(DXGI_FORMAT fmt)
-{
-    switch (fmt)
-    {
-    case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:   return DXGI_FORMAT_R8G8B8A8_UNORM;
-    case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:   return DXGI_FORMAT_B8G8R8A8_UNORM;
-    case DXGI_FORMAT_B8G8R8X8_UNORM_SRGB:   return DXGI_FORMAT_B8G8R8X8_UNORM;
-    default:                                return fmt;
-    }
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-void RenderDevice::Initialize(HWND window, int width, int height, IDeviceNotify* deviceNotify, DescriptorHeapCollection* pDescriptorHeap,
+void RenderDevice::Initialize(int width, int height, IDeviceNotify* deviceNotify, DescriptorHeapCollection* pDescriptorHeap,
     DXGI_FORMAT backBufferFormat, DXGI_FORMAT depthBufferFormat, uint32_t backBufferCount, D3D_FEATURE_LEVEL minFeatureLevel, uint32_t flags, uint32_t adapterIDoverride, float depthClearValue)
 {
     if (sRenderDevicePtr == nullptr)
@@ -95,13 +78,13 @@ void RenderDevice::Initialize(HWND window, int width, int height, IDeviceNotify*
             depthBufferFormat,
             backBufferCount,
             minFeatureLevel,
-            RequireTearingSupport,
+            flags,
             adapterIDoverride,
             depthClearValue
         );
 
         sRenderDevicePtr->RegisterDeviceNotify(deviceNotify);
-        sRenderDevicePtr->SetWindow(window, width, height);
+        sRenderDevicePtr->SetWindow(PlatformApp::GetHwnd(), width, height);
         sRenderDevicePtr->SetupDevice();
     }
 }
@@ -204,9 +187,9 @@ RenderDevice::RenderDevice(DescriptorHeapCollection* pDescriptorHeap, DXGI_FORMA
     {
         throw out_of_range("minFeatureLevel too low");
     }
-    if (Options & RequireTearingSupport)
+    if (Options & RENDERDEVICE_FLAGS_REQUIRETEARINGSUPPORT)
     {
-        Options |= AllowTearing;
+        Options |= RENDERDEVICE_FLAGS_ALLOWTEARING;
     }
 }
 
@@ -257,7 +240,7 @@ void RenderDevice::InitializeDXGIAdapter()
     }
 
     // Determines whether tearing support is available for fullscreen borderless windows.
-    if (Options & (AllowTearing | RequireTearingSupport))
+    if (Options & (RENDERDEVICE_FLAGS_ALLOWTEARING | RENDERDEVICE_FLAGS_REQUIRETEARINGSUPPORT))
     {
         BOOL allowTearing = FALSE;
 
@@ -271,11 +254,11 @@ void RenderDevice::InitializeDXGIAdapter()
         if (FAILED(hr) || !allowTearing)
         {
             OutputDebugStringA("WARNING: Variable refresh rate displays are not supported.\n");
-            if (Options & RequireTearingSupport)
+            if (Options & RENDERDEVICE_FLAGS_REQUIRETEARINGSUPPORT)
             {
                 ThrowIfFailed(false, L"Error: Sample must be run on an OS with tearing support.\n");
             }
-            Options &= ~AllowTearing;
+            Options &= ~RENDERDEVICE_FLAGS_ALLOWTEARING;
         }
     }
 
@@ -312,7 +295,7 @@ void RenderDevice::CreateDeviceResources()
     #endif
 
     // Determine maximum supported feature level for this device
-    static const D3D_FEATURE_LEVEL s_featureLevels[] =
+    static const D3D_FEATURE_LEVEL featureLevels[] =
     {
         D3D_FEATURE_LEVEL_12_1,
         D3D_FEATURE_LEVEL_12_0,
@@ -322,7 +305,7 @@ void RenderDevice::CreateDeviceResources()
 
     D3D12_FEATURE_DATA_FEATURE_LEVELS featLevels =
     {
-        _countof(s_featureLevels), s_featureLevels, D3D_FEATURE_LEVEL_11_0
+        _countof(featureLevels), featureLevels, D3D_FEATURE_LEVEL_11_0
     };
 
     HRESULT hr = D3DDevice->CheckFeatureSupport(D3D12_FEATURE_FEATURE_LEVELS, &featLevels, sizeof(featLevels));
@@ -360,7 +343,6 @@ void RenderDevice::CreateWindowSizeDependentResources()
     DXGI_FORMAT  backBufferFormat = GetBackBufferFormat();
 
     // If the swap chain already exists, resize it, otherwise create one.
-    bool handleDeviceLost = false;
     if (SwapChain)
     {
         // If the swap chain already exists, resize it.
@@ -369,7 +351,7 @@ void RenderDevice::CreateWindowSizeDependentResources()
             backBufferWidth,
             backBufferHeight,
             backBufferFormat,
-            (Options & AllowTearing) ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0
+            (Options & RENDERDEVICE_FLAGS_ALLOWTEARING) ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0
         );
 
         if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
@@ -380,7 +362,9 @@ void RenderDevice::CreateWindowSizeDependentResources()
                 OutputDebugStringA(buff);
             #endif
 
-            handleDeviceLost = true;
+            // If the device was removed for any reason, a new device and swap chain will need to be created.
+            HandleDeviceLost();
+            return;
         }
         else
         {
@@ -401,7 +385,7 @@ void RenderDevice::CreateWindowSizeDependentResources()
         swapChainDesc.Scaling            = DXGI_SCALING_STRETCH;
         swapChainDesc.SwapEffect         = DXGI_SWAP_EFFECT_FLIP_DISCARD;
         swapChainDesc.AlphaMode          = DXGI_ALPHA_MODE_IGNORE;
-        swapChainDesc.Flags              = (Options & AllowTearing) ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0;
+        swapChainDesc.Flags              = (Options & RENDERDEVICE_FLAGS_ALLOWTEARING) ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0;
 
         DXGI_SWAP_CHAIN_FULLSCREEN_DESC fsSwapChainDesc = { 0 };
         fsSwapChainDesc.Windowed = TRUE;
@@ -450,41 +434,6 @@ void RenderDevice::CreateWindowSizeDependentResources()
     ScissorRect.left        = ScissorRect.top = 0;
     ScissorRect.right       = backBufferWidth;
     ScissorRect.bottom      = backBufferHeight;
-
-    // If the device was removed for any reason, a new device and swap chain will need to be created.
-    if (handleDeviceLost)
-    {
-        HandleDeviceLost();
-    }
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-void RenderDevice::SetupImgui()
-{
-    ImguiDescriptorStack = new DescriptorHeapStack(128, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 0);
-    ImguiDescriptorStack->Reset();
-
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGui::StyleColorsDark();
-
-    ImGui_ImplWin32_Init(Window);
-    ImGui_ImplDX12_Init(
-        D3DDevice.Get(), 
-        1,
-        GetBackBufferFormat(),
-        ImguiDescriptorStack->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart(),
-        ImguiDescriptorStack->GetDescriptorHeap()->GetGPUDescriptorHandleForHeapStart());
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-void RenderDevice::ShutdownImgui()
-{
-    ImGui_ImplDX12_Shutdown();
-    ImGui_ImplWin32_Shutdown();
-    ImGui::DestroyContext();
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -525,6 +474,7 @@ bool RenderDevice::WindowSizeChanged(int width, int height, bool minimized)
         return false;
     }
 
+
     RECT newRc;
     newRc.left    = newRc.top = 0;
     newRc.right   = width;
@@ -543,6 +493,7 @@ bool RenderDevice::WindowSizeChanged(int width, int height, bool minimized)
 
     OutputSize = newRc;
     CreateWindowSizeDependentResources();
+
     return true;
 }
 
@@ -571,12 +522,13 @@ void RenderDevice::Present()
 {
     // Now prepare for present
     GraphicsContext& context = GraphicsContext::Begin("Present");
-    context.TransitionResource(ColorTargets[BackBufferIndex], D3D12_RESOURCE_STATE_PRESENT);
-    context.FlushResourceBarriers();
-    uint64_t presentFenceValue = context.Finish();
+    {
+        context.TransitionResource(ColorTargets[BackBufferIndex], D3D12_RESOURCE_STATE_PRESENT);
+    }
+    context.Finish(true);
 
     HRESULT hr;
-    if (Options & AllowTearing)
+    if (Options & RENDERDEVICE_FLAGS_ALLOWTEARING)
     {
         // Recommended to always use tearing if supported when using a sync interval of 0.
         // Note this will fail if in true 'fullscreen' mode.
@@ -590,23 +542,17 @@ void RenderDevice::Present()
         hr = SwapChain->Present(1, 0);
     }
 
+    ThrowIfFailed(hr);
+
     // If the device was reset we must completely reinitialize the renderer.
     if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
     {
-        #ifdef _DEBUG
-            char buff[64] = {};
-            sprintf_s(buff, "Device Lost on Present: Reason code 0x%08X\n", (hr == DXGI_ERROR_DEVICE_REMOVED) ? D3DDevice->GetDeviceRemovedReason() : hr);
-            OutputDebugStringA(buff);
-        #endif
-
+        RenderDebugPrintf("Device Lost on Present: Reason code 0x%08X\n", (hr == DXGI_ERROR_DEVICE_REMOVED) ? D3DDevice->GetDeviceRemovedReason() : hr);
         HandleDeviceLost();
     }
     else
     {
-        ThrowIfFailed(hr);
-        CommandListManager::Get().WaitForFence(presentFenceValue);
-
-        // Update the back buffer index.
+        // Update the back buffer index
         BackBufferIndex = SwapChain->GetCurrentBackBufferIndex();
     }
 }
@@ -696,6 +642,35 @@ void RenderDevice::RegisterDeviceNotify(IDeviceNotify* deviceNotify)
             }
         }
     }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void RenderDevice::SetupImgui()
+{
+    ImguiDescriptorStack = new DescriptorHeapStack(128, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 0);
+    ImguiDescriptorStack->Reset();
+
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGui::StyleColorsDark();
+
+    ImGui_ImplWin32_Init(Window);
+    ImGui_ImplDX12_Init(
+        D3DDevice.Get(),
+        1,
+        GetBackBufferFormat(),
+        ImguiDescriptorStack->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart(),
+        ImguiDescriptorStack->GetDescriptorHeap()->GetGPUDescriptorHandleForHeapStart());
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void RenderDevice::ShutdownImgui()
+{
+    ImGui_ImplDX12_Shutdown();
+    ImGui_ImplWin32_Shutdown();
+    ImGui::DestroyContext();
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

@@ -216,12 +216,11 @@ void Renderer::OnSizeChanged(uint32_t width, uint32_t height, bool minimized)
         return;
     }
 
-    CommandListManager::Get().IdleGPU();
-    SetupRenderBuffers();
-    TheRenderScene->SetupViews(*RendererDescriptorHeap);
     OnResizeCpuRaytracer();
-    OnResizeGpuRaytracer();
+    SetupRenderBuffers();
     OnResizeRasterRender();
+    TheRenderScene->SetupViews(*RendererDescriptorHeap);
+    OnResizeGpuRaytracer();
     SetCameraDirty();
 }
 

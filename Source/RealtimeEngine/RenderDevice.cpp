@@ -469,17 +469,20 @@ bool RenderDevice::WindowSizeChanged(int width, int height, bool minimized)
 {
     IsWindowVisibleState = !minimized;
 
+    // Present the last frame. This fixes a weird case where command queue errors out with
+    // multiple sequence of re-size without a present call
+    // TODO: Investigate why this is happening.
+    Present();
+
     if (minimized || width == 0 || height == 0)
     {
         return false;
     }
 
-
     RECT newRc;
     newRc.left    = newRc.top = 0;
     newRc.right   = width;
     newRc.bottom  = height;
-
     if (   newRc.left == OutputSize.left
         && newRc.top == OutputSize.top
         && newRc.right == OutputSize.right

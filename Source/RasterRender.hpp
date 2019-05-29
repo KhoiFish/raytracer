@@ -364,13 +364,15 @@ void Renderer::SetupSceneConstantBuffer(SceneConstantBuffer& sceneCB)
 
 void Renderer::RenderSceneList(GraphicsContext& renderContext)
 {
+    const UINT diffuseTextureHeapIndexStart = TheRenderScene->GetDiffuseTextureList().DescriptorHeapStartIndex;
     for (int i = 0; i < TheRenderScene->GetRenderSceneList().size(); i++)
     {
-        RealtimeSceneNode* pNode = TheRenderScene->GetRenderSceneList()[i];
+        RealtimeSceneNode*  pNode                   = TheRenderScene->GetRenderSceneList()[i];
+        UINT                diffuseTextureHeapIndex = diffuseTextureHeapIndexStart + TheRenderScene->GetRenderSceneList()[i]->DiffuseTextureIndex;
 
         renderContext.SetDescriptorTable(RasterRenderRootSig::InstanceCB, RendererDescriptorHeap->GetGpuHandle(pNode->InstanceDataHeapIndex));
         renderContext.SetDescriptorTable(RasterRenderRootSig::MaterialCB, RendererDescriptorHeap->GetGpuHandle(pNode->MaterialHeapIndex));
-        renderContext.SetDescriptorTable(RasterRenderRootSig::DiffuseTex, RendererDescriptorHeap->GetGpuHandle(pNode->DiffuseTextureHeapIndex));
+        renderContext.SetDescriptorTable(RasterRenderRootSig::DiffuseTex, RendererDescriptorHeap->GetGpuHandle(diffuseTextureHeapIndex));
         renderContext.SetVertexBuffer(0, pNode->VertexBuffer.VertexBufferView());
         renderContext.SetIndexBuffer(pNode->IndexBuffer.IndexBufferView());
         renderContext.DrawIndexed((uint32_t)pNode->Indices.size());

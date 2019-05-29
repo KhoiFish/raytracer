@@ -390,7 +390,7 @@ static RealtimeEngine::Texture* CreateTextureFromMaterial(const RenderMaterial& 
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RealtimeScene::GenerateRenderListFromWorld(const Core::IHitable* currentHead, RealtimeEngine::Texture* defaultTexture, std::vector<RealtimeSceneNode*>& outSceneList, std::vector<DirectX::XMMATRIX>& matrixStack, std::vector<bool>& flipNormalStack)
+void RealtimeScene::GenerateRenderListFromWorld(const Core::IHitable* currentHead, std::vector<DirectX::XMMATRIX>& matrixStack, std::vector<bool>& flipNormalStack)
 {
     const std::type_info& tid = typeid(*currentHead);
 
@@ -401,17 +401,17 @@ void RealtimeScene::GenerateRenderListFromWorld(const Core::IHitable* currentHea
         const int          listSize = hitList->GetListSize();
         for (int i = 0; i < listSize; i++)
         {
-            GenerateRenderListFromWorld(list[i], defaultTexture, outSceneList, matrixStack, flipNormalStack);
+            GenerateRenderListFromWorld(list[i], matrixStack, flipNormalStack);
         }
     }
     else if (tid == typeid(Core::BVHNode))
     {
         Core::BVHNode* bvhNode = (Core::BVHNode*)currentHead;
 
-        GenerateRenderListFromWorld(bvhNode->GetLeft(), defaultTexture, outSceneList, matrixStack, flipNormalStack);
+        GenerateRenderListFromWorld(bvhNode->GetLeft(), matrixStack, flipNormalStack);
         if (bvhNode->GetLeft() != bvhNode->GetRight())
         {
-            GenerateRenderListFromWorld(bvhNode->GetRight(), defaultTexture, outSceneList, matrixStack, flipNormalStack);
+            GenerateRenderListFromWorld(bvhNode->GetRight(), matrixStack, flipNormalStack);
         }
     }
     else if (tid == typeid(Core::HitableTranslate))
@@ -421,7 +421,7 @@ void RealtimeScene::GenerateRenderListFromWorld(const Core::IHitable* currentHea
         XMMATRIX                translation      = XMMatrixTranslation(offset.X(), offset.Y(), offset.Z());
 
         matrixStack.push_back(translation);
-        GenerateRenderListFromWorld(translateHitable->GetHitObject(), defaultTexture, outSceneList, matrixStack, flipNormalStack);
+        GenerateRenderListFromWorld(translateHitable->GetHitObject(), matrixStack, flipNormalStack);
         matrixStack.pop_back();
     }
     else if (tid == typeid(Core::HitableRotateY))
@@ -430,7 +430,7 @@ void RealtimeScene::GenerateRenderListFromWorld(const Core::IHitable* currentHea
         XMMATRIX                rotation       = XMMatrixRotationY(XMConvertToRadians(rotateYHitable->GetAngleDegrees()));
 
         matrixStack.push_back(rotation);
-        GenerateRenderListFromWorld(rotateYHitable->GetHitObject(), defaultTexture, outSceneList, matrixStack, flipNormalStack);
+        GenerateRenderListFromWorld(rotateYHitable->GetHitObject(), matrixStack, flipNormalStack);
         matrixStack.pop_back();
     }
     else if (tid == typeid(Core::FlipNormals))
@@ -438,7 +438,7 @@ void RealtimeScene::GenerateRenderListFromWorld(const Core::IHitable* currentHea
         Core::FlipNormals* flipNormals = (Core::FlipNormals*)currentHead;
 
         flipNormalStack.push_back(true);
-        GenerateRenderListFromWorld(flipNormals->GetHitObject(), defaultTexture, outSceneList, matrixStack, flipNormalStack);
+        GenerateRenderListFromWorld(flipNormals->GetHitObject(), matrixStack, flipNormalStack);
         flipNormalStack.pop_back();
     }
     else if (tid == typeid(Core::Sphere) || tid == typeid(Core::MovingSphere))
@@ -464,14 +464,10 @@ void RealtimeScene::GenerateRenderListFromWorld(const Core::IHitable* currentHea
         XMMATRIX           translation = XMMatrixTranslation(offset.X(), offset.Y(), offset.Z());
         XMMATRIX           newMatrix   = ComputeFinalMatrix(matrixStack, translation);
         RealtimeSceneNode* newNode     = new RealtimeSceneNode();
+        RenderMaterial     renMaterial = ConvertFromCoreMaterial(material);
 
         CreateSphere(newNode, radius, 32);
-        newNode->WorldMatrix    = newMatrix;
-        newNode->Material       = ConvertFromCoreMaterial(material);
-        newNode->DiffuseTexture = CreateTextureFromMaterial(newNode->Material);
-        newNode->Hitable        = currentHead;
-        CreateVertexIndexBuffers(newNode);
-        outSceneList.push_back(newNode);
+        AddNewNode(newNode, newMatrix, renMaterial, CreateTextureFromMaterial(renMaterial), currentHead);
     }
     else if (tid == typeid(Core::HitableBox))
     {
@@ -486,14 +482,10 @@ void RealtimeScene::GenerateRenderListFromWorld(const Core::IHitable* currentHea
         XMMATRIX               newMatrix   = ComputeFinalMatrix(matrixStack, translation);
         RealtimeSceneNode*     newNode     = new RealtimeSceneNode();
         const Core::Material*  material    = box->GetMaterial();
+        RenderMaterial         renMaterial = ConvertFromCoreMaterial(material);
 
         CreateCube(newNode, diff);
-        newNode->WorldMatrix    = newMatrix;
-        newNode->Material       = ConvertFromCoreMaterial(material);
-        newNode->DiffuseTexture = CreateTextureFromMaterial(newNode->Material);
-        newNode->Hitable        = currentHead;
-        CreateVertexIndexBuffers(newNode);
-        outSceneList.push_back(newNode);
+        AddNewNode(newNode, newMatrix, renMaterial, CreateTextureFromMaterial(renMaterial), currentHead);
     }
     else if (tid == typeid(Core::TriMesh))
     {
@@ -523,8 +515,9 @@ void RealtimeScene::GenerateRenderListFromWorld(const Core::IHitable* currentHea
             }
         }
 
-        XMMATRIX translation = XMMatrixIdentity();
-        XMMATRIX newMatrix = ComputeFinalMatrix(matrixStack, translation);
+        XMMATRIX        translation = XMMatrixIdentity();
+        XMMATRIX        newMatrix   = ComputeFinalMatrix(matrixStack, translation);
+        RenderMaterial  renMaterial = ConvertFromCoreMaterial(triMesh->GetMaterial());
 
         RealtimeEngine::Texture* newTexture = nullptr;
         if (typeid(*triMesh->GetMaterial()) == typeid(Core::MWavefrontObj))
@@ -532,13 +525,12 @@ void RealtimeScene::GenerateRenderListFromWorld(const Core::IHitable* currentHea
             std::string  fileName = ((Core::MWavefrontObj*)triMesh->GetMaterial())->GetDiffuseMap()->GetSourceFilename().c_str();
             newTexture = RealtimeEngine::TextureManager::LoadFromFile(fileName);
         }
+        else
+        {
+            newTexture = CreateTextureFromMaterial(renMaterial);
+        }
 
-        newNode->WorldMatrix    = newMatrix;
-        newNode->Material       = ConvertFromCoreMaterial(triMesh->GetMaterial());
-        newNode->DiffuseTexture = (newTexture != nullptr) ? newTexture : CreateTextureFromMaterial(newNode->Material);
-        newNode->Hitable        = currentHead;
-        CreateVertexIndexBuffers(newNode);
-        outSceneList.push_back(newNode);
+        AddNewNode(newNode, newMatrix, renMaterial, newTexture, currentHead);
     }
     else if (tid == typeid(Core::XYZRect))
     {
@@ -553,14 +545,10 @@ void RealtimeScene::GenerateRenderListFromWorld(const Core::IHitable* currentHea
         XMMATRIX                translation = XMMatrixIdentity();
         XMMATRIX                newMatrix   = ComputeFinalMatrix(matrixStack, translation);
         RealtimeSceneNode*      newNode     = new RealtimeSceneNode();
+        RenderMaterial          renMaterial = ConvertFromCoreMaterial(material);
 
         CreatePlaneFromPoints(newNode, planePoints, normal, normalFlipped);
-        newNode->WorldMatrix    = newMatrix;
-        newNode->Material       = ConvertFromCoreMaterial(material);;
-        newNode->DiffuseTexture = CreateTextureFromMaterial(newNode->Material);
-        newNode->Hitable        = currentHead;
-        CreateVertexIndexBuffers(newNode);
-        outSceneList.push_back(newNode);
+        AddNewNode(newNode, newMatrix, renMaterial, CreateTextureFromMaterial(renMaterial), currentHead);
 
         if (xyzRect->IsALightShape())
         {
@@ -571,6 +559,20 @@ void RealtimeScene::GenerateRenderListFromWorld(const Core::IHitable* currentHea
             AreaLightsList.push_back(newNode);
         }
     }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void RealtimeEngine::RealtimeScene::AddNewNode(RealtimeSceneNode* newNode, const DirectX::XMMATRIX& worldMatrix, 
+    const RenderMaterial& material, RealtimeEngine::Texture* pDiffuseTexture, const Core::IHitable* pHitable)
+{
+    newNode->WorldMatrix            = worldMatrix;
+    newNode->Material               = material;;
+    newNode->DiffuseTextureIndex    = DiffuseTextureList.GetCount();
+    newNode->Hitable                = pHitable;
+    DiffuseTextureList.Add(pDiffuseTexture);
+    CreateVertexIndexBuffers(newNode);
+    RenderSceneList.push_back(newNode);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -644,7 +646,7 @@ RealtimeScene::RealtimeScene(Core::WorldScene* worldScene)
     // Generate the scene objects from the world scene
     std::vector<DirectX::XMMATRIX>  matrixStack;
     std::vector<bool>               flipNormalStack;
-    GenerateRenderListFromWorld(worldScene->GetWorld(), nullptr, RenderSceneList, matrixStack, flipNormalStack);
+    GenerateRenderListFromWorld(worldScene->GetWorld(), matrixStack, flipNormalStack);
     RTL_ASSERT(matrixStack.size() == 0);
     RTL_ASSERT(flipNormalStack.size() == 0);
 
@@ -734,14 +736,27 @@ RealtimeScene::~RealtimeScene()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RealtimeEngine::RealtimeScene::SetupViews(DescriptorHeapStack& descriptorHeap)
+void RealtimeEngine::RealtimeScene::SetupResourceViews(DescriptorHeapStack& descriptorHeap)
 {
     for (size_t i = 0; i < RenderSceneList.size(); i++)
     {
         RenderSceneList[i]->InstanceDataHeapIndex   = descriptorHeap.AllocateBufferCbv(RenderSceneList[i]->InstanceDataBuffer.GetGpuVirtualAddress(), (UINT)RenderSceneList[i]->InstanceDataBuffer.GetBufferSize());
         RenderSceneList[i]->MaterialHeapIndex       = descriptorHeap.AllocateBufferCbv(RenderSceneList[i]->MaterialBuffer.GetGpuVirtualAddress(), (UINT)RenderSceneList[i]->MaterialBuffer.GetBufferSize());
-        RenderSceneList[i]->DiffuseTextureHeapIndex = descriptorHeap.AllocateTexture2DSrv(RenderSceneList[i]->DiffuseTexture->GetResource(), RenderSceneList[i]->DiffuseTexture->GetFormat());
     }
+
+    DiffuseTextureList.DescriptorHeapStartIndex = descriptorHeap.GetCount();
+    for (size_t i = 0; i < DiffuseTextureList.Textures.size(); i++)
+    {
+        RealtimeEngine::Texture* pTexture = DiffuseTextureList.Textures[i];
+        descriptorHeap.AllocateTexture2DSrv(pTexture->GetResource(), pTexture->GetFormat());
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+RealtimeScene::TextureList& RealtimeScene::GetDiffuseTextureList()
+{
+    return DiffuseTextureList;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

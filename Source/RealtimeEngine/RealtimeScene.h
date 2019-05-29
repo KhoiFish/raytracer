@@ -64,8 +64,8 @@ namespace RealtimeEngine
     struct RealtimeSceneNode
     {
         RealtimeSceneNode()
-            : Hitable(nullptr), DiffuseTexture(nullptr), InstanceId(0), LightIndex(-1)
-            , InstanceDataHeapIndex(0), MaterialHeapIndex(0), DiffuseTextureHeapIndex(0)
+            : Hitable(nullptr), InstanceId(0), LightIndex(-1)
+            , InstanceDataHeapIndex(0), MaterialHeapIndex(0), DiffuseTextureIndex(0)
         {}
 
         ~RealtimeSceneNode() {}
@@ -79,8 +79,7 @@ namespace RealtimeEngine
         RealtimeEngine::GpuBuffer               VertexBuffer;
         RealtimeEngine::GpuBuffer               IndexBuffer;
 
-        uint32_t                                DiffuseTextureHeapIndex;
-        RealtimeEngine::Texture*                DiffuseTexture;
+        uint32_t                                DiffuseTextureIndex;
 
         uint32_t                                InstanceDataHeapIndex;
         uint32_t                                MaterialHeapIndex;
@@ -99,27 +98,41 @@ namespace RealtimeEngine
     {
     public:
 
+        struct TextureList
+        {
+            void                                    Add(RealtimeEngine::Texture* pTexture)  { Textures.push_back(pTexture); }
+            uint32_t                                GetCount()                              { return int32_t(Textures.size()); }
+
+            uint32_t                                DescriptorHeapStartIndex;
+            std::vector<RealtimeEngine::Texture*>   Textures;
+        };
+
+    public:
+
         RealtimeScene(Core::WorldScene* worldScene);
         ~RealtimeScene();
 
-        void                                SetupViews(DescriptorHeapStack& descriptorHeap);
+        void                                SetupResourceViews(DescriptorHeapStack& descriptorHeap);
         void                                UpdateCamera(float newVertFov, float forwardAmount, float strafeAmount, float upDownAmount, int mouseDx, int mouseDy, Core::Camera& worldCamera);
 
         std::vector<RealtimeSceneNode*>&    GetRenderSceneList();
         RealtimeCamera&                     GetCamera();
         RaytracingGeometry*                 GetRaytracingGeometry();
         std::vector<RealtimeSceneNode*>&    GetAreaLightsList();
+        TextureList&                        GetDiffuseTextureList();
 
     private:
 
-        void                                GenerateRenderListFromWorld(const Core::IHitable* currentHead, RealtimeEngine::Texture* defaultTexture, std::vector<RealtimeSceneNode*>& outSceneList, 
-                                                std::vector<DirectX::XMMATRIX>& matrixStack, std::vector<bool>& flipNormalStack);
+        void                                GenerateRenderListFromWorld(const Core::IHitable* currentHead, std::vector<DirectX::XMMATRIX>& matrixStack, std::vector<bool>& flipNormalStack);
+        void                                AddNewNode(RealtimeSceneNode* newNode, const DirectX::XMMATRIX& worldMatrix, const RenderMaterial& material, RealtimeEngine::Texture* pDiffuseTexture,
+                                                const Core::IHitable* pHitable);
 
     private:
 
         RealtimeCamera                      TheRenderCamera;
         std::vector<RealtimeSceneNode*>     RenderSceneList;
         std::vector<RealtimeSceneNode*>     AreaLightsList;
+        TextureList                         DiffuseTextureList;
         RaytracingGeometry*                 RaytracingGeom;
     };
 }

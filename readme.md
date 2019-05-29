@@ -18,9 +18,9 @@ This is a raytracing rendering application. It currently has CPU based and GPU b
 ![alt text](https://github.com/KhoiFish/raytracer/blob/master/SavedImages/realtime.png "GPU traced image")
 <br>
 
-## Reference Literature
+## Reference Literature For Learners
 
-The following are really good references for someone getting into raytracing. If any of the following people are reading this, thank you for sharing your knowledge and the inspiration for this project.
+The following are really good references for someone getting into raytracing. If any of the following people are reading this, thank you for sharing your knowledge and giving inspiration to this project.
 
 **Peter Shirley**
 <br>
@@ -36,7 +36,7 @@ The following are really good references for someone getting into raytracing. If
 
 ## References & Credits
 
-This was not created in isolation. A portion of this software was built around code from around the internet. I've shamelessly borrowed and modified tutorial and sample code from great developers from Microsoft, Nvidia and former collegues of mine. Feel free to use the code in this package and kindly give credit to the following individuals and/or organizations as well:
+This was not created in isolation. A portion of this software was built using code from around the internet for reference. Feel free to use the code in this package and kindly give credit to the following individuals and/or organizations as well:
 
 **Ray Tracing In One Weekend / Peter Shirley**
 <br>

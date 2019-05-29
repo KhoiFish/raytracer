@@ -138,7 +138,7 @@ inline float3 computeLighting(uint randSeed, float minT, float3 worldPos, float3
 {
     // The lighting is super dark, add this fudge factor for now
     // TODO: investigate this
-    const float lightMultiplierFudge = 500.0f;
+    const float lightMultiplierFudge = 1.0f;
 
     // What we're going to return
     float3           lightResult = float3(0, 0, 0);
@@ -156,7 +156,7 @@ inline float3 computeLighting(uint randSeed, float minT, float3 worldPos, float3
         float area            = light.AreaCoverage;
         float len             = lightPayload.HitBaryAndDist.a;
         float distanceSquared = len * len;
-        float cosine          = abs(dot(lightDir, worldNorm)) / len;
+        float cosine          = saturate(dot(lightDir, worldNorm));
         float pdf             = distanceSquared / (cosine * area);
 
         if (cosine > 0 && dot(lightDir, worldNorm) >= 0)

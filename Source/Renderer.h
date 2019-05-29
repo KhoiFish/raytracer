@@ -151,7 +151,7 @@ private:
         bool    LeftMouseButtonPressed  = false;
         bool    ShiftKeyPressed         = false;
 
-        int     SampleScene             = SceneFinal;
+        int     SampleScene             = SceneMesh;
         float   VertFov                 = 40.f;
 
         int     CpuNumSamplesPerRay     = 500;
@@ -161,10 +161,10 @@ private:
         int     GpuNumAccumPasses       = 1;
         int     GpuMaxRayRecursionDepth = 5;
         int     GpuNumRaysPerPixel      = 1;
-        float   GpuAORadius             = 500.0f;
+        float   GpuAORadius             = 100.0f;
         bool    GpuCameraJitter         = true;
-        float   GpuDirectLightMult      = 1.0f;
-        float   GpuIndirectLightMult    = 0.5f;
+        float   GpuDirectLightMult      = 1.00f;
+        float   GpuIndirectLightMult    = 0.20f;
     };
 
     typedef std::uniform_real_distribution<float> RandFloatDist;

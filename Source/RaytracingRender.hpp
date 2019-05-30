@@ -66,6 +66,7 @@ namespace RaytracingGlobalRootSigSlot
         Normals,
         TexCoordsAndDepth,
         Albedo,
+        AlbedoArray,
 
         Num
     };
@@ -79,6 +80,7 @@ namespace RaytracingGlobalRootSigSlot
     };
 
     static const UINT nL = RAYTRACING_MAX_NUM_LIGHTS;
+    static const UINT nD = RAYTRACING_MAX_NUM_DIFFUSETEXTURES;
 
     // [register, count, space, D3D12_DESCRIPTOR_RANGE_TYPE]
     static UINT Range[RaytracingGlobalRootSigSlot::Num][4] =
@@ -96,6 +98,7 @@ namespace RaytracingGlobalRootSigSlot
         { 2, 1,  0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // Normals
         { 3, 1,  0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // TexCoordsAndDepth
         { 4, 1,  0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // Albedo
+        { 5, nD, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // AlbedoArray
     };
 
     // To be filled in by descriptors creation
@@ -466,6 +469,9 @@ void Renderer::RenderGpuRaytracing()
             uint32_t heapIndex = (RaytracingGlobalSigDataIndexStart + RaytracingGlobalRootSigSlot::DescriptorHeapOffsets[i]);
             computeContext.SetDescriptorTable(i, RendererDescriptorHeap->GetGpuHandle(heapIndex));
         }
+
+        // Get heap start of all the diffuse textures
+        computeContext.SetDescriptorTable(RaytracingGlobalRootSigSlot::AlbedoArray, RendererDescriptorHeap->GetGpuHandle(TheRenderScene->GetDiffuseTextureList().DescriptorHeapStartIndex));
         
         // Transition all output buffers
         for (int i = 0; i < 2; i++)

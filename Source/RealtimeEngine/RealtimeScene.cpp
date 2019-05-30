@@ -674,9 +674,10 @@ RealtimeScene::RealtimeScene(Core::WorldScene* worldScene)
             const uint32_t          bufferSize    = (uint32_t)AlignUp(sizeof(RenderNodeInstanceData), 256);
             RenderNodeInstanceData* pInstanceData = (RenderNodeInstanceData * )_aligned_malloc(bufferSize, 16);
             {
-                pInstanceData->InstanceId  = pNode->InstanceId;
-                pInstanceData->LightIndex  = pNode->LightIndex;
-                pInstanceData->WorldMatrix = XMMatrixTranspose(pNode->WorldMatrix);
+                pInstanceData->InstanceId       = pNode->InstanceId;
+                pInstanceData->LightIndex       = pNode->LightIndex;
+                pInstanceData->WorldMatrix      = XMMatrixTranspose(pNode->WorldMatrix);
+                pInstanceData->DiffuseTextureId = pNode->DiffuseTextureIndex;
                 pNode->InstanceDataBuffer.Create(L"Instance Data", 1, bufferSize, pInstanceData);
             }
             _aligned_free(pInstanceData);
@@ -740,8 +741,8 @@ void RealtimeEngine::RealtimeScene::SetupResourceViews(DescriptorHeapStack& desc
 {
     for (size_t i = 0; i < RenderSceneList.size(); i++)
     {
-        RenderSceneList[i]->InstanceDataHeapIndex   = descriptorHeap.AllocateBufferCbv(RenderSceneList[i]->InstanceDataBuffer.GetGpuVirtualAddress(), (UINT)RenderSceneList[i]->InstanceDataBuffer.GetBufferSize());
-        RenderSceneList[i]->MaterialHeapIndex       = descriptorHeap.AllocateBufferCbv(RenderSceneList[i]->MaterialBuffer.GetGpuVirtualAddress(), (UINT)RenderSceneList[i]->MaterialBuffer.GetBufferSize());
+        RenderSceneList[i]->InstanceDataHeapIndex = descriptorHeap.AllocateBufferCbv(RenderSceneList[i]->InstanceDataBuffer.GetGpuVirtualAddress(), (UINT)RenderSceneList[i]->InstanceDataBuffer.GetBufferSize());
+        RenderSceneList[i]->MaterialHeapIndex     = descriptorHeap.AllocateBufferCbv(RenderSceneList[i]->MaterialBuffer.GetGpuVirtualAddress(), (UINT)RenderSceneList[i]->MaterialBuffer.GetBufferSize());
     }
 
     DiffuseTextureList.DescriptorHeapStartIndex = descriptorHeap.GetCount();

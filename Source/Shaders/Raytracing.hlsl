@@ -44,6 +44,7 @@ Texture2D<float4>                           gPositions          : register(t1, s
 Texture2D<float4>                           gNormals            : register(t2, space0);
 Texture2D<float4>                           gTexCoordsAndDepth  : register(t3, space0);
 Texture2D<float4>                           gAlbedo             : register(t4, space0);
+Texture2D<float4>                           gAlbedoArray[]      : register(t5, space0);
 
 
 // Local root signature
@@ -327,8 +328,11 @@ void IndirectLightingClosest(inout IndirectRayPayload payload, in BuiltInTriangl
         payload.Color += computeLighting(payload.RndSeed, RayTMin(), worldPos, worldNorm);
     }
 
+    // Read albedo
+    float3 albedo = gAlbedoArray[gInstanceCB.DiffuseTextureId][vert.TexCoord].xyz;
+
     // Modulate based on the physically based Lambertian term (albedo/pi)
-    payload.Color *= (gMaterial.Diffuse.rgb / SHADER_PI);
+    payload.Color *= (albedo / SHADER_PI);
     payload.Color /= numRays;
 }
 
@@ -368,6 +372,7 @@ void RayGeneration()
     uint    randSeed     = initRand(launchIndex.x + launchIndex.y * launchDim.x, gSceneCB.FrameCount, 16);
     float4  worldPos     = gPositions[launchIndex.xy];
     float3  worldNorm    = gNormals[launchIndex.xy].xyz;
+    float2  uvCoord      = gTexCoordsAndDepth[launchIndex.xy].xy;
     float4  albedo       = gAlbedo[launchIndex.xy];
     float   aoRadius     = gSceneCB.AORadius;
     float   minT         = 0.01f;

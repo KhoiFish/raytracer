@@ -28,6 +28,7 @@
 #define RAYTRACING_NUM_HIT_PROGRAMS         3
 
 #define RAYTRACING_MAX_NUM_MATERIALS        1024
+#define RAYTRACING_MAX_NUM_DIFFUSETEXTURES  1024         
 #define RAYTRACING_MAX_NUM_LIGHTS           8
 
 #define RAYTRACING_INSTANCEMASK_ALL         (0xFF)
@@ -55,7 +56,7 @@ struct RenderNodeInstanceData
     XMFLOAT4  AverageAlbedo;
     int       LightIndex;
     UINT      InstanceId;
-    UINT      Padding0;
+    UINT      DiffuseTextureId;
     UINT      Padding1;
 };
 

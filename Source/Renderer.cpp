@@ -116,14 +116,12 @@ void Renderer::OnInit()
     RenderDevice::Initialize(Width, Height, this, &RendererDescriptorHeapCollection, BackbufferFormat);
     RendererDescriptorHeap = &RendererDescriptorHeapCollection.Get(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-    // Setup render pipelines
-    SetupRenderBuffers();
-    SetupRasterPipeline();
-
     // Load the scene data
     LoadScene();
 
-    // Raytracing setup last (scene data needs to be loaded first)
+    // Setup render pipelines
+    SetupRenderBuffers();
+    SetupRasterPipeline();
     SetupGpuRaytracingPipeline();
     SetupGui();
 }
@@ -216,10 +214,10 @@ void Renderer::OnSizeChanged(uint32_t width, uint32_t height, bool minimized)
         return;
     }
 
+    TheRenderScene->SetupResourceViews(*RendererDescriptorHeap);
     OnResizeCpuRaytracer();
     SetupRenderBuffers();
     OnResizeRasterRender();
-    TheRenderScene->SetupResourceViews(*RendererDescriptorHeap);
     OnResizeGpuRaytracer();
     SetCameraDirty();
 }

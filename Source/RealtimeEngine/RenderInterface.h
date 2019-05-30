@@ -54,7 +54,6 @@ namespace RealtimeEngine
         virtual void                   OnMouseMove(int32_t x, int32_t y) {}
         virtual void                   OnLeftButtonDown(int32_t x, int32_t y) {}
         virtual void                   OnLeftButtonUp(int32_t x, int32_t y) {}
-        virtual bool                   OverrideImguiInput() { return true; }
 
 	public:
 

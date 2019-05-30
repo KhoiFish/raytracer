@@ -171,13 +171,6 @@ void Renderer::OnKeyUp(uint8_t key)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-bool Renderer::OverrideImguiInput()
-{
-    return false;
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
 void Renderer::OnMouseMove(int32_t x, int32_t y)
 {
     if (TheUserInputData.LeftMouseButtonPressed)

@@ -65,7 +65,6 @@ public:
     virtual void    OnRender() override;
     virtual void    OnSizeChanged(uint32_t width, uint32_t height, bool minimized) override;
     virtual void    OnDestroy() override;
-    virtual bool    OverrideImguiInput() override;
 
 private:
 

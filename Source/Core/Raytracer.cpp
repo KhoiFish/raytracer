@@ -69,14 +69,28 @@ void Raytracer::BeginRaytrace(WorldScene* scene, OnTraceComplete onComplete)
 {
     // Clean up last trace, if any
     cleanupRaytrace();
-
-    IsRaytracing = true;
-    TotalRaysFired = 0;
-    CurrentPixelSampleOffset = 0;
-    NumThreadsDone = 0;
-    NumPdfQueryRetries = 0;
+    resetRaytrace();
     OnComplete = onComplete;
-    StartTime = std::chrono::system_clock::now();
+
+    // Create the threads and run them
+    LocalThreadData.resize(NumThreads);
+    for (int i = 0; i < NumThreads; i++)
+    {
+        LocalThreadData[i].RestartTrace = false;
+        ThreadPtrs[i] = new std::thread(threadTraceNextPixel, i, this, scene);
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void Raytracer::resetRaytrace()
+{
+    IsRaytracing                = true;
+    TotalRaysFired              = 0;
+    CurrentPixelSampleOffset    = 0;
+    NumThreadsDone              = 0;
+    NumPdfQueryRetries          = 0;
+    StartTime                   = std::chrono::system_clock::now();
 
     // Clear out buffers
     const int area = OutputWidth * OutputHeight;
@@ -85,11 +99,21 @@ void Raytracer::BeginRaytrace(WorldScene* scene, OnTraceComplete onComplete)
     {
         OutputBuffer[i] = Vec4(0, 0, 0);
     }
+}
 
-    // Create the threads and run them
-    for (int i = 0; i < NumThreads; i++)
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void Raytracer::RestartCurrentRaytrace()
+{
+    // This is not really thread-safe or consistent, but whatevs.
+    if (IsRaytracing)
     {
-        ThreadPtrs[i] = new std::thread(threadTraceNextPixel, i, this, scene);
+        CurrentPixelSampleOffset.store(0);
+        for (int i = 0; i < NumThreads; i++)
+        {
+            LocalThreadData[i].RestartTrace = true;
+        }
+        resetRaytrace();
     }
 }
 
@@ -139,6 +163,7 @@ void Raytracer::cleanupRaytrace()
             delete ThreadPtrs[i];
             ThreadPtrs[i] = nullptr;
         }
+        LocalThreadData.clear();
 
         // Reset event
         ThreadExitRequested = false;
@@ -166,6 +191,13 @@ void Raytracer::threadTraceNextPixel(int id, Raytracer* tracer, WorldScene* scen
         // Find the next offset to the pixel to trace
         while (pixelSampleOffset < totalPixelSamples)
         {
+            // See if we're restarting
+            if (tracer->LocalThreadData[id].RestartTrace)
+            {
+                pixelSampleOffset = tracer->CurrentPixelSampleOffset.load();
+                tracer->LocalThreadData[id].RestartTrace = false;
+            }
+
             // Try and get the next pixel offset
             if (tracer->CurrentPixelSampleOffset.compare_exchange_strong(pixelSampleOffset, pixelSampleOffset + 1))
             {

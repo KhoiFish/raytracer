@@ -60,6 +60,7 @@ namespace Core
         ~Raytracer();
 
         void             BeginRaytrace(WorldScene* scene, OnTraceComplete onComplete = nullptr);
+        void             RestartCurrentRaytrace();
         bool             WaitForTraceToFinish(int timeoutMicroSeconds);
         Stats            GetStats() const;
 
@@ -71,35 +72,42 @@ namespace Core
 
     private:
 
+        struct ThreadData
+        {
+            bool RestartTrace = false;
+        };
+
         static void      threadTraceNextPixel(int id, Raytracer* tracer, WorldScene* scene);
         Vec4             trace(WorldScene* scene, const Ray& r, int depth);
         void             cleanupRaytrace();
+        void             resetRaytrace();
 
     private:
 
         // Output options
-        int                   OutputWidth;
-        int                   OutputHeight;
-        Vec4*                 OutputBuffer;
-        uint8_t*              OutputBufferRGBA;
+        int                     OutputWidth;
+        int                     OutputHeight;
+        Vec4*                   OutputBuffer;
+        uint8_t*                OutputBufferRGBA;
 
         // Tracing options
-        int                   NumRaySamples;
-        int                   MaxDepth;
-        int                   NumThreads;
-        bool                  PdfEnabled;
+        int                     NumRaySamples;
+        int                     MaxDepth;
+        int                     NumThreads;
+        bool                    PdfEnabled;
 
         // Thread tracking
-        std::atomic<int64_t>  CurrentPixelSampleOffset;
-        std::atomic<int64_t>  TotalRaysFired;
-        std::atomic<int>      NumThreadsDone;
-        std::atomic<int>      NumPdfQueryRetries;
-        std::atomic<bool>     ThreadExitRequested;
-        StdTime               StartTime;
-        StdTime               EndTime;
-        std::thread**         ThreadPtrs;
-        ThreadEvent           RaytraceEvent;
-        bool                  IsRaytracing;
-        OnTraceComplete       OnComplete;
+        std::atomic<int64_t>    CurrentPixelSampleOffset;
+        std::atomic<int64_t>    TotalRaysFired;
+        std::atomic<int>        NumThreadsDone;
+        std::atomic<int>        NumPdfQueryRetries;
+        std::atomic<bool>       ThreadExitRequested;
+        StdTime                 StartTime;
+        StdTime                 EndTime;
+        std::thread**           ThreadPtrs;
+        std::vector<ThreadData> LocalThreadData;
+        ThreadEvent             RaytraceEvent;
+        bool                    IsRaytracing;
+        OnTraceComplete         OnComplete;
     };
 }

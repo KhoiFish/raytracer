@@ -302,9 +302,9 @@ void Renderer::OnUpdate(float dtSeconds)
             TheUserInputData.MouseDy = 0;
 
             // Restart raytrace
-            if (TheRaytracer != nullptr && SelectedBufferIndex == CpuResultsBufferIndex)
+            if (TheRaytracer != nullptr && TheRaytracer->IsTracing())
             {
-                TheRaytracer->BeginRaytrace(TheWorldScene, OnCpuRaytraceComplete);
+                TheRaytracer->RestartCurrentRaytrace();
             }
 
             IsCameraDirty = false;

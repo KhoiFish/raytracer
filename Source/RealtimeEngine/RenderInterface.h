@@ -32,7 +32,6 @@ namespace RealtimeEngine
             Name(name),
             Width(width),
             Height(height),
-            WindowBounds{ 0,0,0,0 },
             AspectRatio(0.0f)
         {
             UpdateForSizeChange(width, height);
@@ -52,11 +51,9 @@ namespace RealtimeEngine
 
         virtual void                   OnKeyDown(uint8_t key) {}
         virtual void                   OnKeyUp(uint8_t key) {}
-        virtual void                   OnWindowMoved(int x, int y) {}
         virtual void                   OnMouseMove(int32_t x, int32_t y) {}
         virtual void                   OnLeftButtonDown(int32_t x, int32_t y) {}
         virtual void                   OnLeftButtonUp(int32_t x, int32_t y) {}
-        virtual void                   OnDisplayChanged() {}
         virtual bool                   OverrideImguiInput() { return true; }
 
 	public:
@@ -64,7 +61,6 @@ namespace RealtimeEngine
         const string_t&                GetName() const            { return Name; }
 		uint32_t                       GetWidth() const           { return Width; }
 		uint32_t                       GetHeight() const          { return Height; }
-        RECT                           GetWindowsBounds() const   { return WindowBounds; }
 
     public:
 
@@ -75,21 +71,12 @@ namespace RealtimeEngine
             AspectRatio = static_cast<float>(clientWidth) / static_cast<float>(clientHeight);
         }
 
-        inline void SetWindowBounds(int32_t left, int32_t top, int32_t right, int32_t bottom)
-        {
-            WindowBounds.left   = static_cast<LONG>(left);
-            WindowBounds.top    = static_cast<LONG>(top);
-            WindowBounds.right  = static_cast<LONG>(right);
-            WindowBounds.bottom = static_cast<LONG>(bottom);
-        }
-
 	protected:
 
         string_t    Name;
         uint32_t    Width;
         uint32_t    Height;
         float       AspectRatio;
-        RECT        WindowBounds;
     };
 
 }

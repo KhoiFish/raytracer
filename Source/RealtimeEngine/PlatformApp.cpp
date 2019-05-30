@@ -28,15 +28,22 @@
 using Microsoft::WRL::ComPtr;
 using namespace RealtimeEngine;
 
-bool    PlatformApp::FullscreenMode = false;
 IMGUI_IMPL_API LRESULT  ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-HWND    PlatformApp::Hwnd        = nullptr;
-double  PlatformApp::PCFreq      = 0;
-__int64 PlatformApp::PrevCounter = 0;
-RECT    PlatformApp::WindowRect;
+HWND                                        PlatformApp::Hwnd               = nullptr;
+double                                      PlatformApp::PCFreq             = 0;
+__int64                                     PlatformApp::PrevCounter        = 0;
+bool                                        PlatformApp::FullscreenMode     = false;
+std::thread*                                PlatformApp::RenderThread       = nullptr;
+bool                                        PlatformApp::ExitRenderThread   = false;
+RenderInterface*                            PlatformApp::Renderer           = nullptr;
+RECT                                        PlatformApp::WindowRect;
+Core::ThreadEvent                           PlatformApp::RenderThreadEvent;
+std::atomic<PlatformApp::MouseCoord>        PlatformApp::CurrentMouseCoord;
+PlatformApp::MouseCoord                     PlatformApp::LastMouseCoord;
+Core::SafeQueue<PlatformApp::RenderMessage> PlatformApp::MessageQueue;
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -60,28 +67,20 @@ int PlatformApp::Run(RenderInterface* pRenderInterface, HINSTANCE hInstance, int
 
     try
     {
-        // Init performance counter
-        {
-            LARGE_INTEGER li;
-
-            QueryPerformanceFrequency(&li);
-            PCFreq = double(li.QuadPart);
-
-            QueryPerformanceCounter(&li);
-            PrevCounter = li.QuadPart;
-        }
+        // Set renderer pointer
+        Renderer = pRenderInterface;
 
         // Tell windows we're DPI aware so it doesn't do crappy scaling on our window
         SetProcessDpiAwareness(PROCESS_DPI_AWARENESS::PROCESS_SYSTEM_DPI_AWARE);
 
         // Windows init
         WNDCLASSEX windowClass = { 0 };
-        windowClass.cbSize = sizeof(WNDCLASSEX);
-        windowClass.style = CS_HREDRAW | CS_VREDRAW;
-        windowClass.lpfnWndProc = WindowProc;
-        windowClass.hInstance = hInstance;
-        windowClass.hCursor = LoadCursor(NULL, IDC_ARROW);
-        windowClass.lpszClassName = L"PlatformApp";
+        windowClass.cbSize          = sizeof(WNDCLASSEX);
+        windowClass.style           = CS_HREDRAW | CS_VREDRAW;
+        windowClass.lpfnWndProc     = WindowProc;
+        windowClass.hInstance       = hInstance;
+        windowClass.hCursor         = LoadCursor(NULL, IDC_ARROW);
+        windowClass.lpszClassName   = L"PlatformApp";
         RegisterClassEx(&windowClass);
 
         RECT windowRect = { 0, 0, static_cast<LONG>(pRenderInterface->GetWidth()), static_cast<LONG>(pRenderInterface->GetHeight()) };
@@ -101,11 +100,13 @@ int PlatformApp::Run(RenderInterface* pRenderInterface, HINSTANCE hInstance, int
             hInstance,
             pRenderInterface);
 
-        // Init rendering
-        pRenderInterface->OnInit();
-
         ShowWindow(Hwnd, nCmdShow);
         centerWindow(Hwnd);
+
+        // Create the render thread and start it
+        RenderThreadEvent.Reset();
+        ExitRenderThread = false;
+        RenderThread     = new std::thread(RenderThreadMain);
 
         // Main windows message loop
         MSG msg = {};
@@ -123,12 +124,21 @@ int PlatformApp::Run(RenderInterface* pRenderInterface, HINSTANCE hInstance, int
     catch (std::exception& e)
     {
         RenderDebugPrintf("Application hit a problem: %s", e.what());
-        pRenderInterface->OnDestroy();
         retValue = EXIT_FAILURE;
     }
 
-    // Tell rendering to shutdown
-    pRenderInterface->OnDestroy();
+    // Exit render thread
+    if (RenderThread != nullptr)
+    {
+        // Signal thread to exit and wait
+        ExitRenderThread = true;
+        RenderThreadEvent.WaitOne(-1);
+
+        // Kill the thread
+        RenderThread->join();
+        delete RenderThread;
+        RenderThread = nullptr;
+    }
 
     return retValue;
 }
@@ -233,136 +243,93 @@ void PlatformApp::SetWindowZorderToTopMost(bool setToTopMost)
 
 LRESULT CALLBACK PlatformApp::WindowProc(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam)
 {
-    RenderInterface* pRenderInterface = reinterpret_cast<RenderInterface*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
-
-    bool keyboardCaptured = false, mouseCaptured = false;
-    if (ImGui::GetCurrentContext() != nullptr && !pRenderInterface->OverrideImguiInput())
+    if (ImGui::GetCurrentContext() != nullptr)
     {
         // Pass message to imgui
         ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam);
-
-        // See if mouse wants to be captured
-        ImGuiIO& imguiIo = ImGui::GetIO();
-        keyboardCaptured = imguiIo.WantCaptureKeyboard;
-        mouseCaptured    = imguiIo.WantCaptureMouse;
     }
-    
+
     switch (message)
     {
-    case WM_CREATE:
-    {
-        LPCREATESTRUCT pCreateStruct = reinterpret_cast<LPCREATESTRUCT>(lParam);
-        SetWindowLongPtr(hWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pCreateStruct->lpCreateParams));
-    }
-    return 0;
-
-    case WM_KEYDOWN:
-        if (pRenderInterface && !keyboardCaptured)
+        case WM_CREATE:
         {
-            pRenderInterface->OnKeyDown(static_cast<UINT8>(wParam));
-        }
-        return 0;
-
-    case WM_KEYUP:
-        if (pRenderInterface && !keyboardCaptured)
-        {
-            pRenderInterface->OnKeyUp(static_cast<UINT8>(wParam));
-        }
-        return 0;
-
-    case WM_SYSKEYDOWN:
-        // Handle ALT+ENTER:
-        if ((wParam == VK_RETURN) && (lParam & (1 << 29)))
-        {
-            ToggleFullscreenWindow(RenderDevice::Get().GetSwapChain());
+            LPCREATESTRUCT pCreateStruct = reinterpret_cast<LPCREATESTRUCT>(lParam);
+            SetWindowLongPtr(hWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pCreateStruct->lpCreateParams));
             return 0;
+        }
+
+        case WM_PAINT:
+        case WM_DISPLAYCHANGE:
+        {
+            return 0;
+        }
+
+        case WM_DESTROY:
+        {
+            PostQuitMessage(0);
+            return 0;
+        }
+
+        case WM_SIZE:
+        {
+            RECT clientRect = {};
+            GetClientRect(Hwnd, &clientRect);
+            int32_t newWidth  = clientRect.right - clientRect.left;
+            int32_t newHeight = clientRect.bottom - clientRect.top;
+            MessageQueue.Push(RenderMessage(MessageType_Size, newWidth, newHeight, int32_t(wParam)));
+
+            // Throttle size messages
+            Sleep(16);
+
+            return 0;
+        }
+
+        case WM_SYSKEYDOWN:
+        {
+            // Handle ALT+ENTER:
+            if ((wParam == VK_RETURN) && (lParam & (1 << 29)))
+            {
+                MessageQueue.Push(RenderMessage(MessageType_AltEnter));
+            }
         }
         break;
 
-    case WM_PAINT:
-        // Pump app rendering and update
-        if (pRenderInterface)
+        case WM_KEYDOWN:
+        case WM_KEYUP:
         {
-            // Get delta time
-            float dtSeconds;
+            if (message == WM_KEYDOWN && wParam == VK_ESCAPE)
             {
-                LARGE_INTEGER li;
-                QueryPerformanceCounter(&li);
-                dtSeconds = float(double(li.QuadPart - PrevCounter) / PCFreq);
-                PrevCounter = li.QuadPart;
+                PostQuitMessage(0);
+                return 0;
             }
 
-            pRenderInterface->OnUpdate(dtSeconds);
-            pRenderInterface->OnRender();
-        }
-        return 0;
+            MessageType type = (message == WM_KEYDOWN) ? MessageType_KeyDown : MessageType_KeyUp;
 
-    case WM_SIZE:
-        if (pRenderInterface)
+            MessageQueue.Push(RenderMessage(type, int32_t(wParam), int32_t(lParam)));
+            return 0;
+        }
+
+        case WM_LBUTTONDOWN:
+        case WM_LBUTTONUP:
         {
-            RECT windowRect = {};
-            GetWindowRect(hWnd, &windowRect);
-            pRenderInterface->SetWindowBounds(windowRect.left, windowRect.top, windowRect.right, windowRect.bottom);
+            int32_t         x    = GET_X_LPARAM(lParam);
+            int32_t         y    = GET_Y_LPARAM(lParam);
+            MessageType     type = (message == WM_LBUTTONDOWN) ? MessageType_LButtonDown : MessageType_LButtonUp;
+            RenderMessage   msg(type, x, y);
+            MessageQueue.Push(msg);
 
-            RECT clientRect = {};
-            GetClientRect(hWnd, &clientRect);
-            uint32_t newWidth  = clientRect.right - clientRect.left;
-            uint32_t newHeight = clientRect.bottom - clientRect.top;
-            pRenderInterface->UpdateForSizeChange(newWidth, newHeight);
-            pRenderInterface->OnSizeChanged(newWidth, newHeight, wParam == SIZE_MINIMIZED);
+            return 0;
         }
-        return 0;
 
-    case WM_MOVE:
-        if (pRenderInterface)
+        case WM_MOUSEMOVE:
         {
-            RECT windowRect = {};
-            GetWindowRect(hWnd, &windowRect);
-            pRenderInterface->SetWindowBounds(windowRect.left, windowRect.top, windowRect.right, windowRect.bottom);
-
-            int xPos = (int)(short)GET_X_LPARAM(lParam);
-            int yPos = (int)(short)GET_Y_LPARAM(lParam);
-            pRenderInterface->OnWindowMoved(xPos, yPos);
+            if (wParam == MK_LBUTTON)
+            {
+                MouseCoord coord(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+                CurrentMouseCoord.store(coord);
+            }
         }
-        return 0;
-
-    case WM_DISPLAYCHANGE:
-        if (pRenderInterface)
-        {
-            pRenderInterface->OnDisplayChanged();
-        }
-        return 0;
-
-    case WM_MOUSEMOVE:
-        if (pRenderInterface && static_cast<UINT8>(wParam) == MK_LBUTTON && !mouseCaptured)
-        {
-            int32_t x = GET_X_LPARAM(lParam);
-            int32_t y = GET_Y_LPARAM(lParam);
-            pRenderInterface->OnMouseMove(x, y);
-        }
-        return 0;
-
-    case WM_LBUTTONDOWN:
-    if (!mouseCaptured)
-    {
-        int32_t x = GET_X_LPARAM(lParam);
-        int32_t y = GET_Y_LPARAM(lParam);
-        pRenderInterface->OnLeftButtonDown(x, y);
-    }
-    return 0;
-
-    case WM_LBUTTONUP:
-    if  (!mouseCaptured)
-    {
-        int32_t x = GET_X_LPARAM(lParam);
-        int32_t y = GET_Y_LPARAM(lParam);
-        pRenderInterface->OnLeftButtonUp(x, y);
-    }
-    return 0;
-
-    case WM_DESTROY:
-        PostQuitMessage(0);
-        return 0;
+        break;
     }
 
     // Handle any messages the switch statement didn't.
@@ -371,7 +338,175 @@ LRESULT CALLBACK PlatformApp::WindowProc(HWND hWnd, uint32_t message, WPARAM wPa
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+void PlatformApp::RenderThreadMain()
+{
+    // Init performance counter
+    {
+        LARGE_INTEGER li;
+
+        QueryPerformanceFrequency(&li);
+        PCFreq = double(li.QuadPart);
+
+        QueryPerformanceCounter(&li);
+        PrevCounter = li.QuadPart;
+    }
+
+    // Init rendering
+    Renderer->OnInit();
+
+    std::queue<RenderMessage> culledMessageQueue;
+    while (!ExitRenderThread)
+    {
+        // Process render messages
+        {
+            // Handle all messages in the queue
+            RenderMessage msg;
+            RenderMessage sizeMessage(MessageType_None);
+            while (MessageQueue.Pop(msg, 0))
+            {
+                if (msg.Type == MessageType_Size)
+                {
+                    // Ignore until we get the last one
+                    sizeMessage = msg;
+                    continue;
+                }
+
+                HandleRenderMessage(msg);
+            }
+
+            // Process any (and last) size message
+            if (sizeMessage.Type == MessageType_Size)
+            {
+                HandleRenderMessage(sizeMessage);
+            }
+
+            // Process mouse move
+            if (LastMouseCoord != CurrentMouseCoord.load())
+            {
+                LastMouseCoord = CurrentMouseCoord.load();
+                HandleRenderMessage(RenderMessage(PlatformApp::MessageType_MouseMove, LastMouseCoord.X, LastMouseCoord.Y));
+            }
+        }
+
+        // Pump app rendering and update
+        {
+            LARGE_INTEGER li;
+            QueryPerformanceCounter(&li);
+            float dtSeconds = float(double(li.QuadPart - PrevCounter) / PCFreq);
+            PrevCounter = li.QuadPart;
+
+            Renderer->OnUpdate(dtSeconds);
+            Renderer->OnRender();
+        }
+    }
+
+    // Shutdown render
+    Renderer->OnDestroy();
+
+    // Signal we're done
+    RenderThreadEvent.Signal();
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void PlatformApp::HandleRenderMessage(const RenderMessage& msg)
+{
+    // See if IMGUI has captured keyboard/mouse events
+    if (ImGui::GetCurrentContext() != nullptr)
+    {
+        // See if mouse wants to be captured
+        ImGuiIO& imguiIo = ImGui::GetIO();
+        bool keyboardCaptured = imguiIo.WantCaptureKeyboard;
+        bool mouseCaptured    = imguiIo.WantCaptureMouse;
+
+        // Bail out of keyboard/mouse messages if captured
+        if (keyboardCaptured)
+        {
+            switch (msg.Type)
+            {
+                case MessageType_KeyDown:
+                case MessageType_KeyUp:
+                    return;
+            }
+        }
+        if(mouseCaptured)
+        {
+            switch (msg.Type)
+            {
+            case MessageType_LButtonDown:
+            case MessageType_LButtonUp:
+            case MessageType_MouseMove:
+                return;
+            }
+        }
+    }
+
+    // Handle render message
+    switch (msg.Type)
+    {
+        case MessageType_Size:
+        {
+            Renderer->UpdateForSizeChange(msg.Params[0], msg.Params[1]);
+            Renderer->OnSizeChanged(msg.Params[0], msg.Params[1], msg.Params[2] == SIZE_MINIMIZED);
+        }
+        break;
+
+        case MessageType_KeyDown:
+        {
+            Renderer->OnKeyDown(static_cast<UINT8>(msg.Params[0]));
+        }
+        break;
+        
+
+        case MessageType_KeyUp:
+        {
+            Renderer->OnKeyUp(static_cast<UINT8>(msg.Params[0]));
+        }
+        break;
+
+        case MessageType_AltEnter:
+        {
+            ToggleFullscreenWindow(RenderDevice::Get().GetSwapChain());
+        }
+        break;
+
+        case MessageType_LButtonDown:
+        {
+            Renderer->OnLeftButtonDown(msg.Params[0], msg.Params[1]);
+        }
+        break;
+
+        case MessageType_LButtonUp:
+        {
+            Renderer->OnLeftButtonUp(msg.Params[0], msg.Params[1]);
+        }
+        break;
+
+        case MessageType_MouseMove:
+        {
+            Renderer->OnMouseMove(msg.Params[0], msg.Params[1]);
+        }
+        break;
+    }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 void PlatformApp::SetWindowTitle(const string_t& title)
 {
     SetWindowTextA(Hwnd, title.c_str());
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+HWND PlatformApp::GetHwnd()
+{
+    return Hwnd;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+bool PlatformApp::IsFullscreen()
+{
+    return FullscreenMode;
 }

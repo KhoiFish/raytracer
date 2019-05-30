@@ -28,12 +28,6 @@ void Renderer::OnKeyDown(UINT8 key)
             break;
         }
 
-        case VK_ESCAPE:
-        {
-            PostQuitMessage(0);
-            break;
-        }
-
         case VK_SHIFT:
         {
             TheUserInputData.ShiftKeyPressed = true;

@@ -243,9 +243,9 @@ void PlatformApp::SetWindowZorderToTopMost(bool setToTopMost)
 
 LRESULT CALLBACK PlatformApp::WindowProc(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam)
 {
+    // Pass message to IMGUI
     if (ImGui::GetCurrentContext() != nullptr)
     {
-        // Pass message to imgui
         ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam);
     }
 
@@ -259,9 +259,8 @@ LRESULT CALLBACK PlatformApp::WindowProc(HWND hWnd, uint32_t message, WPARAM wPa
         }
 
         case WM_PAINT:
-        case WM_DISPLAYCHANGE:
         {
-            // Throttle paint messages
+            // Throttle WM_PAINT messages
             Sleep(16);
             return 0;
         }
@@ -280,9 +279,8 @@ LRESULT CALLBACK PlatformApp::WindowProc(HWND hWnd, uint32_t message, WPARAM wPa
             int32_t newHeight = clientRect.bottom - clientRect.top;
             MessageQueue.Push(RenderMessage(MessageType_Size, newWidth, newHeight, int32_t(wParam)));
 
-            // Throttle size messages
+            // Throttle WM_SIZE messages
             Sleep(16);
-
             return 0;
         }
 
@@ -292,6 +290,8 @@ LRESULT CALLBACK PlatformApp::WindowProc(HWND hWnd, uint32_t message, WPARAM wPa
             if ((wParam == VK_RETURN) && (lParam & (1 << 29)))
             {
                 MessageQueue.Push(RenderMessage(MessageType_AltEnter));
+
+                return 0;
             }
         }
         break;
@@ -306,8 +306,8 @@ LRESULT CALLBACK PlatformApp::WindowProc(HWND hWnd, uint32_t message, WPARAM wPa
             }
 
             MessageType type = (message == WM_KEYDOWN) ? MessageType_KeyDown : MessageType_KeyUp;
-
             MessageQueue.Push(RenderMessage(type, int32_t(wParam), int32_t(lParam)));
+
             return 0;
         }
 
@@ -329,6 +329,8 @@ LRESULT CALLBACK PlatformApp::WindowProc(HWND hWnd, uint32_t message, WPARAM wPa
             {
                 MouseCoord coord(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
                 CurrentMouseCoord.store(coord);
+
+                return 0;
             }
         }
         break;
@@ -348,10 +350,8 @@ void PlatformApp::RenderThreadMain()
     // Init performance counter
     {
         LARGE_INTEGER li;
-
         QueryPerformanceFrequency(&li);
         PCFreq = double(li.QuadPart);
-
         QueryPerformanceCounter(&li);
         PrevCounter = li.QuadPart;
     }
@@ -359,6 +359,7 @@ void PlatformApp::RenderThreadMain()
     // Init rendering
     Renderer->OnInit();
 
+    // Render loop
     std::queue<RenderMessage> culledMessageQueue;
     while (!ExitRenderThread)
     {
@@ -405,10 +406,8 @@ void PlatformApp::RenderThreadMain()
         }
     }
 
-    // Shutdown render
+    // Shutdown render and signal we're done
     Renderer->OnDestroy();
-
-    // Signal we're done
     RenderThreadEvent.Signal();
 }
 
@@ -434,7 +433,7 @@ void PlatformApp::HandleRenderMessage(const RenderMessage& msg)
                     return;
             }
         }
-        if(mouseCaptured)
+        if (mouseCaptured)
         {
             switch (msg.Type)
             {
@@ -462,7 +461,6 @@ void PlatformApp::HandleRenderMessage(const RenderMessage& msg)
         }
         break;
         
-
         case MessageType_KeyUp:
         {
             Renderer->OnKeyUp(static_cast<UINT8>(msg.Params[0]));

@@ -23,6 +23,7 @@
 #include <condition_variable>
 #include <queue>
 #include <thread>
+#include <atomic>
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -68,6 +69,7 @@ namespace Core
 
             item = Queue.front();
             Queue.pop();
+            Num--;
             NotEmpty = (Queue.size() > 0);
 
             return true;
@@ -77,8 +79,14 @@ namespace Core
         {
             std::unique_lock<std::mutex> guardLock(Mutex);
             Queue.push(item);
+            Num++;
             NotEmpty = true;
             CondVar.notify_one();
+        }
+
+        int32_t Count() const
+        {
+            return Num.load();
         }
 
     private:
@@ -87,5 +95,6 @@ namespace Core
         std::condition_variable CondVar;
         std::mutex              Mutex;
         std::queue<T>           Queue;
+        std::atomic<int32_t>    Num = 0;
     };
 }

@@ -566,10 +566,11 @@ void RealtimeScene::GenerateRenderListFromWorld(const Core::IHitable* currentHea
 void RealtimeEngine::RealtimeScene::AddNewNode(RealtimeSceneNode* newNode, const DirectX::XMMATRIX& worldMatrix, 
     const RenderMaterial& material, RealtimeEngine::Texture* pDiffuseTexture, const Core::IHitable* pHitable)
 {
-    newNode->WorldMatrix            = worldMatrix;
-    newNode->Material               = material;;
-    newNode->DiffuseTextureIndex    = DiffuseTextureList.GetCount();
-    newNode->Hitable                = pHitable;
+    newNode->WorldMatrix                = worldMatrix;
+    newNode->Material                   = material;;
+    newNode->Material.DiffuseTextureId  = DiffuseTextureList.GetCount();
+    newNode->DiffuseTextureIndex        = DiffuseTextureList.GetCount();
+    newNode->Hitable                    = pHitable;
     DiffuseTextureList.Add(pDiffuseTexture);
     CreateVertexIndexBuffers(newNode);
     RenderSceneList.push_back(newNode);
@@ -677,7 +678,6 @@ RealtimeScene::RealtimeScene(Core::WorldScene* worldScene)
                 pInstanceData->InstanceId       = pNode->InstanceId;
                 pInstanceData->LightIndex       = pNode->LightIndex;
                 pInstanceData->WorldMatrix      = XMMatrixTranspose(pNode->WorldMatrix);
-                pInstanceData->DiffuseTextureId = pNode->DiffuseTextureIndex;
                 pNode->InstanceDataBuffer.Create(L"Instance Data", 1, bufferSize, pInstanceData);
             }
             _aligned_free(pInstanceData);

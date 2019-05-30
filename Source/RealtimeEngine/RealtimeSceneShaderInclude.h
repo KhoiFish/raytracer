@@ -37,38 +37,36 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-//ALIGN_BEGIN(16)
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
 struct RealtimeSceneVertex
 {
-    XMFLOAT3   Position;
-    XMFLOAT3   Normal;
-    XMFLOAT2   TexCoord;
+    XMFLOAT3    Position;
+    XMFLOAT3    Normal;
+    XMFLOAT2    TexCoord;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
 struct RenderNodeInstanceData
 {
-    XMMATRIX  WorldMatrix;
-    XMFLOAT4  AverageAlbedo;
-    int       LightIndex;
-    UINT      InstanceId;
-    UINT      DiffuseTextureId;
-    UINT      Padding1;
+    XMMATRIX    WorldMatrix;
+    int         LightIndex;
+    UINT        InstanceId;
+    UINT        Padding0;
+    UINT        Padding1;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
 struct RenderMaterial
 {
-    XMFLOAT4   Emissive;
-    XMFLOAT4   Ambient;
-    XMFLOAT4   Diffuse;
-    XMFLOAT4   Specular;
-    float      SpecularPower;
+    XMFLOAT4    Emissive;
+    XMFLOAT4    Ambient;
+    XMFLOAT4    Diffuse;
+    XMFLOAT4    Specular;
+    float       SpecularPower;
+    UINT        DiffuseTextureId;
+    UINT        Padding0;
+    UINT        Padding1;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -80,10 +78,9 @@ struct RealtimeAreaLight
     float       AreaCoverage;
     float       PlaneA0, PlaneA1, PlaneB0;
     float       PlaneB1, PlaneC0, PlaneC1;
-    float       Pad0;
+    UINT        Padding0;
 };
 
-
-//ALIGN_END
+// ----------------------------------------------------------------------------------------------------------------------------
 
 #endif

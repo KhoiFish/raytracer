@@ -48,7 +48,7 @@ Texture2D<float4>                           gAlbedoArray[]      : register(t5, s
 
 
 // Local root signature
-ConstantBuffer<RenderNodeInstanceData>      gInstanceCB         : register(b0, space1);
+ConstantBuffer<RenderNodeInstanceData>      gInstanceDataCB     : register(b0, space1);
 ConstantBuffer<RenderMaterial>              gMaterial           : register(b1, space1);
 
 ByteAddressBuffer                           gVertexBuffer       : register(t0, space1);
@@ -298,7 +298,7 @@ void DirectLightingClosest(inout DirectRayPayload payload, in BuiltInTriangleInt
     float3 barycentrics = float3(1.f - attr.barycentrics.x - attr.barycentrics.y, attr.barycentrics.x, attr.barycentrics.y);
 
     // Hit the light
-    payload.LightIndex     = gInstanceCB.LightIndex;
+    payload.LightIndex     = gInstanceDataCB.LightIndex;
     payload.HitBaryAndDist = float4(barycentrics, RayTCurrent());
     payload.LightColor     = gMaterial.Diffuse.rgb;
 }
@@ -318,8 +318,8 @@ void IndirectLightingClosest(inout IndirectRayPayload payload, in BuiltInTriangl
 {
     float3               bary       = float3(1.f - attr.barycentrics.x - attr.barycentrics.y, attr.barycentrics.x, attr.barycentrics.y);
     RealtimeSceneVertex  vert       = getVertex(PrimitiveIndex(), bary);
-    float3               worldPos   = mul(vert.Position, (float3x3)gInstanceCB.WorldMatrix);
-    float3               worldNorm  = mul(vert.Normal, (float3x3)gInstanceCB.WorldMatrix);
+    float3               worldPos   = mul(vert.Position, (float3x3)gInstanceDataCB.WorldMatrix);
+    float3               worldNorm  = mul(vert.Normal, (float3x3)gInstanceDataCB.WorldMatrix);
     int                  numRays    = payload.NumRays;
 
     payload.Color = float3(0, 0, 0);
@@ -329,7 +329,7 @@ void IndirectLightingClosest(inout IndirectRayPayload payload, in BuiltInTriangl
     }
 
     // Read albedo
-    float3 albedo = gAlbedoArray[gInstanceCB.DiffuseTextureId][vert.TexCoord].xyz;
+    float3 albedo = gAlbedoArray[gMaterial.DiffuseTextureId][vert.TexCoord].xyz;
 
     // Modulate based on the physically based Lambertian term (albedo/pi)
     payload.Color *= (albedo / SHADER_PI);

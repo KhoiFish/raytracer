@@ -219,9 +219,16 @@ void Renderer::CleanupLoadingThread()
 
 void Renderer::OnResizeCpuRaytracer(bool startRaytrace)
 {
+    // Don't resize if there's no cpu raytracer active
+    if (!startRaytrace && TheRaytracer == nullptr)
+    {
+        return;
+    }
+
     int backbufferWidth  = RenderDevice::Get().GetBackbufferWidth();
     int backbufferHeight = RenderDevice::Get().GetBackbufferHeight();
 
+    // Delete old ray tracer
     bool isTracing = false;
     if (TheRaytracer != nullptr)
     {
@@ -261,7 +268,6 @@ bool Renderer::OnSizeChanged(uint32_t width, uint32_t height, bool minimized)
     }
 
     TheRenderScene->SetupResourceViews(*RendererDescriptorHeap);
-    OnResizeCpuRaytracer();
     SetupRenderBuffers();
     OnResizeRasterRender();
     OnResizeGpuRaytracer();

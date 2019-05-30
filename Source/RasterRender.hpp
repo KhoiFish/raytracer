@@ -221,7 +221,7 @@ static inline D3D12_DEPTH_STENCIL_DESC getDepthDisabledState()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::SetupRasterPipeline()
+void Renderer::SetupRasterRootSignatures()
 {
     // Refer to composite shader and match this to the TextureMultipliers[] index
     CpuResultsBufferIndex = 5;
@@ -294,10 +294,7 @@ void Renderer::SetupRasterPipeline()
         RasterCompositePassPSO.SetVertexShader(vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize());
         RasterCompositePassPSO.SetPixelShader(pixelShaderBlob->GetBufferPointer(), pixelShaderBlob->GetBufferSize());
         RasterCompositePassPSO.Finalize();
-    }
-
-    // Setup descriptors
-    SetupRasterDescriptors();
+    }    
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

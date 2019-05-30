@@ -37,13 +37,16 @@ using namespace RealtimeEngine;
 
 Renderer::Renderer(uint32_t width, uint32_t height)
     : RenderInterface("Raytracer", width, height)
+    , TheAppState(AppState_Loading)
     , TheRaytracer(nullptr)
     , TheWorldScene(nullptr)
     , TheRenderScene(nullptr)
+    , TheLoadingThread(nullptr)
+    , CurrentDeltaTime(0)
     , FrameCount(0)
     , SelectedBufferIndex(0)
     , AccumCount(0)
-    , RendererDescriptorHeapCollection(4096 * 16, 0)
+    , RendererDescriptorHeapCollection(4096 * 64, 0)
     , RendererDescriptorHeap(nullptr)
     , IsCameraDirty(true)
     , LoadSceneRequested(false)
@@ -66,6 +69,7 @@ Renderer::~Renderer()
 {
     CommandListManager::Get().IdleGPU();
 
+    CleanupLoadingThread();
     CleanupGpuRaytracer();
     CleanupRasterRender();
 
@@ -116,14 +120,14 @@ void Renderer::OnInit()
     RenderDevice::Initialize(Width, Height, this, &RendererDescriptorHeapCollection, BackbufferFormat);
     RendererDescriptorHeap = &RendererDescriptorHeapCollection.Get(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-    // Load the scene data
-    LoadScene();
-
-    // Setup render pipelines
-    SetupRenderBuffers();
-    SetupRasterPipeline();
-    SetupGpuRaytracingPipeline();
+    // Render setup
     SetupGui();
+    SetupRenderBuffers();
+    SetupRasterRootSignatures();
+    SetupGpuRaytracingRootSignatures();
+
+    // Load the scene data
+    StartSceneLoad();
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -154,32 +158,61 @@ void Renderer::SetupRenderBuffers()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::LoadScene()
+void Renderer::StartSceneLoad()
 {
-    CommandListManager::Get().IdleGPU();
+    // Change app state and kick off the load
+    CleanupLoadingThread();
+    //RenderDevice::Get().ResetDescriptors();
+    TheAppState      = AppState_Loading;
+    TheLoadingThread = new std::thread(LoadingThread, this);
+}
 
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void Renderer::LoadingThread(Renderer* pRenderer)
+{
     // Clean up previous scene
-    if (TheWorldScene != nullptr)
+    if (pRenderer->TheWorldScene != nullptr)
     {
-        delete TheWorldScene;
-        TheWorldScene = nullptr;
+        delete pRenderer->TheWorldScene;
+        pRenderer->TheWorldScene = nullptr;
     }
 
-    if (TheRenderScene != nullptr)
+    if (pRenderer->TheRenderScene != nullptr)
     {
-        delete TheRenderScene;
-        TheRenderScene = nullptr;
+        delete pRenderer->TheRenderScene;
+        pRenderer->TheRenderScene = nullptr;
     }
 
     // Load the selected scene
-    TheWorldScene = GetSampleScene(SampleScene(TheUserInputData.SampleScene));
-    TheWorldScene->GetCamera().SetAspect((float)RenderDevice::Get().GetBackbufferWidth() / (float)RenderDevice::Get().GetBackbufferHeight());
-    TheWorldScene->GetCamera().SetFocusDistanceToLookAt();
+    pRenderer->TheWorldScene = GetSampleScene(SampleScene(pRenderer->TheUserInputData.SampleScene));
+    pRenderer->TheWorldScene->GetCamera().SetAspect((float)RenderDevice::Get().GetBackbufferWidth() / (float)RenderDevice::Get().GetBackbufferHeight());
+    pRenderer->TheWorldScene->GetCamera().SetFocusDistanceToLookAt();
+    pRenderer->TheUserInputData.VertFov = pRenderer->TheWorldScene->GetCamera().GetVertFov();
+    pRenderer->TheRenderScene           = new RealtimeEngine::RealtimeScene(pRenderer->TheWorldScene);
     
-    TheRenderScene = new RealtimeEngine::RealtimeScene(TheWorldScene);
-    TheRenderScene->SetupResourceViews(*RendererDescriptorHeap);
+    // Setup the rest of the pipeline
+    pRenderer->TheRenderScene->SetupResourceViews(*pRenderer->RendererDescriptorHeap);
+    pRenderer->SetupRasterDescriptors();
+    pRenderer->SetupGpuRaytracingDescriptors();
+    pRenderer->SetupGpuRaytracingPSO();
+    pRenderer->SetCameraDirty();
 
-    TheUserInputData.VertFov = TheWorldScene->GetCamera().GetVertFov();
+    // Done loading
+    pRenderer->TheAppState = AppState_RenderScene;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void Renderer::CleanupLoadingThread()
+{
+    // Kill loading thread
+    if (TheLoadingThread != nullptr)
+    {
+        TheLoadingThread->join();
+        delete TheLoadingThread;
+        TheLoadingThread = nullptr;
+    }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -214,11 +247,17 @@ void Renderer::OnResizeCpuRaytracer(bool startRaytrace)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::OnSizeChanged(uint32_t width, uint32_t height, bool minimized)
+bool Renderer::OnSizeChanged(uint32_t width, uint32_t height, bool minimized)
 {
+    // Bail during scene loads, this size request will get re-queued
+    if (TheAppState == AppState_Loading && TheLoadingThread != nullptr)
+    {
+        return false;
+    }
+
     if (!RenderDevice::Get().WindowSizeChanged(width, height, minimized))
     {
-        return;
+        return true;
     }
 
     TheRenderScene->SetupResourceViews(*RendererDescriptorHeap);
@@ -227,6 +266,8 @@ void Renderer::OnSizeChanged(uint32_t width, uint32_t height, bool minimized)
     OnResizeRasterRender();
     OnResizeGpuRaytracer();
     SetCameraDirty();
+
+    return true;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -284,16 +325,18 @@ void Renderer::OnCpuRaytraceComplete(Raytracer* tracer, bool actuallyFinished)
 
 void Renderer::OnUpdate(float dtSeconds)
 {
+    CurrentDeltaTime = dtSeconds;
+
     // Handle new scene load requests
     if (LoadSceneRequested)
     {
-        LoadScene();
-        OnResizeGpuRaytracer();
-        SetCameraDirty();
+        StartSceneLoad();
         LoadSceneRequested = false;
+        return;
     }
 
     // Handle camera updates
+    if (TheAppState == AppState_RenderScene)
     {
         float scale          = (TheUserInputData.ShiftKeyPressed ? 64.f : 32.0f) * 16.f * dtSeconds;
         float forwardAmount  = (TheUserInputData.Forward - TheUserInputData.Backward) * scale;
@@ -323,16 +366,20 @@ void Renderer::OnUpdate(float dtSeconds)
 
 void Renderer::OnRender()
 {
-    // Allow multiple temporal accumulation per frame
-    for (int i = 0; i < TheUserInputData.GpuNumAccumPasses; i++)
+    if (TheAppState == AppState_RenderScene)
     {
-        RenderGeometryPass();
-        RenderGpuRaytracing();
-        FrameCount++;
+        // Allow multiple temporal accumulation per frame
+        for (int i = 0; i < TheUserInputData.GpuNumAccumPasses; i++)
+        {
+            RenderGeometryPass();
+            RenderGpuRaytracing();
+            FrameCount++;
+        }
+
+        // Composite results and GUI render
+        RenderCompositePass();
     }
 
-    // Composite results and GUI render
-    RenderCompositePass();
     RenderGui();
 
     // Present

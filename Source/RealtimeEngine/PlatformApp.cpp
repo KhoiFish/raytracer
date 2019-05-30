@@ -384,7 +384,11 @@ void PlatformApp::RenderThreadMain()
             // Process any (and last) size message
             if (sizeMessage.Type == MessageType_Size)
             {
-                HandleRenderMessage(sizeMessage);
+                if (!HandleRenderMessage(sizeMessage))
+                {
+                    // Requeue
+                    MessageQueue.Push(sizeMessage);
+                }
             }
 
             // Process mouse move
@@ -414,7 +418,7 @@ void PlatformApp::RenderThreadMain()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void PlatformApp::HandleRenderMessage(const RenderMessage& msg)
+bool PlatformApp::HandleRenderMessage(const RenderMessage& msg)
 {
     // See if IMGUI has captured keyboard/mouse events
     if (ImGui::GetCurrentContext() != nullptr)
@@ -431,7 +435,7 @@ void PlatformApp::HandleRenderMessage(const RenderMessage& msg)
             {
                 case MessageType_KeyDown:
                 case MessageType_KeyUp:
-                    return;
+                    return true;
             }
         }
         if (mouseCaptured)
@@ -441,7 +445,7 @@ void PlatformApp::HandleRenderMessage(const RenderMessage& msg)
             case MessageType_LButtonDown:
             case MessageType_LButtonUp:
             case MessageType_MouseMove:
-                return;
+                return true;
             }
         }
     }
@@ -452,7 +456,7 @@ void PlatformApp::HandleRenderMessage(const RenderMessage& msg)
         case MessageType_Size:
         {
             Renderer->UpdateForSizeChange(msg.Params[0], msg.Params[1]);
-            Renderer->OnSizeChanged(msg.Params[0], msg.Params[1], msg.Params[2] == SIZE_MINIMIZED);
+            return Renderer->OnSizeChanged(msg.Params[0], msg.Params[1], msg.Params[2] == SIZE_MINIMIZED);
         }
         break;
 
@@ -492,6 +496,8 @@ void PlatformApp::HandleRenderMessage(const RenderMessage& msg)
         }
         break;
     }
+
+    return true;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

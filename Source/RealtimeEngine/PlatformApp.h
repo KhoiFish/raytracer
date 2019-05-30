@@ -87,7 +87,7 @@ namespace RealtimeEngine
     private:
 
         static LRESULT CALLBACK                 WindowProc(HWND hWnd, uint32_t message, WPARAM wParam, LPARAM lParam);
-        static void                             HandleRenderMessage(const RenderMessage& msg);
+        static bool                             HandleRenderMessage(const RenderMessage& msg);
         static void                             RenderThreadMain();
         static void                             ToggleFullscreenWindow(IDXGISwapChain* pOutput = nullptr);
 

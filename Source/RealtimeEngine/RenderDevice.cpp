@@ -491,13 +491,19 @@ bool RenderDevice::WindowSizeChanged(int width, int height, bool minimized)
         return false;
     }
 
-    // Reset the descriptor heap
-    DescriptorHeapPtr->Reset();
-
     OutputSize = newRc;
-    CreateWindowSizeDependentResources();
+
+    ResetDescriptors();
 
     return true;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void RenderDevice::ResetDescriptors()
+{
+    DescriptorHeapPtr->Reset();
+    CreateWindowSizeDependentResources();
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

@@ -67,6 +67,7 @@ namespace RealtimeEngine
 
         void                                                Present();
         bool                                                WindowSizeChanged(int width, int height, bool minimized);
+        void                                                ResetDescriptors();
         DescriptorHeapStack&                                GetImguiDescriptorHeapStack();
         
     public:

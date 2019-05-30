@@ -25,6 +25,10 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+static int gNumberOfLoadDots = 0;
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 void Renderer::SetupGui()
 {
     ImGuiIO& io = ImGui::GetIO();
@@ -38,163 +42,18 @@ void Renderer::RenderGui()
 {
     ImGui_ImplDX12_NewFrame();
     ImGui_ImplWin32_NewFrame();
+
     ImGui::NewFrame();
-    while(true)
+    switch (TheAppState)
     {
-        ImGui::SetNextWindowPos(ImVec2(12, 18), ImGuiCond_FirstUseEver);
-        ImGui::SetNextWindowSize(ImVec2(800, 820), ImGuiCond_FirstUseEver);
-
-        ImGuiWindowFlags window_flags = ImGuiWindowFlags_AlwaysVerticalScrollbar;
-        if (!ImGui::Begin("Options Window", nullptr, window_flags))
-        {
-            ImGui::End();
+        case AppState_Loading:
+            RenderGuiLoadingScreen();
             break;
-        }
 
-        // ------------------------------------------------------------
-
-        ImGui::Separator();
-        ImGui::Separator();
-        ImGui::Text("INFO");
-        ImGui::Separator();
-        ImGui::BulletText("Displaying Buffer: %s", GetSelectedBufferName());
-
-        if (TheRaytracer != nullptr && TheRaytracer->IsTracing())
-        {
-            {
-                Raytracer::Stats stats = TheRaytracer->GetStats();
-                double percentage = double(double(stats.NumPixelSamples) / double(stats.TotalNumPixelSamples));
-                int    percentInt = (int)(percentage * 100);
-                int    numMinutes = stats.TotalTimeInSeconds / 60;
-                int    numSeconds = stats.TotalTimeInSeconds % 60;
-
-                ImGui::BulletText("Completion: %d%%", percentInt);
-                ImGui::BulletText("Time: %dm:%ds", numMinutes, numSeconds);
-                ImGui::BulletText("Resolution: %dx%d", Width, Height);
-                ImGui::BulletText("Scatter Depth: %d", TheUserInputData.CpuMaxScatterDepth);
-                ImGui::BulletText("Num Threads: %d", TheUserInputData.CpuNumThreads);
-                ImGui::BulletText("Num Samples: %d", TheUserInputData.CpuNumSamplesPerRay);
-                ImGui::BulletText("Done Samples: %d", stats.CompletedSampleCount);
-                ImGui::BulletText("Rays Fired: %" PRId64 "", stats.TotalRaysFired);
-                ImGui::BulletText("Num Pixels Sampled: %" PRId64 "", stats.NumPixelSamples);
-                ImGui::BulletText("Pdf Query Retries: %d", stats.NumPdfQueryRetries);
-            }
-
-            ImGui::Text("");
-            if (ImGui::Button("Stop Cpu Raytrace", ImVec2(180, 30)))
-            {
-                SetEnableCpuRaytrace(false);
-            }
-        }
-        else
-        {
-            char stringBuf[128];
-            bool cpuOptionsChanged = false;
-            bool gpuOptionsChanged = false;
-
-            // ------------------------------------------------------------
-
-            ImGui::Separator();
-            ImGui::Separator();
-            ImGui::Text("HELP");
-            ImGui::Separator();
-            ImGui::BulletText("Translate camera:     Press keys WASDQE");
-            ImGui::BulletText("Pan camera:           Hold Left Mouse Button");
-            ImGui::BulletText("Toggle Cpu Raytrace:  Space bar");
-            ImGui::BulletText("Select output:        1 - 9 keys");
-
-            // ------------------------------------------------------------
-
-            ImGui::Separator();
-            ImGui::Separator();
-            ImGui::Text("GLOBAL OPTIONS");
-            ImGui::Separator();
-            if (ImGui::ListBox("Scene Select", &TheUserInputData.SampleScene, SampleSceneNames, IM_ARRAYSIZE(SampleSceneNames), MaxScene))
-            {
-                LoadSceneRequested = true;
-            }
-
-            // ------------------------------------------------------------
-
-            ImGui::Separator();
-            ImGui::Separator();
-            ImGui::Text("CPU RAYTRACE OPTIONS");
-            ImGui::Separator();
-
-            _itoa_s(TheUserInputData.CpuNumSamplesPerRay, stringBuf, 10);
-            if (ImGui::InputText("Cpu Num Rays Per Pixel", stringBuf, IM_ARRAYSIZE(stringBuf), ImGuiInputTextFlags_CharsDecimal))
-            {
-                TheUserInputData.CpuNumSamplesPerRay = atoi(stringBuf);
-                cpuOptionsChanged = true;
-            }
-
-            _itoa_s(TheUserInputData.CpuMaxScatterDepth, stringBuf, 10);
-            if (ImGui::InputText("Cpu Recursion Depth", stringBuf, IM_ARRAYSIZE(stringBuf), ImGuiInputTextFlags_CharsDecimal))
-            {
-                TheUserInputData.CpuMaxScatterDepth = atoi(stringBuf);
-                cpuOptionsChanged = true;
-            }
-
-            if (ImGui::SliderInt("Cpu Num Threads", &TheUserInputData.CpuNumThreads, 1, MaxNumCpuThreads))
-            {
-                cpuOptionsChanged = true;
-            }
-
-            ImGui::Text("");
-            if (ImGui::Button("Begin Cpu Raytrace", ImVec2(180, 30)))
-            {
-                SetEnableCpuRaytrace(true);
-            }
-
-            // ------------------------------------------------------------
-
-            ImGui::Separator();
-            ImGui::Separator();
-            ImGui::Text("GPU RAYTRACE OPTIONS");
-            ImGui::Separator();
-
-
-            if (ImGui::SliderInt("Num Accum. Passes Per Frame", &TheUserInputData.GpuNumAccumPasses, 1, 16))
-            {
-                gpuOptionsChanged = true;
-            }
-
-            if (ImGui::SliderInt("Rays Per Pixel", &TheUserInputData.GpuNumRaysPerPixel, 1, 100))
-            {
-                gpuOptionsChanged = true;
-            }
-
-            if (ImGui::SliderFloat("Direct Light Scale", &TheUserInputData.GpuDirectLightMult, 0.0f, 10.0f))
-            {
-                gpuOptionsChanged = true;
-            }
-
-            if (ImGui::SliderFloat("Indirect Light Scale", &TheUserInputData.GpuIndirectLightMult, 0.0f, 10.0f))
-            {
-                gpuOptionsChanged = true;
-            }
-
-            if (ImGui::SliderFloat("AO Radius", &TheUserInputData.GpuAORadius, 1.0f, 1000.0f))
-            {
-                gpuOptionsChanged = true;
-            }
-
-            if (ImGui::Checkbox("Enable Camera Jitter", &TheUserInputData.GpuCameraJitter))
-            {
-                gpuOptionsChanged = true;
-            }
-
-            // ------------------------------------------------------------
-
-            // If gpu options changed, trigger camera to update
-            if (gpuOptionsChanged)
-            {
-                SetCameraDirty();
-            }
-        }
-
-        ImGui::End();
-        break;
+        case AppState_RenderScene:
+            gNumberOfLoadDots = 0;
+            RenderGuiOptionsWindow();
+            break;
     }
     ImGui::EndFrame();
 
@@ -203,12 +62,213 @@ void Renderer::RenderGui()
     {
         renderContext.SetViewport(RenderDevice::Get().GetScreenViewport());
         renderContext.SetScissor(RenderDevice::Get().GetScissorRect());
-        renderContext.TransitionResource(RenderDevice::Get().GetRenderTarget(), D3D12_RESOURCE_STATE_RENDER_TARGET);
+        renderContext.TransitionResource(RenderDevice::Get().GetRenderTarget(), D3D12_RESOURCE_STATE_RENDER_TARGET, true);
         renderContext.SetRenderTarget(RenderDevice::Get().GetRenderTarget().GetRTV(), RenderDevice::Get().GetDepthStencil().GetDSV());
         renderContext.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, RenderDevice::Get().GetImguiDescriptorHeapStack().GetDescriptorHeap());
+
+        if (TheAppState == AppState_Loading)
+        {
+            renderContext.ClearColor(RenderDevice::Get().GetRenderTarget());
+        }
 
         ImGui::Render();
         ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), renderContext.GetCommandList());
     }
     renderContext.Finish();
 }
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void Renderer::RenderGuiOptionsWindow()
+{
+    ImGui::SetNextWindowPos(ImVec2(12, 18), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(800, 820), ImGuiCond_FirstUseEver);
+
+    ImGuiWindowFlags windowFlags = ImGuiWindowFlags_AlwaysVerticalScrollbar;
+    if (!ImGui::Begin("Options Window", nullptr, windowFlags))
+    {
+        ImGui::End();
+        return;
+    }
+
+    // ------------------------------------------------------------
+
+    ImGui::Separator();
+    ImGui::Separator();
+    ImGui::Text("INFO");
+    ImGui::Separator();
+    ImGui::BulletText("Displaying Buffer: %s", GetSelectedBufferName());
+
+    if (TheRaytracer != nullptr && TheRaytracer->IsTracing())
+    {
+        {
+            Raytracer::Stats stats = TheRaytracer->GetStats();
+            double percentage = double(double(stats.NumPixelSamples) / double(stats.TotalNumPixelSamples));
+            int    percentInt = (int)(percentage * 100);
+            int    numMinutes = stats.TotalTimeInSeconds / 60;
+            int    numSeconds = stats.TotalTimeInSeconds % 60;
+
+            ImGui::BulletText("Completion: %d%%", percentInt);
+            ImGui::BulletText("Time: %dm:%ds", numMinutes, numSeconds);
+            ImGui::BulletText("Resolution: %dx%d", Width, Height);
+            ImGui::BulletText("Scatter Depth: %d", TheUserInputData.CpuMaxScatterDepth);
+            ImGui::BulletText("Num Threads: %d", TheUserInputData.CpuNumThreads);
+            ImGui::BulletText("Num Samples: %d", TheUserInputData.CpuNumSamplesPerRay);
+            ImGui::BulletText("Done Samples: %d", stats.CompletedSampleCount);
+            ImGui::BulletText("Rays Fired: %" PRId64 "", stats.TotalRaysFired);
+            ImGui::BulletText("Num Pixels Sampled: %" PRId64 "", stats.NumPixelSamples);
+            ImGui::BulletText("Pdf Query Retries: %d", stats.NumPdfQueryRetries);
+        }
+
+        ImGui::Text("");
+        if (ImGui::Button("Stop Cpu Raytrace", ImVec2(180, 30)))
+        {
+            SetEnableCpuRaytrace(false);
+        }
+    }
+    else
+    {
+        char stringBuf[128];
+        bool cpuOptionsChanged = false;
+        bool gpuOptionsChanged = false;
+
+        // ------------------------------------------------------------
+
+        ImGui::Separator();
+        ImGui::Separator();
+        ImGui::Text("HELP");
+        ImGui::Separator();
+        ImGui::BulletText("Translate camera:     Press keys WASDQE");
+        ImGui::BulletText("Pan camera:           Hold Left Mouse Button");
+        ImGui::BulletText("Toggle Cpu Raytrace:  Space bar");
+        ImGui::BulletText("Select output:        1 - 9 keys");
+
+        // ------------------------------------------------------------
+
+        ImGui::Separator();
+        ImGui::Separator();
+        ImGui::Text("GLOBAL OPTIONS");
+        ImGui::Separator();
+        if (ImGui::ListBox("Scene Select", &TheUserInputData.SampleScene, SampleSceneNames, IM_ARRAYSIZE(SampleSceneNames), MaxScene))
+        {
+            LoadSceneRequested = true;
+        }
+
+        // ------------------------------------------------------------
+
+        ImGui::Separator();
+        ImGui::Separator();
+        ImGui::Text("CPU RAYTRACE OPTIONS");
+        ImGui::Separator();
+
+        _itoa_s(TheUserInputData.CpuNumSamplesPerRay, stringBuf, 10);
+        if (ImGui::InputText("Cpu Num Rays Per Pixel", stringBuf, IM_ARRAYSIZE(stringBuf), ImGuiInputTextFlags_CharsDecimal))
+        {
+            TheUserInputData.CpuNumSamplesPerRay = atoi(stringBuf);
+            cpuOptionsChanged = true;
+        }
+
+        _itoa_s(TheUserInputData.CpuMaxScatterDepth, stringBuf, 10);
+        if (ImGui::InputText("Cpu Recursion Depth", stringBuf, IM_ARRAYSIZE(stringBuf), ImGuiInputTextFlags_CharsDecimal))
+        {
+            TheUserInputData.CpuMaxScatterDepth = atoi(stringBuf);
+            cpuOptionsChanged = true;
+        }
+
+        if (ImGui::SliderInt("Cpu Num Threads", &TheUserInputData.CpuNumThreads, 1, MaxNumCpuThreads))
+        {
+            cpuOptionsChanged = true;
+        }
+
+        ImGui::Text("");
+        if (ImGui::Button("Begin Cpu Raytrace", ImVec2(180, 30)))
+        {
+            SetEnableCpuRaytrace(true);
+        }
+
+        // ------------------------------------------------------------
+
+        ImGui::Separator();
+        ImGui::Separator();
+        ImGui::Text("GPU RAYTRACE OPTIONS");
+        ImGui::Separator();
+
+
+        if (ImGui::SliderInt("Num Accum. Passes Per Frame", &TheUserInputData.GpuNumAccumPasses, 1, 16))
+        {
+            gpuOptionsChanged = true;
+        }
+
+        if (ImGui::SliderInt("Rays Per Pixel", &TheUserInputData.GpuNumRaysPerPixel, 1, 100))
+        {
+            gpuOptionsChanged = true;
+        }
+
+        if (ImGui::SliderFloat("Direct Light Scale", &TheUserInputData.GpuDirectLightMult, 0.0f, 10.0f))
+        {
+            gpuOptionsChanged = true;
+        }
+
+        if (ImGui::SliderFloat("Indirect Light Scale", &TheUserInputData.GpuIndirectLightMult, 0.0f, 10.0f))
+        {
+            gpuOptionsChanged = true;
+        }
+
+        if (ImGui::SliderFloat("AO Radius", &TheUserInputData.GpuAORadius, 1.0f, 1000.0f))
+        {
+            gpuOptionsChanged = true;
+        }
+
+        if (ImGui::Checkbox("Enable Camera Jitter", &TheUserInputData.GpuCameraJitter))
+        {
+            gpuOptionsChanged = true;
+        }
+
+        // ------------------------------------------------------------
+
+        // If gpu options changed, trigger camera to update
+        if (gpuOptionsChanged)
+        {
+            SetCameraDirty();
+        }
+    }
+
+    ImGui::End();
+}
+
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void Renderer::RenderGuiLoadingScreen()
+{
+    static char  buf[64];
+    static float timeElapsed = 0;
+
+    ImGui::SetNextWindowPosCenter();
+    ImGui::SetNextWindowSize(ImVec2(200, 35));
+
+    ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoDecoration;
+    if (!ImGui::Begin("Loading", nullptr, windowFlags))
+    {
+        ImGui::End();
+        return;
+    }
+
+    timeElapsed += CurrentDeltaTime;
+    if (timeElapsed > 0.20f)
+    {
+        gNumberOfLoadDots = (gNumberOfLoadDots + 1) % 10;
+        timeElapsed = 0.0f;
+    }
+
+    sprintf_s(buf, "Loading");
+    for (int i = 0; i < gNumberOfLoadDots; i++)
+    {
+        strcat_s(buf, ".");
+    }
+
+    ImGui::TextColored(ImVec4(0.621f, 0.351f, 0.988f, 1.0f), buf);
+
+    ImGui::End();
+}
+

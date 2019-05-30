@@ -34,6 +34,7 @@
 #include "RendererShaderInclude.h"
 #include <chrono>
 #include <random>
+#include <thread>
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -63,16 +64,19 @@ public:
     virtual void    OnLeftButtonUp(int32_t x, int32_t y) override;
     virtual void    OnUpdate(float dtSeconds) override;
     virtual void    OnRender() override;
-    virtual void    OnSizeChanged(uint32_t width, uint32_t height, bool minimized) override;
+    virtual bool    OnSizeChanged(uint32_t width, uint32_t height, bool minimized) override;
     virtual void    OnDestroy() override;
 
 private:
 
+    static void     LoadingThread(Renderer* pRenderer);
+    void            CleanupLoadingThread();
+
     void            SetupGpuRaytracingPipeline();
-    void            SetupRasterPipeline();
+    void            SetupRasterRootSignatures();
     void            SetupRenderBuffers();
     void            SetupGui();
-    void            LoadScene();
+    void            StartSceneLoad();
 
     void            SetupRasterDescriptors();
     void            SetupGpuRaytracingRootSignatures();
@@ -98,10 +102,18 @@ private:
     void            RenderGpuRaytracing();
     void            RenderCompositePass();
     void            RenderGui();
+    void            RenderGuiOptionsWindow();
+    void            RenderGuiLoadingScreen();
 
     const char*     GetSelectedBufferName();
 
 private:
+
+    enum AppState
+    {
+        AppState_Loading,
+        AppState_RenderScene,
+    };
 
     enum DeferredBufferType
     {
@@ -170,11 +182,14 @@ private:
 
 private:
 
+    AppState                        TheAppState;
     Core::Raytracer*                TheRaytracer;
     Core::WorldScene*               TheWorldScene;
     RealtimeEngine::RealtimeScene*  TheRenderScene;
     UserInputData                   TheUserInputData;
+    std::thread*                    TheLoadingThread;
 
+    float                           CurrentDeltaTime;
     int                             FrameCount;
     int                             AccumCount;
     int                             SelectedBufferIndex;

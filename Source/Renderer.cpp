@@ -184,13 +184,15 @@ void Renderer::LoadScene()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::OnResizeCpuRaytracer()
+void Renderer::OnResizeCpuRaytracer(bool startRaytrace)
 {
     int backbufferWidth  = RenderDevice::Get().GetBackbufferWidth();
     int backbufferHeight = RenderDevice::Get().GetBackbufferHeight();
 
+    bool isTracing = false;
     if (TheRaytracer != nullptr)
     {
+        isTracing = TheRaytracer->IsTracing();
         delete TheRaytracer;
         TheRaytracer = nullptr;
     }
@@ -202,6 +204,11 @@ void Renderer::OnResizeCpuRaytracer()
     if (TheWorldScene != nullptr)
     {
         TheWorldScene->GetCamera().SetAspect((float)backbufferWidth / (float)backbufferHeight);
+    }
+
+    if (isTracing || startRaytrace)
+    {
+        TheRaytracer->BeginRaytrace(TheWorldScene, OnCpuRaytraceComplete);
     }
 }
 
@@ -237,8 +244,7 @@ void Renderer::SetEnableCpuRaytrace(bool enable)
 {
     if (enable)
     {
-        OnResizeCpuRaytracer();
-        TheRaytracer->BeginRaytrace(TheWorldScene, OnCpuRaytraceComplete);
+        OnResizeCpuRaytracer(true);
         SelectedBufferIndex = CpuResultsBufferIndex;
     }
     else

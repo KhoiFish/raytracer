@@ -79,7 +79,7 @@ private:
     void            SetupGpuRaytracingDescriptors();
     void            SetupGpuRaytracingPSO();
 
-    void            OnResizeCpuRaytracer();
+    void            OnResizeCpuRaytracer(bool startRaytrace = false);
     void            OnResizeGpuRaytracer();
     void            OnResizeRasterRender();
 

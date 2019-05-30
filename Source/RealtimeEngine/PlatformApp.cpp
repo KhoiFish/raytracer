@@ -345,6 +345,7 @@ LRESULT CALLBACK PlatformApp::WindowProc(HWND hWnd, uint32_t message, WPARAM wPa
 void PlatformApp::RenderThreadMain()
 {
     // Set to high priority thread
+    SetThreadDescription(GetCurrentThread(), L"Render Thread");
     SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST);
 
     // Init performance counter

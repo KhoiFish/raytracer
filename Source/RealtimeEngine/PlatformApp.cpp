@@ -261,6 +261,8 @@ LRESULT CALLBACK PlatformApp::WindowProc(HWND hWnd, uint32_t message, WPARAM wPa
         case WM_PAINT:
         case WM_DISPLAYCHANGE:
         {
+            // Throttle paint messages
+            Sleep(16);
             return 0;
         }
 
@@ -340,6 +342,9 @@ LRESULT CALLBACK PlatformApp::WindowProc(HWND hWnd, uint32_t message, WPARAM wPa
 
 void PlatformApp::RenderThreadMain()
 {
+    // Set to high priority thread
+    SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST);
+
     // Init performance counter
     {
         LARGE_INTEGER li;

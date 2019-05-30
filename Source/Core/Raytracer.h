@@ -88,6 +88,7 @@ namespace Core
         int                     OutputWidth;
         int                     OutputHeight;
         Vec4*                   OutputBuffer;
+        Vec4*                   ZeroedOutputBuffer;
         uint8_t*                OutputBufferRGBA;
 
         // Tracing options

@@ -42,9 +42,15 @@ Raytracer::Raytracer(int width, int height, int numSamples, int maxDepth, int nu
     , ThreadExitRequested(false)
     , IsRaytracing(false)
 {
-    OutputBuffer      = new Vec4[OutputWidth * OutputHeight];
-    OutputBufferRGBA  = new uint8_t[OutputWidth * OutputHeight * 4];
-    ThreadPtrs        = new std::thread*[NumThreads];
+    OutputBuffer       = new Vec4[OutputWidth * OutputHeight];
+    ZeroedOutputBuffer = new Vec4[OutputWidth * OutputHeight];
+    OutputBufferRGBA   = new uint8_t[OutputWidth * OutputHeight * 4];
+    ThreadPtrs         = new std::thread*[NumThreads];
+
+    for (int i = 0; i < (OutputWidth * OutputHeight); i++)
+    {
+        ZeroedOutputBuffer[i] = Vec4(0, 0, 0);
+    }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -58,6 +64,9 @@ Raytracer::~Raytracer()
 
     delete[] OutputBufferRGBA;
     OutputBufferRGBA = nullptr;
+
+    delete[] ZeroedOutputBuffer;
+    ZeroedOutputBuffer = nullptr;
 
     delete[] ThreadPtrs;
     ThreadPtrs = nullptr;
@@ -95,10 +104,7 @@ void Raytracer::resetRaytrace()
     // Clear out buffers
     const int area = OutputWidth * OutputHeight;
     memset(OutputBufferRGBA, 0, sizeof(uint8_t) * area * 4);
-    for (int i = 0; i < area; i++)
-    {
-        OutputBuffer[i] = Vec4(0, 0, 0);
-    }
+    memcpy(OutputBuffer, ZeroedOutputBuffer, sizeof(float) * area * 4);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

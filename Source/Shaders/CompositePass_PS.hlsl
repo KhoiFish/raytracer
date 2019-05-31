@@ -45,6 +45,16 @@ SamplerState                            AnisoRepeatSampler      : register(s1, s
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+float4 toneMapFilmic(float4 color)
+{
+    color = max(0, color - 0.004f);
+    color = (color * (6.2f * color + 0.5f)) / (color * (6.2f * color + 1.7f) + 0.06f);
+
+    return pow(color, 2.2f);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 float4 main(PixelShaderInput IN) : SV_Target
 {
     // Direct lighting and ao stored in the same buffer
@@ -63,6 +73,9 @@ float4 main(PixelShaderInput IN) : SV_Target
 
     // Compute final color
     float4 finalCol = (composited * CompositeCB.CompositeMultipliers[0]) + (selected * CompositeCB.CompositeMultipliers[1]);
+
+    // Tone map
+    finalCol = (toneMapFilmic(finalCol) * CompositeCB.CompositeMultipliers[2]) + (finalCol * (float4(1, 1, 1, 1) - CompositeCB.CompositeMultipliers[2]));
 
     return finalCol;
 }

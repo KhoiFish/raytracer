@@ -466,10 +466,12 @@ void Renderer::RenderCompositePass()
             // Setup constants
             CompositeConstantBuffer compositeCB;
             {
-                // The following multipliers let us select which buffer to display
-                // See the CompositePass shader for more details.
                 const XMFLOAT4 bufferOn  = XMFLOAT4(1, 1, 1, 1);
                 const XMFLOAT4 bufferOff = XMFLOAT4(0, 0, 0, 0);
+
+                // The following multipliers let us select which buffer to display
+                // See the CompositePass shader for more details.
+                bool enableToneMapping = TheUserInputData.GpuEnableToneMapping;
                 for (int i = 0; i < ARRAY_SIZE(compositeCB.TextureMultipliers); i++)
                 {
                     if (SelectedBufferIndex == i || SelectedBufferIndex == 0)
@@ -491,10 +493,14 @@ void Renderer::RenderCompositePass()
                 {
                     compositeCB.CompositeMultipliers[0] = bufferOff;
                     compositeCB.CompositeMultipliers[1] = bufferOn;
+                    enableToneMapping                   = false;
                 }
 
                 // Setup direct/indirect multipliers
                 compositeCB.DirectIndirectLightMult = XMFLOAT2(TheUserInputData.GpuDirectLightMult, TheUserInputData.GpuIndirectLightMult);
+
+                // Tone mapping
+                compositeCB.CompositeMultipliers[2]     = enableToneMapping ? bufferOn : bufferOff;
             }
             RasterCompositeConstantBuffer.Upload(&compositeCB, sizeof(compositeCB));
 

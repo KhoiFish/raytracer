@@ -83,7 +83,7 @@ void Renderer::RenderGui()
 void Renderer::RenderGuiOptionsWindow()
 {
     ImGui::SetNextWindowPos(ImVec2(12, 18), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(800, 820), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(800, 845), ImGuiCond_FirstUseEver);
 
     ImGuiWindowFlags windowFlags = ImGuiWindowFlags_AlwaysVerticalScrollbar;
     if (!ImGui::Begin("Options Window", nullptr, windowFlags))
@@ -221,6 +221,11 @@ void Renderer::RenderGuiOptionsWindow()
         }
 
         if (ImGui::Checkbox("Enable Camera Jitter", &TheUserInputData.GpuCameraJitter))
+        {
+            gpuOptionsChanged = true;
+        }
+
+        if (ImGui::Checkbox("Enable Tone Mapping", &TheUserInputData.GpuEnableToneMapping))
         {
             gpuOptionsChanged = true;
         }

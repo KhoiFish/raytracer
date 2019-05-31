@@ -149,33 +149,34 @@ private:
 
     struct UserInputData
     {
-        float   Forward                 = 0;
-        float   Backward                = 0;
-        float   Left                    = 0;
-        float   Right                   = 0;
-        float   Up                      = 0;
-        float   Down                    = 0;
-        int     PrevMouseX              = 0;
-        int     PrevMouseY              = 0;
-        int     MouseDx                 = 0;
-        int     MouseDy                 = 0;
-        bool    LeftMouseButtonPressed  = false;
-        bool    ShiftKeyPressed         = false;
+        float   Forward                         = 0;
+        float   Backward                        = 0;
+        float   Left                            = 0;
+        float   Right                           = 0;
+        float   Up                              = 0;
+        float   Down                            = 0;
+        int     PrevMouseX                      = 0;
+        int     PrevMouseY                      = 0;
+        int     MouseDx                         = 0;
+        int     MouseDy                         = 0;
+        bool    LeftMouseButtonPressed          = false;
+        bool    ShiftKeyPressed                 = false;
 
-        int     SampleScene             = SceneMesh;
-        float   VertFov                 = 40.f;
+        int     SampleScene                     = SceneMesh;
+        float   VertFov                         = 40.f;
 
-        int     CpuNumSamplesPerRay     = 500;
-        int     CpuMaxScatterDepth      = 50;
-        int     CpuNumThreads           = 4;
+        int     CpuNumSamplesPerRay             = 500;
+        int     CpuMaxScatterDepth              = 50;
+        int     CpuNumThreads                   = 4;
 
-        int     GpuNumAccumPasses       = 1;
-        int     GpuMaxRayRecursionDepth = 5;
-        int     GpuNumRaysPerPixel      = 1;
-        float   GpuAORadius             = 100.0f;
-        bool    GpuCameraJitter         = true;
-        float   GpuDirectLightMult      = 1.00f;
-        float   GpuIndirectLightMult    = 0.20f;
+        int     GpuNumAccumPasses               = 1;
+        int     GpuMaxRayRecursionDepth         = 5;
+        int     GpuNumRaysPerPixel              = 1;
+        float   GpuAORadius                     = 100.0f;
+        bool    GpuCameraJitter                 = true;
+        float   GpuDirectLightMult              = 1.00f;
+        float   GpuIndirectLightMult            = 0.20f;
+        bool    GpuEnableToneMapping            = true;
     };
 
     typedef std::uniform_real_distribution<float> RandFloatDist;

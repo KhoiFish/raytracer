@@ -407,7 +407,7 @@ void ComputeContext::SetDynamicSRV(uint32_t rootIndex, size_t bufferSize, const 
 {
     ASSERT(bufferData != nullptr && IsAligned(bufferData, 16));
     DynAlloc cb = CpuLinearAllocator.Allocate(bufferSize);
-    SIMDMemCopy(cb.DataPtr, bufferData, AlignUp(bufferSize, 16) >> 4);
+    memcpy(cb.DataPtr, bufferData, bufferSize);
     TheCommandList->SetComputeRootShaderResourceView(rootIndex, cb.GpuAddress);
 }
 
@@ -707,7 +707,7 @@ void GraphicsContext::SetDynamicVB(uint32_t slot, size_t numVertices, size_t ver
     size_t   bufferSize = AlignUp(numVertices * vertexStride, 16);
     DynAlloc vb         = CpuLinearAllocator.Allocate(bufferSize);
 
-    SIMDMemCopy(vb.DataPtr, vertexData, bufferSize >> 4);
+    memcpy(vb.DataPtr, vertexData, bufferSize);
 
     D3D12_VERTEX_BUFFER_VIEW vbView;
     vbView.BufferLocation = vb.GpuAddress;
@@ -726,7 +726,7 @@ void GraphicsContext::SetDynamicIB(size_t indexCount, const uint16_t* indexData)
     size_t   bufferSize = AlignUp(indexCount * sizeof(uint16_t), 16);
     DynAlloc ib         = CpuLinearAllocator.Allocate(bufferSize);
 
-    SIMDMemCopy(ib.DataPtr, indexData, bufferSize >> 4);
+    memcpy(ib.DataPtr, indexData, bufferSize);
 
     D3D12_INDEX_BUFFER_VIEW ibView;
     ibView.BufferLocation   = ib.GpuAddress;
@@ -742,7 +742,7 @@ void GraphicsContext::SetDynamicSRV(uint32_t rootIndex, size_t bufferSize, const
 {
     ASSERT(bufferData != nullptr && IsAligned(bufferData, 16));
     DynAlloc cb = CpuLinearAllocator.Allocate(bufferSize);
-    SIMDMemCopy(cb.DataPtr, bufferData, AlignUp(bufferSize, 16) >> 4);
+    memcpy(cb.DataPtr, bufferData, bufferSize);
     TheCommandList->SetGraphicsRootShaderResourceView(rootIndex, cb.GpuAddress);
 }
 
@@ -975,7 +975,7 @@ void CommandContext::WriteBuffer(GpuResource& dest, size_t destOffset, const voi
 {
     ASSERT(bufferData != nullptr && IsAligned(bufferData, 16));
     DynAlloc tempSpace = CpuLinearAllocator.Allocate( numBytes, 512 );
-    SIMDMemCopy(tempSpace.DataPtr, bufferData, DivideByMultiple(numBytes, 16));
+    memcpy(tempSpace.DataPtr, bufferData, numBytes);
     CopyBufferRegion(dest, destOffset, tempSpace.Buffer, tempSpace.Offset, numBytes );
 }
 
@@ -984,9 +984,8 @@ void CommandContext::WriteBuffer(GpuResource& dest, size_t destOffset, const voi
 void CommandContext::FillBuffer( GpuResource& dest, size_t destOffset, DWParam value, size_t numBytes )
 {
     DynAlloc tempSpace   = CpuLinearAllocator.Allocate( numBytes, 512 );
-    __m128   vectorValue = _mm_set1_ps(value.Float);
 
-    SIMDMemFill(tempSpace.DataPtr, vectorValue, DivideByMultiple(numBytes, 16));
+    memcpy(tempSpace.DataPtr, &value.Float, numBytes);
     CopyBufferRegion(dest, destOffset, tempSpace.Buffer, tempSpace.Offset, numBytes );
 }
 
@@ -1082,7 +1081,7 @@ void CommandContext::InitializeBuffer( GpuResource& dest, const void* bufferData
     CommandContext& initContext = CommandContext::Begin();
 
     DynAlloc mem = initContext.ReserveUploadMemory(numBytes);
-    SIMDMemCopy(mem.DataPtr, bufferData, DivideByMultiple(numBytes, 16));
+    memcpy(mem.DataPtr, bufferData, numBytes);
 
     // copy data to the intermediate upload heap and then schedule a copy from the upload heap to the default texture
     initContext.TransitionResource(dest, D3D12_RESOURCE_STATE_COPY_DEST, true);

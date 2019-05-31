@@ -253,8 +253,5 @@ template <typename T> __forceinline bool IsDivisible(T value, T divisor)
     return (value / divisor) * divisor == value;
 }
 
-void SIMDMemCopy(void* __restrict Dest, const void* __restrict Source, size_t NumQuadwords);
-void SIMDMemFill(void* __restrict Dest, __m128 FillVector, size_t NumQuadwords);
-
 #define SizeOfInUint32(obj) ((sizeof(obj) - 1) / sizeof(UINT32) + 1)
 #define ARRAY_SIZE(a) (sizeof(a)/sizeof(a[0]))

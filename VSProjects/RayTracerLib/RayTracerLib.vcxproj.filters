@@ -197,9 +197,6 @@
     <ClCompile Include="..\..\Source\RealtimeEngine\CommandList.cpp">
       <Filter>Realtime</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\RealtimeEngine\Globals.cpp">
-      <Filter>Realtime</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Source\RealtimeEngine\GpuBuffer.cpp">
       <Filter>Realtime</Filter>
     </ClCompile>

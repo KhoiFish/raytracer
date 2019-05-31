@@ -36,7 +36,8 @@ void RenderDebugPrintf(const char *fmt, ...);
 
 // Enable asserts in release builds
 void _RtlAssert(const char* message, const char* file, int line);
-#define RTL_ASSERT(expression)  (void)((!!(expression)) || (_RtlAssert(#expression, __FILE__, (int)__LINE__), 0))
+#define RTL_ASSERT(expression)           (void)((!!(expression)) || (_RtlAssert(#expression, __FILE__, (int)__LINE__), 0))
+#define RTL_ASSERT_MSG(expression, msg)  (void)((!!(expression)) || (_RtlAssert(#msg, __FILE__, (int)__LINE__), 0))
 
 // ----------------------------------------------------------------------------------------------------------------------------
 

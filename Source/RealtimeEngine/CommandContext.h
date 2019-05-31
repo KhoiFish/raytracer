@@ -94,11 +94,17 @@ namespace RealtimeEngine
 
     // ----------------------------------------------------------------------------------------------------------------------------
 
-    class CommandContext : NonCopyable
+    class CommandContext
     {
     public:
 
-        ~CommandContext(void);
+        CommandContext() = delete;
+        CommandContext(const CommandContext&) = delete;
+        CommandContext& operator=(const CommandContext&) = delete;
+
+        ~CommandContext();
+
+    public:
 
         static void                 DestroyAllContexts();
         static CommandContext&      Begin(const string_t ID = "");

@@ -213,7 +213,7 @@ void Texture::Create(size_t pitch, size_t width, size_t height, DXGI_FORMAT form
     HeapProps.CreationNodeMask     = 1;
     HeapProps.VisibleNodeMask      = 1;
 
-    ASSERT_SUCCEEDED(RenderDevice::Get().GetD3DDevice()->CreateCommittedResource(&HeapProps, D3D12_HEAP_FLAG_NONE, &texDesc,
+    RTL_HRESULT_SUCCEEDED(RenderDevice::Get().GetD3DDevice()->CreateCommittedResource(&HeapProps, D3D12_HEAP_FLAG_NONE, &texDesc,
         UsageState, nullptr, IID_PPV_ARGS(ResourcePtr.ReleaseAndGetAddressOf())));
 
     ResourcePtr->SetName(L"Texture");

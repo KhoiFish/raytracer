@@ -37,7 +37,7 @@ LinearAllocatorPageManager::LinearAllocatorPageManager()
     AllocationType   = AutoType;
     AutoType         = (LinearAllocatorType)(AutoType + 1);
  
-    ASSERT(AutoType <= kNumAllocatorTypes);
+    RTL_ASSERT(AutoType <= kNumAllocatorTypes);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -143,7 +143,7 @@ LinearAllocationPage* LinearAllocatorPageManager::CreateNewPage(size_t pageSize)
     }
 
     ID3D12Resource* pBuffer;
-    ASSERT_SUCCEEDED(RenderDevice::Get().GetD3DDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE,
+    RTL_HRESULT_SUCCEEDED(RenderDevice::Get().GetD3DDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE,
         &resourceDesc, defaultUsage, nullptr, IID_PPV_ARGS(&pBuffer)));
 
     pBuffer->SetName(L"LinearAllocator Page");
@@ -196,7 +196,7 @@ DynAlloc LinearAllocator::AllocateLargePage(size_t sizeInBytes)
 LinearAllocator::LinearAllocator(LinearAllocatorType type) 
     : AllocationType(type), PageSize(0), CurOffset(~(size_t)0), CurPage(nullptr)
 {
-    ASSERT(type > kInvalidAllocator && type < kNumAllocatorTypes);
+    RTL_ASSERT(type > kInvalidAllocator && type < kNumAllocatorTypes);
     PageSize = (type == kGpuExclusive ? kGpuAllocatorPageSize : kCpuAllocatorPageSize);
 }
 
@@ -207,7 +207,7 @@ DynAlloc LinearAllocator::Allocate(size_t sizeInBytes, size_t alignment)
     const size_t alignmentMask = alignment - 1;
 
     // Assert that it's a power of two.
-    ASSERT((alignmentMask & alignment) == 0);
+    RTL_ASSERT((alignmentMask & alignment) == 0);
 
     // Align the allocation
     const size_t alignedSize = AlignUpWithMask(sizeInBytes, alignmentMask);
@@ -221,7 +221,7 @@ DynAlloc LinearAllocator::Allocate(size_t sizeInBytes, size_t alignment)
 
     if (CurOffset + alignedSize > PageSize)
     {
-        ASSERT(CurPage != nullptr);
+        RTL_ASSERT(CurPage != nullptr);
         RetiredPages.push_back(CurPage);
         CurPage = nullptr;
     }

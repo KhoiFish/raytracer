@@ -59,9 +59,9 @@ CommandContext* ContextManager::AllocateContext(D3D12_COMMAND_LIST_TYPE type)
         availableContexts.pop();
         ret->Reset();
     }
-    ASSERT(ret != nullptr);
+    RTL_ASSERT(ret != nullptr);
 
-    ASSERT(ret->Type == type);
+    RTL_ASSERT(ret->Type == type);
 
     return ret;
 }
@@ -70,7 +70,7 @@ CommandContext* ContextManager::AllocateContext(D3D12_COMMAND_LIST_TYPE type)
 
 void ContextManager::FreeContext(CommandContext* usedContext)
 {
-    ASSERT(usedContext != nullptr);
+    RTL_ASSERT(usedContext != nullptr);
     std::lock_guard<std::mutex> lockGuard(ContextAllocationMutex);
     AvailableContexts[usedContext->Type].push(usedContext);
 }
@@ -111,7 +111,7 @@ uint64_t CommandContext::Flush(bool waitForCompletion)
 {
     FlushResourceBarriers();
 
-    ASSERT(CurrentAllocator != nullptr);
+    RTL_ASSERT(CurrentAllocator != nullptr);
 
     uint64_t fenceValue = CommandListManager::Get().GetQueue(Type).ExecuteCommandList(TheCommandList);
     if (waitForCompletion)
@@ -142,11 +142,11 @@ uint64_t CommandContext::Flush(bool waitForCompletion)
 
 uint64_t CommandContext::Finish( bool waitForCompletion )
 {
-    ASSERT(Type == D3D12_COMMAND_LIST_TYPE_DIRECT || Type == D3D12_COMMAND_LIST_TYPE_COMPUTE);
+    RTL_ASSERT(Type == D3D12_COMMAND_LIST_TYPE_DIRECT || Type == D3D12_COMMAND_LIST_TYPE_COMPUTE);
 
     FlushResourceBarriers();
 
-    ASSERT(CurrentAllocator != nullptr);
+    RTL_ASSERT(CurrentAllocator != nullptr);
 
     CommandQueue& queue = CommandListManager::Get().GetQueue(Type);
 
@@ -234,7 +234,7 @@ void CommandContext::Reset()
 {
     // We only call Reset() on previously freed contexts.  The command list persists, but we must
     // request a new allocator.
-    ASSERT(TheCommandList != nullptr && CurrentAllocator == nullptr);
+    RTL_ASSERT(TheCommandList != nullptr && CurrentAllocator == nullptr);
     CurrentAllocator = CommandListManager::Get().GetQueue(Type).RequestAllocator();
     TheCommandList->Reset(CurrentAllocator, nullptr);
 
@@ -395,7 +395,7 @@ void ComputeContext::SetConstantBuffer(uint32_t rootIndex, D3D12_GPU_VIRTUAL_ADD
 
 void ComputeContext::SetDynamicConstantBufferView(uint32_t rootIndex, size_t bufferSize, const void* bufferData)
 {
-    ASSERT(bufferData != nullptr && IsAligned(bufferData, 16));
+    RTL_ASSERT(bufferData != nullptr && IsAligned(bufferData, 16));
     DynAlloc cb = CpuLinearAllocator.Allocate(bufferSize);
     memcpy(cb.DataPtr, bufferData, bufferSize);
     TheCommandList->SetComputeRootConstantBufferView(rootIndex, cb.GpuAddress);
@@ -405,7 +405,7 @@ void ComputeContext::SetDynamicConstantBufferView(uint32_t rootIndex, size_t buf
 
 void ComputeContext::SetDynamicSRV(uint32_t rootIndex, size_t bufferSize, const void* bufferData)
 {
-    ASSERT(bufferData != nullptr && IsAligned(bufferData, 16));
+    RTL_ASSERT(bufferData != nullptr && IsAligned(bufferData, 16));
     DynAlloc cb = CpuLinearAllocator.Allocate(bufferSize);
     memcpy(cb.DataPtr, bufferData, bufferSize);
     TheCommandList->SetComputeRootShaderResourceView(rootIndex, cb.GpuAddress);
@@ -415,7 +415,7 @@ void ComputeContext::SetDynamicSRV(uint32_t rootIndex, size_t bufferSize, const 
 
 void ComputeContext::SetBufferSRV(uint32_t rootIndex, const GpuBuffer& srv, UINT64 offset)
 {
-    ASSERT((srv.UsageState & D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE) != 0);
+    RTL_ASSERT((srv.UsageState & D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE) != 0);
     TheCommandList->SetComputeRootShaderResourceView(rootIndex, srv.GetGpuVirtualAddress() + offset);
 }
 
@@ -423,7 +423,7 @@ void ComputeContext::SetBufferSRV(uint32_t rootIndex, const GpuBuffer& srv, UINT
 
 void ComputeContext::SetBufferUAV(uint32_t rootIndex, const GpuBuffer& uav, UINT64 offset)
 {
-    ASSERT((uav.UsageState & D3D12_RESOURCE_STATE_UNORDERED_ACCESS) != 0);
+    RTL_ASSERT((uav.UsageState & D3D12_RESOURCE_STATE_UNORDERED_ACCESS) != 0);
     TheCommandList->SetComputeRootUnorderedAccessView(rootIndex, uav.GetGpuVirtualAddress() + offset);
 }
 
@@ -537,7 +537,7 @@ void GraphicsContext::ClearDepthAndStencil(DepthTarget& target)
 
 void GraphicsContext::SetViewportAndScissor(const D3D12_VIEWPORT& vp, const D3D12_RECT& rect)
 {
-    ASSERT(rect.left < rect.right && rect.top < rect.bottom);
+    RTL_ASSERT(rect.left < rect.right && rect.top < rect.bottom);
     TheCommandList->RSSetViewports( 1, &vp );
     TheCommandList->RSSetScissorRects( 1, &rect );
 }
@@ -575,7 +575,7 @@ void GraphicsContext::SetViewport(FLOAT x, FLOAT y, FLOAT w, FLOAT h, FLOAT minD
 
 void GraphicsContext::SetScissor(const D3D12_RECT& rect)
 {
-    ASSERT(rect.left < rect.right && rect.top < rect.bottom);
+    RTL_ASSERT(rect.left < rect.right && rect.top < rect.bottom);
     TheCommandList->RSSetScissorRects( 1, &rect );
 }
 
@@ -692,7 +692,7 @@ void GraphicsContext::SetConstantBuffer(uint32_t rootIndex, D3D12_GPU_VIRTUAL_AD
 
 void GraphicsContext::SetDynamicConstantBufferView(uint32_t rootIndex, size_t bufferSize, const void* bufferData)
 {
-    ASSERT(bufferData != nullptr && IsAligned(bufferData, 16));
+    RTL_ASSERT(bufferData != nullptr && IsAligned(bufferData, 16));
     DynAlloc cb = CpuLinearAllocator.Allocate(bufferSize);
     memcpy(cb.DataPtr, bufferData, bufferSize);
     TheCommandList->SetGraphicsRootConstantBufferView(rootIndex, cb.GpuAddress);
@@ -702,7 +702,7 @@ void GraphicsContext::SetDynamicConstantBufferView(uint32_t rootIndex, size_t bu
 
 void GraphicsContext::SetDynamicVB(uint32_t slot, size_t numVertices, size_t vertexStride, const void* vertexData)
 {
-    ASSERT(vertexData != nullptr && IsAligned(vertexData, 16));
+    RTL_ASSERT(vertexData != nullptr && IsAligned(vertexData, 16));
 
     size_t   bufferSize = AlignUp(numVertices * vertexStride, 16);
     DynAlloc vb         = CpuLinearAllocator.Allocate(bufferSize);
@@ -721,7 +721,7 @@ void GraphicsContext::SetDynamicVB(uint32_t slot, size_t numVertices, size_t ver
 
 void GraphicsContext::SetDynamicIB(size_t indexCount, const uint16_t* indexData)
 {
-    ASSERT(indexData != nullptr && IsAligned(indexData, 16));
+    RTL_ASSERT(indexData != nullptr && IsAligned(indexData, 16));
 
     size_t   bufferSize = AlignUp(indexCount * sizeof(uint16_t), 16);
     DynAlloc ib         = CpuLinearAllocator.Allocate(bufferSize);
@@ -740,7 +740,7 @@ void GraphicsContext::SetDynamicIB(size_t indexCount, const uint16_t* indexData)
 
 void GraphicsContext::SetDynamicSRV(uint32_t rootIndex, size_t bufferSize, const void* bufferData)
 {
-    ASSERT(bufferData != nullptr && IsAligned(bufferData, 16));
+    RTL_ASSERT(bufferData != nullptr && IsAligned(bufferData, 16));
     DynAlloc cb = CpuLinearAllocator.Allocate(bufferSize);
     memcpy(cb.DataPtr, bufferData, bufferSize);
     TheCommandList->SetGraphicsRootShaderResourceView(rootIndex, cb.GpuAddress);
@@ -750,7 +750,7 @@ void GraphicsContext::SetDynamicSRV(uint32_t rootIndex, size_t bufferSize, const
 
 void GraphicsContext::SetBufferSRV(uint32_t rootIndex, const GpuBuffer& srv, UINT64 offset)
 {
-    ASSERT((srv.UsageState & (D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE)) != 0);
+    RTL_ASSERT((srv.UsageState & (D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE)) != 0);
     TheCommandList->SetGraphicsRootShaderResourceView(rootIndex, srv.GetGpuVirtualAddress() + offset);
 }
 
@@ -758,7 +758,7 @@ void GraphicsContext::SetBufferSRV(uint32_t rootIndex, const GpuBuffer& srv, UIN
 
 void GraphicsContext::SetBufferUAV(uint32_t rootIndex, const GpuBuffer& uav, UINT64 offset)
 {
-    ASSERT((uav.UsageState & D3D12_RESOURCE_STATE_UNORDERED_ACCESS) != 0);
+    RTL_ASSERT((uav.UsageState & D3D12_RESOURCE_STATE_UNORDERED_ACCESS) != 0);
     TheCommandList->SetGraphicsRootUnorderedAccessView(rootIndex, uav.GetGpuVirtualAddress() + offset);
 }
 
@@ -863,13 +863,13 @@ void CommandContext::TransitionResource(GpuResource& resource, D3D12_RESOURCE_ST
 
     if (Type == D3D12_COMMAND_LIST_TYPE_COMPUTE)
     {
-        ASSERT((oldState & VALID_COMPUTE_QUEUE_RESOURCE_STATES) == oldState);
-        ASSERT((newState & VALID_COMPUTE_QUEUE_RESOURCE_STATES) == newState);
+        RTL_ASSERT((oldState & VALID_COMPUTE_QUEUE_RESOURCE_STATES) == oldState);
+        RTL_ASSERT((newState & VALID_COMPUTE_QUEUE_RESOURCE_STATES) == newState);
     }
 
     if (oldState != newState)
     {
-        ASSERT(NumBarriersToFlush < 16, "Exceeded arbitrary limit on buffered barriers");
+        RTL_ASSERT_MSG(NumBarriersToFlush < 16, "Exceeded arbitrary limit on buffered barriers");
         D3D12_RESOURCE_BARRIER& barrierDesc = ResourceBarrierBuffer[NumBarriersToFlush++];
 
         barrierDesc.Type                    = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
@@ -915,7 +915,7 @@ void CommandContext::BeginResourceTransition(GpuResource& resource, D3D12_RESOUR
     D3D12_RESOURCE_STATES oldState = resource.UsageState;
     if (oldState != newState)
     {
-        ASSERT(NumBarriersToFlush < 16, "Exceeded arbitrary limit on buffered barriers");
+        RTL_ASSERT_MSG(NumBarriersToFlush < 16, "Exceeded arbitrary limit on buffered barriers");
         D3D12_RESOURCE_BARRIER& barrierDesc = ResourceBarrierBuffer[NumBarriersToFlush++];
 
         barrierDesc.Type                    = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
@@ -938,7 +938,7 @@ void CommandContext::BeginResourceTransition(GpuResource& resource, D3D12_RESOUR
 
 void CommandContext::InsertUAVBarrier(GpuResource& resource, bool flushImmediate)
 {
-    ASSERT(NumBarriersToFlush < 16, "Exceeded arbitrary limit on buffered barriers");
+    RTL_ASSERT_MSG(NumBarriersToFlush < 16, "Exceeded arbitrary limit on buffered barriers");
     D3D12_RESOURCE_BARRIER& barrierDesc = ResourceBarrierBuffer[NumBarriersToFlush++];
 
     barrierDesc.Type          = D3D12_RESOURCE_BARRIER_TYPE_UAV;
@@ -955,7 +955,7 @@ void CommandContext::InsertUAVBarrier(GpuResource& resource, bool flushImmediate
 
 void CommandContext::InsertAliasBarrier(GpuResource& before, GpuResource& after, bool flushImmediate)
 {
-    ASSERT(NumBarriersToFlush < 16, "Exceeded arbitrary limit on buffered barriers");
+    RTL_ASSERT_MSG(NumBarriersToFlush < 16, "Exceeded arbitrary limit on buffered barriers");
     D3D12_RESOURCE_BARRIER& barrierDesc = ResourceBarrierBuffer[NumBarriersToFlush++];
 
     barrierDesc.Type                        = D3D12_RESOURCE_BARRIER_TYPE_ALIASING;
@@ -973,7 +973,7 @@ void CommandContext::InsertAliasBarrier(GpuResource& before, GpuResource& after,
 
 void CommandContext::WriteBuffer(GpuResource& dest, size_t destOffset, const void* bufferData, size_t numBytes)
 {
-    ASSERT(bufferData != nullptr && IsAligned(bufferData, 16));
+    RTL_ASSERT(bufferData != nullptr && IsAligned(bufferData, 16));
     DynAlloc tempSpace = CpuLinearAllocator.Allocate( numBytes, 512 );
     memcpy(tempSpace.DataPtr, bufferData, numBytes);
     CopyBufferRegion(dest, destOffset, tempSpace.Buffer, tempSpace.Offset, numBytes );
@@ -1042,7 +1042,7 @@ void CommandContext::InitializeTextureArraySlice(GpuResource& dest, uint32_t sli
     const D3D12_RESOURCE_DESC& destDesc = dest.GetResource()->GetDesc();
     const D3D12_RESOURCE_DESC& srcDesc = src.GetResource()->GetDesc();
 
-    ASSERT(sliceIndex < destDesc.DepthOrArraySize &&
+    RTL_ASSERT(sliceIndex < destDesc.DepthOrArraySize &&
         srcDesc.DepthOrArraySize == 1 &&
         destDesc.Width == srcDesc.Width &&
         destDesc.Height == srcDesc.Height &&

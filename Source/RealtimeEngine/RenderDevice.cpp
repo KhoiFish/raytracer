@@ -253,10 +253,11 @@ void RenderDevice::InitializeDXGIAdapter()
 
         if (FAILED(hr) || !allowTearing)
         {
-            OutputDebugStringA("WARNING: Variable refresh rate displays are not supported.\n");
+            RenderDebugPrintf("WARNING: Variable refresh rate displays are not supported.\n");
             if (Options & RENDERDEVICE_FLAGS_REQUIRETEARINGSUPPORT)
             {
-                ThrowIfFailed(false, L"Error: Sample must be run on an OS with tearing support.\n");
+                RenderDebugPrintf("Error: Sample must be run on an OS with tearing support.\n");
+                throw HrException(hr);
             }
             Options &= ~RENDERDEVICE_FLAGS_ALLOWTEARING;
         }
@@ -325,7 +326,8 @@ void RenderDevice::CreateWindowSizeDependentResources()
 {
     if (!Window)
     {
-        ThrowIfFailed(E_HANDLE, L"Call SetWindow with a valid Win32 window handle.\n");
+        RenderDebugPrintf("Call SetWindow with a valid Win32 window handle.\n");
+        throw HrException(E_HANDLE);
     }
 
     // Wait until all previous GPU work is complete.
@@ -444,7 +446,7 @@ void RenderDevice::CreateDisplayTargets()
     for (uint32_t i = 0; i < BackBufferCount; ++i)
     {
         ComPtr<ID3D12Resource> renderTargetResource;
-        ASSERT_SUCCEEDED(SwapChain->GetBuffer(i, IID_PPV_ARGS(&renderTargetResource)));
+        RTL_HRESULT_SUCCEEDED(SwapChain->GetBuffer(i, IID_PPV_ARGS(&renderTargetResource)));
         ColorTargets[i].CreateFromSwapChain("Primary SwapChain Buffer", renderTargetResource.Detach());
     }
 

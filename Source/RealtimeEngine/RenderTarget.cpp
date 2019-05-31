@@ -147,7 +147,7 @@ static DXGI_FORMAT GetUAVFormat(DXGI_FORMAT defaultFormat)
     case DXGI_FORMAT_X24_TYPELESS_G8_UINT:
     case DXGI_FORMAT_D16_UNORM:
 
-    ASSERT(false, "Requested a UAV format for a depth stencil format.");
+    RTL_ASSERT(false, "Requested a UAV format for a depth stencil format.");
 #endif
 
     default:
@@ -384,7 +384,7 @@ static void CreateTextureResource(GpuResource* pGpuResource, const string_t& nam
     pGpuResource->Destroy();
 
     CD3DX12_HEAP_PROPERTIES heapProps(heapType);
-    ASSERT_SUCCEEDED(RenderDevice::Get().GetD3DDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &resourceDesc, usageStates, clearValue, IID_PPV_ARGS(&pGpuResource->GetResourceRef())));
+    RTL_HRESULT_SUCCEEDED(RenderDevice::Get().GetD3DDevice()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &resourceDesc, usageStates, clearValue, IID_PPV_ARGS(&pGpuResource->GetResourceRef())));
 
     pGpuResource->GetResource()->SetName(MakeWStr(name).c_str());
 }
@@ -408,7 +408,7 @@ ColorTarget::ColorTarget()
 
 void ColorTarget::CreateDerivedViews(ID3D12Device* device, DXGI_FORMAT format, uint32_t arraySize, uint32_t numMips)
 {
-    ASSERT(arraySize == 1 || numMips == 1, "We don't support auto-mips on texture arrays");
+    RTL_ASSERT_MSG(arraySize == 1 || numMips == 1, "We don't support auto-mips on texture arrays");
 
     numMipMaps = numMips - 1;
 
@@ -574,7 +574,7 @@ void ColorTarget::CreateArray(const string_t& name, uint32_t width, uint32_t hei
 
 void ColorTarget::AssociateWithResource(ID3D12Device* device, const string_t& name, ID3D12Resource* resource, D3D12_RESOURCE_STATES currentState)
 {
-    ASSERT(resource != nullptr);
+    RTL_ASSERT(resource != nullptr);
     D3D12_RESOURCE_DESC resourceDesc = resource->GetDesc();
 
     ResourcePtr.Attach(resource);
@@ -598,7 +598,7 @@ void ColorTarget::SetClearColor(float clearColor[4])
 
 void ColorTarget::SetMsaaMode(uint32_t numColorSamples, uint32_t numCoverageSamples)
 {
-    ASSERT(numCoverageSamples >= numColorSamples);
+    RTL_ASSERT(numCoverageSamples >= numColorSamples);
     FragmentCount = numColorSamples;
     SampleCount   = numCoverageSamples;
 }

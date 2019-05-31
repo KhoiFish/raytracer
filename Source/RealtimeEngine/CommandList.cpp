@@ -74,7 +74,7 @@ ID3D12CommandAllocator* CommandAllocatorPool::RequestAllocator(uint64_t complete
         if (AllocatorPair.first <= completedFenceValue)
         {
             pAllocator = AllocatorPair.second;
-            ASSERT_SUCCEEDED(pAllocator->Reset());
+            RTL_HRESULT_SUCCEEDED(pAllocator->Reset());
             ReadyAllocators.pop();
         }
     }
@@ -82,7 +82,7 @@ ID3D12CommandAllocator* CommandAllocatorPool::RequestAllocator(uint64_t complete
     // If no allocator's were ready to be reused, create a new one
     if (pAllocator == nullptr)
     {
-        ASSERT_SUCCEEDED(Device->CreateCommandAllocator(CommandListType, IID_PPV_ARGS(&pAllocator)));
+        RTL_HRESULT_SUCCEEDED(Device->CreateCommandAllocator(CommandListType, IID_PPV_ARGS(&pAllocator)));
         wchar_t AllocatorName[32];
         swprintf(AllocatorName, 32, L"CommandAllocator %zu", AllocatorPool.size());
         pAllocator->SetName(AllocatorName);
@@ -149,9 +149,9 @@ void CommandQueue::Shutdown()
 
 void CommandQueue::Create(ID3D12Device* pDevice)
 {
-    ASSERT(pDevice != nullptr);
-    ASSERT(!IsReady());
-    ASSERT(AllocatorPool.Size() == 0);
+    RTL_ASSERT(pDevice != nullptr);
+    RTL_ASSERT(!IsReady());
+    RTL_ASSERT(AllocatorPool.Size() == 0);
 
     D3D12_COMMAND_QUEUE_DESC queueDesc = {};
     queueDesc.Type = Type;
@@ -159,16 +159,16 @@ void CommandQueue::Create(ID3D12Device* pDevice)
     pDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&TheCommandQueue));
     TheCommandQueue->SetName(L"CommandList::TheCommandQueue");
 
-    ASSERT_SUCCEEDED(pDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&FencePtr)));
+    RTL_HRESULT_SUCCEEDED(pDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&FencePtr)));
     FencePtr->SetName(L"CommandListManager::FencePtr");
     FencePtr->Signal((uint64_t)Type << 56);
 
     FenceEventHandle = CreateEvent(nullptr, false, false, nullptr);
-    ASSERT(FenceEventHandle != INVALID_HANDLE_VALUE);
+    RTL_ASSERT(FenceEventHandle != INVALID_HANDLE_VALUE);
 
     AllocatorPool.Create(pDevice);
 
-    ASSERT(IsReady());
+    RTL_ASSERT(IsReady());
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -224,7 +224,7 @@ uint64_t CommandQueue::ExecuteCommandList(ID3D12CommandList* list)
 {
     std::lock_guard<std::mutex> lockGuard(FenceMutex);
 
-    ASSERT_SUCCEEDED(((ID3D12GraphicsCommandList4*)list)->Close());
+    RTL_HRESULT_SUCCEEDED(((ID3D12GraphicsCommandList4*)list)->Close());
 
     // Kickoff the command list
     TheCommandQueue->ExecuteCommandLists(1, &list);
@@ -272,7 +272,7 @@ void CommandQueue::StallForFence(uint64_t fenceValue)
 
 void CommandQueue::StallForProducer(CommandQueue& producer)
 {
-    ASSERT(producer.NextFenceValue > 0);
+    RTL_ASSERT(producer.NextFenceValue > 0);
     TheCommandQueue->Wait(producer.FencePtr, producer.NextFenceValue - 1);
 }
 
@@ -329,7 +329,7 @@ CommandListManager& CommandListManager::Get()
 
 void CommandListManager::Create(ID3D12Device* pDevice)
 {
-    ASSERT(pDevice != nullptr);
+    RTL_ASSERT(pDevice != nullptr);
 
     Device = pDevice;
 
@@ -361,7 +361,7 @@ ID3D12CommandQueue* CommandListManager::GetCommandQueue()
 
 void CommandListManager::CreateNewCommandList(D3D12_COMMAND_LIST_TYPE type, ID3D12GraphicsCommandList4** list, ID3D12CommandAllocator** allocator)
 {
-    ASSERT(type != D3D12_COMMAND_LIST_TYPE_BUNDLE, "Bundles are not yet supported");
+    RTL_ASSERT_MSG(type != D3D12_COMMAND_LIST_TYPE_BUNDLE, "Bundles are not yet supported");
     switch (type)
     {
         case D3D12_COMMAND_LIST_TYPE_DIRECT:   *allocator = GraphicsQueue.RequestAllocator(); break;
@@ -370,7 +370,7 @@ void CommandListManager::CreateNewCommandList(D3D12_COMMAND_LIST_TYPE type, ID3D
         case D3D12_COMMAND_LIST_TYPE_COPY:     *allocator = CopyQueue.RequestAllocator(); break;
     }
     
-    ASSERT_SUCCEEDED( Device->CreateCommandList(1, type, *allocator, nullptr, IID_PPV_ARGS(list)) );
+    RTL_HRESULT_SUCCEEDED( Device->CreateCommandList(1, type, *allocator, nullptr, IID_PPV_ARGS(list)) );
     (*list)->SetName(L"CommandList");
 }
 

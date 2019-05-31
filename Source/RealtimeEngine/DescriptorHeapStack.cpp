@@ -66,7 +66,7 @@ void DescriptorHeapStack::Reset()
 
 bool DescriptorHeapStack::AllocateDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE& cpuHandle, UINT& descriptorHeapIndex)
 {
-    ASSERT(DescriptorsAllocated < DescriptorHeapMaxCount);
+    RTL_ASSERT(DescriptorsAllocated < DescriptorHeapMaxCount);
     if (DescriptorsAllocated < DescriptorHeapMaxCount)
     {
         descriptorHeapIndex = DescriptorsAllocated;

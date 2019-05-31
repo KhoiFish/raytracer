@@ -42,7 +42,7 @@ void RootSignature::DestroyAll()
 
 void RootSignature::InitStaticSampler(uint32_t reg, const D3D12_SAMPLER_DESC& nonStaticSamplerDesc, D3D12_SHADER_VISIBILITY visibility)
 {
-    ASSERT(NumInitializedStaticSamplers < NumSamplers);
+    RTL_ASSERT(NumInitializedStaticSamplers < NumSamplers);
     D3D12_STATIC_SAMPLER_DESC& staticSamplerDesc = SamplerArray[NumInitializedStaticSamplers++];
 
     staticSamplerDesc.Filter           = nonStaticSamplerDesc.Filter;
@@ -63,7 +63,7 @@ void RootSignature::InitStaticSampler(uint32_t reg, const D3D12_SAMPLER_DESC& no
         staticSamplerDesc.AddressV == D3D12_TEXTURE_ADDRESS_MODE_BORDER ||
         staticSamplerDesc.AddressW == D3D12_TEXTURE_ADDRESS_MODE_BORDER)
     {
-        WARN_ONCE_IF_NOT(
+        if (
             // Transparent Black
             nonStaticSamplerDesc.BorderColor[0] == 0.0f &&
             nonStaticSamplerDesc.BorderColor[1] == 0.0f &&
@@ -78,8 +78,10 @@ void RootSignature::InitStaticSampler(uint32_t reg, const D3D12_SAMPLER_DESC& no
             nonStaticSamplerDesc.BorderColor[0] == 1.0f &&
             nonStaticSamplerDesc.BorderColor[1] == 1.0f &&
             nonStaticSamplerDesc.BorderColor[2] == 1.0f &&
-            nonStaticSamplerDesc.BorderColor[3] == 1.0f,
-            "Sampler border color does not match static sampler limitations");
+            nonStaticSamplerDesc.BorderColor[3] == 1.0f)
+        {
+            RenderDebugPrintf("Sampler border color does not match static sampler limitations");
+        }
 
         if (nonStaticSamplerDesc.BorderColor[3] == 1.0f)
         {
@@ -103,7 +105,7 @@ void RootSignature::InitStaticSampler(uint32_t reg, const D3D12_SAMPLER_DESC& no
 
 void RootSignature::Finalize(const string_t & name, D3D12_ROOT_SIGNATURE_FLAGS flags)
 {
-    ASSERT(NumInitializedStaticSamplers == NumSamplers);
+    RTL_ASSERT(NumInitializedStaticSamplers == NumSamplers);
     if (Finalized)
     {
         return;
@@ -131,7 +133,7 @@ void RootSignature::Finalize(const string_t & name, D3D12_ROOT_SIGNATURE_FLAGS f
 
         if (rootParam.ParameterType == D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE)
         {
-            ASSERT(rootParam.DescriptorTable.pDescriptorRanges != nullptr);
+            RTL_ASSERT(rootParam.DescriptorTable.pDescriptorRanges != nullptr);
 
             hashCode = HashState(rootParam.DescriptorTable.pDescriptorRanges, rootParam.DescriptorTable.NumDescriptorRanges, hashCode);
 
@@ -179,13 +181,13 @@ void RootSignature::Finalize(const string_t & name, D3D12_ROOT_SIGNATURE_FLAGS f
     {
         ComPtr<ID3DBlob> pOutBlob, pErrorBlob;
 
-        ASSERT_SUCCEEDED(D3D12SerializeRootSignature(&rootDesc, D3D_ROOT_SIGNATURE_VERSION_1, pOutBlob.GetAddressOf(), pErrorBlob.GetAddressOf()));
-        ASSERT_SUCCEEDED(RenderDevice::Get().GetD3DDevice()->CreateRootSignature(0, pOutBlob->GetBufferPointer(), pOutBlob->GetBufferSize(), IID_PPV_ARGS(&Signature)));
+        RTL_HRESULT_SUCCEEDED(D3D12SerializeRootSignature(&rootDesc, D3D_ROOT_SIGNATURE_VERSION_1, pOutBlob.GetAddressOf(), pErrorBlob.GetAddressOf()));
+        RTL_HRESULT_SUCCEEDED(RenderDevice::Get().GetD3DDevice()->CreateRootSignature(0, pOutBlob->GetBufferPointer(), pOutBlob->GetBufferSize(), IID_PPV_ARGS(&Signature)));
 
         Signature->SetName(MakeWStr(name).c_str());
 
         sRootSignatureHashMap[hashCode].Attach(Signature);
-        ASSERT(*rsRef == Signature);
+        RTL_ASSERT(*rsRef == Signature);
     }
     else
     {

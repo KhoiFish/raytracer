@@ -25,7 +25,8 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-static int gNumberOfLoadDots = 0;
+static int      gNumberOfLoadDots = 0;
+static ImVec4   gTextHeadingColor(0.621f, 0.351f, 0.988f, 1.0f);
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -95,7 +96,7 @@ void Renderer::RenderGuiOptionsWindow()
 
     ImGui::Separator();
     ImGui::Separator();
-    ImGui::Text("INFO");
+    ImGui::TextColored(gTextHeadingColor, "Info");
     ImGui::Separator();
     ImGui::BulletText("Displaying Buffer: %s", GetSelectedBufferName());
 
@@ -136,7 +137,7 @@ void Renderer::RenderGuiOptionsWindow()
 
         ImGui::Separator();
         ImGui::Separator();
-        ImGui::Text("HELP");
+        ImGui::TextColored(gTextHeadingColor, "Help");
         ImGui::Separator();
         ImGui::BulletText("Translate camera:     Press keys WASDQE");
         ImGui::BulletText("Pan camera:           Hold Left Mouse Button");
@@ -147,7 +148,7 @@ void Renderer::RenderGuiOptionsWindow()
 
         ImGui::Separator();
         ImGui::Separator();
-        ImGui::Text("GLOBAL OPTIONS");
+        ImGui::TextColored(gTextHeadingColor, "Global Options");
         ImGui::Separator();
         if (ImGui::ListBox("Scene Select", &TheUserInputData.SampleScene, SampleSceneNames, IM_ARRAYSIZE(SampleSceneNames), MaxScene))
         {
@@ -158,7 +159,7 @@ void Renderer::RenderGuiOptionsWindow()
 
         ImGui::Separator();
         ImGui::Separator();
-        ImGui::Text("CPU RAYTRACE OPTIONS");
+        ImGui::TextColored(gTextHeadingColor, "Cpu Raytracer");
         ImGui::Separator();
 
         _itoa_s(TheUserInputData.CpuNumSamplesPerRay, stringBuf, 10);
@@ -190,7 +191,7 @@ void Renderer::RenderGuiOptionsWindow()
 
         ImGui::Separator();
         ImGui::Separator();
-        ImGui::Text("GPU RAYTRACE OPTIONS");
+        ImGui::TextColored(gTextHeadingColor, "Gpu Raytracer");
         ImGui::Separator();
 
 
@@ -267,7 +268,7 @@ void Renderer::RenderGuiLoadingScreen()
         strcat_s(buf, ".");
     }
 
-    ImGui::TextColored(ImVec4(0.621f, 0.351f, 0.988f, 1.0f), buf);
+    ImGui::TextColored(gTextHeadingColor, buf);
 
     ImGui::End();
 }

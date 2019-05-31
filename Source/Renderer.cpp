@@ -240,12 +240,6 @@ void Renderer::OnResizeCpuRaytracer(bool startRaytrace)
     // Create the ray tracer
     TheRaytracer = new Raytracer(backbufferWidth, backbufferHeight, TheUserInputData.CpuNumSamplesPerRay, TheUserInputData.CpuMaxScatterDepth, TheUserInputData.CpuNumThreads, true);
 
-    // Reset the aspect ratio on the scene camera
-    if (TheWorldScene != nullptr)
-    {
-        TheWorldScene->GetCamera().SetAspect((float)backbufferWidth / (float)backbufferHeight);
-    }
-
     if (isTracing || startRaytrace)
     {
         TheRaytracer->BeginRaytrace(TheWorldScene, OnCpuRaytraceComplete);
@@ -265,6 +259,12 @@ bool Renderer::OnSizeChanged(uint32_t width, uint32_t height, bool minimized)
     if (!RenderDevice::Get().WindowSizeChanged(width, height, minimized))
     {
         return true;
+    }
+
+    // Reset the aspect ratio on the scene camera
+    if (TheWorldScene != nullptr)
+    {
+        TheWorldScene->GetCamera().SetAspect((float)width / (float)height);
     }
 
     TheRenderScene->SetupResourceViews(*RendererDescriptorHeap);

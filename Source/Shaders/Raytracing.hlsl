@@ -137,14 +137,8 @@ inline float3 getRandomPointOnAreaLight(uint randSeed, RealtimeAreaLight light)
 
 inline float3 computeLighting(uint randSeed, float minT, float3 worldPos, float3 worldNorm)
 {
-    // The lighting is super dark, add this fudge factor for now
-    // TODO: investigate this
-    const float lightMultiplierFudge = 1.0f;
-
-    // What we're going to return
-    float3           lightResult = float3(0, 0, 0);
-
     // Pick a random light to sample
+    float3            lightResult = float3(0, 0, 0);
     int               lightIndex = min(int(nextRand(randSeed) * gSceneCB.NumLights), gSceneCB.NumLights - 1);
     RealtimeAreaLight light      = gLightsCB[lightIndex];
     float3            onLight    = getRandomPointOnAreaLight(randSeed, light);
@@ -166,7 +160,7 @@ inline float3 computeLighting(uint randSeed, float minT, float3 worldPos, float3
         }
     }
 
-    return (lightResult * lightMultiplierFudge);
+    return lightResult;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -372,7 +366,6 @@ void RayGeneration()
     uint    randSeed     = initRand(launchIndex.x + launchIndex.y * launchDim.x, gSceneCB.FrameCount, 16);
     float4  worldPos     = gPositions[launchIndex.xy];
     float3  worldNorm    = gNormals[launchIndex.xy].xyz;
-    float2  uvCoord      = gTexCoordsAndDepth[launchIndex.xy].xy;
     float4  albedo       = gAlbedo[launchIndex.xy];
     float   aoRadius     = gSceneCB.AORadius;
     float   minT         = 0.01f;

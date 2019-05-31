@@ -268,6 +268,7 @@ bool Renderer::OnSizeChanged(uint32_t width, uint32_t height, bool minimized)
     }
 
     TheRenderScene->SetupResourceViews(*RendererDescriptorHeap);
+    OnResizeCpuRaytracer();
     SetupRenderBuffers();
     OnResizeRasterRender();
     OnResizeGpuRaytracer();

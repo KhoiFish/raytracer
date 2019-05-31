@@ -93,7 +93,6 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_LIB;PLATFORM_WINDOWS;RELEASE;_ENABLE_ATOMIC_ALIGNMENT_FIX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)Source;$(SolutionDir)ThirdParty</AdditionalIncludeDirectories>
@@ -102,7 +101,6 @@
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <FloatingPointExceptions>false</FloatingPointExceptions>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>

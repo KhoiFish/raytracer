@@ -317,7 +317,7 @@ static inline uint32_t rgbaToHex(float r, float g, float b, float a)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-Texture& TextureManager::CreateFromColor(float r, float g, float b, float a)
+Texture& TextureManager::CreateFromColor(float r, float g, float b, float a, bool createFloatingPoint)
 {
     char hashName[256];
     sprintf_s(hashName, "%f %f %f", r, g, b);
@@ -331,8 +331,16 @@ Texture& TextureManager::CreateFromColor(float r, float g, float b, float a)
         return *manTex;
     }
 
-    uint32_t pixelColor = rgbaToHex(r, g, b, a);
-    manTex->Create(1, 1, DXGI_FORMAT_R8G8B8A8_UNORM, &pixelColor);
+    if (createFloatingPoint)
+    {
+        float pixelColor[4] = { r, g, b, a };
+        manTex->Create(1, 1, DXGI_FORMAT_R32G32B32A32_FLOAT, &pixelColor);
+    }
+    else
+    {
+        uint32_t pixelColor = rgbaToHex(r, g, b, a);
+        manTex->Create(1, 1, DXGI_FORMAT_R8G8B8A8_UNORM, &pixelColor);
+    }
 
     return *manTex;
 }

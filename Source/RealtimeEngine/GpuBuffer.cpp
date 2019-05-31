@@ -58,7 +58,7 @@ void GpuBuffer::Create(const std::wstring& name, uint32_t numElements, uint32_t 
     ResourceFlags = resourceFlags;
 
     D3D12_RESOURCE_DESC ResourceDesc = DescribeBuffer();
-    ASSERT_SUCCEEDED( 
+    RTL_HRESULT_SUCCEEDED( 
         RenderDevice::Get().GetD3DDevice()->CreateCommittedResource(&HeapProps, D3D12_HEAP_FLAG_NONE,
         &ResourceDesc, UsageState, nullptr, IID_PPV_ARGS(&ResourcePtr)));
 
@@ -82,7 +82,7 @@ void GpuBuffer::CreatePlaced(const std::wstring& name, ID3D12Heap* pBackingHeap,
     UsageState     = D3D12_RESOURCE_STATE_COMMON;
 
     D3D12_RESOURCE_DESC ResourceDesc = DescribeBuffer();
-    ASSERT_SUCCEEDED(RenderDevice::Get().GetD3DDevice()->CreatePlacedResource(pBackingHeap, heapOffset, &ResourceDesc, UsageState, nullptr, IID_PPV_ARGS(&ResourcePtr)));
+    RTL_HRESULT_SUCCEEDED(RenderDevice::Get().GetD3DDevice()->CreatePlacedResource(pBackingHeap, heapOffset, &ResourceDesc, UsageState, nullptr, IID_PPV_ARGS(&ResourcePtr)));
 
     GpuVirtualAddress = ResourcePtr->GetGPUVirtualAddress();
 
@@ -138,7 +138,7 @@ D3D12_INDEX_BUFFER_VIEW GpuBuffer::IndexBufferView(size_t offset, uint32_t size,
 
 D3D12_RESOURCE_DESC GpuBuffer::DescribeBuffer()
 {
-    ASSERT(BufferSize != 0);
+    RTL_ASSERT(BufferSize != 0);
 
     D3D12_RESOURCE_DESC Desc = {};
     Desc.Alignment          = 0;
@@ -226,7 +226,7 @@ void ReadbackBuffer::Create(const std::wstring& name, uint32_t numElements, uint
     ResourceDesc.Layout             = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
     ResourceDesc.Flags              = D3D12_RESOURCE_FLAG_NONE;
 
-    ASSERT_SUCCEEDED(RenderDevice::Get().GetD3DDevice()->CreateCommittedResource(&HeapProps, D3D12_HEAP_FLAG_NONE, &ResourceDesc,
+    RTL_HRESULT_SUCCEEDED(RenderDevice::Get().GetD3DDevice()->CreateCommittedResource(&HeapProps, D3D12_HEAP_FLAG_NONE, &ResourceDesc,
         D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&ResourcePtr)));
 
     GpuVirtualAddress = ResourcePtr->GetGPUVirtualAddress();

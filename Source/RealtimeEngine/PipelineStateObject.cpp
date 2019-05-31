@@ -86,7 +86,7 @@ void GraphicsPSO::SetSampleMask(uint32_t sampleMask)
 
 void GraphicsPSO::SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE topologyType)
 {
-    ASSERT(topologyType != D3D12_PRIMITIVE_TOPOLOGY_TYPE_UNDEFINED, "Can't draw with undefined topology");
+    RTL_ASSERT_MSG(topologyType != D3D12_PRIMITIVE_TOPOLOGY_TYPE_UNDEFINED, "Can't draw with undefined topology");
     PSODesc.PrimitiveTopologyType = topologyType;
 }
 
@@ -108,7 +108,7 @@ void GraphicsPSO::SetRenderTargetFormat(DXGI_FORMAT rtvFormat, DXGI_FORMAT dsvFo
 
 void GraphicsPSO::SetRenderTargetFormats(uint32_t numRTVs, const DXGI_FORMAT* rtvFormats, DXGI_FORMAT dsvFormat, uint32_t msaaCount, uint32_t msaaQuality)
 {
-    ASSERT(numRTVs == 0 || rtvFormats != nullptr, "Null format array conflicts with non-zero length");
+    RTL_ASSERT_MSG(numRTVs == 0 || rtvFormats != nullptr, "Null format array conflicts with non-zero length");
 
     for (uint32_t i = 0; i < numRTVs; ++i)
     {
@@ -148,7 +148,7 @@ void GraphicsPSO::SetInputLayout(uint32_t numElements, const D3D12_INPUT_ELEMENT
 
 void GraphicsPSO::Finalize()
 {
-    ASSERT(RootSig->GetSignature() != nullptr);
+    RTL_ASSERT(RootSig->GetSignature() != nullptr);
 
     // Make sure the root signature is finalized first
     PSODesc.pRootSignature = RootSig->GetSignature();
@@ -177,7 +177,7 @@ void GraphicsPSO::Finalize()
 
     if (firstCompile)
     {
-        ASSERT_SUCCEEDED(RenderDevice::Get().GetD3DDevice()->CreateGraphicsPipelineState(&PSODesc, IID_PPV_ARGS(&PSOObject)));
+        RTL_HRESULT_SUCCEEDED(RenderDevice::Get().GetD3DDevice()->CreateGraphicsPipelineState(&PSODesc, IID_PPV_ARGS(&PSOObject)));
         sGraphicsPSOHashMap[hashCode].Attach(PSOObject);
     }
     else
@@ -196,7 +196,7 @@ void ComputePSO::Finalize()
 {
     // Make sure the root signature is finalized first
     PSODesc.pRootSignature = RootSig->GetSignature();
-    ASSERT(PSODesc.pRootSignature != nullptr);
+    RTL_ASSERT(PSODesc.pRootSignature != nullptr);
 
     size_t                hashCode = HashState(&PSODesc);
     ID3D12PipelineState * *PSORef = nullptr;
@@ -220,7 +220,7 @@ void ComputePSO::Finalize()
 
     if (firstCompile)
     {
-        ASSERT_SUCCEEDED(RenderDevice::Get().GetD3DDevice()->CreateComputePipelineState(&PSODesc, IID_PPV_ARGS(&PSOObject)));
+        RTL_HRESULT_SUCCEEDED(RenderDevice::Get().GetD3DDevice()->CreateComputePipelineState(&PSODesc, IID_PPV_ARGS(&PSOObject)));
         sComputePSOHashMap[hashCode].Attach(PSOObject);
     }
     else
@@ -422,7 +422,7 @@ void RaytracingPSO::Finalize()
     desc.pSubobjects    = Subobjects;
     desc.Type           = D3D12_STATE_OBJECT_TYPE_RAYTRACING_PIPELINE;
 
-    ASSERT_SUCCEEDED(RenderDevice::Get().GetD3DDevice()->CreateStateObject(&desc, IID_PPV_ARGS(&RaytracingPipelineStateObject)));
+    RTL_HRESULT_SUCCEEDED(RenderDevice::Get().GetD3DDevice()->CreateStateObject(&desc, IID_PPV_ARGS(&RaytracingPipelineStateObject)));
 
     // Build the shader tables
     RaygenShaderTable.Build(RaytracingPipelineStateObject);
@@ -511,7 +511,7 @@ uint32_t RaytracingPSO::ShaderTable::AddShaderRecordData(const std::wstring& sha
     {
         FirstDataRecordSize = dataSize;
     }
-    ASSERT(FirstDataRecordSize == dataSize);
+    RTL_ASSERT(FirstDataRecordSize == dataSize);
 
     ShaderRecordData* pNewBlob = new ShaderRecordData(shaderName, pData, dataSize);
     ShaderDataList.push_back(pNewBlob);

@@ -100,10 +100,10 @@ private:
 
     std::string HrToString(HRESULT hr)
     {
-        char s_str[64] = {};
-        sprintf_s(s_str, "HRESULT of 0x%08X", static_cast<uint32_t>(hr));
+        char buf[64];
+        sprintf_s(buf, "HRESULT of 0x%08X", static_cast<uint32_t>(hr));
 
-        return std::string(s_str);
+        return std::string(buf);
     }
 
     const HRESULT HResult;
@@ -121,20 +121,21 @@ inline void ThrowIfFailed(HRESULT hr)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline size_t HashRange(const uint32_t* const Begin, const uint32_t* const End, size_t Hash)
+inline size_t HashRange(const uint32_t* const begin, const uint32_t* const end, size_t hash)
 {
-    // An inexpensive hash for CPUs lacking SSE4.2
-    for (const uint32_t* Iter = Begin; Iter < End; ++Iter)
-        Hash = 16777619U * Hash ^ *Iter;
+    for (const uint32_t* iter = begin; iter < end; ++iter)
+    {
+        hash = 16777619U * hash ^ *iter;
+    }
 
-    return Hash;
+    return hash;
 }
 
-template <typename T> inline size_t HashState(const T * StateDesc, size_t Count = 1, size_t Hash = 2166136261U)
+template <typename T> inline size_t HashState(const T * stateDesc, size_t count = 1, size_t hash = 2166136261U)
 {
     RTL_ASSERT_MSG((sizeof(T) & 3) == 0 && alignof(T) >= 4, "State object is not word-aligned");
 
-    return HashRange((uint32_t*)StateDesc, (uint32_t*)(StateDesc + Count), Hash);
+    return HashRange((uint32_t*)stateDesc, (uint32_t*)(stateDesc + count), hash);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

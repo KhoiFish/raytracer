@@ -226,13 +226,6 @@ void Renderer::SetupRasterRootSignatures()
     // Refer to composite shader and match this to the TextureMultipliers[] index
     CpuResultsBufferIndex = 5;
 
-    // Init random generator
-    {
-        auto currentTime    = std::chrono::high_resolution_clock::now();
-        auto timeInMillisec = std::chrono::time_point_cast<std::chrono::milliseconds>(currentTime);
-        RandGen             = std::mt19937(uint32_t(timeInMillisec.time_since_epoch().count()));
-    }
-
     // Constant buffers
     RasterSceneConstantBuffer.Create(L"Raster Scene Constant Buffer", 1, (uint32_t)AlignUp(sizeof(SceneConstantBuffer), 256));
     RasterCompositeConstantBuffer.Create(L"Raster Composite Constant Buffer", 1, (uint32_t)AlignUp(sizeof(CompositeConstantBuffer), 256));

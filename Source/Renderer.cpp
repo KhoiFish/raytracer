@@ -111,6 +111,12 @@ void Renderer::OnDeviceRestored()
 
 void Renderer::OnInit()
 {
+    // Init random generator
+    {
+        auto timeInMillisec = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now());
+        RandGen = std::mt19937(uint32_t(timeInMillisec.time_since_epoch().count()));
+    }
+
     // Get the number of cores on this system
     SYSTEM_INFO sysInfo;
     GetSystemInfo(&sysInfo);

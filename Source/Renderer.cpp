@@ -54,7 +54,7 @@ Renderer::Renderer(uint32_t width, uint32_t height)
     , RaytracingGlobalSigDataIndexStart(0)
     , RaytracingLocalSigDataIndexStart(0)
 {
-    BackbufferFormat                                            = DXGI_FORMAT_R8G8B8A8_UNORM;
+    BackbufferFormat                                            = DXGI_FORMAT_R10G10B10A2_UNORM;
     CPURaytracerTexType                                         = DXGI_FORMAT_R8G8B8A8_UNORM;
     RaytracingBufferType                                        = DXGI_FORMAT_R32G32B32A32_FLOAT;
     DeferredBuffersRTTypes[DeferredBufferType_Position]         = DXGI_FORMAT_R32G32B32A32_FLOAT;

@@ -227,7 +227,8 @@ void Renderer::RenderGuiOptionsWindow()
 
         if (ImGui::Checkbox("Enable Tone Mapping", &TheUserInputData.GpuEnableToneMapping))
         {
-            gpuOptionsChanged = true;
+            // This does not require flagging gpu as dirty
+            //gpuOptionsChanged = true;
         }
 
         // ------------------------------------------------------------

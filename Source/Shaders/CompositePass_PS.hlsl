@@ -45,12 +45,16 @@ SamplerState                            AnisoRepeatSampler      : register(s1, s
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-float4 toneMapFilmic(float4 color)
+// From https://knarkowicz.wordpress.com/2016/01/06/aces-filmic-tone-mapping-curve/
+float3 ACESFilm(float3 x)
 {
-    color = max(0, color - 0.004f);
-    color = (color * (6.2f * color + 0.5f)) / (color * (6.2f * color + 1.7f) + 0.06f);
+    float a = 2.51f;
+    float b = 0.03f;
+    float c = 2.43f;
+    float d = 0.59f;
+    float e = 0.14f;
 
-    return pow(color, 2.2f);
+    return saturate((x * (a * x + b)) / (x * (c * x + d) + e));
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -75,7 +79,7 @@ float4 main(PixelShaderInput IN) : SV_Target
     float4 finalCol = (composited * CompositeCB.CompositeMultipliers[0]) + (selected * CompositeCB.CompositeMultipliers[1]);
 
     // Tone map
-    finalCol = (toneMapFilmic(finalCol) * CompositeCB.CompositeMultipliers[2]) + (finalCol * (float4(1, 1, 1, 1) - CompositeCB.CompositeMultipliers[2]));
+    finalCol = (float4(ACESFilm(finalCol.rgb), 1) * CompositeCB.CompositeMultipliers[2]) + (finalCol * (float4(1, 1, 1, 1) - CompositeCB.CompositeMultipliers[2]));
 
     return finalCol;
 }

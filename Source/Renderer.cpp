@@ -351,6 +351,21 @@ void Renderer::OnUpdate(float dtSeconds)
     // Handle camera updates
     if (TheAppState == AppState_RenderScene)
     {
+        // Temp code to test animation
+        if (false)
+        {
+            static float                timeAccum      = 0;
+            int                         index          = 6;
+            float                       posY           = 50.0f + (cosf(timeAccum) * 100.0f);
+            static DirectX::XMMATRIX    origMatrix     = TheRenderScene->GetRenderSceneList()[index]->WorldMatrix;
+            DirectX::XMMATRIX           newWorldMatrix = XMMatrixTranslation(0, posY, 0) * origMatrix;
+
+            TheRenderScene->GetRenderSceneList()[index]->WorldMatrix = newWorldMatrix;
+            timeAccum     += (dtSeconds * 4);
+            IsCameraDirty  = true;
+        }
+
+
         float scale          = (TheUserInputData.ShiftKeyPressed ? 64.f : 32.0f) * 16.f * dtSeconds;
         float forwardAmount  = (TheUserInputData.Forward - TheUserInputData.Backward) * scale;
         float strafeAmount   = (TheUserInputData.Left    - TheUserInputData.Right)    * scale;

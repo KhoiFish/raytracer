@@ -435,6 +435,9 @@ void Renderer::RenderGpuRaytracing()
 {
     ComputeContext& computeContext = ComputeContext::Begin("Raytracing");
     {
+        // Update TLAS transforms
+        TheRenderScene->GetRaytracingGeometry()->UpdateTLASTransforms(computeContext);
+
         // Update global scene constants buffer
         {
             // Get updated scene constants

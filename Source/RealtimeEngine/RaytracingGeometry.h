@@ -41,11 +41,11 @@ namespace RealtimeEngine
                 uint32_t instanceMask,
                 uint32_t numVertices, uint32_t numIndices,
                 GpuBuffer* vertexBuffer, GpuBuffer* indexBuffer,
-                const DirectX::XMMATRIX& worldMatrix)
+                DirectX::XMMATRIX* pWorldMatrix)
                     : InstanceId(instanceId), InstanceMask(instanceMask),
                       NumVertices(numVertices), NumIndices(numIndices), 
                       VertexBuffer(vertexBuffer), IndexBuffer(indexBuffer),
-                      WorldMatrix(worldMatrix)
+                      WorldMatrix(pWorldMatrix)
             {}
 
             uint32_t            InstanceId      = 0;
@@ -54,7 +54,7 @@ namespace RealtimeEngine
             uint32_t            NumIndices      = 0;
             GpuBuffer*          VertexBuffer    = nullptr;
             GpuBuffer*          IndexBuffer     = nullptr;
-            DirectX::XMMATRIX   WorldMatrix;
+            DirectX::XMMATRIX*  WorldMatrix;
         };
 
     public:
@@ -64,16 +64,27 @@ namespace RealtimeEngine
 
         void                                AddGeometry(const GeometryInfo& info);
         void                                Build();
+        void                                UpdateTLASTransforms(CommandContext& context);
+
         D3D12_GPU_VIRTUAL_ADDRESS           GetTLASVirtualAddress();
+        std::vector<GeometryInfo>&          GetGeometryList();
 
     private:
 
-        uint32_t                        HitProgramCount;
-        std::vector<GeometryInfo>       GeometryInfoList;
-        std::vector<GpuBuffer*>         BLASBuffers;
-        GpuBuffer*                      TLASBuffer;
-        GpuBuffer*                      ScratchBuffer;
-        GpuBuffer                       InstanceDataBuffer;
+        void                                BuildTLAS(CommandContext& context);
+        void                                BuildBLAS(CommandContext& context);
+
+    private:
+
+        uint32_t                                    HitProgramCount;
+        int32_t                                     CurrentTLASIndex;
+        std::vector<GeometryInfo>                   GeometryInfoList;
+        std::vector<GpuBuffer>                      BLASBuffers;
+        GpuBuffer                                   TLASBuffer[2];
+        GpuBuffer                                   BLASScratchBuffer;
+        GpuBuffer                                   TLASScratchBuffer;
+        GpuBuffer                                   InstanceDataBuffer;
+        std::vector<D3D12_RAYTRACING_INSTANCE_DESC> InstanceDescs;
     };
 
 }

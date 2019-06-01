@@ -396,6 +396,9 @@ void Renderer::RenderGeometryPass()
 
         // Geometry pass
         {
+            // Udpate all the gpu buffers in the render scene
+            TheRenderScene->UpdateAllGpuBuffers(renderContext);
+
             // Update scene constant buffer
             SceneConstantBuffer sceneCB;
             SetupSceneConstantBuffer(sceneCB);

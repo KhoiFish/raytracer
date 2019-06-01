@@ -114,6 +114,7 @@ namespace RealtimeEngine
 
         void                                SetupResourceViews(DescriptorHeapStack& descriptorHeap);
         void                                UpdateCamera(float newVertFov, float forwardAmount, float strafeAmount, float upDownAmount, int mouseDx, int mouseDy, Core::Camera& worldCamera);
+        void                                UpdateAllGpuBuffers(CommandContext& context);
 
         std::vector<RealtimeSceneNode*>&    GetRenderSceneList();
         RealtimeCamera&                     GetCamera();
@@ -127,6 +128,10 @@ namespace RealtimeEngine
         void                                AddNewNode(RealtimeSceneNode* newNode, const DirectX::XMMATRIX& worldMatrix, const RenderMaterial& material, RealtimeEngine::Texture* pDiffuseTexture,
                                                 const Core::IHitable* pHitable);
 
+        void                                UpdateAreaLightBuffer(CommandContext& context, RealtimeSceneNode* pNode);
+        void                                UpdateInstanceBuffer(CommandContext& context, RealtimeSceneNode* pNode);
+        void                                UpdateMaterialBuffer(CommandContext& context, RealtimeSceneNode* pNode);
+
     private:
 
         RealtimeCamera                      TheRenderCamera;
@@ -134,5 +139,7 @@ namespace RealtimeEngine
         std::vector<RealtimeSceneNode*>     AreaLightsList;
         TextureList                         DiffuseTextureList;
         RaytracingGeometry*                 RaytracingGeom;
+        uint32_t                            ScratchCopyBufferSize;
+        void*                               ScratchCopyBuffer;
     };
 }

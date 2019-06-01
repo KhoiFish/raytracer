@@ -48,11 +48,12 @@ namespace Core
 
         virtual ~IHitable() {}
 
-        virtual bool  Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const = 0;
-        virtual bool  BoundingBox(float t0, float t1, AABB& box) const = 0;
-        virtual float PdfValue(const Vec4& origin, const Vec4& v) const { return 0.f; }
-        virtual Vec4  Random(const Vec4& origin) const { return Vec4(1, 0, 0); }
-        virtual bool  IsALightShape() const { return IsLightShape; }
+        virtual bool        Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const = 0;
+        virtual bool        BoundingBox(float t0, float t1, AABB& box) const = 0;
+        virtual float       PdfValue(const Vec4& origin, const Vec4& v) const { return 0.f; }
+        virtual Vec4        Random(const Vec4& origin) const { return Vec4(1, 0, 0); }
+        virtual bool        IsALightShape() const { return IsLightShape; }
+        virtual Material*   GetMaterial() { return nullptr; }
 
     protected:
 

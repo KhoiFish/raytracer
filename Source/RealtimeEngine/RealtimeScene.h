@@ -70,7 +70,7 @@ namespace RealtimeEngine
 
         ~RealtimeSceneNode() {}
 
-        const Core::IHitable*                   Hitable;
+        Core::IHitable*                         Hitable;
         uint32_t                                InstanceId;
         DirectX::XMMATRIX                       WorldMatrix;
 
@@ -124,9 +124,8 @@ namespace RealtimeEngine
 
     private:
 
-        void                                GenerateRenderListFromWorld(const Core::IHitable* currentHead, std::vector<DirectX::XMMATRIX>& matrixStack, std::vector<bool>& flipNormalStack);
-        void                                AddNewNode(RealtimeSceneNode* newNode, const DirectX::XMMATRIX& worldMatrix, const RenderMaterial& material, RealtimeEngine::Texture* pDiffuseTexture,
-                                                const Core::IHitable* pHitable);
+        void                                GenerateRenderListFromWorld(Core::IHitable* currentHead, std::vector<DirectX::XMMATRIX>& matrixStack, std::vector<bool>& flipNormalStack);
+        void                                AddNewNode(RealtimeSceneNode* newNode, const DirectX::XMMATRIX& worldMatrix, Core::IHitable* pHitable);
 
         void                                UpdateAreaLightBuffer(CommandContext& context, RealtimeSceneNode* pNode);
         void                                UpdateInstanceBuffer(CommandContext& context, RealtimeSceneNode* pNode);

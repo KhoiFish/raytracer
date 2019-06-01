@@ -37,8 +37,8 @@ namespace Core
         virtual bool Hit(const Ray& ray, float tMin, float tMax, HitRecord& rec) const;
         virtual bool BoundingBox(float t0, float t1, AABB& box) const;
 
-        const IHitable* GetLeft()  const { return Left; }
-        const IHitable* GetRight() const { return Right; }
+        IHitable* GetLeft() { return Left; }
+        IHitable* GetRight(){ return Right; }
 
     private:
 

@@ -31,11 +31,11 @@ namespace Core
         MovingSphere(Vec4 center0, Vec4 center1, float time0, float time1, float r, Material* mat);
         virtual ~MovingSphere();
 
-        virtual bool  Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const;
-        virtual bool  BoundingBox(float t0, float t1, AABB& box) const;
-        Vec4          Center(float time) const;
-        float         GetRadius() const { return Radius; }
-        Material*     GetMaterial() const { return Mat; }
+        virtual bool      Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const;
+        virtual bool      BoundingBox(float t0, float t1, AABB& box) const;
+        Vec4              Center(float time) const;
+        float             GetRadius() const { return Radius; }
+        virtual Material* GetMaterial() override { return Mat; }
 
     private:
 

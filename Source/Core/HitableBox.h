@@ -44,7 +44,7 @@ namespace Core
             maxP = Pmax;
         }
 
-        inline const Material* GetMaterial() const { return Mat; }
+        virtual inline Material* GetMaterial() override { return Mat; }
 
     private:
 

@@ -64,7 +64,7 @@ namespace Core
             numTris = NumTriangles;
         }
 
-        const Material* GetMaterial() const { return Mat; }
+        virtual Material* GetMaterial() override { return Mat; }
 
     private:
 

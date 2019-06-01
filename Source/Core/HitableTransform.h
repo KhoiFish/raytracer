@@ -35,10 +35,10 @@ namespace Core
         inline HitableTranslate(IHitable* p, const Vec4& displacement) : HitObject(p), Offset(displacement) {}
         virtual ~HitableTranslate();
 
-        virtual bool           Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const;
-        virtual bool           BoundingBox(float t0, float t1, AABB& box) const;
-        inline const IHitable* GetHitObject() const { return HitObject; }
-        inline const Vec4&     GetOffset() const { return Offset; }
+        virtual bool        Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const;
+        virtual bool        BoundingBox(float t0, float t1, AABB& box) const;
+        inline IHitable*    GetHitObject() { return HitObject; }
+        inline const Vec4&  GetOffset() const { return Offset; }
 
     private:
 
@@ -58,7 +58,7 @@ namespace Core
         virtual bool           Hit(const Ray& r, float tMin, float tMax, HitRecord& rec) const;
         virtual bool           BoundingBox(float t0, float t1, AABB& box) const;
         inline float           GetAngleDegrees() const { return AngleDegrees; }
-        inline const IHitable* GetHitObject() const { return HitObject; }
+        inline IHitable*       GetHitObject() { return HitObject; }
 
     private:
 

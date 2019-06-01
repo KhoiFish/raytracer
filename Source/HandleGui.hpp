@@ -83,7 +83,7 @@ void Renderer::RenderGui()
 void Renderer::RenderGuiOptionsWindow()
 {
     ImGui::SetNextWindowPos(ImVec2(12, 18), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(800, 845), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(615, 735), ImGuiCond_FirstUseEver);
 
     ImGuiWindowFlags windowFlags = ImGuiWindowFlags_AlwaysVerticalScrollbar;
     if (!ImGui::Begin("Options Window", nullptr, windowFlags))
@@ -94,14 +94,12 @@ void Renderer::RenderGuiOptionsWindow()
 
     // ------------------------------------------------------------
 
-    ImGui::Separator();
-    ImGui::Separator();
-    ImGui::TextColored(gTextHeadingColor, "Info");
-    ImGui::Separator();
-    ImGui::BulletText("Displaying Buffer: %s", GetSelectedBufferName());
-
     if (TheRaytracer != nullptr && TheRaytracer->IsTracing())
     {
+        ImGui::Separator();
+        ImGui::Separator();
+        ImGui::TextColored(gTextHeadingColor, "Cpu Raytrace Info");
+        ImGui::Separator();
         {
             Raytracer::Stats stats = TheRaytracer->GetStats();
             double percentage = double(double(stats.NumPixelSamples) / double(stats.TotalNumPixelSamples));
@@ -137,12 +135,10 @@ void Renderer::RenderGuiOptionsWindow()
 
         ImGui::Separator();
         ImGui::Separator();
-        ImGui::TextColored(gTextHeadingColor, "Help");
+        ImGui::TextColored(gTextHeadingColor, "Input Legend");
         ImGui::Separator();
-        ImGui::BulletText("Translate camera:     Press keys WASDQE");
-        ImGui::BulletText("Pan camera:           Hold Left Mouse Button");
-        ImGui::BulletText("Toggle Cpu Raytrace:  Space bar");
-        ImGui::BulletText("Select output:        1 - 9 keys");
+        ImGui::BulletText("Translate Camera:[WASDQE]  Pan Camera:[hold left mouse btn]");
+        ImGui::BulletText("Cpu Raytrace:[SPACE]  Select Output:[1 - 9 keys]");
 
         // ------------------------------------------------------------
 
@@ -163,14 +159,14 @@ void Renderer::RenderGuiOptionsWindow()
         ImGui::Separator();
 
         _itoa_s(TheUserInputData.CpuNumSamplesPerRay, stringBuf, 10);
-        if (ImGui::InputText("Cpu Num Rays Per Pixel", stringBuf, IM_ARRAYSIZE(stringBuf), ImGuiInputTextFlags_CharsDecimal))
+        if (ImGui::InputText("Cpu Rays/Pixel", stringBuf, IM_ARRAYSIZE(stringBuf), ImGuiInputTextFlags_CharsDecimal))
         {
             TheUserInputData.CpuNumSamplesPerRay = atoi(stringBuf);
             cpuOptionsChanged = true;
         }
 
         _itoa_s(TheUserInputData.CpuMaxScatterDepth, stringBuf, 10);
-        if (ImGui::InputText("Cpu Recursion Depth", stringBuf, IM_ARRAYSIZE(stringBuf), ImGuiInputTextFlags_CharsDecimal))
+        if (ImGui::InputText("Cpu Ray Depth", stringBuf, IM_ARRAYSIZE(stringBuf), ImGuiInputTextFlags_CharsDecimal))
         {
             TheUserInputData.CpuMaxScatterDepth = atoi(stringBuf);
             cpuOptionsChanged = true;
@@ -195,7 +191,7 @@ void Renderer::RenderGuiOptionsWindow()
         ImGui::Separator();
 
 
-        if (ImGui::SliderInt("Num Accum. Passes Per Frame", &TheUserInputData.GpuNumAccumPasses, 1, 16))
+        if (ImGui::SliderInt("Accum. Passes/Frame", &TheUserInputData.GpuNumAccumPasses, 1, 16))
         {
             gpuOptionsChanged = true;
         }

@@ -164,6 +164,7 @@ void Renderer::OnKeyUp(uint8_t key)
         case '9':
         {
             SelectedBufferIndex = atoi((const char*)&key) - 1;
+            UpdateWindowTitle();
             break;
         }
     }

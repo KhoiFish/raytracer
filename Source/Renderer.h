@@ -106,6 +106,7 @@ private:
     void            RenderGuiLoadingScreen();
 
     const char*     GetSelectedBufferName();
+    void            UpdateWindowTitle();
 
 private:
 

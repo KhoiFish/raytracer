@@ -168,9 +168,11 @@ void Renderer::StartSceneLoad()
 {
     // Change app state and kick off the load
     CleanupLoadingThread();
+
     //RenderDevice::Get().ResetDescriptors();
     TheAppState      = AppState_Loading;
     TheLoadingThread = new std::thread(LoadingThread, this);
+    UpdateWindowTitle();
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -219,6 +221,18 @@ void Renderer::CleanupLoadingThread()
         delete TheLoadingThread;
         TheLoadingThread = nullptr;
     }
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void Renderer::UpdateWindowTitle()
+{
+    std::string newTitle =
+        std::string("Raytracer -- ") +
+        std::string(SampleSceneNames[TheUserInputData.SampleScene]) + std::string("  [") +
+        GetSelectedBufferName() + std::string("] ");
+
+    PlatformApp::SetWindowTitle(newTitle);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

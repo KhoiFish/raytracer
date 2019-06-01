@@ -253,14 +253,28 @@ void Renderer::SetupGpuRaytracingDescriptors()
         currOffset++;
     }
     
+    // Note this is a placeholder; we swap the descriptor table with the latest one
     // Allocate descriptor for acceleration structures
-    RaytracingGlobalRootSigSlot::DescriptorHeapOffsets[RaytracingGlobalRootSigSlot::AccelerationStructure] = currOffset++;
-    RendererDescriptorHeap->AllocateBufferSrvRaytracing(
-        TheRenderScene->GetRaytracingGeometry()->GetTLASVirtualAddress(),
-        D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE,
-        D3D12_BUFFER_SRV_FLAG_NONE,
-        DXGI_FORMAT_UNKNOWN,
-        D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
+    RaytracingGlobalRootSigSlot::DescriptorHeapOffsets[RaytracingGlobalRootSigSlot::AccelerationStructure] = currOffset;
+    {
+        D3D12_GPU_VIRTUAL_ADDRESS vAddr[2];
+        TheRenderScene->GetRaytracingGeometry()->GetTLASVirtualAddresses(vAddr[0], vAddr[1]);
+
+        RendererDescriptorHeap->AllocateBufferSrvRaytracing(
+            vAddr[0],
+            D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE,
+            D3D12_BUFFER_SRV_FLAG_NONE,
+            DXGI_FORMAT_UNKNOWN,
+            D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
+        RendererDescriptorHeap->AllocateBufferSrvRaytracing(
+            vAddr[1],
+            D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE,
+            D3D12_BUFFER_SRV_FLAG_NONE,
+            DXGI_FORMAT_UNKNOWN,
+            D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING);
+
+        currOffset += 2;
+    }
 
     // Positions
     RaytracingGlobalRootSigSlot::DescriptorHeapOffsets[RaytracingGlobalRootSigSlot::Positions] = currOffset++;
@@ -471,6 +485,15 @@ void Renderer::RenderGpuRaytracing()
         {
             uint32_t heapIndex = (RaytracingGlobalSigDataIndexStart + RaytracingGlobalRootSigSlot::DescriptorHeapOffsets[i]);
             computeContext.SetDescriptorTable(i, RendererDescriptorHeap->GetGpuHandle(heapIndex));
+        }
+
+        // Set to the current acceleration structure
+        {
+            uint32_t heapIndex = RaytracingGlobalSigDataIndexStart + 
+                                    RaytracingGlobalRootSigSlot::DescriptorHeapOffsets[RaytracingGlobalRootSigSlot::AccelerationStructure] +
+                                    TheRenderScene->GetRaytracingGeometry()->GetCurrentTLASIndex();
+
+            computeContext.SetDescriptorTable(RaytracingGlobalRootSigSlot::AccelerationStructure, RendererDescriptorHeap->GetGpuHandle(heapIndex));
         }
 
         // Get heap start of all the diffuse textures

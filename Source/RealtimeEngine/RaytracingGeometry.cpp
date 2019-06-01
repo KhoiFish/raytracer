@@ -48,9 +48,17 @@ void RaytracingGeometry::AddGeometry(const GeometryInfo& info)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-D3D12_GPU_VIRTUAL_ADDRESS RaytracingGeometry::GetTLASVirtualAddress()
+void RaytracingGeometry::GetTLASVirtualAddresses(D3D12_GPU_VIRTUAL_ADDRESS& addr0, D3D12_GPU_VIRTUAL_ADDRESS& addr1)
 {
-    return TLASBuffer[CurrentTLASIndex].GetGpuVirtualAddress();
+    addr0 = TLASBuffer[0].GetGpuVirtualAddress();
+    addr1 = TLASBuffer[1].GetGpuVirtualAddress();
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+int32_t RaytracingGeometry::GetCurrentTLASIndex()
+{
+    return CurrentTLASIndex;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

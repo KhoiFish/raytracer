@@ -66,7 +66,8 @@ namespace RealtimeEngine
         void                                Build();
         void                                UpdateTLASTransforms(CommandContext& context);
 
-        D3D12_GPU_VIRTUAL_ADDRESS           GetTLASVirtualAddress();
+        void                                GetTLASVirtualAddresses(D3D12_GPU_VIRTUAL_ADDRESS& addr0, D3D12_GPU_VIRTUAL_ADDRESS& addr1);
+        int32_t                             GetCurrentTLASIndex();
         std::vector<GeometryInfo>&          GetGeometryList();
 
     private:

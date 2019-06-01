@@ -137,6 +137,7 @@ void RenderDevice::CleanupDevice()
         ImguiDescriptorStack = nullptr;
     }
 
+    CommandContext::DestroyAllContexts();
     CommandListManager::Get().Shutdown();
     RootSignature::DestroyAll();
     PSO::DestroyAll();

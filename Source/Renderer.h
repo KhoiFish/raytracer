@@ -175,7 +175,7 @@ private:
         float   GpuAORadius                     = 100.0f;
         bool    GpuCameraJitter                 = true;
         float   GpuDirectLightMult              = 1.00f;
-        float   GpuIndirectLightMult            = 0.20f;
+        float   GpuIndirectLightMult            = 0.35f;
         bool    GpuEnableToneMapping            = true;
     };
 

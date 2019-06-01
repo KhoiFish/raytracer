@@ -11,6 +11,12 @@
     <Filter Include="Shaders">
       <UniqueIdentifier>{3335aa2c-b747-49b4-89d5-c673be41be9e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\Raster">
+      <UniqueIdentifier>{90c1055e-6467-46b7-b1a2-fa8c8daf1c51}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Raytrace">
+      <UniqueIdentifier>{4bc2bbf9-863d-46be-a90e-52774b45d6a7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Source\SampleScenes.h">
@@ -67,25 +73,25 @@
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\..\Source\Shaders\CompositePass_PS.hlsl">
-      <Filter>Shaders</Filter>
+      <Filter>Shaders\Raster</Filter>
     </FxCompile>
     <FxCompile Include="..\..\Source\Shaders\CompositePass_VS.hlsl">
-      <Filter>Shaders</Filter>
+      <Filter>Shaders\Raster</Filter>
     </FxCompile>
     <FxCompile Include="..\..\Source\Shaders\GeometryPass_PS.hlsl">
-      <Filter>Shaders</Filter>
+      <Filter>Shaders\Raster</Filter>
     </FxCompile>
     <FxCompile Include="..\..\Source\Shaders\GeometryPass_VS.hlsl">
-      <Filter>Shaders</Filter>
+      <Filter>Shaders\Raster</Filter>
     </FxCompile>
     <FxCompile Include="..\..\Source\Shaders\Raytracing.hlsl">
-      <Filter>Shaders</Filter>
+      <Filter>Shaders\Raytrace</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\RayTracerLib\RayTracerLib.licenseheader" />
     <None Include="..\..\Source\Shaders\RaytracingHelpers.hlsli">
-      <Filter>Shaders</Filter>
+      <Filter>Shaders\Raytrace</Filter>
     </None>
   </ItemGroup>
 </Project>

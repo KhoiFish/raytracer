@@ -330,7 +330,13 @@ static WorldScene* sampleSceneMesh()
 
     // Volumes
     {
-        list[total++] = new Sphere(Vec4(500, 250, 100), 125, new MLambertian(new ConstantTexture(colorYellow)));
+        list[total++] =
+            new HitableTranslate(
+                new HitableRotateY(
+                    new Sphere(Vec4(0, 0, 0), 125, new MLambertian(new ImageTexture(GetAbsolutePath(RUNTIMEDATA_DIR "/guitar.jpg").c_str()))),
+                    90.0f
+                ),
+                Vec4(500, 250, 100));
 
         //IHitable *boundary = new Sphere(Vec4(500, 250, 100), 125, new MDielectric(1.5f));
         //list[total++] = boundary;

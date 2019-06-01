@@ -120,6 +120,18 @@ static inline Core::Vec4 ConvertToVec4(const XMVECTOR& vec)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+static inline float wrapTexCoord(float c)
+{
+    double intPart;
+    float  fracPart = (float)modf(fabs(c), &intPart);
+
+    fracPart = (c > 0) ? fracPart : (1.0f - fracPart);
+
+    return fracPart;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 static void CreateSphere(RealtimeSceneNode* renderNode, float radius, int tessellation)
 {
     int verticalSegments   = tessellation;
@@ -127,7 +139,7 @@ static void CreateSphere(RealtimeSceneNode* renderNode, float radius, int tessel
 
     for (int i = 0; i <= verticalSegments; i++)
     {
-        float v = 1 - (float)i / verticalSegments;
+        float v = 1.0f - (float)i / verticalSegments;
 
         float latitude = (i * XM_PI / verticalSegments) - XM_PIDIV2;
         float dy, dxz;
@@ -144,6 +156,9 @@ static void CreateSphere(RealtimeSceneNode* renderNode, float radius, int tessel
 
             dx *= dxz;
             dz *= dxz;
+
+            // Translate u to match the cpu raytrace spheres
+            u = wrapTexCoord(1.25f + u);
 
             XMVECTOR normal   = XMVectorSet(dx, dy, dz, 0);
             XMVECTOR texCoord = XMVectorSet(u, v, 0, 0);

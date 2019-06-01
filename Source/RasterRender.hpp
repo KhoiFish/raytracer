@@ -77,8 +77,11 @@ const char* Renderer::GetSelectedBufferName()
         "Direct Lighting",
         "Indirect Lighting",
         "Ambient Occlusion",
-        "Diffuse",
         "Cpu Raytrace",
+        "Positions",
+        "Normals",
+        "TexCoords And Depth",
+        "Diffuse",
     };
 
     if (SelectedBufferIndex >= ARRAY_SIZE(bufferNames))
@@ -224,7 +227,7 @@ static inline D3D12_DEPTH_STENCIL_DESC getDepthDisabledState()
 void Renderer::SetupRasterRootSignatures()
 {
     // Refer to composite shader and match this to the TextureMultipliers[] index
-    CpuResultsBufferIndex = 5;
+    CpuResultsBufferIndex = 4;
 
     // Constant buffers
     RasterSceneConstantBuffer.Create(L"Raster Scene Constant Buffer", 1, (uint32_t)AlignUp(sizeof(SceneConstantBuffer), 256));
@@ -508,7 +511,6 @@ void Renderer::RenderCompositePass()
             RasterCompositeConstantBuffer.Upload(&compositeCB, sizeof(compositeCB));
 
             // Transition resources
-            //renderContext.TransitionResource(RasterCompositeConstantBuffer, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
             renderContext.TransitionResource(CPURaytracerTex, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
             renderContext.TransitionResource(DirectLightingAOBuffer[1], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
             renderContext.TransitionResource(IndirectLightingBuffer[1], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);

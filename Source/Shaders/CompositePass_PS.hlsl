@@ -93,15 +93,18 @@ float4 main(PixelShaderInput IN) : SV_Target
     float4 directLightAO = DirectLightAO.Sample(LinearRepeatSampler, IN.TexCoord);
 
     // Get all the buffer contributions
-    float4 directLight   = float4(directLightAO.rgb, 1)                           * CompositeCB.TextureMultipliers[1] * CompositeCB.DirectIndirectLightMult.x;
-    float4 indirectLight = IndirectLight.Sample(AnisoRepeatSampler, IN.TexCoord)  * CompositeCB.TextureMultipliers[2] * CompositeCB.DirectIndirectLightMult.y;
-    float4 ao            = directLightAO.a                                        * CompositeCB.TextureMultipliers[3];
-    float4 diffuse       = DiffuseTexture.Sample(AnisoRepeatSampler, IN.TexCoord) * CompositeCB.TextureMultipliers[4];
-    float4 cpuRT         = CpuResultsTex.Sample(AnisoRepeatSampler, IN.TexCoord)  * CompositeCB.TextureMultipliers[5];
+    float4 directLight   = float4(directLightAO.rgb, 1)                             * CompositeCB.TextureMultipliers[1] * CompositeCB.DirectIndirectLightMult.x;
+    float4 indirectLight = IndirectLight.Sample(AnisoRepeatSampler, IN.TexCoord)    * CompositeCB.TextureMultipliers[2] * CompositeCB.DirectIndirectLightMult.y;
+    float4 ao            = directLightAO.a                                          * CompositeCB.TextureMultipliers[3];
+    float4 cpuRT         = CpuResultsTex.Sample(AnisoRepeatSampler, IN.TexCoord)    * CompositeCB.TextureMultipliers[4];
+    float4 positions     = PositionsTexture.Sample(AnisoRepeatSampler, IN.TexCoord) * CompositeCB.TextureMultipliers[5];
+    float4 normals       = NormalsTexture.Sample(AnisoRepeatSampler, IN.TexCoord)   * CompositeCB.TextureMultipliers[6];
+    float4 texCoord      = TexCoordsTexture.Sample(AnisoRepeatSampler, IN.TexCoord) * CompositeCB.TextureMultipliers[7];
+    float4 diffuse       = DiffuseTexture.Sample(AnisoRepeatSampler, IN.TexCoord)   * CompositeCB.TextureMultipliers[8];
 
     // Compute semi-final colors
     float4 composited    = (directLight + indirectLight) * ao;
-    float4 selected      = (directLight + indirectLight + ao + diffuse + cpuRT);
+    float4 selected      = (directLight + indirectLight + ao + + cpuRT + positions + normals + texCoord + diffuse);
 
     // Compute final color
     float4 finalCol = (composited * CompositeCB.CompositeMultipliers[0]) + (selected * CompositeCB.CompositeMultipliers[1]);

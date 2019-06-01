@@ -207,7 +207,7 @@ inline float3 shootIndirectLightingRay(int numRays, uint randSeed, float minT, f
     TraceRay
     (
         gScene,
-        RAY_FLAG_NONE,
+        RAY_FLAG_CULL_FRONT_FACING_TRIANGLES,
         RAYTRACING_INSTANCEMASK_OPAQUE,
         gSceneCB.IndirectLightingHitGroupIndex, RAYTRACING_NUM_HIT_PROGRAMS, gSceneCB.IndirectLightingMissIndex,
         ray, payload
@@ -262,7 +262,7 @@ inline float shootAmbientOcclusionRays(int numRays, uint randSeed, float minT, f
         TraceRay
         (
             gScene,
-            RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER,
+            RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_CULL_FRONT_FACING_TRIANGLES,
             RAYTRACING_INSTANCEMASK_OPAQUE,
             gSceneCB.AOHitGroupIndex, RAYTRACING_NUM_HIT_PROGRAMS, gSceneCB.AOMissIndex,
             ray, payload

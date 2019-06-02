@@ -71,7 +71,7 @@ void ImageIO::WriteToPNGFile(const Vec4* buffer, int width, int height, const ch
 
         // Convert to rgba and gamma correct
         int ir, ig, ib, ia;
-        GetRGBA8888(col, true, ir, ig, ib, ia);
+        GetRGBA8888(col, false, ir, ig, ib, ia);
 
         int offset = (i * 4);
         convertedBuffer[offset + 0] = ir;

@@ -27,13 +27,21 @@
 // Change this as you add/remove # of hit shaders
 #define RAYTRACING_NUM_HIT_PROGRAMS         3
 
+#define RAYTRACING_MAX_NUM_LIGHTS           8
 #define RAYTRACING_MAX_NUM_MATERIALS        1024
 #define RAYTRACING_MAX_NUM_DIFFUSETEXTURES  1024         
-#define RAYTRACING_MAX_NUM_LIGHTS           8
 
 #define RAYTRACING_INSTANCEMASK_ALL         (0xFF)
 #define RAYTRACING_INSTANCEMASK_OPAQUE      (1 << 0)
 #define RAYTRACING_INSTANCEMASK_AREALIGHT   (1 << 1)
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+enum RenderMaterialType
+{
+    RenderMaterialType_Lambert = 0,
+    RenderMaterialType_Metal,
+};
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -59,14 +67,12 @@ struct RenderNodeInstanceData
 
 struct RenderMaterial
 {
-    XMFLOAT4    Emissive;
-    XMFLOAT4    Ambient;
-    XMFLOAT4    Diffuse;
-    XMFLOAT4    Specular;
-    float       SpecularPower;
-    UINT        DiffuseTextureId;
-    UINT        Padding0;
-    UINT        Padding1;
+    XMFLOAT4            Emissive;
+    XMFLOAT4            Diffuse;
+    RenderMaterialType  Type;
+    UINT                DiffuseTextureId;
+    float               Param0;
+    UINT                Padding1;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------

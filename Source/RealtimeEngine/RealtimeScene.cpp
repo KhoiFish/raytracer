@@ -48,15 +48,6 @@ const D3D12_INPUT_ELEMENT_DESC RealtimeSceneVertexEx::InputElements[] =
     { "TEXCOORD",   0, DXGI_FORMAT_R32G32_FLOAT,    0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 };
 
-static const RenderMaterial MaterialWhite =
-{
-    { 0.00f, 0.00f, 0.00f, 1.00f },
-    { .1f, .1f, .1f, .1f },
-    { 1.00f, 1.00f, 1.00f, 1.00f },
-    { 1.00f, 1.00f, 1.00f, 1.00f },
-    128.0f
-};
-
 // ----------------------------------------------------------------------------------------------------------------------------
 
 static bool FlipFromNormalStack(Core::Vec4& normal, const std::vector<bool>& flipNormalStack)
@@ -99,7 +90,7 @@ static inline XMVECTOR ConvertToXMVector(const Core::Vec4& vec)
 
 static inline XMFLOAT4 ConvertToXMFloat4(const Core::Vec4& vec)
 {
-    return DirectX::XMFLOAT4(vec[0], vec[1], vec[2], 1.f);
+    return DirectX::XMFLOAT4(vec[0], vec[1], vec[2], vec[3]);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -368,28 +359,27 @@ static void CreateVertexIndexBuffers(RealtimeSceneNode* renderNode)
 
 static RenderMaterial ConvertFromCoreMaterial(const Core::Material* pCoreMaterial)
 {
+    RenderMaterial newMaterial;
+
     // HACKS until we get materials working for reals
-    Core::Vec4            color = pCoreMaterial->AlbedoValue(0.5f, 0.5f, Core::Vec4(0, 0, 0));
+    newMaterial.Diffuse = ConvertToXMFloat4(pCoreMaterial->AlbedoValue(0.5f, 0.5f, Core::Vec4(0, 0, 0)));
     const std::type_info& tid   = typeid(*pCoreMaterial);
     if (tid == typeid(Core::MWavefrontObj))
     {
         // Get average color
-        color = pCoreMaterial->GetAverageAlbedo();
+        newMaterial.Diffuse = ConvertToXMFloat4(pCoreMaterial->GetAverageAlbedo());
     }
     else if (tid == typeid(Core::MDielectric))
     {
         // These materials don't have color, use white
-        color = Core::Vec4(1, 1, 1, 1);
+        newMaterial.Diffuse = ConvertToXMFloat4(Core::Vec4(1, 1, 1, 1));
     }
 
-    RenderMaterial newMaterial =
+    newMaterial.Type = RenderMaterialType_Lambert;
+    if (tid == typeid(Core::MMetal))
     {
-        { 0.0f,      0.0f,      0.0f,      1.0f },
-        { 0.0f,      0.0f,      0.0f,      1.0f },
-        { color.X(), color.Y(), color.Z(), 1.0f },
-        { 0.0f,      0.0f,      0.0f,      1.0f },
-        128.0f
-    };
+        newMaterial.Type = RenderMaterialType_Metal;
+    }
 
     return newMaterial;
 }

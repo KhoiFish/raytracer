@@ -26,21 +26,19 @@
 
 struct ShadowRayPayload
 {
-    float       Value;
+    float Value;
 };
 
 struct DirectRayPayload
 {
-    int         LightIndex;
-    XMFLOAT4    HitBaryAndDist;
-    XMFLOAT3    LightColor;
+    XMFLOAT3 LightColor;
+    int      LightIndex;
 };
 
 struct IndirectRayPayload
 {
-    XMFLOAT3    Color;
-    UINT        RndSeed;
-    UINT        NumRays;
+    XMFLOAT3 Color;
+    UINT     RndSeed;
 };
 
 // Set this to the largest payload struct from above

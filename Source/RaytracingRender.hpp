@@ -59,8 +59,11 @@ namespace RaytracingGlobalRootSigSlot
         CurrDirectLightAO,
         PrevIndirectLight,
         CurrIndirectLight,
+
         SceneCB,
         LightsCB,
+        MaterialsCB,
+
         AccelerationStructure,
         Positions,
         Normals,
@@ -80,6 +83,7 @@ namespace RaytracingGlobalRootSigSlot
     };
 
     static const UINT nL = RAYTRACING_MAX_NUM_LIGHTS;
+    static const UINT nM = RAYTRACING_MAX_NUM_MATERIALS;
     static const UINT nD = RAYTRACING_MAX_NUM_DIFFUSETEXTURES;
 
     // [register, count, space, D3D12_DESCRIPTOR_RANGE_TYPE]
@@ -91,7 +95,8 @@ namespace RaytracingGlobalRootSigSlot
         { 3, 1,  0, D3D12_DESCRIPTOR_RANGE_TYPE_UAV },   // CurrIndirectLight
 
         { 0, 1,  0, D3D12_DESCRIPTOR_RANGE_TYPE_CBV },   // Scene CB
-        { 1, nL, 0, D3D12_DESCRIPTOR_RANGE_TYPE_CBV },   // Lights CB
+        { 0, nL, 1, D3D12_DESCRIPTOR_RANGE_TYPE_CBV },   // Lights CB
+        { 0, nM, 2, D3D12_DESCRIPTOR_RANGE_TYPE_CBV },   // Materials CB
 
         { 0, 1,  0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // AccelerationStructure
         { 1, 1,  0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // Positions
@@ -128,11 +133,11 @@ namespace RaytracingLocalRootSigSlot
     // [register, count, space]
     static UINT Range[RaytracingLocalRootSigSlot::Num][4] =
     {
-        { 0, 1, 1, D3D12_DESCRIPTOR_RANGE_TYPE_CBV }, // LocalCB
-        { 1, 1, 1, D3D12_DESCRIPTOR_RANGE_TYPE_CBV }, // Material CB
+        { 0, 1, 3, D3D12_DESCRIPTOR_RANGE_TYPE_CBV }, // LocalCB
+        { 1, 1, 3, D3D12_DESCRIPTOR_RANGE_TYPE_CBV }, // Material CB
 
-        { 0, 1, 1, D3D12_DESCRIPTOR_RANGE_TYPE_SRV }, // VertexBuffer
-        { 1, 1, 1, D3D12_DESCRIPTOR_RANGE_TYPE_SRV }, // IndexBuffer
+        { 0, 1, 3, D3D12_DESCRIPTOR_RANGE_TYPE_SRV }, // VertexBuffer
+        { 1, 1, 3, D3D12_DESCRIPTOR_RANGE_TYPE_SRV }, // IndexBuffer
     };
 }
 
@@ -249,6 +254,17 @@ void Renderer::SetupGpuRaytracingDescriptors()
         RendererDescriptorHeap->AllocateBufferCbv(
             TheRenderScene->GetAreaLightsList()[i]->AreaLightBuffer.GetGpuVirtualAddress(),
             (UINT)TheRenderScene->GetAreaLightsList()[i]->AreaLightBuffer.GetBufferSize());
+
+        currOffset++;
+    }
+
+    // Materials CB
+    RaytracingGlobalRootSigSlot::DescriptorHeapOffsets[RaytracingGlobalRootSigSlot::MaterialsCB] = currOffset;
+    for (size_t i = 0; i < TheRenderScene->GetRenderSceneList().size(); i++)
+    {
+        RendererDescriptorHeap->AllocateBufferCbv(
+            TheRenderScene->GetRenderSceneList()[i]->MaterialBuffer.GetGpuVirtualAddress(),
+            (UINT)TheRenderScene->GetRenderSceneList()[i]->MaterialBuffer.GetBufferSize());
 
         currOffset++;
     }
@@ -489,9 +505,10 @@ void Renderer::RenderGpuRaytracing()
 
         // Set to the current acceleration structure
         {
-            uint32_t heapIndex = RaytracingGlobalSigDataIndexStart + 
-                                    RaytracingGlobalRootSigSlot::DescriptorHeapOffsets[RaytracingGlobalRootSigSlot::AccelerationStructure] +
-                                    TheRenderScene->GetRaytracingGeometry()->GetCurrentTLASIndex();
+            uint32_t heapIndex = 
+                                 RaytracingGlobalSigDataIndexStart + 
+                                 RaytracingGlobalRootSigSlot::DescriptorHeapOffsets[RaytracingGlobalRootSigSlot::AccelerationStructure] +
+                                 TheRenderScene->GetRaytracingGeometry()->GetCurrentTLASIndex();
 
             computeContext.SetDescriptorTable(RaytracingGlobalRootSigSlot::AccelerationStructure, RendererDescriptorHeap->GetGpuHandle(heapIndex));
         }

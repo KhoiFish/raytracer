@@ -37,7 +37,8 @@ RWTexture2D<float4>                         gPrevIndirect       : register(u2, s
 RWTexture2D<float4>                         gCurrIndirect       : register(u3, space0);
 
 ConstantBuffer<RaytracingGlobalCB>          gSceneCB            : register(b0, space0);
-ConstantBuffer<RealtimeAreaLight>           gLightsCB[]         : register(b1, space0);
+ConstantBuffer<RealtimeAreaLight>           gLightsCB[]         : register(b0, space1);
+ConstantBuffer<RenderMaterial>              gMaterialsCB[]      : register(b0, space2);
 
 RaytracingAccelerationStructure             gScene              : register(t0, space0);
 Texture2D<float4>                           gPositions          : register(t1, space0);
@@ -48,11 +49,11 @@ Texture2D<float4>                           gAlbedoArray[]      : register(t5, s
 
 
 // Local root signature
-ConstantBuffer<RenderNodeInstanceData>      gInstanceDataCB     : register(b0, space1);
-ConstantBuffer<RenderMaterial>              gMaterial           : register(b1, space1);
+ConstantBuffer<RenderNodeInstanceData>      gInstanceDataCB     : register(b0, space3);
+ConstantBuffer<RenderMaterial>              gMaterial           : register(b1, space3);
 
-ByteAddressBuffer                           gVertexBuffer       : register(t0, space1);
-ByteAddressBuffer                           gIndexBuffer        : register(t1, space1);
+ByteAddressBuffer                           gVertexBuffer       : register(t0, space3);
+ByteAddressBuffer                           gIndexBuffer        : register(t1, space3);
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -96,9 +97,8 @@ inline RealtimeSceneVertex getVertex(uint triangleIndex, float3 barycentrics)
 inline DirectRayPayload areaLightVisibility(float3 orig, float3 dir, float minT, float maxT)
 {
     DirectRayPayload payload;
-    payload.LightIndex     = -1;
-    payload.HitBaryAndDist = float4(0, 0, 0, 0);
-    payload.LightColor     = float3(0, 0, 0);
+    payload.LightIndex = -1;
+    payload.LightColor = float3(0, 0, 0);
 
     RayDesc ray;
     ray.Origin    = orig;
@@ -133,56 +133,79 @@ inline float3 getRandomPointOnAreaLight(uint randSeed, RealtimeAreaLight light)
     return float3(a, b, c);
 }
 
+
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline float3 computeLighting(uint randSeed, float minT, float3 worldPos, float3 worldNorm)
+inline float3 shadeLambert(RenderMaterial material, int numRays, uint randSeed, float minT, float3 worldPos, float3 worldNorm, float4 albedo)
 {
-    // Pick a random light to sample
-    float3            lightResult = float3(0, 0, 0);
-    int               lightIndex = min(int(nextRand(randSeed) * gSceneCB.NumLights), gSceneCB.NumLights - 1);
-    RealtimeAreaLight light      = gLightsCB[lightIndex];
-    float3            onLight    = getRandomPointOnAreaLight(randSeed, light);
-    float3            lightDir   = normalize(onLight - worldPos);
-
-    // Shoot a ray at the light
-    DirectRayPayload lightPayload = areaLightVisibility(worldPos, lightDir, minT, SHADER_FLOAT_MAX);
-    if (lightPayload.LightIndex >= 0)
+    float3 shadeResult = float3(0, 0, 0);
+    for (int i = 0; i < numRays; i++)
     {
-        float area            = light.AreaCoverage;
-        float len             = lightPayload.HitBaryAndDist.a;
-        float distanceSquared = len * len;
-        float cosine          = saturate(dot(lightDir, worldNorm));
-        float pdf             = distanceSquared / (cosine * area);
+        // Pick a random light to sample
+        float3            lightResult = float3(0, 0, 0);
+        int               lightIndex  = min(int(nextRand(randSeed) * gSceneCB.NumLights), gSceneCB.NumLights - 1);
+        RealtimeAreaLight light       = gLightsCB[lightIndex];
+        float3            onLight     = getRandomPointOnAreaLight(randSeed, light);
+        float3            lightDir    = normalize(onLight - worldPos);
+        float             dist        = length(onLight - worldPos);
 
-        if (cosine > 0 && dot(lightDir, worldNorm) >= 0)
+        // Shoot a ray at the light
+        DirectRayPayload lightPayload = areaLightVisibility(worldPos, lightDir, minT, SHADER_FLOAT_MAX);
+        if (lightPayload.LightIndex >= 0)
         {
-            lightResult = lightPayload.LightColor / pdf;
+            float area            = light.AreaCoverage;
+            float len             = dist;
+            float distanceSquared = len * len;
+            float cosine          = saturate(dot(lightDir, worldNorm));
+            float pdf             = distanceSquared / (cosine * area);
+
+            if (cosine > 0 && dot(lightDir, worldNorm) >= 0)
+            {
+                shadeResult += lightPayload.LightColor / pdf;
+            }
         }
     }
 
-    return lightResult;
+    // Modulate based on the physically based Lambertian term (albedo/pi)
+    shadeResult *= (albedo.rgb / SHADER_PI);
+    shadeResult /= numRays;
+
+    return shadeResult;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline float3 sampleDirectLighting(int numRays, uint randSeed, float minT, float3 worldPos, float3 worldNorm, float4 albedo)
+inline float3 shade(RenderMaterial material, int numRays, uint randSeed, float minT, float3 worldPos, float3 worldNorm, float4 albedo)
 {
-    float3 shadeColor = float3(0, 0, 0);
+    float3 shadeColor;
+    switch (material.Type)
+    {
+        case RenderMaterialType_Lambert:
+            shadeColor = shadeLambert(material, numRays, randSeed, minT, worldPos, worldNorm, albedo);
+        break;
+
+        case RenderMaterialType_Metal:
+            shadeColor = albedo.rgb;
+        break;
+    }
+
+    return shadeColor;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+inline float3 sampleDirectLighting(RenderMaterial material, int numRays, uint randSeed, float minT, float3 worldPos, float3 worldNorm, float4 albedo)
+{
+    float3 shadeColor;
     if (gSceneCB.NumLights > 0)
     {
-        for (int i = 0; i < numRays; i++)
-        {
-            shadeColor += computeLighting(randSeed, minT, worldPos, worldNorm);
-        }
+        shadeColor = shade(material, numRays, randSeed, minT, worldPos, worldNorm, albedo);
     }
     else
     {
-        shadeColor = float3(1, 1, 1);
+        shadeColor = albedo.rgb;
+        shadeColor /= numRays;
     }
-
-    // Modulate based on the physically based Lambertian term (albedo/pi)
-    shadeColor *= (albedo.rgb / SHADER_PI);
-    shadeColor /= numRays;
 
     return shadeColor;
 }
@@ -196,7 +219,6 @@ inline float3 shootIndirectLightingRay(int numRays, uint randSeed, float minT, f
     IndirectRayPayload payload;
     payload.Color   = float3(0, 0, 0);
     payload.RndSeed = randSeed;
-    payload.NumRays = numRays;
 
     RayDesc ray;
     ray.Origin      = worldPos;
@@ -227,15 +249,7 @@ inline float3 sampleIndirectLighting(int numRays, uint randSeed, float minT, flo
         bounceColor = shootIndirectLightingRay(numRays, randSeed, minT, worldPos, worldNorm);
     }
 
-    // The following uses this formula
-    //   NdotL      = saturate(dot(worldNorm, bounceDir));
-    //   sampleProb = (NdotL / SHADER_PI);
-    //   shadeColor = (NdotL * bounceColor * albedo.rgb / SHADER_PI) / sampleProb;
-    //
-    // The terms cancel to this:
-    float3 shadeColor = bounceColor;
-
-    return shadeColor;
+    return bounceColor;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -292,9 +306,8 @@ void DirectLightingClosest(inout DirectRayPayload payload, in BuiltInTriangleInt
     float3 barycentrics = float3(1.f - attr.barycentrics.x - attr.barycentrics.y, attr.barycentrics.x, attr.barycentrics.y);
 
     // Hit the light
-    payload.LightIndex     = gInstanceDataCB.LightIndex;
-    payload.HitBaryAndDist = float4(barycentrics, RayTCurrent());
-    payload.LightColor     = gMaterial.Diffuse.rgb;
+    payload.LightIndex = gInstanceDataCB.LightIndex;
+    payload.LightColor = gMaterial.Diffuse.rgb;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -314,20 +327,9 @@ void IndirectLightingClosest(inout IndirectRayPayload payload, in BuiltInTriangl
     RealtimeSceneVertex  vert       = getVertex(PrimitiveIndex(), bary);
     float3               worldPos   = mul(vert.Position, (float3x3)gInstanceDataCB.WorldMatrix);
     float3               worldNorm  = mul(vert.Normal, (float3x3)gInstanceDataCB.WorldMatrix);
-    int                  numRays    = payload.NumRays;
+    float4               albedo     = gAlbedoArray[gMaterial.DiffuseTextureId][vert.TexCoord];
 
-    payload.Color = float3(0, 0, 0);
-    for (int i = 0; i < numRays; i++)
-    {
-        payload.Color += computeLighting(payload.RndSeed, RayTMin(), worldPos, worldNorm);
-    }
-
-    // Read albedo
-    float3 albedo = gAlbedoArray[gMaterial.DiffuseTextureId][vert.TexCoord].xyz;
-
-    // Modulate based on the physically based Lambertian term (albedo/pi)
-    payload.Color *= (albedo / SHADER_PI);
-    payload.Color /= numRays;
+    payload.Color = shade(gMaterial, gSceneCB.NumRays, payload.RndSeed, RayTMin(), worldPos, worldNorm, albedo);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -360,20 +362,23 @@ inline float4 temporalAccumulate(float4 prevColor, float4 currColor)
 void RayGeneration()
 {
     // Inputs
-    int     numRays      = gSceneCB.NumRays;
-    uint3   launchIndex  = DispatchRaysIndex();
-    uint3   launchDim    = DispatchRaysDimensions();
-    uint    randSeed     = initRand(launchIndex.x + launchIndex.y * launchDim.x, gSceneCB.FrameCount, 16);
-    float4  worldPos     = gPositions[launchIndex.xy];
-    float3  worldNorm    = gNormals[launchIndex.xy].xyz;
-    float4  albedo       = gAlbedo[launchIndex.xy];
-    float   aoRadius     = gSceneCB.AORadius;
-    float   minT         = 0.01f;
+    int             numRays     = gSceneCB.NumRays;
+    uint3           launchIndex = DispatchRaysIndex();
+    uint3           launchDim   = DispatchRaysDimensions();
+    uint            randSeed    = initRand(launchIndex.x + launchIndex.y * launchDim.x, gSceneCB.FrameCount, 16);
+    float4          worldPos    = gPositions[launchIndex.xy];
+    float4          normAndId   = gNormals[launchIndex.xy];
+    float3          worldNorm   = normAndId.xyz;
+    int             instanceId  = int(normAndId.w);
+    RenderMaterial  material    = gMaterialsCB[instanceId];
+    float4          albedo      = gAlbedo[launchIndex.xy];
+    float           aoRadius    = gSceneCB.AORadius;
+    float           minT        = 0.01f;
 
     // Get direct, indirect and AO contributions
-    float3 direct        = sampleDirectLighting(numRays, randSeed, minT, worldPos.xyz, worldNorm, albedo);
-    float3 indirect      = sampleIndirectLighting(numRays, randSeed, minT, worldPos.xyz, worldNorm);
-    float  ao            = shootAmbientOcclusionRays(numRays, randSeed, minT, aoRadius, worldPos.xyz, worldNorm);
+    float3 direct   = sampleDirectLighting(material, numRays, randSeed, minT, worldPos.xyz, worldNorm, albedo);
+    float3 indirect = sampleIndirectLighting(numRays, randSeed, minT, worldPos.xyz, worldNorm);
+    float  ao       = shootAmbientOcclusionRays(numRays, randSeed, minT, aoRadius, worldPos.xyz, worldNorm);
     
     // Pass through background/lights
     float2 backSelect    = float2(worldPos.w, 1 - worldPos.w);

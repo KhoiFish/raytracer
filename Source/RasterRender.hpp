@@ -463,9 +463,9 @@ void Renderer::RenderCompositePass()
             if (TheRaytracer != nullptr)
             {
                 D3D12_SUBRESOURCE_DATA subresource;
-                subresource.RowPitch    = 4 * TheRaytracer->GetOutputWidth();
+                subresource.RowPitch    = (sizeof(float) * 4) * TheRaytracer->GetOutputWidth();
                 subresource.SlicePitch  = subresource.RowPitch * TheRaytracer->GetOutputHeight();
-                subresource.pData       =  TheRaytracer->GetOutputBufferRGBA();
+                subresource.pData       =  TheRaytracer->GetOutputBuffer();
                 renderContext.InitializeTexture(CPURaytracerTex, 1, &subresource);
             }
 
@@ -499,14 +499,18 @@ void Renderer::RenderCompositePass()
                 {
                     compositeCB.CompositeMultipliers[0] = bufferOff;
                     compositeCB.CompositeMultipliers[1] = bufferOn;
-                    enableToneMapping                   = false;
+                    enableToneMapping                   = (SelectedBufferIndex == CpuResultsBufferIndex) ? true : false;
                 }
 
                 // Setup direct/indirect multipliers
                 compositeCB.DirectIndirectLightMult = XMFLOAT2(TheUserInputData.GpuDirectLightMult, TheUserInputData.GpuIndirectLightMult);
 
+                // Cpu completed samples
+                int numSamples = (TheRaytracer != nullptr) ? (TheRaytracer->GetStats().CompletedSampleCount + 1) : 1;
+                compositeCB.CpuNormalizeFactor = 1.0f / float(numSamples);
+
                 // Tone mapping
-                compositeCB.CompositeMultipliers[2]     = enableToneMapping ? bufferOn : bufferOff;
+                compositeCB.CompositeMultipliers[2] = enableToneMapping ? bufferOn : bufferOff;
             }
             RasterCompositeConstantBuffer.Upload(&compositeCB, sizeof(compositeCB));
 

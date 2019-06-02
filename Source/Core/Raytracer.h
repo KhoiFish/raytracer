@@ -52,6 +52,7 @@ namespace Core
             int         CompletedSampleCount;
             int         NumPdfQueryRetries;
             int         TotalTimeInSeconds;
+            int         CurrentPixelOffset;
         };
 
     public:
@@ -64,11 +65,12 @@ namespace Core
         bool             WaitForTraceToFinish(int timeoutMicroSeconds);
         Stats            GetStats() const;
 
-        inline Vec4*     GetOutputBuffer() const     { return OutputBuffer; }
-        inline uint8_t*  GetOutputBufferRGBA() const { return OutputBufferRGBA; }
-        inline int       GetOutputWidth() const      { return OutputWidth; }
-        inline int       GetOutputHeight() const     { return OutputHeight; }
-        inline bool      IsTracing() const           { return IsRaytracing; }
+        inline Vec4*     GetOutputBuffer() const            { return OutputBuffer; }
+        inline uint8_t*  GetOutputBufferRGBA8888() const    { return OutputBufferRGBA8888; }
+        inline int       GetOutputWidth() const             { return OutputWidth; }
+        inline int       GetOutputHeight() const            { return OutputHeight; }
+        inline int       GetNumberSamples() const           { return NumRaySamples; }
+        inline bool      IsTracing() const                  { return IsRaytracing; }
 
     private:
 
@@ -89,7 +91,7 @@ namespace Core
         int                     OutputHeight;
         Vec4*                   OutputBuffer;
         Vec4*                   ZeroedOutputBuffer;
-        uint8_t*                OutputBufferRGBA;
+        uint8_t*                OutputBufferRGBA8888;
 
         // Tracing options
         int                     NumRaySamples;

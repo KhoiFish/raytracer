@@ -110,14 +110,30 @@ std::string GetTimeAndDateString()
 
 void WriteImageAndLog(Raytracer* raytracer, std::string name)
 {
+    // Make a copy
+    const int bufferSize       = raytracer->GetOutputWidth() * raytracer->GetOutputHeight();
+    Vec4*     normalizedOutput = new Vec4[bufferSize];
+    memcpy(normalizedOutput, raytracer->GetOutputBuffer(), bufferSize * sizeof(Vec4));
+
+    // Normalize
+    const float scale = 1.f / float(raytracer->GetNumberSamples());
+    for (int i = 0; i < bufferSize; i++)
+    {
+        normalizedOutput[i] *= scale;
+    }
+
+    // Write out the file
     std::string baseFilename = std::string(RT_OUTPUT_IMAGE_DIR) + name + std::string(".") + std::string(GetTimeAndDateString());
-    ImageIO::WriteToPNGFile(raytracer->GetOutputBuffer(), raytracer->GetOutputWidth(), raytracer->GetOutputHeight(), (baseFilename + std::string(".png")).c_str());
+    ImageIO::WriteToPNGFile(normalizedOutput, raytracer->GetOutputWidth(), raytracer->GetOutputHeight(), (baseFilename + std::string(".png")).c_str());
 
     std::ofstream out((baseFilename + std::string(".log")).c_str());
     if (out.is_open())
     {
         out << ProgressPrint(raytracer);
     }
+
+    delete [] normalizedOutput;
+    normalizedOutput = nullptr;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

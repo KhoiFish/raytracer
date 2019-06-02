@@ -102,6 +102,9 @@ float4 main(PixelShaderInput IN) : SV_Target
     float4 texCoord      = TexCoordsTexture.Sample(AnisoRepeatSampler, IN.TexCoord) * CompositeCB.TextureMultipliers[7];
     float4 diffuse       = DiffuseTexture.Sample(AnisoRepeatSampler, IN.TexCoord)   * CompositeCB.TextureMultipliers[8];
 
+    // Normalize cpu raytraced image
+    cpuRT *= CompositeCB.CpuNormalizeFactor;
+
     // Compute semi-final colors
     float4 composited    = (directLight + indirectLight) * ao;
     float4 selected      = (directLight + indirectLight + ao + + cpuRT + positions + normals + texCoord + diffuse);

@@ -44,7 +44,7 @@ Raytracer::Raytracer(int width, int height, int numSamples, int maxDepth, int nu
 {
     OutputBuffer       = new Vec4[OutputWidth * OutputHeight];
     ZeroedOutputBuffer = new Vec4[OutputWidth * OutputHeight];
-    OutputBufferRGBA   = new uint8_t[OutputWidth * OutputHeight * 4];
+    OutputBufferRGBA8888   = new uint8_t[OutputWidth * OutputHeight * 4];
     ThreadPtrs         = new std::thread*[NumThreads];
 
     for (int i = 0; i < (OutputWidth * OutputHeight); i++)
@@ -62,8 +62,8 @@ Raytracer::~Raytracer()
     delete[] OutputBuffer;
     OutputBuffer = nullptr;
 
-    delete[] OutputBufferRGBA;
-    OutputBufferRGBA = nullptr;
+    delete[] OutputBufferRGBA8888;
+    OutputBufferRGBA8888 = nullptr;
 
     delete[] ZeroedOutputBuffer;
     ZeroedOutputBuffer = nullptr;
@@ -103,7 +103,7 @@ void Raytracer::resetRaytrace()
 
     // Clear out buffers
     const int area = OutputWidth * OutputHeight;
-    memset(OutputBufferRGBA, 0, sizeof(uint8_t) * area * 4);
+    memset(OutputBufferRGBA8888, 0, sizeof(uint8_t) * area * 4);
     memcpy(OutputBuffer, ZeroedOutputBuffer, sizeof(float) * area * 4);
 }
 
@@ -139,15 +139,17 @@ bool Raytracer::WaitForTraceToFinish(int timeoutMicroSeconds)
 
 Raytracer::Stats Raytracer::GetStats() const
 {
-    const StdTime endTime = IsRaytracing ? std::chrono::system_clock::now() : EndTime;
+    const StdTime endTime   = IsRaytracing ? std::chrono::system_clock::now() : EndTime;
+    const int64_t numPixels = int64_t(OutputWidth * OutputHeight);
 
     Stats stats;
     stats.TotalRaysFired        = TotalRaysFired.load();
     stats.NumPixelSamples       = CurrentPixelSampleOffset.load();
-    stats.TotalNumPixelSamples  = int64_t(OutputWidth * OutputHeight) * int64_t(NumRaySamples);
-    stats.CompletedSampleCount  = int(CurrentPixelSampleOffset.load() / int64_t(OutputWidth * OutputHeight));
+    stats.TotalNumPixelSamples  = numPixels * int64_t(NumRaySamples);
+    stats.CompletedSampleCount  = int(CurrentPixelSampleOffset.load() / numPixels);
     stats.NumPdfQueryRetries    = NumPdfQueryRetries.load();
     stats.TotalTimeInSeconds    = (int)std::chrono::duration<double>(endTime - StartTime).count();
+    stats.CurrentPixelOffset    = int(CurrentPixelSampleOffset.load() % numPixels);
     
     return stats;
 }
@@ -257,10 +259,10 @@ void Raytracer::threadTraceNextPixel(int id, Raytracer* tracer, WorldScene* scen
                 int ir, ig, ib, ia;
                 GetRGBA8888(curCol, false, ir, ig, ib, ia);
 
-                tracer->OutputBufferRGBA[rgbaOffset + 0] = (uint8_t)ir;
-                tracer->OutputBufferRGBA[rgbaOffset + 1] = (uint8_t)ig;
-                tracer->OutputBufferRGBA[rgbaOffset + 2] = (uint8_t)ib;
-                tracer->OutputBufferRGBA[rgbaOffset + 3] = (uint8_t)ia;
+                tracer->OutputBufferRGBA8888[rgbaOffset + 0] = (uint8_t)ir;
+                tracer->OutputBufferRGBA8888[rgbaOffset + 1] = (uint8_t)ig;
+                tracer->OutputBufferRGBA8888[rgbaOffset + 2] = (uint8_t)ib;
+                tracer->OutputBufferRGBA8888[rgbaOffset + 3] = (uint8_t)ia;
             }
         }
     }
@@ -271,13 +273,6 @@ void Raytracer::threadTraceNextPixel(int id, Raytracer* tracer, WorldScene* scen
     // Are we the last thread?
     if (tracer->NumThreadsDone.load() >= tracer->NumThreads)
     {
-        // The last man out normalizes the output buffer
-        const float scale = 1.f / float(tracer->NumRaySamples);
-        for (int i = 0; i < numPixels; i++)
-        {
-            tracer->OutputBuffer[i] *= scale;
-        }
-
         // Mark timestamp and call completion callback
         tracer->EndTime = std::chrono::system_clock::now();
         if (tracer->OnComplete != nullptr)

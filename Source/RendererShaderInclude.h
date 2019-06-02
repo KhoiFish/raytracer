@@ -45,6 +45,7 @@ struct CompositeConstantBuffer
     XMFLOAT4    TextureMultipliers[9];
     XMFLOAT4    CompositeMultipliers[3];
     XMFLOAT2    DirectIndirectLightMult;
+    float       CpuNormalizeFactor;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------

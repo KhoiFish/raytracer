@@ -194,6 +194,8 @@ inline float3 shootColorRay(uint randSeed, float minT, float3 origin, float3 dir
 {
     ColorRayPayload payload;
     payload.Color    = float3(0, 0, 0);
+    payload.RndSeed  = randSeed;
+    payload.RayDepth = curDepth + 1;
 
     RayDesc ray;
     ray.Origin      = origin;
@@ -419,9 +421,7 @@ void ColorClosest(inout ColorRayPayload payload, in BuiltInTriangleIntersectionA
     float3               worldNorm  = mul(vert.Normal, (float3x3)gInstanceDataCB.WorldMatrix);
     float4               albedo     = gAlbedoArray[gMaterial.DiffuseTextureId].SampleLevel(AnisoRepeatSampler, vert.TexCoord, 0);
 
-    // It's cheaper to just return the albedo color, instead of doing a full shade
-    payload.Color = albedo.rgb;
-    //payload.Color = shade(gMaterial, WorldRayDirection(), gSceneCB.NumRays, payload.RndSeed, RayTMin(), worldPos, worldNorm, albedo, payload.RayDepth);
+    payload.Color = shade(gMaterial, WorldRayDirection(), gSceneCB.NumRays, payload.RndSeed, RayTMin(), worldPos, worldNorm, albedo, payload.RayDepth);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

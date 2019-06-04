@@ -45,6 +45,8 @@ struct IndirectRayPayload
 struct ColorRayPayload
 {
     XMFLOAT3 Color;
+    UINT     RndSeed;
+    UINT     RayDepth;
 };
 
 // Set this to the largest payload struct from above

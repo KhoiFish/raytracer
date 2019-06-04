@@ -44,6 +44,7 @@ enum RenderMaterialType
     RenderMaterialType_Light = 0,
     RenderMaterialType_Lambert,
     RenderMaterialType_Metal,
+    RenderMaterialType_MDielectric,
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -75,7 +76,7 @@ struct RenderMaterial
     RenderMaterialType  Type;
     UINT                DiffuseTextureId;
     float               Fuzz;
-    UINT                Padding1;
+    float               ReflIndex;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------

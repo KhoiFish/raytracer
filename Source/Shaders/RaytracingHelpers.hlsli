@@ -101,3 +101,40 @@ class ONB
     
     float3 Axis[3];
 };
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+inline uint3 getIndices(ByteAddressBuffer indexBuffer, uint triangleIndex)
+{
+    uint baseIndex = (triangleIndex * 3);
+    int  address   = (baseIndex * 4);
+
+    return indexBuffer.Load3(address);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+inline RealtimeSceneVertex getVertex(ByteAddressBuffer indexBuffer, ByteAddressBuffer vertexBuffer, uint triangleIndex, float3 barycentrics)
+{
+    RealtimeSceneVertex v;
+    v.Position = float3(0, 0, 0);
+    v.Normal   = float3(0, 0, 0);
+    v.TexCoord = float2(0, 0);
+
+    const uint3 indices = getIndices(indexBuffer, triangleIndex);
+    const int   stride  = (3 * 4) + (3 * 4) + (2 * 4);    
+    for (uint i = 0; i < 3; i++)
+    {
+        int address = indices[i] * stride;
+
+        v.Position += asfloat(vertexBuffer.Load3(address)) * barycentrics[i];
+        address += (3 * 4);
+
+        v.Normal += asfloat(vertexBuffer.Load3(address)) * barycentrics[i];
+        address += (3 * 4);
+
+        v.TexCoord += asfloat(vertexBuffer.Load2(address)) * barycentrics[i];
+    }
+
+    return v;
+}

@@ -381,6 +381,11 @@ static RenderMaterial ConvertFromCoreMaterial(const Core::Material* pCoreMateria
         newMaterial.Type = RenderMaterialType_Metal;
         newMaterial.Fuzz = ((Core::MMetal*)pCoreMaterial)->GetFuzz();
     }
+    if (tid == typeid(Core::MDielectric))
+    {
+        newMaterial.Type      = RenderMaterialType_MDielectric;
+        newMaterial.ReflIndex = ((Core::MDielectric*)pCoreMaterial)->GetReflectiveIndex();
+    }
     else if (tid == typeid(Core::MDiffuseLight))
     {
         newMaterial.Type = RenderMaterialType_Light;

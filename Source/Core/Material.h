@@ -113,7 +113,7 @@ namespace Core
 
         virtual bool Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& scatterRec) const;
         virtual Vec4 AlbedoValue(float u, float v, const Vec4& p) const;
-        float GetFuzz() const { return Fuzz; }
+        float        GetFuzz() const { return Fuzz; }
 
     private:
 
@@ -129,6 +129,7 @@ namespace Core
         MDielectric(float ri);
 
         virtual bool Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& scatterRec) const;
+        float        GetReflectiveIndex() const { return RefId; }
 
     private:
 

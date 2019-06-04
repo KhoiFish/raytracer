@@ -687,7 +687,7 @@ void RealtimeScene::UpdateMaterialBuffer(CommandContext& context, RealtimeSceneN
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-RealtimeScene::RealtimeScene(Core::WorldScene* worldScene)
+RealtimeScene::RealtimeScene(Core::WorldScene* worldScene, uint32_t numHitPrograms)
 {
     // Generate the scene objects from the world scene
     std::vector<DirectX::XMMATRIX>  matrixStack;
@@ -701,7 +701,7 @@ RealtimeScene::RealtimeScene(Core::WorldScene* worldScene)
     ScratchCopyBuffer     = _aligned_malloc(ScratchCopyBufferSize, 16);
 
     // Now that scene objects are created, setup for raytracing
-    RaytracingGeom = new RaytracingGeometry(RAYTRACING_NUM_HIT_PROGRAMS);
+    RaytracingGeom = new RaytracingGeometry(numHitPrograms);
     GraphicsContext& context = GraphicsContext::Begin("RealtimeScene Build");
     {
         for (size_t i = 0; i < RenderSceneList.size(); i++)

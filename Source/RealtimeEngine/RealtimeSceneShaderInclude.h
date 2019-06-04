@@ -24,9 +24,6 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-// Change this as you add/remove # of hit shaders
-#define RAYTRACING_NUM_HIT_PROGRAMS         3
-
 #define RAYTRACING_MAX_NUM_LIGHTS           8
 #define RAYTRACING_MAX_NUM_MATERIALS        1024
 #define RAYTRACING_MAX_NUM_DIFFUSETEXTURES  1024

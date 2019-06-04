@@ -78,7 +78,7 @@ inline float shootAmbientOcclusionRay(float minT, float maxT, float3 origin, flo
         gScene,
         RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_CULL_FRONT_FACING_TRIANGLES,
         RAYTRACING_INSTANCEMASK_OPAQUE,
-        gSceneCB.AOHitGroupIndex, RAYTRACING_NUM_HIT_PROGRAMS, gSceneCB.AOMissIndex,
+        gSceneCB.AOHitGroupIndex, gSceneCB.NumHitPrograms, gSceneCB.AOMissIndex,
         ray, payload
     );
 
@@ -104,7 +104,7 @@ inline AreaLightRayPayload shootAreaLightVisibilityRay(float3 orig, float3 dir, 
         gScene,
         RAY_FLAG_CULL_FRONT_FACING_TRIANGLES,
         RAYTRACING_INSTANCEMASK_ALL,
-        gSceneCB.AreaLightHitGroupIndex, RAYTRACING_NUM_HIT_PROGRAMS, gSceneCB.AreaLightMissIndex,
+        gSceneCB.AreaLightHitGroupIndex, gSceneCB.NumHitPrograms, gSceneCB.AreaLightMissIndex,
         ray, payload
     );
 
@@ -131,7 +131,7 @@ inline float3 shootShadeRay(uint instanceInclusionMask, uint randSeed, float min
         gScene,
         RAY_FLAG_CULL_FRONT_FACING_TRIANGLES,
         instanceInclusionMask,
-        gSceneCB.ShadeHitGroupIndex, RAYTRACING_NUM_HIT_PROGRAMS, gSceneCB.ShadeMissIndex,
+        gSceneCB.ShadeHitGroupIndex, gSceneCB.NumHitPrograms, gSceneCB.ShadeMissIndex,
         ray, payload
     );
 

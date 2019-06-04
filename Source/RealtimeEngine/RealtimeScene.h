@@ -109,7 +109,7 @@ namespace RealtimeEngine
 
     public:
 
-        RealtimeScene(Core::WorldScene* worldScene);
+        RealtimeScene(Core::WorldScene* worldScene, uint32_t numHitPrograms);
         ~RealtimeScene();
 
         void                                SetupResourceViews(DescriptorHeapStack& descriptorHeap);

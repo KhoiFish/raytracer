@@ -61,6 +61,7 @@ struct RaytracingGlobalCB
     int         AccumCount;
     int         NumLights;
     int         MaxRayDepth;
+    int         NumHitPrograms;
 
     int         AOMissIndex;
     int         AOHitGroupIndex;

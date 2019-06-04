@@ -22,7 +22,6 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-// Main ray gen
 static const wchar_t* sRaygenShaderName                 = L"RayGeneration";
 
 static const wchar_t* sAoMissShaderName                 = L"AOMiss";
@@ -31,19 +30,25 @@ static const wchar_t* sAoHitGroupName                   = L"AOHitGroup";
 
 static const wchar_t* sAreaLightMissShaderName          = L"AreaLightMiss";
 static const wchar_t* sAreaLightClosestHitShaderName    = L"AreaLightClosest";
-static const wchar_t* sDirectLightingHitGroupName       = L"AreaLightHitGroup";
+static const wchar_t* sAreaLightHitGroupName            = L"AreaLightHitGroup";
 
 static const wchar_t* sShadeMissShaderName              = L"ShadeMiss";
 static const wchar_t* sShadeClosestHitShaderName        = L"ShadeClosest";
 static const wchar_t* sShadeHitGroupName                = L"ShadeHitGroup";
 
-// Concatenated entry points
 static const wchar_t* sDxilLibEntryPoints[] =
 {
     sRaygenShaderName,
     sAoMissShaderName, sAoClosestHitShaderName,
     sAreaLightMissShaderName, sAreaLightClosestHitShaderName,
     sShadeMissShaderName, sShadeClosestHitShaderName,
+};
+
+static const wchar_t* sAllHitGroups[] =
+{
+    sAoHitGroupName,
+    sAreaLightHitGroupName,
+    sShadeHitGroupName
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -144,6 +149,15 @@ namespace RaytracingLocalRootSigSlot
         { 0, 1, 4, D3D12_DESCRIPTOR_RANGE_TYPE_SRV }, // VertexBuffer
         { 1, 1, 4, D3D12_DESCRIPTOR_RANGE_TYPE_SRV }, // IndexBuffer
     };
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+uint32_t Renderer::GetNumberHitPrograms()
+{
+    const uint32_t NUM_HIT_PROGRAMS = ARRAYSIZE(sAllHitGroups);
+
+    return NUM_HIT_PROGRAMS;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -409,7 +423,7 @@ void Renderer::SetupGpuRaytracingPSO()
 
         // Add hit groups
         RaytracingPSOPtr->AddHitGroup(nullptr, sAoClosestHitShaderName, sAoHitGroupName);
-        RaytracingPSOPtr->AddHitGroup(nullptr, sAreaLightClosestHitShaderName, sDirectLightingHitGroupName);
+        RaytracingPSOPtr->AddHitGroup(nullptr, sAreaLightClosestHitShaderName, sAreaLightHitGroupName);
         RaytracingPSOPtr->AddHitGroup(nullptr, sShadeClosestHitShaderName, sShadeHitGroupName);
 
         // Add local root signatures
@@ -464,7 +478,7 @@ void Renderer::SetupGpuRaytracingPSO()
                     };
 
                     RaytracingPSOPtr->GetHitGroupShaderTable().AddShaderRecordData(
-                        sDirectLightingHitGroupName,
+                        sAreaLightHitGroupName,
                         descArray,
                         sizeof(descArray));
 
@@ -511,19 +525,20 @@ void Renderer::RenderGpuRaytracing()
             XMStoreFloat4(&sceneCB.CameraPosition, TheRenderScene->GetCamera().GetEye());
             XMStoreFloat4(&sceneCB.CameraTarget, TheRenderScene->GetCamera().GetTarget());
             XMStoreFloat4x4(&sceneCB.InverseTransposeViewProjectionMatrix, XMMatrixInverse(nullptr, TheRenderScene->GetCamera().GetViewMatrix() * TheRenderScene->GetCamera().GetProjectionMatrix()));
-            sceneCB.OutputResolution                = DirectX::XMFLOAT2((float)Width, (float)Height);
-            sceneCB.AORadius                        = TheUserInputData.GpuAORadius;
-            sceneCB.FrameCount                      = FrameCount;
-            sceneCB.NumRays                         = TheUserInputData.GpuNumRaysPerPixel;
-            sceneCB.AccumCount                      = AccumCount++;
-            sceneCB.MaxRayDepth                     = TheUserInputData.GpuMaxRayRecursionDepth;
-            sceneCB.NumLights                       = (UINT)TheRenderScene->GetAreaLightsList().size();
-            sceneCB.AOHitGroupIndex                 = RaytracingShaderIndex[RaytracingShaderType_AOHitgroup];
-            sceneCB.AOMissIndex                     = RaytracingShaderIndex[RaytracingShaderType_AOMiss];
-            sceneCB.AreaLightHitGroupIndex          = RaytracingShaderIndex[RaytracingShaderType_AreaLightHitGroup];
-            sceneCB.AreaLightMissIndex              = RaytracingShaderIndex[RaytracingShaderType_AreaLightMiss];
-            sceneCB.ShadeHitGroupIndex              = RaytracingShaderIndex[RaytracingShaderType_ShadeHitGroup];
-            sceneCB.ShadeMissIndex                  = RaytracingShaderIndex[RaytracingShaderType_ShadeMiss];
+            sceneCB.OutputResolution        = DirectX::XMFLOAT2((float)Width, (float)Height);
+            sceneCB.AORadius                = TheUserInputData.GpuAORadius;
+            sceneCB.FrameCount              = FrameCount;
+            sceneCB.NumRays                 = TheUserInputData.GpuNumRaysPerPixel;
+            sceneCB.AccumCount              = AccumCount++;
+            sceneCB.MaxRayDepth             = TheUserInputData.GpuMaxRayRecursionDepth;
+            sceneCB.NumLights               = (UINT)TheRenderScene->GetAreaLightsList().size();
+            sceneCB.NumHitPrograms          = GetNumberHitPrograms();
+            sceneCB.AOHitGroupIndex         = RaytracingShaderIndex[RaytracingShaderType_AOHitgroup];
+            sceneCB.AOMissIndex             = RaytracingShaderIndex[RaytracingShaderType_AOMiss];
+            sceneCB.AreaLightHitGroupIndex  = RaytracingShaderIndex[RaytracingShaderType_AreaLightHitGroup];
+            sceneCB.AreaLightMissIndex      = RaytracingShaderIndex[RaytracingShaderType_AreaLightMiss];
+            sceneCB.ShadeHitGroupIndex      = RaytracingShaderIndex[RaytracingShaderType_ShadeHitGroup];
+            sceneCB.ShadeMissIndex          = RaytracingShaderIndex[RaytracingShaderType_ShadeMiss];
             
             // Update GPU buffer
             RaytracingSceneConstantBuffer.Upload(&sceneCB, sizeof(sceneCB));

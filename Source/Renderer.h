@@ -96,6 +96,7 @@ private:
     void                        SetEnableCpuRaytrace(bool enable);
     void                        SetCameraDirty();
     void                        SetupSceneConstantBuffer(SceneConstantBuffer& sceneCB);
+    void                        UpdateWindowTitle();
 
     void                        RenderSceneList(GraphicsContext& renderContext);
     void                        RenderGeometryPass();
@@ -106,8 +107,7 @@ private:
     void                        RenderGuiLoadingScreen();
 
     const char*                 GetSelectedBufferName();
-    void                        UpdateWindowTitle();
-
+    uint32_t                    GetNumberHitPrograms();
     D3D12_SAMPLER_DESC          GetLinearSamplerDesc();
     D3D12_SAMPLER_DESC          GetAnisoSamplerDesc();
     D3D12_RASTERIZER_DESC       GetDefaultRasterState(bool frontCounterClockwise = false);

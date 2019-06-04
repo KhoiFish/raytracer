@@ -197,7 +197,7 @@ void Renderer::LoadingThread(Renderer* pRenderer)
     pRenderer->TheWorldScene->GetCamera().SetAspect((float)RenderDevice::Get().GetBackbufferWidth() / (float)RenderDevice::Get().GetBackbufferHeight());
     pRenderer->TheWorldScene->GetCamera().SetFocusDistanceToLookAt();
     pRenderer->TheUserInputData.VertFov = pRenderer->TheWorldScene->GetCamera().GetVertFov();
-    pRenderer->TheRenderScene           = new RealtimeEngine::RealtimeScene(pRenderer->TheWorldScene);
+    pRenderer->TheRenderScene           = new RealtimeEngine::RealtimeScene(pRenderer->TheWorldScene, pRenderer->GetNumberHitPrograms());
     
     // Setup the rest of the pipeline
     pRenderer->TheRenderScene->SetupResourceViews(*pRenderer->RendererDescriptorHeap);

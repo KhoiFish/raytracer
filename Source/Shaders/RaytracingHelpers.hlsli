@@ -74,6 +74,15 @@ float3 getCosHemisphereSample(inout uint randSeed, float3 hitNorm)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+inline float schlick(float cosine, float refIdx)
+{
+    float r0 = (1 - refIdx) / (1 + refIdx);
+    r0 = r0 * r0;
+    return r0 + (1 - r0) * pow(1 - cosine, 5);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 class ONB
 {
     inline float3 U()               { return Axis[0]; }

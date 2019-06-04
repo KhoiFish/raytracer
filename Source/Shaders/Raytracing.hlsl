@@ -113,12 +113,12 @@ inline AreaLightRayPayload shootAreaLightVisibilityRay(float3 orig, float3 dir, 
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline float3 shootShadeRay(uint instanceInclusionMask, uint randSeed, float minT, float3 origin, float3 dir, uint curDepth)
+inline float3 shootShadeRay(uint instanceInclusionMask, uint randSeed, float minT, float3 origin, float3 dir, uint curRayDepth)
 {
     ShadeRayPayload payload;
-    payload.Color    = float3(0, 0, 0);
-    payload.RndSeed  = randSeed;
-    payload.RayDepth = curDepth + 1;
+    payload.Color             = float3(0, 0, 0);
+    payload.RndSeed           = randSeed;
+    payload.RayDepth          = curRayDepth + 1;
 
     RayDesc ray;
     ray.Origin      = origin;
@@ -129,7 +129,7 @@ inline float3 shootShadeRay(uint instanceInclusionMask, uint randSeed, float min
     TraceRay
     (
         gScene,
-        RAY_FLAG_CULL_FRONT_FACING_TRIANGLES,
+        RAY_FLAG_NONE,
         instanceInclusionMask,
         gSceneCB.ShadeHitGroupIndex, gSceneCB.NumHitPrograms, gSceneCB.ShadeMissIndex,
         ray, payload
@@ -194,13 +194,13 @@ inline float3 shadeLambert(RenderMaterial material, int numRays, uint randSeed, 
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline float3 shadeMetal(RenderMaterial material, float3 incomingRayDir, uint randSeed, float minT, float3 worldPos, float3 worldNorm, float4 albedo, uint curDepth)
+inline float3 shadeMetal(RenderMaterial material, float3 incomingRayDir, uint randSeed, float minT, float3 worldPos, float3 worldNorm, float4 albedo, uint curRayDepth)
 {
     float3 reflDir = reflect(incomingRayDir, worldNorm) + (material.Fuzz * getCosHemisphereSample(randSeed, worldNorm));
 
     if (dot(reflDir, worldNorm) > 0.0f)
     {
-        return albedo.rgb * shootShadeRay(RAYTRACING_INSTANCEMASK_ALL, randSeed, minT, worldPos, reflDir, curDepth);
+        return albedo.rgb * shootShadeRay(RAYTRACING_INSTANCEMASK_ALL, randSeed, minT, worldPos, reflDir, curRayDepth);
     }
 
     return float3(0, 0, 0);
@@ -208,7 +208,58 @@ inline float3 shadeMetal(RenderMaterial material, float3 incomingRayDir, uint ra
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline float3 shade(RenderMaterial material, float3 incomingRayDir, int numRays, uint randSeed, float minT, float3 worldPos, float3 worldNorm, float4 albedo, uint curDepth)
+inline float3 shadeDielectric(RenderMaterial material, float3 incomingRayDir, uint randSeed, float minT, float3 worldPos, float3 worldNorm, float4 albedo, uint curRayDepth)
+{
+    const float reflIndex = material.ReflIndex;
+
+    float  niOverNt, cosine;
+    float3 outwardNormal;
+    float  dirDotNorm = dot(incomingRayDir, worldNorm);
+    if (dirDotNorm > 0.0f)
+    {
+        // Exiting triangle
+        outwardNormal = -worldNorm;
+        niOverNt      = reflIndex;
+        cosine        = material.ReflIndex * dirDotNorm;
+    }
+
+    else
+    {
+        // Entering triangle
+        outwardNormal = worldNorm;
+        niOverNt      = 1.0f / reflIndex;
+        cosine        = -dirDotNorm;
+    }
+
+    // Compute refract probability
+    float3 refracted = refract(incomingRayDir, outwardNormal, niOverNt);
+    float  reflectProb;
+    if (any(refracted))
+    {
+        reflectProb = schlick(cosine, reflIndex);
+    }
+    else
+    {
+        reflectProb = 1.0f;
+    }
+
+    // Choose randomly (w/ probability) whether to reflect or refract
+    float3 specularDir;
+    if (nextRand(randSeed) < reflectProb)
+    {
+        specularDir = reflect(incomingRayDir, worldNorm);
+    }
+    else
+    {
+        specularDir = refracted;
+    }
+
+    return albedo.rgb * shootShadeRay(RAYTRACING_INSTANCEMASK_ALL, randSeed, minT, worldPos, specularDir, curRayDepth);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+inline float3 shade(RenderMaterial material, float3 incomingRayDir, int numRays, uint randSeed, float minT, float3 worldPos, float3 worldNorm, float4 albedo, uint curRayDepth)
 {
     float3 shadeColor;
     switch (material.Type)
@@ -222,11 +273,11 @@ inline float3 shade(RenderMaterial material, float3 incomingRayDir, int numRays,
         break;
 
         case RenderMaterialType_Metal:
-            shadeColor = shadeMetal(material, incomingRayDir, randSeed, minT, worldPos, worldNorm, albedo, curDepth);
+            shadeColor = shadeMetal(material, incomingRayDir, randSeed, minT, worldPos, worldNorm, albedo, curRayDepth);
         break;
 
         case RenderMaterialType_MDielectric:
-            shadeColor = shadeLambert(material, numRays, randSeed, minT, worldPos, worldNorm, albedo);
+            shadeColor = shadeDielectric(material, incomingRayDir, randSeed, minT, worldPos, worldNorm, albedo, curRayDepth);
         break;
     }
 
@@ -336,7 +387,9 @@ void ShadeClosest(inout ShadeRayPayload payload, in BuiltInTriangleIntersectionA
         // Hit an opaque
         float3               bary       = float3(1.f - attr.barycentrics.x - attr.barycentrics.y, attr.barycentrics.x, attr.barycentrics.y);
         RealtimeSceneVertex  vert       = getVertex(gIndexBuffer, gVertexBuffer, PrimitiveIndex(), bary);
-        float3               worldPos   = mul(vert.Position, (float3x3)gInstanceDataCB.WorldMatrix);
+        float3               rayOrig    = WorldRayOrigin();
+        float3               rayDir     = WorldRayDirection();
+        float3               worldPos   = rayOrig + RayTCurrent() * rayDir;
         float3               worldNorm  = mul(vert.Normal, (float3x3)gInstanceDataCB.WorldMatrix);
         float4               albedo     = gAlbedoArray[gMaterial.DiffuseTextureId].SampleLevel(AnisoRepeatSampler, vert.TexCoord, 0);
 

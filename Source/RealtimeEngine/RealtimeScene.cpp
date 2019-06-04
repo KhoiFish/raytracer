@@ -379,6 +379,11 @@ static RenderMaterial ConvertFromCoreMaterial(const Core::Material* pCoreMateria
     if (tid == typeid(Core::MMetal))
     {
         newMaterial.Type = RenderMaterialType_Metal;
+        newMaterial.Fuzz = ((Core::MMetal*)pCoreMaterial)->GetFuzz();
+    }
+    else if (tid == typeid(Core::MDiffuseLight))
+    {
+        newMaterial.Type = RenderMaterialType_Light;
     }
 
     return newMaterial;

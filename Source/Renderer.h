@@ -54,59 +54,66 @@ public:
 
 public:
 
-    virtual void    OnDeviceLost() override;
-    virtual void    OnDeviceRestored() override;
-    virtual void    OnInit() override;
-    virtual void    OnKeyDown(UINT8 key) override;
-    virtual void    OnKeyUp(uint8_t key) override;
-    virtual void    OnMouseMove(int32_t x, int32_t y) override;
-    virtual void    OnLeftButtonDown(int32_t x, int32_t y) override;
-    virtual void    OnLeftButtonUp(int32_t x, int32_t y) override;
-    virtual void    OnUpdate(float dtSeconds) override;
-    virtual void    OnRender() override;
-    virtual bool    OnSizeChanged(uint32_t width, uint32_t height, bool minimized) override;
-    virtual void    OnDestroy() override;
+    virtual void                OnDeviceLost() override;
+    virtual void                OnDeviceRestored() override;
+    virtual void                OnInit() override;
+    virtual void                OnKeyDown(UINT8 key) override;
+    virtual void                OnKeyUp(uint8_t key) override;
+    virtual void                OnMouseMove(int32_t x, int32_t y) override;
+    virtual void                OnLeftButtonDown(int32_t x, int32_t y) override;
+    virtual void                OnLeftButtonUp(int32_t x, int32_t y) override;
+    virtual void                OnUpdate(float dtSeconds) override;
+    virtual void                OnRender() override;
+    virtual bool                OnSizeChanged(uint32_t width, uint32_t height, bool minimized) override;
+    virtual void                OnDestroy() override;
 
 private:
 
-    static void     LoadingThread(Renderer* pRenderer);
-    void            CleanupLoadingThread();
+    static void                 LoadingThread(Renderer* pRenderer);
+    void                        CleanupLoadingThread();
 
-    void            SetupGpuRaytracingPipeline();
-    void            SetupRasterRootSignatures();
-    void            SetupRenderBuffers();
-    void            SetupGui();
-    void            StartSceneLoad();
+    void                        SetupGpuRaytracingPipeline();
+    void                        SetupRasterRootSignatures();
+    void                        SetupRenderBuffers();
+    void                        SetupGui();
+    void                        StartSceneLoad();
 
-    void            SetupRasterDescriptors();
-    void            SetupGpuRaytracingRootSignatures();
-    void            SetupGpuRaytracingDescriptors();
-    void            SetupGpuRaytracingPSO();
+    void                        SetupRasterDescriptors();
+    void                        SetupGpuRaytracingRootSignatures();
+    void                        SetupGpuRaytracingDescriptors();
+    void                        SetupGpuRaytracingPSO();
 
-    void            OnResizeCpuRaytracer(bool startRaytrace = false);
-    void            OnResizeGpuRaytracer();
-    void            OnResizeRasterRender();
+    void                        OnResizeCpuRaytracer(bool startRaytrace = false);
+    void                        OnResizeGpuRaytracer();
+    void                        OnResizeRasterRender();
 
-    void            CleanupGpuRaytracer();
-    void            CleanupRasterRender();
+    void                        CleanupGpuRaytracer();
+    void                        CleanupRasterRender();
 
-    void            ToggleCpuRaytracer();
-    static void     OnCpuRaytraceComplete(Core::Raytracer* tracer, bool actuallyFinished);
+    void                        ToggleCpuRaytracer();
+    static void                 OnCpuRaytraceComplete(Core::Raytracer* tracer, bool actuallyFinished);
 
-    void            SetEnableCpuRaytrace(bool enable);
-    void            SetCameraDirty();
-    void            SetupSceneConstantBuffer(SceneConstantBuffer& sceneCB);
+    void                        SetEnableCpuRaytrace(bool enable);
+    void                        SetCameraDirty();
+    void                        SetupSceneConstantBuffer(SceneConstantBuffer& sceneCB);
 
-    void            RenderSceneList(GraphicsContext& renderContext);
-    void            RenderGeometryPass();
-    void            RenderGpuRaytracing();
-    void            RenderCompositePass();
-    void            RenderGui();
-    void            RenderGuiOptionsWindow();
-    void            RenderGuiLoadingScreen();
+    void                        RenderSceneList(GraphicsContext& renderContext);
+    void                        RenderGeometryPass();
+    void                        RenderGpuRaytracing();
+    void                        RenderCompositePass();
+    void                        RenderGui();
+    void                        RenderGuiOptionsWindow();
+    void                        RenderGuiLoadingScreen();
 
-    const char*     GetSelectedBufferName();
-    void            UpdateWindowTitle();
+    const char*                 GetSelectedBufferName();
+    void                        UpdateWindowTitle();
+
+    D3D12_SAMPLER_DESC          GetLinearSamplerDesc();
+    D3D12_SAMPLER_DESC          GetAnisoSamplerDesc();
+    D3D12_RASTERIZER_DESC       GetDefaultRasterState(bool frontCounterClockwise = false);
+    D3D12_BLEND_DESC            GetBlendDisabledState();
+    D3D12_DEPTH_STENCIL_DESC    GetDepthEnabledState();
+    D3D12_DEPTH_STENCIL_DESC    GetDepthDisabledState();
 
 private:
 
@@ -144,6 +151,9 @@ private:
 
         RaytracingShaderType_IndirectLightingMiss,
         RaytracingShaderType_IndirectLightingHitGroup,
+
+        RaytracingShaderType_ColorMiss,
+        RaytracingShaderType_ColorHitGroup,
 
         RaytracingShaderType_Num
     };

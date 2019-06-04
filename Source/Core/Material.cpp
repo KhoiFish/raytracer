@@ -122,7 +122,7 @@ MMetal::MMetal(BaseTexture* albedo, float fuzz) : Material(albedo, nullptr)
 bool MMetal::Scatter(const Ray& rayIn, const HitRecord& hitRec, ScatterRecord& scatterRec) const
 {
     Vec4 reflected = Reflect(UnitVector(rayIn.Direction()), hitRec.Normal);
-    scatterRec.SpecularRay = Ray(hitRec.P, reflected + Fuzz * RandomInUnitSphere());
+    scatterRec.SpecularRay = Ray(hitRec.P, reflected + (Fuzz * RandomInUnitSphere()));
     scatterRec.Attenuation = AlbedoTexture->Value(hitRec.U, hitRec.V, hitRec.P);
     scatterRec.IsSpecular  = true;
     scatterRec.PdfPtr      = nullptr;

@@ -25,11 +25,13 @@
 // ----------------------------------------------------------------------------------------------------------------------------
 
 // Change this as you add/remove # of hit shaders
-#define RAYTRACING_NUM_HIT_PROGRAMS         3
+#define RAYTRACING_NUM_HIT_PROGRAMS         4
 
 #define RAYTRACING_MAX_NUM_LIGHTS           8
 #define RAYTRACING_MAX_NUM_MATERIALS        1024
-#define RAYTRACING_MAX_NUM_DIFFUSETEXTURES  1024         
+#define RAYTRACING_MAX_NUM_DIFFUSETEXTURES  1024
+#define RAYTRACING_MAX_NUM_VERTEXBUFFERS    2048
+#define RAYTRACING_MAX_NUM_INDEXBUFFERS     2048
 
 #define RAYTRACING_INSTANCEMASK_ALL         (0xFF)
 #define RAYTRACING_INSTANCEMASK_OPAQUE      (1 << 0)
@@ -39,7 +41,8 @@
 
 enum RenderMaterialType
 {
-    RenderMaterialType_Lambert = 0,
+    RenderMaterialType_Light = 0,
+    RenderMaterialType_Lambert,
     RenderMaterialType_Metal,
 };
 
@@ -71,7 +74,7 @@ struct RenderMaterial
     XMFLOAT4            Diffuse;
     RenderMaterialType  Type;
     UINT                DiffuseTextureId;
-    float               Param0;
+    float               Fuzz;
     UINT                Padding1;
 };
 

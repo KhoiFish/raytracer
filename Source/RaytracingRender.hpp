@@ -40,6 +40,11 @@ static const wchar_t* sIndirectLightingMissShaderName        = L"IndirectLightin
 static const wchar_t* sIndirectLightingClosestHitShaderName  = L"IndirectLightingClosest";
 static const wchar_t* sIndirectLightingHitGroupName          = L"IndirectLightingHitGroup";
 
+// Color shaders
+static const wchar_t* sColorMissShaderName                  = L"ColorMiss";
+static const wchar_t* sColorClosestHitShaderName            = L"ColorClosest";
+static const wchar_t* sColorHitGroupName                    = L"ColorHitGroup";
+
 // Concatenated entry points
 static const wchar_t* sDxilLibEntryPoints[] =
 {
@@ -47,6 +52,7 @@ static const wchar_t* sDxilLibEntryPoints[] =
     sDirectLightingMissShaderName, sDirectLightingClosestHitShaderName,
     sIndirectLightingMissShaderName, sIndirectLightingClosestHitShaderName,
     sAoMissShaderName, sAoClosestHitShaderName,
+    sColorMissShaderName, sColorClosestHitShaderName,
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -71,6 +77,9 @@ namespace RaytracingGlobalRootSigSlot
         Albedo,
         AlbedoArray,
 
+        VertexBufferArray,
+        IndexBufferArray,
+
         Num
     };
 
@@ -85,6 +94,8 @@ namespace RaytracingGlobalRootSigSlot
     static const UINT nL = RAYTRACING_MAX_NUM_LIGHTS;
     static const UINT nM = RAYTRACING_MAX_NUM_MATERIALS;
     static const UINT nD = RAYTRACING_MAX_NUM_DIFFUSETEXTURES;
+    static const UINT nV = RAYTRACING_MAX_NUM_VERTEXBUFFERS;
+    static const UINT nI = RAYTRACING_MAX_NUM_INDEXBUFFERS;
 
     // [register, count, space, D3D12_DESCRIPTOR_RANGE_TYPE]
     static UINT Range[RaytracingGlobalRootSigSlot::Num][4] =
@@ -103,7 +114,10 @@ namespace RaytracingGlobalRootSigSlot
         { 2, 1,  0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // Normals
         { 3, 1,  0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // TexCoordsAndDepth
         { 4, 1,  0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // Albedo
-        { 5, nD, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // AlbedoArray
+
+        { 0, nD, 1, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // AlbedoArray
+        { 0, nV, 2, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // VertexBufferArray
+        { 0, nI, 3, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // IndexBufferArray
     };
 
     // To be filled in by descriptors creation
@@ -133,11 +147,11 @@ namespace RaytracingLocalRootSigSlot
     // [register, count, space]
     static UINT Range[RaytracingLocalRootSigSlot::Num][4] =
     {
-        { 0, 1, 3, D3D12_DESCRIPTOR_RANGE_TYPE_CBV }, // LocalCB
-        { 1, 1, 3, D3D12_DESCRIPTOR_RANGE_TYPE_CBV }, // Material CB
+        { 0, 1, 4, D3D12_DESCRIPTOR_RANGE_TYPE_CBV }, // LocalCB
+        { 1, 1, 4, D3D12_DESCRIPTOR_RANGE_TYPE_CBV }, // Material CB
 
-        { 0, 1, 3, D3D12_DESCRIPTOR_RANGE_TYPE_SRV }, // VertexBuffer
-        { 1, 1, 3, D3D12_DESCRIPTOR_RANGE_TYPE_SRV }, // IndexBuffer
+        { 0, 1, 4, D3D12_DESCRIPTOR_RANGE_TYPE_SRV }, // VertexBuffer
+        { 1, 1, 4, D3D12_DESCRIPTOR_RANGE_TYPE_SRV }, // IndexBuffer
     };
 }
 
@@ -178,7 +192,7 @@ void Renderer::SetupGpuRaytracingRootSignatures()
 
     // Global root sig
     {
-        RaytracingGlobalRootSig.Reset(RaytracingGlobalRootSigSlot::Num, 0);
+        RaytracingGlobalRootSig.Reset(RaytracingGlobalRootSigSlot::Num, 1);
         for (int i = 0; i < RaytracingGlobalRootSigSlot::Num; i++)
         {
             RaytracingGlobalRootSig[i].InitAsDescriptorRange(
@@ -189,6 +203,7 @@ void Renderer::SetupGpuRaytracingRootSignatures()
                 RaytracingGlobalRootSigSlot::Range[i][RaytracingGlobalRootSigSlot::Space],
                 D3D12_SHADER_VISIBILITY_ALL);
         }
+        RaytracingGlobalRootSig.InitStaticSampler(0, GetAnisoSamplerDesc(), D3D12_SHADER_VISIBILITY_ALL);
         RaytracingGlobalRootSig.Finalize("RealtimeRaytracingGlobalRoot", D3D12_ROOT_SIGNATURE_FLAG_NONE);
     }
 
@@ -316,6 +331,36 @@ void Renderer::SetupGpuRaytracingDescriptors()
         DeferredBuffers[DeferredBufferType_Albedo].GetResource(),
         DeferredBuffersRTTypes[DeferredBufferType_Albedo]);
 
+    // Vertex buffer array
+    RaytracingGlobalRootSigSlot::DescriptorHeapOffsets[RaytracingGlobalRootSigSlot::VertexBufferArray] = currOffset;
+    for (int i = 0; i < TheRenderScene->GetRenderSceneList().size(); i++)
+    {
+        RendererDescriptorHeap->AllocateBufferSrv(
+            TheRenderScene->GetRenderSceneList()[i]->VertexBuffer.GetResource(),
+            (static_cast<UINT>(TheRenderScene->GetRenderSceneList()[i]->Vertices.size()) * sizeof(RealtimeSceneVertex)) / sizeof(float),
+            D3D12_SRV_DIMENSION_BUFFER,
+            D3D12_BUFFER_SRV_FLAG_RAW,
+            DXGI_FORMAT_R32_TYPELESS
+        );
+
+        currOffset++;
+    }
+
+    // Index buffer array
+    RaytracingGlobalRootSigSlot::DescriptorHeapOffsets[RaytracingGlobalRootSigSlot::IndexBufferArray] = currOffset;
+    for (int i = 0; i < TheRenderScene->GetRenderSceneList().size(); i++)
+    {
+        RendererDescriptorHeap->AllocateBufferSrv(
+            TheRenderScene->GetRenderSceneList()[i]->IndexBuffer.GetResource(),
+            (static_cast<UINT>(TheRenderScene->GetRenderSceneList()[i]->Indices.size()) * sizeof(uint32_t)) / sizeof(float),
+            D3D12_SRV_DIMENSION_BUFFER,
+            D3D12_BUFFER_SRV_FLAG_RAW,
+            DXGI_FORMAT_R32_TYPELESS
+        );
+
+        currOffset++;
+    }
+
     // Allocate descriptors for vertex and index buffers for all instances of geometry
     RaytracingLocalSigDataIndexStart = RendererDescriptorHeap->GetCount();
     for (int i = 0; i < TheRenderScene->GetRenderSceneList().size(); i++)
@@ -375,6 +420,7 @@ void Renderer::SetupGpuRaytracingPSO()
         RaytracingPSOPtr->AddHitGroup(nullptr, sAoClosestHitShaderName, sAoHitGroupName);
         RaytracingPSOPtr->AddHitGroup(nullptr, sDirectLightingClosestHitShaderName, sDirectLightingHitGroupName);
         RaytracingPSOPtr->AddHitGroup(nullptr, sIndirectLightingClosestHitShaderName, sIndirectLightingHitGroupName);
+        RaytracingPSOPtr->AddHitGroup(nullptr, sColorClosestHitShaderName, sColorHitGroupName);
 
         // Add local root signatures
         RaytracingPSOPtr->SetRootSignature(RaytracingGlobalRootSig);
@@ -407,12 +453,18 @@ void Renderer::SetupGpuRaytracingPSO()
                 nullptr,
                 0);
 
+            RaytracingShaderIndex[RaytracingShaderType_ColorMiss] = RaytracingPSOPtr->GetMissShaderTable().AddShaderRecordData(
+                sColorMissShaderName,
+                nullptr,
+                0);
+
             // Hit groups
             {
                 // Set the right indexes to the hit program
                 RaytracingShaderIndex[RaytracingShaderType_DirectLightingHitGroup]   = 0;
                 RaytracingShaderIndex[RaytracingShaderType_IndirectLightingHitGroup] = 1;
                 RaytracingShaderIndex[RaytracingShaderType_AOHitgroup]               = 2;
+                RaytracingShaderIndex[RaytracingShaderType_ColorHitGroup]            = 3;
 
                 // Setup hit group shader tables
                 for (int i = 0; i < TheRenderScene->GetRenderSceneList().size(); i++)
@@ -439,6 +491,11 @@ void Renderer::SetupGpuRaytracingPSO()
 
                     RaytracingPSOPtr->GetHitGroupShaderTable().AddShaderRecordData(
                         sAoHitGroupName,
+                        descArray,
+                        sizeof(descArray));
+
+                    RaytracingPSOPtr->GetHitGroupShaderTable().AddShaderRecordData(
+                        sColorHitGroupName,
                         descArray,
                         sizeof(descArray));
                 }
@@ -473,12 +530,14 @@ void Renderer::RenderGpuRaytracing()
             // Get updated scene constants
             RaytracingGlobalCB sceneCB;
             XMStoreFloat4(&sceneCB.CameraPosition, TheRenderScene->GetCamera().GetEye());
+            XMStoreFloat4(&sceneCB.CameraTarget, TheRenderScene->GetCamera().GetTarget());
             XMStoreFloat4x4(&sceneCB.InverseTransposeViewProjectionMatrix, XMMatrixInverse(nullptr, TheRenderScene->GetCamera().GetViewMatrix() * TheRenderScene->GetCamera().GetProjectionMatrix()));
             sceneCB.OutputResolution                = DirectX::XMFLOAT2((float)Width, (float)Height);
             sceneCB.AORadius                        = TheUserInputData.GpuAORadius;
             sceneCB.FrameCount                      = FrameCount;
             sceneCB.NumRays                         = TheUserInputData.GpuNumRaysPerPixel;
             sceneCB.AccumCount                      = AccumCount++;
+            sceneCB.MaxRayDepth                     = TheUserInputData.GpuMaxRayRecursionDepth;
             sceneCB.NumLights                       = (UINT)TheRenderScene->GetAreaLightsList().size();
             sceneCB.AOHitGroupIndex                 = RaytracingShaderIndex[RaytracingShaderType_AOHitgroup];
             sceneCB.AOMissIndex                     = RaytracingShaderIndex[RaytracingShaderType_AOMiss];
@@ -486,6 +545,8 @@ void Renderer::RenderGpuRaytracing()
             sceneCB.DirectLightingMissIndex         = RaytracingShaderIndex[RaytracingShaderType_DirectLightingMiss];
             sceneCB.IndirectLightingHitGroupIndex   = RaytracingShaderIndex[RaytracingShaderType_IndirectLightingHitGroup];
             sceneCB.IndirectLightingMissIndex       = RaytracingShaderIndex[RaytracingShaderType_IndirectLightingMiss];
+            sceneCB.ColorHitGroupIndex              = RaytracingShaderIndex[RaytracingShaderType_ColorHitGroup];
+            sceneCB.ColorMissIndex                  = RaytracingShaderIndex[RaytracingShaderType_ColorMiss];
             
             // Update GPU buffer
             RaytracingSceneConstantBuffer.Upload(&sceneCB, sizeof(sceneCB));

@@ -39,10 +39,16 @@ struct IndirectRayPayload
 {
     XMFLOAT3 Color;
     UINT     RndSeed;
+    UINT     RayDepth;
+};
+
+struct ColorRayPayload
+{
+    XMFLOAT3 Color;
 };
 
 // Set this to the largest payload struct from above
-#define RAYTRACER_MAX_PAYLOAD_SIZE  sizeof(DirectRayPayload)
+#define RAYTRACER_MAX_PAYLOAD_SIZE  sizeof(IndirectRayPayload)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -50,6 +56,7 @@ ALIGN_BEGIN(16)
 struct RaytracingGlobalCB
 {
     XMFLOAT4    CameraPosition;
+    XMFLOAT4    CameraTarget;
     XMFLOAT4X4  InverseTransposeViewProjectionMatrix;
     XMFLOAT2    OutputResolution;
 
@@ -58,6 +65,7 @@ struct RaytracingGlobalCB
     int         NumRays;
     int         AccumCount;
     int         NumLights;
+    int         MaxRayDepth;
 
     int         AOMissIndex;
     int         AOHitGroupIndex;
@@ -65,6 +73,8 @@ struct RaytracingGlobalCB
     int         DirectLightingHitGroupIndex;
     int         IndirectLightingMissIndex;
     int         IndirectLightingHitGroupIndex;
+    int         ColorMissIndex;
+    int         ColorHitGroupIndex;
 };
 ALIGN_END
 

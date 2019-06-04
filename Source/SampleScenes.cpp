@@ -106,7 +106,6 @@ static Camera getCameraForSample(SampleScene scene)
         }
         break;
 
-        // lookFrom:(-495.333893, 303.848877, -828.657288)  lookAt:(-494.744324, 303.853485, -827.849609)  up:(0.000000, 1.000000, 0.000000)  vertFov:40.000000  aspect:1.777778  aperture:0.000000  focusDist:90.000000
         case SceneMesh:
         {
             // Camera options
@@ -229,8 +228,6 @@ static WorldScene* sampleSceneCornellBox(bool smoke)
     list[i++] = new FlipNormals(lightShape);
     lsList[numLs++] = lightShape;
 
-    // Take out the ceiling, this blocks the lighting samples in the realtime raytracer
-    // TODO: fix this
     list[i++] = new FlipNormals(new XYZRect(XYZRect::XZ, 0, 555, 0, 555, 555, white));
 
     list[i++] = new XYZRect(XYZRect::XZ, 0, 555, 0, 555, 0, white);
@@ -406,7 +403,7 @@ static WorldScene* sampleSceneFinal()
         list[total++]   = newDielectricSphere;
         lsList[numLs++] = newDielectricSphere;
 
-        list[total++] = new Sphere(Vec4(0, 150, 145), 50, new MMetal(new ConstantTexture(Vec4(0.8f, 0.8f, 0.9f)), 10.0f));
+        list[total++] = new Sphere(Vec4(0, 200, 145), 100, new MMetal(new ConstantTexture(colorPurple), 0.125f));
     }
 
     // Volumes

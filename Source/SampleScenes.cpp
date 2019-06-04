@@ -306,7 +306,7 @@ static WorldScene* sampleSceneMesh()
         IHitable *totoro =
             new HitableTranslate(
                 new HitableRotateY(
-                    TriMesh::CreateFromOBJFile(GetAbsolutePath(RUNTIMEDATA_DIR "/totoro.obj").c_str(), 10.f, false, new MMetal(new ConstantTexture(colorSapphire), 0.5f)), 180.f),
+                    TriMesh::CreateFromOBJFile(GetAbsolutePath(RUNTIMEDATA_DIR "/totoro.obj").c_str(), 10.f, false, new MMetal(new ConstantTexture(colorSapphire), 0.125f)), 180.f),
                 Vec4(-60, 105, 145)
             );
         list[total++] = totoro;
@@ -390,13 +390,6 @@ static WorldScene* sampleSceneFinal()
     {
         Material* lightMaterial = new MDiffuseLight(new ConstantTexture(Vec4(7, 7, 7)));
         IHitable* lightShape = new XYZRect(XYZRect::XZ, 123, 423, 147, 412, 554, lightMaterial, true);
-        list[total++] = new FlipNormals(lightShape);
-        lsList[numLs++] = lightShape;
-    }
-
-    {
-        Material* lightMaterial = new MDiffuseLight(new ConstantTexture(colorPurple * 100));
-        IHitable* lightShape = new XYZRect(XYZRect::XZ, -200, -100, -200, -100, 554, lightMaterial, true);
         list[total++] = new FlipNormals(lightShape);
         lsList[numLs++] = lightShape;
     }

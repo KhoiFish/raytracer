@@ -23,36 +23,27 @@
 // ----------------------------------------------------------------------------------------------------------------------------
 
 // Main ray gen
-static const wchar_t* sRaygenShaderName                      = L"RayGeneration";
+static const wchar_t* sRaygenShaderName                 = L"RayGeneration";
 
-// AO shaders
-static const wchar_t* sAoMissShaderName                      = L"AOMiss";
-static const wchar_t* sAoClosestHitShaderName                = L"AOClosest";
-static const wchar_t* sAoHitGroupName                        = L"AOHitGroup";
+static const wchar_t* sAoMissShaderName                 = L"AOMiss";
+static const wchar_t* sAoClosestHitShaderName           = L"AOClosest";
+static const wchar_t* sAoHitGroupName                   = L"AOHitGroup";
 
-// Direct lighting shaders
-static const wchar_t* sDirectLightingMissShaderName          = L"DirectLightingMiss";
-static const wchar_t* sDirectLightingClosestHitShaderName    = L"DirectLightingClosest";
-static const wchar_t* sDirectLightingHitGroupName            = L"DirectLightingHitGroup";
+static const wchar_t* sAreaLightMissShaderName          = L"AreaLightMiss";
+static const wchar_t* sAreaLightClosestHitShaderName    = L"AreaLightClosest";
+static const wchar_t* sDirectLightingHitGroupName       = L"AreaLightHitGroup";
 
-// Indirect lighting shaders
-static const wchar_t* sIndirectLightingMissShaderName        = L"IndirectLightingMiss";
-static const wchar_t* sIndirectLightingClosestHitShaderName  = L"IndirectLightingClosest";
-static const wchar_t* sIndirectLightingHitGroupName          = L"IndirectLightingHitGroup";
-
-// Color shaders
-static const wchar_t* sColorMissShaderName                  = L"ColorMiss";
-static const wchar_t* sColorClosestHitShaderName            = L"ColorClosest";
-static const wchar_t* sColorHitGroupName                    = L"ColorHitGroup";
+static const wchar_t* sShadeMissShaderName              = L"ShadeMiss";
+static const wchar_t* sShadeClosestHitShaderName        = L"ShadeClosest";
+static const wchar_t* sShadeHitGroupName                = L"ShadeHitGroup";
 
 // Concatenated entry points
 static const wchar_t* sDxilLibEntryPoints[] =
 {
     sRaygenShaderName,
-    sDirectLightingMissShaderName, sDirectLightingClosestHitShaderName,
-    sIndirectLightingMissShaderName, sIndirectLightingClosestHitShaderName,
     sAoMissShaderName, sAoClosestHitShaderName,
-    sColorMissShaderName, sColorClosestHitShaderName,
+    sAreaLightMissShaderName, sAreaLightClosestHitShaderName,
+    sShadeMissShaderName, sShadeClosestHitShaderName,
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -418,9 +409,8 @@ void Renderer::SetupGpuRaytracingPSO()
 
         // Add hit groups
         RaytracingPSOPtr->AddHitGroup(nullptr, sAoClosestHitShaderName, sAoHitGroupName);
-        RaytracingPSOPtr->AddHitGroup(nullptr, sDirectLightingClosestHitShaderName, sDirectLightingHitGroupName);
-        RaytracingPSOPtr->AddHitGroup(nullptr, sIndirectLightingClosestHitShaderName, sIndirectLightingHitGroupName);
-        RaytracingPSOPtr->AddHitGroup(nullptr, sColorClosestHitShaderName, sColorHitGroupName);
+        RaytracingPSOPtr->AddHitGroup(nullptr, sAreaLightClosestHitShaderName, sDirectLightingHitGroupName);
+        RaytracingPSOPtr->AddHitGroup(nullptr, sShadeClosestHitShaderName, sShadeHitGroupName);
 
         // Add local root signatures
         RaytracingPSOPtr->SetRootSignature(RaytracingGlobalRootSig);
@@ -438,13 +428,13 @@ void Renderer::SetupGpuRaytracingPSO()
                 0);
 
             // Miss
-            RaytracingShaderIndex[RaytracingShaderType_DirectLightingMiss] = RaytracingPSOPtr->GetMissShaderTable().AddShaderRecordData(
-                sDirectLightingMissShaderName,
+            RaytracingShaderIndex[RaytracingShaderType_AreaLightMiss] = RaytracingPSOPtr->GetMissShaderTable().AddShaderRecordData(
+                sAreaLightMissShaderName,
                 nullptr,
                 0);
 
-            RaytracingShaderIndex[RaytracingShaderType_IndirectLightingMiss] = RaytracingPSOPtr->GetMissShaderTable().AddShaderRecordData(
-                sIndirectLightingMissShaderName,
+            RaytracingShaderIndex[RaytracingShaderType_ShadeMiss] = RaytracingPSOPtr->GetMissShaderTable().AddShaderRecordData(
+                sShadeMissShaderName,
                 nullptr,
                 0);
 
@@ -453,18 +443,12 @@ void Renderer::SetupGpuRaytracingPSO()
                 nullptr,
                 0);
 
-            RaytracingShaderIndex[RaytracingShaderType_ColorMiss] = RaytracingPSOPtr->GetMissShaderTable().AddShaderRecordData(
-                sColorMissShaderName,
-                nullptr,
-                0);
-
             // Hit groups
             {
                 // Set the right indexes to the hit program
-                RaytracingShaderIndex[RaytracingShaderType_DirectLightingHitGroup]   = 0;
-                RaytracingShaderIndex[RaytracingShaderType_IndirectLightingHitGroup] = 1;
-                RaytracingShaderIndex[RaytracingShaderType_AOHitgroup]               = 2;
-                RaytracingShaderIndex[RaytracingShaderType_ColorHitGroup]            = 3;
+                RaytracingShaderIndex[RaytracingShaderType_AreaLightHitGroup]   = 0;
+                RaytracingShaderIndex[RaytracingShaderType_ShadeHitGroup]       = 1;
+                RaytracingShaderIndex[RaytracingShaderType_AOHitgroup]          = 2;
 
                 // Setup hit group shader tables
                 for (int i = 0; i < TheRenderScene->GetRenderSceneList().size(); i++)
@@ -485,17 +469,12 @@ void Renderer::SetupGpuRaytracingPSO()
                         sizeof(descArray));
 
                     RaytracingPSOPtr->GetHitGroupShaderTable().AddShaderRecordData(
-                        sIndirectLightingHitGroupName,
+                        sShadeHitGroupName,
                         descArray,
                         sizeof(descArray));
 
                     RaytracingPSOPtr->GetHitGroupShaderTable().AddShaderRecordData(
                         sAoHitGroupName,
-                        descArray,
-                        sizeof(descArray));
-
-                    RaytracingPSOPtr->GetHitGroupShaderTable().AddShaderRecordData(
-                        sColorHitGroupName,
                         descArray,
                         sizeof(descArray));
                 }
@@ -541,12 +520,10 @@ void Renderer::RenderGpuRaytracing()
             sceneCB.NumLights                       = (UINT)TheRenderScene->GetAreaLightsList().size();
             sceneCB.AOHitGroupIndex                 = RaytracingShaderIndex[RaytracingShaderType_AOHitgroup];
             sceneCB.AOMissIndex                     = RaytracingShaderIndex[RaytracingShaderType_AOMiss];
-            sceneCB.DirectLightingHitGroupIndex     = RaytracingShaderIndex[RaytracingShaderType_DirectLightingHitGroup];
-            sceneCB.DirectLightingMissIndex         = RaytracingShaderIndex[RaytracingShaderType_DirectLightingMiss];
-            sceneCB.IndirectLightingHitGroupIndex   = RaytracingShaderIndex[RaytracingShaderType_IndirectLightingHitGroup];
-            sceneCB.IndirectLightingMissIndex       = RaytracingShaderIndex[RaytracingShaderType_IndirectLightingMiss];
-            sceneCB.ColorHitGroupIndex              = RaytracingShaderIndex[RaytracingShaderType_ColorHitGroup];
-            sceneCB.ColorMissIndex                  = RaytracingShaderIndex[RaytracingShaderType_ColorMiss];
+            sceneCB.AreaLightHitGroupIndex          = RaytracingShaderIndex[RaytracingShaderType_AreaLightHitGroup];
+            sceneCB.AreaLightMissIndex              = RaytracingShaderIndex[RaytracingShaderType_AreaLightMiss];
+            sceneCB.ShadeHitGroupIndex              = RaytracingShaderIndex[RaytracingShaderType_ShadeHitGroup];
+            sceneCB.ShadeMissIndex                  = RaytracingShaderIndex[RaytracingShaderType_ShadeMiss];
             
             // Update GPU buffer
             RaytracingSceneConstantBuffer.Upload(&sceneCB, sizeof(sceneCB));

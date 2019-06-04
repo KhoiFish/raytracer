@@ -29,20 +29,13 @@ struct ShadowRayPayload
     float Value;
 };
 
-struct DirectRayPayload
+struct AreaLightRayPayload
 {
     XMFLOAT3 LightColor;
     int      LightIndex;
 };
 
-struct IndirectRayPayload
-{
-    XMFLOAT3 Color;
-    UINT     RndSeed;
-    UINT     RayDepth;
-};
-
-struct ColorRayPayload
+struct ShadeRayPayload
 {
     XMFLOAT3 Color;
     UINT     RndSeed;
@@ -50,7 +43,7 @@ struct ColorRayPayload
 };
 
 // Set this to the largest payload struct from above
-#define RAYTRACER_MAX_PAYLOAD_SIZE  sizeof(IndirectRayPayload)
+#define RAYTRACER_MAX_PAYLOAD_SIZE  sizeof(ShadeRayPayload)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -71,12 +64,10 @@ struct RaytracingGlobalCB
 
     int         AOMissIndex;
     int         AOHitGroupIndex;
-    int         DirectLightingMissIndex;
-    int         DirectLightingHitGroupIndex;
-    int         IndirectLightingMissIndex;
-    int         IndirectLightingHitGroupIndex;
-    int         ColorMissIndex;
-    int         ColorHitGroupIndex;
+    int         AreaLightMissIndex;
+    int         AreaLightHitGroupIndex;
+    int         ShadeMissIndex;
+    int         ShadeHitGroupIndex;
 };
 ALIGN_END
 

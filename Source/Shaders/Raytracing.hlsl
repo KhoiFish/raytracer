@@ -87,9 +87,9 @@ inline float shootAmbientOcclusionRay(float minT, float maxT, float3 origin, flo
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline DirectRayPayload shootAreaLightVisibilityRay(float3 orig, float3 dir, float minT, float maxT)
+inline AreaLightRayPayload shootAreaLightVisibilityRay(float3 orig, float3 dir, float minT, float maxT)
 {
-    DirectRayPayload payload;
+    AreaLightRayPayload payload;
     payload.LightIndex = -1;
     payload.LightColor = float3(0, 0, 0);
 
@@ -104,7 +104,7 @@ inline DirectRayPayload shootAreaLightVisibilityRay(float3 orig, float3 dir, flo
         gScene,
         RAY_FLAG_CULL_FRONT_FACING_TRIANGLES,
         RAYTRACING_INSTANCEMASK_ALL,
-        gSceneCB.DirectLightingHitGroupIndex, RAYTRACING_NUM_HIT_PROGRAMS, gSceneCB.DirectLightingMissIndex,
+        gSceneCB.AreaLightHitGroupIndex, RAYTRACING_NUM_HIT_PROGRAMS, gSceneCB.AreaLightMissIndex,
         ray, payload
     );
 
@@ -113,38 +113,9 @@ inline DirectRayPayload shootAreaLightVisibilityRay(float3 orig, float3 dir, flo
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline float3 shootIndirectLightingRay(uint randSeed, float minT, float3 worldPos, float3 worldNorm, uint curDepth)
+inline float3 shootShadeRay(uint instanceInclusionMask, uint randSeed, float minT, float3 origin, float3 dir, uint curDepth)
 {
-    float3 bounceDir = getCosHemisphereSample(randSeed, worldNorm);
-
-    IndirectRayPayload payload;
-    payload.Color    = float3(0, 0, 0);
-    payload.RndSeed  = randSeed;
-    payload.RayDepth = curDepth + 1;
-
-    RayDesc ray;
-    ray.Origin      = worldPos;
-    ray.Direction   = bounceDir;
-    ray.TMin        = minT;
-    ray.TMax        = SHADER_FLOAT_MAX;
-
-    TraceRay
-    (
-        gScene,
-        RAY_FLAG_CULL_FRONT_FACING_TRIANGLES,
-        RAYTRACING_INSTANCEMASK_OPAQUE,
-        gSceneCB.IndirectLightingHitGroupIndex, RAYTRACING_NUM_HIT_PROGRAMS, gSceneCB.IndirectLightingMissIndex,
-        ray, payload
-    );
-
-    return payload.Color;
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-inline float3 shootColorRay(uint randSeed, float minT, float3 origin, float3 dir, uint curDepth)
-{
-    ColorRayPayload payload;
+    ShadeRayPayload payload;
     payload.Color    = float3(0, 0, 0);
     payload.RndSeed  = randSeed;
     payload.RayDepth = curDepth + 1;
@@ -159,8 +130,8 @@ inline float3 shootColorRay(uint randSeed, float minT, float3 origin, float3 dir
     (
         gScene,
         RAY_FLAG_CULL_FRONT_FACING_TRIANGLES,
-        RAYTRACING_INSTANCEMASK_ALL,
-        gSceneCB.ColorHitGroupIndex, RAYTRACING_NUM_HIT_PROGRAMS, gSceneCB.ColorMissIndex,
+        instanceInclusionMask,
+        gSceneCB.ShadeHitGroupIndex, RAYTRACING_NUM_HIT_PROGRAMS, gSceneCB.ShadeMissIndex,
         ray, payload
     );
 
@@ -198,7 +169,7 @@ inline float3 shadeLambert(RenderMaterial material, int numRays, uint randSeed, 
         float             dist        = length(onLight - worldPos);
 
         // Shoot a ray at the light
-        DirectRayPayload lightPayload = shootAreaLightVisibilityRay(worldPos, lightDir, minT, SHADER_FLOAT_MAX);
+        AreaLightRayPayload lightPayload = shootAreaLightVisibilityRay(worldPos, lightDir, minT, SHADER_FLOAT_MAX);
         if (lightPayload.LightIndex >= 0)
         {
             float area            = light.AreaCoverage;
@@ -229,7 +200,7 @@ inline float3 shadeMetal(RenderMaterial material, float3 incomingRayDir, uint ra
 
     if (dot(reflDir, worldNorm) > 0.0f)
     {
-        return albedo.rgb * shootColorRay(randSeed, minT, worldPos, reflDir, curDepth);
+        return albedo.rgb * shootShadeRay(RAYTRACING_INSTANCEMASK_ALL, randSeed, minT, worldPos, reflDir, curDepth);
     }
 
     return float3(0, 0, 0);
@@ -264,6 +235,22 @@ inline float3 shade(RenderMaterial material, float3 incomingRayDir, int numRays,
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+inline float sampleAmbientOcclusion(int numRays, uint randSeed, float minT, float maxT, float3 worldPos, float3 worldNorm)
+{
+    // Accumulate AO
+    float ao = 0.0f;
+    for (int i = 0; i < numRays; i++)
+    {
+        float3 worldDir = getCosHemisphereSample(randSeed, worldNorm);
+        ao += shootAmbientOcclusionRay(minT, maxT, worldPos, worldDir);
+    }
+    ao = ao / float(numRays);
+
+    return ao;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 inline float3 sampleDirectLighting(RenderMaterial material, float3 incomingRayDir, int numRays, uint randSeed, float minT, float3 worldPos, float3 worldNorm, float4 albedo)
 {
     float3 shadeColor;
@@ -288,73 +275,11 @@ inline float3 sampleIndirectLighting(uint randSeed, float minT, float3 worldPos,
     float3 bounceColor = float3(1, 1, 1);
     if (gSceneCB.NumLights > 0)
     {
-        bounceColor = shootIndirectLightingRay(randSeed, minT, worldPos, worldNorm, 0);
+        float3 bounceDir = getCosHemisphereSample(randSeed, worldNorm);
+        bounceColor = shootShadeRay(RAYTRACING_INSTANCEMASK_OPAQUE, randSeed, minT, worldPos, bounceDir, 0);
     }
 
     return bounceColor;
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-inline float sampleAmbientOcclusion(int numRays, uint randSeed, float minT, float maxT, float3 worldPos, float3 worldNorm)
-{
-    // Accumulate AO
-    float ao = 0.0f;
-    for (int i = 0; i < numRays; i++)
-    {
-        float3 worldDir = getCosHemisphereSample(randSeed, worldNorm);
-        ao += shootAmbientOcclusionRay(minT, maxT, worldPos, worldDir);
-    }
-    ao = ao / float(numRays);
-
-    return ao;
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-[shader("miss")]
-void DirectLightingMiss(inout DirectRayPayload payload)
-{
-    // Missed the light
-    payload.LightIndex = -1;
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-[shader("closesthit")]
-void DirectLightingClosest(inout DirectRayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
-{
-    float3 barycentrics = float3(1.f - attr.barycentrics.x - attr.barycentrics.y, attr.barycentrics.x, attr.barycentrics.y);
-
-    // Hit the light
-    payload.LightIndex = gInstanceDataCB.LightIndex;
-    payload.LightColor = gMaterial.Diffuse.rgb;
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-[shader("miss")]
-void IndirectLightingMiss(inout IndirectRayPayload payload)
-{
-    ;
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-[shader("closesthit")]
-void IndirectLightingClosest(inout IndirectRayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
-{
-    if (payload.RayDepth < gSceneCB.MaxRayDepth)
-    {
-        // Hit an opaque
-        float3               bary       = float3(1.f - attr.barycentrics.x - attr.barycentrics.y, attr.barycentrics.x, attr.barycentrics.y);
-        RealtimeSceneVertex  vert       = getVertex(gIndexBuffer, gVertexBuffer, PrimitiveIndex(), bary);
-        float3               worldPos   = mul(vert.Position, (float3x3)gInstanceDataCB.WorldMatrix);
-        float3               worldNorm  = mul(vert.Normal, (float3x3)gInstanceDataCB.WorldMatrix);
-        float4               albedo     = gAlbedoArray[gMaterial.DiffuseTextureId].SampleLevel(AnisoRepeatSampler, vert.TexCoord, 0);
-
-        payload.Color = shade(gMaterial, WorldRayDirection(), gSceneCB.NumRays, payload.RndSeed, RayTMin(), worldPos, worldNorm, albedo, payload.RayDepth);
-    }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -377,7 +302,26 @@ void AOClosest(inout ShadowRayPayload payload, in BuiltInTriangleIntersectionAtt
 // ----------------------------------------------------------------------------------------------------------------------------
 
 [shader("miss")]
-void ColorMiss(inout ColorRayPayload payload)
+void AreaLightMiss(inout AreaLightRayPayload payload)
+{
+    // Missed the light
+    payload.LightIndex = -1;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+[shader("closesthit")]
+void AreaLightClosest(inout AreaLightRayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
+{
+    // Hit the light
+    payload.LightIndex = gInstanceDataCB.LightIndex;
+    payload.LightColor = gMaterial.Diffuse.rgb;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+[shader("miss")]
+void ShadeMiss(inout ShadeRayPayload payload)
 {
     ;
 }
@@ -385,25 +329,19 @@ void ColorMiss(inout ColorRayPayload payload)
 // ----------------------------------------------------------------------------------------------------------------------------
 
 [shader("closesthit")]
-void ColorClosest(inout ColorRayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
+void ShadeClosest(inout ShadeRayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
 {
-    float3               bary       = float3(1.f - attr.barycentrics.x - attr.barycentrics.y, attr.barycentrics.x, attr.barycentrics.y);
-    RealtimeSceneVertex  vert       = getVertex(gIndexBuffer, gVertexBuffer, PrimitiveIndex(), bary);
-    float3               worldPos   = mul(vert.Position, (float3x3)gInstanceDataCB.WorldMatrix);
-    float3               worldNorm  = mul(vert.Normal, (float3x3)gInstanceDataCB.WorldMatrix);
-    float4               albedo     = gAlbedoArray[gMaterial.DiffuseTextureId].SampleLevel(AnisoRepeatSampler, vert.TexCoord, 0);
-
     if (payload.RayDepth < gSceneCB.MaxRayDepth)
     {
+        // Hit an opaque
+        float3               bary       = float3(1.f - attr.barycentrics.x - attr.barycentrics.y, attr.barycentrics.x, attr.barycentrics.y);
+        RealtimeSceneVertex  vert       = getVertex(gIndexBuffer, gVertexBuffer, PrimitiveIndex(), bary);
+        float3               worldPos   = mul(vert.Position, (float3x3)gInstanceDataCB.WorldMatrix);
+        float3               worldNorm  = mul(vert.Normal, (float3x3)gInstanceDataCB.WorldMatrix);
+        float4               albedo     = gAlbedoArray[gMaterial.DiffuseTextureId].SampleLevel(AnisoRepeatSampler, vert.TexCoord, 0);
+
         payload.Color = shade(gMaterial, WorldRayDirection(), gSceneCB.NumRays, payload.RndSeed, RayTMin(), worldPos, worldNorm, albedo, payload.RayDepth);
     }
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-inline float4 temporalAccumulate(float4 prevColor, float4 currColor)
-{
-    return (gSceneCB.AccumCount * prevColor + currColor) / (gSceneCB.AccumCount + 1);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -438,8 +376,8 @@ void RayGeneration()
     ao                = (ao * backSelect.x)       + (1.0f * backSelect.y);
 
     // Accumulate results
-    float4 finalDirectAO = temporalAccumulate(gPrevDirectAO[launchIndex.xy], float4(direct, ao));
-    float4 finalIndirect = temporalAccumulate(gPrevIndirect[launchIndex.xy], float4(indirect, 1));
+    float4 finalDirectAO = temporalAccumulate(gSceneCB.AccumCount, gPrevDirectAO[launchIndex.xy], float4(direct, ao));
+    float4 finalIndirect = temporalAccumulate(gSceneCB.AccumCount, gPrevIndirect[launchIndex.xy], float4(indirect, 1));
 
     // Zero out nan, inf, etc.
     finalDirectAO = any(isnan(finalDirectAO)) ? float4(1, 1, 1, 1) : finalDirectAO;

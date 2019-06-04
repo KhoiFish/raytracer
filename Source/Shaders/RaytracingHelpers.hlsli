@@ -138,3 +138,10 @@ inline RealtimeSceneVertex getVertex(ByteAddressBuffer indexBuffer, ByteAddressB
 
     return v;
 }
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+inline float4 temporalAccumulate(int accumCount, float4 prevColor, float4 currColor)
+{
+    return (accumCount * prevColor + currColor) / (accumCount + 1);
+}

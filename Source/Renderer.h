@@ -146,14 +146,11 @@ private:
         RaytracingShaderType_AOMiss = 0,
         RaytracingShaderType_AOHitgroup,
 
-        RaytracingShaderType_DirectLightingMiss,
-        RaytracingShaderType_DirectLightingHitGroup,
+        RaytracingShaderType_AreaLightMiss,
+        RaytracingShaderType_AreaLightHitGroup,
 
-        RaytracingShaderType_IndirectLightingMiss,
-        RaytracingShaderType_IndirectLightingHitGroup,
-
-        RaytracingShaderType_ColorMiss,
-        RaytracingShaderType_ColorHitGroup,
+        RaytracingShaderType_ShadeMiss,
+        RaytracingShaderType_ShadeHitGroup,
 
         RaytracingShaderType_Num
     };

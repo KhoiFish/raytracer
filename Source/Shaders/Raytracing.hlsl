@@ -222,7 +222,6 @@ inline float3 shadeDielectric(RenderMaterial material, float3 incomingRayDir, ui
         niOverNt      = reflIndex;
         cosine        = material.ReflIndex * dirDotNorm;
     }
-
     else
     {
         // Entering triangle
@@ -410,7 +409,7 @@ void RayGeneration()
     float4          worldPos    = gPositions[launchIndex.xy];
     float3          rayInDir    = normalize(worldPos.xyz - gSceneCB.CameraPosition.xyz);
     float4          normAndId   = gNormals[launchIndex.xy];
-    float3          worldNorm   = normalize(normAndId.xyz);
+    float3          worldNorm   = normAndId.xyz;
     int             instanceId  = int(normAndId.w);
     RenderMaterial  material    = gMaterialsCB[instanceId];
     float4          albedo      = gAlbedo[launchIndex.xy];

@@ -191,12 +191,12 @@ void Renderer::RenderGuiOptionsWindow()
         ImGui::Separator();
 
 
-        if (ImGui::SliderInt("Accum. Passes/Frame", &TheUserInputData.GpuNumAccumPasses, 1, 16))
+        if (ImGui::SliderInt("Accum. Passes/Frame", &TheUserInputData.GpuNumAccumPasses, 1, 10))
         {
             gpuOptionsChanged = true;
         }
 
-        if (ImGui::SliderInt("Rays Per Pixel", &TheUserInputData.GpuNumRaysPerPixel, 1, 100))
+        if (ImGui::SliderInt("Rays Per Pixel", &TheUserInputData.GpuNumRaysPerPixel, 1, 10))
         {
             gpuOptionsChanged = true;
         }

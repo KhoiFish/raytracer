@@ -178,7 +178,7 @@ private:
         int     CpuNumThreads                   = 4;
 
         int     GpuNumAccumPasses               = 1;
-        int     GpuRayRecursionDepth            = 5;
+        int     GpuRayRecursionDepth            = 3;
         int     GpuNumRaysPerPixel              = 1;
         float   GpuAORadius                     = 100.0f;
         bool    GpuCameraJitter                 = true;

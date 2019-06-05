@@ -502,7 +502,8 @@ void Renderer::SetupGpuRaytracingPSO()
         RaytracingPSOPtr->AddExportAssociationWithShaderConfig(sDxilLibEntryPoints, ARRAY_SIZE(sDxilLibEntryPoints));
 
         // Pipeline config
-        RaytracingPSOPtr->SetPipelineConfig(RAYTRACING_MAX_RAY_RECURSION_DEPTH);
+        // One off since if we actually shoot rays at the limit, this freezes the DispatchRays() call
+        RaytracingPSOPtr->SetPipelineConfig(RAYTRACING_MAX_RAY_RECURSION_DEPTH + 1);
     }
 
     // Done, finalize

@@ -120,25 +120,37 @@ inline float3 shootShadeRay(uint instanceInclusionMask, inout uint randSeed, ino
     payload.RndSeed  = randSeed;
     payload.RayDepth = curRayDepth + 1;
 
-    RayDesc ray;
-    ray.Origin      = origin;
-    ray.Direction   = dir;
-    ray.TMin        = minT;
-    ray.TMax        = SHADER_FLOAT_MAX;
+    // Shoot ray within the max ray depth
+    if (payload.RayDepth <= gSceneCB.MaxRayDepth)
+    {
+        RayDesc ray;
+        ray.Origin    = origin;
+        ray.Direction = dir;
+        ray.TMin      = minT;
+        ray.TMax      = SHADER_FLOAT_MAX;
 
-    TraceRay
-    (
-        gScene,
-        RAY_FLAG_NONE,
-        instanceInclusionMask,
-        gSceneCB.ShadeHitGroupIndex, gSceneCB.NumHitPrograms, gSceneCB.ShadeMissIndex,
-        ray, payload
-    );
+        TraceRay
+        (
+            gScene,
+            RAY_FLAG_NONE,
+            instanceInclusionMask,
+            gSceneCB.ShadeHitGroupIndex, gSceneCB.NumHitPrograms, gSceneCB.ShadeMissIndex,
+            ray, payload
+        );
 
-    randSeed = payload.RndSeed;
-    state    = payload.HState;
+        randSeed = payload.RndSeed;
+        state    = payload.HState;
+    }
 
     return payload.Color;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+inline float3 shootIndirectLightRay(inout uint randSeed, inout HaltonState state, float minT, float3 worldPos, float3 worldNorm, uint curRayDepth)
+{
+    float3 bounceDir = getCosHemisphereSample(randSeed, state, worldNorm);
+    return shootShadeRay(RAYTRACING_INSTANCEMASK_OPAQUE, randSeed, state, minT, worldPos, bounceDir, curRayDepth);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -290,7 +302,6 @@ inline float3 shade(RenderMaterial material, float3 incomingRayDir, int raysPP, 
 
 inline float sampleAmbientOcclusion(int raysPP, inout uint randSeed, inout HaltonState state, float minT, float maxT, float3 worldPos, float3 worldNorm)
 {
-    // Accumulate AO
     float ao = 0.0f;
     for (int i = 0; i < raysPP; i++)
     {
@@ -322,14 +333,16 @@ inline float3 sampleDirectLighting(RenderMaterial material, float3 incomingRayDi
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline float3 sampleIndirectLighting(inout uint randSeed, inout HaltonState state, float minT, float3 worldPos, float3 worldNorm)
+inline float3 sampleIndirectLighting(int raysPP, inout uint randSeed, inout HaltonState state, float minT, float3 worldPos, float3 worldNorm)
 {
-    // Get the bounce color from indirect lighting
-    float3 bounceColor = float3(1, 1, 1);
+    float3 bounceColor = float3(0, 0, 0);
     if (gSceneCB.NumLights > 0)
     {
-        float3 bounceDir = getCosHemisphereSample(randSeed, state, worldNorm);
-        bounceColor = shootShadeRay(RAYTRACING_INSTANCEMASK_OPAQUE, randSeed, state, minT, worldPos, bounceDir, 0);
+        for (int i = 0; i < raysPP; i++)
+        {
+            bounceColor += shootIndirectLightRay(randSeed, state, minT, worldPos, worldNorm, 0);
+        }
+        bounceColor /= raysPP;
     }
 
     return bounceColor;
@@ -384,19 +397,17 @@ void ShadeMiss(inout ShadeRayPayload payload)
 [shader("closesthit")]
 void ShadeClosest(inout ShadeRayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
 {
-    if (payload.RayDepth < gSceneCB.MaxRayDepth)
-    {
-        // Hit an opaque
-        float3               bary       = float3(1.f - attr.barycentrics.x - attr.barycentrics.y, attr.barycentrics.x, attr.barycentrics.y);
-        RealtimeSceneVertex  vert       = getVertex(gIndexBuffer, gVertexBuffer, PrimitiveIndex(), bary);
-        float3               rayOrig    = WorldRayOrigin();
-        float3               rayDir     = WorldRayDirection();
-        float3               worldPos   = rayOrig + RayTCurrent() * rayDir;
-        float3               worldNorm  = mul(vert.Normal, (float3x3)gInstanceDataCB.WorldMatrix);
-        float4               albedo     = gAlbedoArray[gMaterial.DiffuseTextureId].SampleLevel(AnisoRepeatSampler, vert.TexCoord, 0);
+    // Hit an opaque
+    float3               bary       = float3(1.f - attr.barycentrics.x - attr.barycentrics.y, attr.barycentrics.x, attr.barycentrics.y);
+    RealtimeSceneVertex  vert       = getVertex(gIndexBuffer, gVertexBuffer, PrimitiveIndex(), bary);
+    float3               rayOrig    = WorldRayOrigin();
+    float3               rayDir     = WorldRayDirection();
+    float3               worldPos   = rayOrig + RayTCurrent() * rayDir;
+    float3               worldNorm  = mul(vert.Normal, (float3x3)gInstanceDataCB.WorldMatrix);
+    float4               albedo     = gAlbedoArray[gMaterial.DiffuseTextureId].SampleLevel(AnisoRepeatSampler, vert.TexCoord, 0);
 
-        payload.Color = shade(gMaterial, WorldRayDirection(), gSceneCB.RaysPerPixel, payload.RndSeed, payload.HState, RayTMin(), worldPos, worldNorm, albedo, payload.RayDepth);
-    }
+    // Shade
+    payload.Color = shade(gMaterial, WorldRayDirection(), gSceneCB.RaysPerPixel, payload.RndSeed, payload.HState, RayTMin(), worldPos, worldNorm, albedo, payload.RayDepth);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -422,7 +433,7 @@ void RayGeneration()
 
     // Get direct, indirect and AO contributions
     float3 direct   = sampleDirectLighting(material, rayInDir, raysPP, randSeed, haltonState, minT, worldPos.xyz, worldNorm, albedo);
-    float3 indirect = sampleIndirectLighting(randSeed, haltonState, minT, worldPos.xyz, worldNorm);
+    float3 indirect = sampleIndirectLighting(raysPP, randSeed, haltonState, minT, worldPos.xyz, worldNorm);
     float  ao       = sampleAmbientOcclusion(raysPP, randSeed, haltonState, minT, aoRadius, worldPos.xyz, worldNorm);
     
     // Pass through background/lights

@@ -17,7 +17,110 @@
 // 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-// Generates a seed for a random number generator from 2 inputs plus a backoff
+uint halton2Inverse(uint index, uint digits)
+{
+    index =  (index << 16)              |  (index >> 16);
+    index = ((index & 0x00ff00ff) << 8) | ((index & 0xff00ff00) >> 8);
+    index = ((index & 0x0f0f0f0f) << 4) | ((index & 0xf0f0f0f0) >> 4);
+    index = ((index & 0x33333333) << 2) | ((index & 0xcccccccc) >> 2);
+    index = ((index & 0x55555555) << 1) | ((index & 0xaaaaaaaa) >> 1);
+
+    return index >> (32 - digits);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+uint halton3Inverse(uint index, uint digits)
+{
+    uint result = 0;
+    for (uint d = 0; d < digits; ++d)
+    {
+        result = result * 3 + index % 3;
+        index /= 3;
+    }
+
+    return result;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+float haltonIndex(uint x, uint y, uint i, uint increment)
+{
+    return ((halton2Inverse(x % 256, 8) * 76545 + halton3Inverse(y % 256, 6) * 110080) % increment) + i * 186624;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+HaltonState haltonInit(int x, int y, int path, int numPaths, int frameId, int loop, uint increment)
+{
+    HaltonState state;
+    state.Dimension     = 2;
+    state.SequenceIndex = haltonIndex(x, y, (frameId * numPaths + path) % (loop * numPaths), increment);
+
+    return state;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+float haltonSample(uint dimension, uint sampleIndex)
+{
+    int base = 0;
+    switch (dimension)
+    {
+        case 0:  base = 2;   break;
+        case 1:  base = 3;   break;
+        case 2:  base = 5;   break;
+        case 3:  base = 7;   break;
+        case 4:  base = 11;  break;
+        case 5:  base = 13;  break;
+        case 6:  base = 17;  break;
+        case 7:  base = 19;  break;
+        case 8:  base = 23;  break;
+        case 9:  base = 29;  break;
+        case 10: base = 31;  break;
+        case 11: base = 37;  break;
+        case 12: base = 41;  break;
+        case 13: base = 43;  break;
+        case 14: base = 47;  break;
+        case 15: base = 53;  break;
+        case 16: base = 59;  break;
+        case 17: base = 61;  break;
+        case 18: base = 67;  break;
+        case 19: base = 71;  break;
+        case 20: base = 73;  break;
+        case 21: base = 79;  break;
+        case 22: base = 83;  break;
+        case 23: base = 89;  break;
+        case 24: base = 97;  break;
+        case 25: base = 101; break;
+        case 26: base = 103; break;
+        case 27: base = 107; break;
+        case 28: base = 109; break;
+        case 29: base = 113; break;
+        case 30: base = 127; break;
+        case 31: base = 131; break;
+        default: base = 2;   break;
+    }
+
+    float invBase = 1.0f / float(base);
+    float a = 0;
+    for (float mult = invBase; sampleIndex != 0; sampleIndex /= base, mult *= invBase)
+    {
+        a += float(sampleIndex % base) * mult;
+    }
+
+    return a;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+float haltonNext(inout HaltonState state)
+{
+    return haltonSample(state.Dimension++, state.SequenceIndex);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 uint initRand(uint val0, uint val1, uint backoff = 16)
 {
     uint v0 = val0, v1 = val1, s0 = 0;
@@ -43,6 +146,13 @@ float nextRand(inout uint s)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+float nextHaltonRand(inout uint seed, inout HaltonState state)
+{
+    return frac(haltonNext(state) + nextRand(seed));
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 // Utility function to get a vector perpendicular to an input vector 
 //    (from "Efficient Construction of Perpendicular Vectors Without Branching")
 float3 getPerpendicularVector(float3 u)
@@ -57,10 +167,10 @@ float3 getPerpendicularVector(float3 u)
 // ----------------------------------------------------------------------------------------------------------------------------
 
 // Get a cosine-weighted random vector centered around a specified normal direction.
-float3 getCosHemisphereSample(inout uint randSeed, float3 hitNorm)
+float3 getCosHemisphereSample(inout uint randSeed, inout HaltonState state, float3 hitNorm)
 {
     // Get 2 random numbers to select our sample with
-    float2 randVal = float2(nextRand(randSeed), nextRand(randSeed));
+    float2 randVal = float2(nextHaltonRand(randSeed, state), nextHaltonRand(randSeed, state));
 
     // Cosine weighted hemisphere sample from RNG
     float3 bitangent = getPerpendicularVector(hitNorm);

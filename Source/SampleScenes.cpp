@@ -175,11 +175,10 @@ static WorldScene* sampleSceneRandom()
             {
                 if (chooseMat < .8f)
                 {
-                    list[i++] = new MovingSphere(
-                        center, center + Vec4(0, .5f*RandomFloat(), 0),
-                        .0f, 1.f,
+                    list[i++] = new Sphere(
+                        center,
                         .2f,
-                        new MLambertian(new ConstantTexture(Vec4(RandomFloat()*RandomFloat(), RandomFloat()*RandomFloat(), RandomFloat()*RandomFloat()))
+                        new MLambertian(new ConstantTexture(Vec4(RandomFloat() * RandomFloat(), RandomFloat() * RandomFloat(), RandomFloat() * RandomFloat()))
                         )
                     );
                 }

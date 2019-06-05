@@ -24,6 +24,7 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+#define RAYTRACING_MAX_RAY_RECURSION_DEPTH  25
 #define RAYTRACING_MAX_NUM_LIGHTS           8
 #define RAYTRACING_MAX_NUM_MATERIALS        1024
 #define RAYTRACING_MAX_NUM_DIFFUSETEXTURES  1024

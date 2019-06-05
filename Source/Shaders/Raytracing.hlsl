@@ -158,10 +158,10 @@ inline float3 getRandomPointOnAreaLight(inout uint randSeed, inout HaltonState s
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline float3 shadeLambert(RenderMaterial material, int numRays, inout uint randSeed, inout HaltonState state, float minT, float3 worldPos, float3 worldNorm, float4 albedo)
+inline float3 shadeLambert(RenderMaterial material, int raysPP, inout uint randSeed, inout HaltonState state, float minT, float3 worldPos, float3 worldNorm, float4 albedo)
 {
     float3 shadeResult = float3(0, 0, 0);
-    for (int i = 0; i < numRays; i++)
+    for (int i = 0; i < raysPP; i++)
     {
         // Pick a random light to sample
         float3            lightResult = float3(0, 0, 0);
@@ -190,7 +190,7 @@ inline float3 shadeLambert(RenderMaterial material, int numRays, inout uint rand
 
     // Modulate based on the physically based Lambertian term (albedo/pi)
     shadeResult *= (albedo.rgb / SHADER_PI);
-    shadeResult /= numRays;
+    shadeResult /= raysPP;
 
     return shadeResult;
 }
@@ -261,7 +261,7 @@ inline float3 shadeDielectric(RenderMaterial material, float3 incomingRayDir, in
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline float3 shade(RenderMaterial material, float3 incomingRayDir, int numRays, inout uint randSeed, inout HaltonState state, float minT, float3 worldPos, float3 worldNorm, float4 albedo, uint curRayDepth)
+inline float3 shade(RenderMaterial material, float3 incomingRayDir, int raysPP, inout uint randSeed, inout HaltonState state, float minT, float3 worldPos, float3 worldNorm, float4 albedo, uint curRayDepth)
 {
     float3 shadeColor;
     switch (material.Type)
@@ -271,7 +271,7 @@ inline float3 shade(RenderMaterial material, float3 incomingRayDir, int numRays,
         break;
 
         case RenderMaterialType_Lambert:
-            shadeColor = shadeLambert(material, numRays, randSeed, state, minT, worldPos, worldNorm, albedo);
+            shadeColor = shadeLambert(material, raysPP, randSeed, state, minT, worldPos, worldNorm, albedo);
         break;
 
         case RenderMaterialType_Metal:
@@ -288,33 +288,33 @@ inline float3 shade(RenderMaterial material, float3 incomingRayDir, int numRays,
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline float sampleAmbientOcclusion(int numRays, inout uint randSeed, inout HaltonState state, float minT, float maxT, float3 worldPos, float3 worldNorm)
+inline float sampleAmbientOcclusion(int raysPP, inout uint randSeed, inout HaltonState state, float minT, float maxT, float3 worldPos, float3 worldNorm)
 {
     // Accumulate AO
     float ao = 0.0f;
-    for (int i = 0; i < numRays; i++)
+    for (int i = 0; i < raysPP; i++)
     {
         float3 worldDir = getCosHemisphereSample(randSeed, state, worldNorm);
         ao += shootAmbientOcclusionRay(minT, maxT, worldPos, worldDir);
     }
-    ao = ao / float(numRays);
+    ao = ao / float(raysPP);
 
     return ao;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline float3 sampleDirectLighting(RenderMaterial material, float3 incomingRayDir, int numRays, inout uint randSeed, inout HaltonState state, float minT, float3 worldPos, float3 worldNorm, float4 albedo)
+inline float3 sampleDirectLighting(RenderMaterial material, float3 incomingRayDir, int raysPP, inout uint randSeed, inout HaltonState state, float minT, float3 worldPos, float3 worldNorm, float4 albedo)
 {
     float3 shadeColor;
     if (gSceneCB.NumLights > 0)
     {
-        shadeColor = shade(material, incomingRayDir, numRays, randSeed, state, minT, worldPos, worldNorm, albedo, 0);
+        shadeColor = shade(material, incomingRayDir, raysPP, randSeed, state, minT, worldPos, worldNorm, albedo, 0);
     }
     else
     {
         shadeColor = albedo.rgb;
-        shadeColor /= numRays;
+        shadeColor /= raysPP;
     }
 
     return shadeColor;
@@ -395,7 +395,7 @@ void ShadeClosest(inout ShadeRayPayload payload, in BuiltInTriangleIntersectionA
         float3               worldNorm  = mul(vert.Normal, (float3x3)gInstanceDataCB.WorldMatrix);
         float4               albedo     = gAlbedoArray[gMaterial.DiffuseTextureId].SampleLevel(AnisoRepeatSampler, vert.TexCoord, 0);
 
-        payload.Color = shade(gMaterial, WorldRayDirection(), gSceneCB.NumRays, payload.RndSeed, payload.HState, RayTMin(), worldPos, worldNorm, albedo, payload.RayDepth);
+        payload.Color = shade(gMaterial, WorldRayDirection(), gSceneCB.RaysPerPixel, payload.RndSeed, payload.HState, RayTMin(), worldPos, worldNorm, albedo, payload.RayDepth);
     }
 }
 
@@ -405,7 +405,7 @@ void ShadeClosest(inout ShadeRayPayload payload, in BuiltInTriangleIntersectionA
 void RayGeneration()
 {
     // Inputs
-    int             numRays     = gSceneCB.NumRays;
+    int             raysPP      = gSceneCB.RaysPerPixel;
     uint3           launchIndex = DispatchRaysIndex();
     uint3           launchDim   = DispatchRaysDimensions();
     uint            randSeed    = initRand(launchIndex.x + launchIndex.y * launchDim.x, gSceneCB.FrameCount, 16);
@@ -421,9 +421,9 @@ void RayGeneration()
     float           minT        = 0.001f;
 
     // Get direct, indirect and AO contributions
-    float3 direct   = sampleDirectLighting(material, rayInDir, numRays, randSeed, haltonState, minT, worldPos.xyz, worldNorm, albedo);
+    float3 direct   = sampleDirectLighting(material, rayInDir, raysPP, randSeed, haltonState, minT, worldPos.xyz, worldNorm, albedo);
     float3 indirect = sampleIndirectLighting(randSeed, haltonState, minT, worldPos.xyz, worldNorm);
-    float  ao       = sampleAmbientOcclusion(numRays, randSeed, haltonState, minT, aoRadius, worldPos.xyz, worldNorm);
+    float  ao       = sampleAmbientOcclusion(raysPP, randSeed, haltonState, minT, aoRadius, worldPos.xyz, worldNorm);
     
     // Pass through background/lights
     float2 backSelect = float2(worldPos.w, 1 - worldPos.w);

@@ -66,7 +66,7 @@ struct RaytracingGlobalCB
 
     float       AORadius;
     int         FrameCount;
-    int         NumRays;
+    int         RaysPerPixel;
     int         AccumCount;
     int         NumLights;
     int         MaxRayDepth;

@@ -201,6 +201,11 @@ void Renderer::RenderGuiOptionsWindow()
             gpuOptionsChanged = true;
         }
 
+        if (ImGui::SliderInt("Ray Recursion Depth", &TheUserInputData.GpuRayRecursionDepth, 1, RAYTRACING_MAX_RAY_RECURSION_DEPTH))
+        {
+            gpuOptionsChanged = true;
+        }
+
         if (ImGui::SliderFloat("Direct Light Scale", &TheUserInputData.GpuDirectLightMult, 0.0f, 10.0f))
         {
             gpuOptionsChanged = true;

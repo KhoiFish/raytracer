@@ -502,7 +502,7 @@ void Renderer::SetupGpuRaytracingPSO()
         RaytracingPSOPtr->AddExportAssociationWithShaderConfig(sDxilLibEntryPoints, ARRAY_SIZE(sDxilLibEntryPoints));
 
         // Pipeline config
-        RaytracingPSOPtr->SetPipelineConfig(TheUserInputData.GpuMaxRayRecursionDepth);
+        RaytracingPSOPtr->SetPipelineConfig(RAYTRACING_MAX_RAY_RECURSION_DEPTH);
     }
 
     // Done, finalize
@@ -528,9 +528,9 @@ void Renderer::RenderGpuRaytracing()
             sceneCB.OutputResolution        = DirectX::XMFLOAT2((float)Width, (float)Height);
             sceneCB.AORadius                = TheUserInputData.GpuAORadius;
             sceneCB.FrameCount              = FrameCount;
-            sceneCB.NumRays                 = TheUserInputData.GpuNumRaysPerPixel;
+            sceneCB.RaysPerPixel            = TheUserInputData.GpuNumRaysPerPixel;
             sceneCB.AccumCount              = AccumCount++;
-            sceneCB.MaxRayDepth             = TheUserInputData.GpuMaxRayRecursionDepth;
+            sceneCB.MaxRayDepth             = TheUserInputData.GpuRayRecursionDepth;
             sceneCB.NumLights               = (UINT)TheRenderScene->GetAreaLightsList().size();
             sceneCB.NumHitPrograms          = GetNumberHitPrograms();
             sceneCB.AOHitGroupIndex         = RaytracingShaderIndex[RaytracingShaderType_AOHitgroup];

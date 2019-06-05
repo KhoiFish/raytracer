@@ -113,7 +113,7 @@ inline AreaLightRayPayload shootAreaLightVisibilityRay(float3 orig, float3 dir, 
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline float3 shootShadeRay(uint instanceInclusionMask, uint randSeed, float minT, float3 origin, float3 dir, uint curRayDepth)
+inline float3 shootShadeRay(uint instanceInclusionMask, inout uint randSeed, float minT, float3 origin, float3 dir, uint curRayDepth)
 {
     ShadeRayPayload payload;
     payload.Color             = float3(0, 0, 0);
@@ -140,7 +140,7 @@ inline float3 shootShadeRay(uint instanceInclusionMask, uint randSeed, float min
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline float3 getRandomPointOnAreaLight(uint randSeed, RealtimeAreaLight light)
+inline float3 getRandomPointOnAreaLight(inout uint randSeed, RealtimeAreaLight light)
 {
     float A0 = light.PlaneA0, A1 = light.PlaneA1;
     float B0 = light.PlaneB0, B1 = light.PlaneB1;
@@ -155,7 +155,7 @@ inline float3 getRandomPointOnAreaLight(uint randSeed, RealtimeAreaLight light)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline float3 shadeLambert(RenderMaterial material, int numRays, uint randSeed, float minT, float3 worldPos, float3 worldNorm, float4 albedo)
+inline float3 shadeLambert(RenderMaterial material, int numRays, inout uint randSeed, float minT, float3 worldPos, float3 worldNorm, float4 albedo)
 {
     float3 shadeResult = float3(0, 0, 0);
     for (int i = 0; i < numRays; i++)
@@ -194,7 +194,7 @@ inline float3 shadeLambert(RenderMaterial material, int numRays, uint randSeed, 
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline float3 shadeMetal(RenderMaterial material, float3 incomingRayDir, uint randSeed, float minT, float3 worldPos, float3 worldNorm, float4 albedo, uint curRayDepth)
+inline float3 shadeMetal(RenderMaterial material, float3 incomingRayDir, inout uint randSeed, float minT, float3 worldPos, float3 worldNorm, float4 albedo, uint curRayDepth)
 {
     float3 reflDir = reflect(incomingRayDir, worldNorm) + (material.Fuzz * getCosHemisphereSample(randSeed, worldNorm));
 
@@ -208,7 +208,7 @@ inline float3 shadeMetal(RenderMaterial material, float3 incomingRayDir, uint ra
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline float3 shadeDielectric(RenderMaterial material, float3 incomingRayDir, uint randSeed, float minT, float3 worldPos, float3 worldNorm, float4 albedo, uint curRayDepth)
+inline float3 shadeDielectric(RenderMaterial material, float3 incomingRayDir, inout uint randSeed, float minT, float3 worldPos, float3 worldNorm, float4 albedo, uint curRayDepth)
 {
     const float reflIndex = material.ReflIndex;
 
@@ -258,7 +258,7 @@ inline float3 shadeDielectric(RenderMaterial material, float3 incomingRayDir, ui
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline float3 shade(RenderMaterial material, float3 incomingRayDir, int numRays, uint randSeed, float minT, float3 worldPos, float3 worldNorm, float4 albedo, uint curRayDepth)
+inline float3 shade(RenderMaterial material, float3 incomingRayDir, int numRays, inout uint randSeed, float minT, float3 worldPos, float3 worldNorm, float4 albedo, uint curRayDepth)
 {
     float3 shadeColor;
     switch (material.Type)
@@ -285,7 +285,7 @@ inline float3 shade(RenderMaterial material, float3 incomingRayDir, int numRays,
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline float sampleAmbientOcclusion(int numRays, uint randSeed, float minT, float maxT, float3 worldPos, float3 worldNorm)
+inline float sampleAmbientOcclusion(int numRays, inout uint randSeed, float minT, float maxT, float3 worldPos, float3 worldNorm)
 {
     // Accumulate AO
     float ao = 0.0f;
@@ -301,7 +301,7 @@ inline float sampleAmbientOcclusion(int numRays, uint randSeed, float minT, floa
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline float3 sampleDirectLighting(RenderMaterial material, float3 incomingRayDir, int numRays, uint randSeed, float minT, float3 worldPos, float3 worldNorm, float4 albedo)
+inline float3 sampleDirectLighting(RenderMaterial material, float3 incomingRayDir, int numRays, inout uint randSeed, float minT, float3 worldPos, float3 worldNorm, float4 albedo)
 {
     float3 shadeColor;
     if (gSceneCB.NumLights > 0)
@@ -319,7 +319,7 @@ inline float3 sampleDirectLighting(RenderMaterial material, float3 incomingRayDi
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline float3 sampleIndirectLighting(uint randSeed, float minT, float3 worldPos, float3 worldNorm)
+inline float3 sampleIndirectLighting(inout uint randSeed, float minT, float3 worldPos, float3 worldNorm)
 {
     // Get the bounce color from indirect lighting
     float3 bounceColor = float3(1, 1, 1);

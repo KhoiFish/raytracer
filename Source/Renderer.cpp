@@ -379,14 +379,14 @@ void Renderer::OnUpdate(float dtSeconds)
             IsCameraDirty  = true;
         }
 
-
+        bool  mouseLButton   =  TheUserInputData.LeftMouseButtonPressed;
         float scale          = (TheUserInputData.ShiftKeyPressed ? 64.f : 32.0f) * 16.f * dtSeconds;
         float forwardAmount  = (TheUserInputData.Forward - TheUserInputData.Backward) * scale;
         float strafeAmount   = (TheUserInputData.Left    - TheUserInputData.Right)    * scale;
         float upDownAmount   = (TheUserInputData.Up      - TheUserInputData.Down)     * scale;
 
         // Camera needs update
-        if (IsCameraDirty || !CompareFloatEqual(forwardAmount, 0) || !CompareFloatEqual(strafeAmount, 0) || !CompareFloatEqual(upDownAmount, 0))
+        if (mouseLButton || IsCameraDirty || !CompareFloatEqual(forwardAmount, 0) || !CompareFloatEqual(strafeAmount, 0) || !CompareFloatEqual(upDownAmount, 0))
         {
             TheRenderScene->UpdateCamera(TheUserInputData.VertFov, forwardAmount, strafeAmount, upDownAmount, TheUserInputData.MouseDx, TheUserInputData.MouseDy, TheWorldScene->GetCamera());
             TheUserInputData.MouseDx = 0;

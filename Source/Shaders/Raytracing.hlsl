@@ -202,12 +202,10 @@ inline LightingResult shadeLambert(RenderMaterial material, int raysPP, inout ui
             }
         }
     }
+    lightResult.Result /= raysPP;
 
     // Modulate albedo based on the physically based Lambertian term (albedo/pi)
     lightResult.Albedo = (albedo.rgb / SHADER_PI);
-
-    lightResult.Result /= raysPP;
-    //lightResult.Albedo /= raysPP;
 
     return lightResult;
 }
@@ -460,17 +458,6 @@ void RayGeneration()
     // Get direct, indirect and AO contributions
     LightingResult directResult   = sampleDirectLighting(material, rayInDir, raysPP, randSeed, haltonState, minT, worldPos.xyz, worldNorm, albedo);
     LightingResult indirectResult = sampleIndirectLighting(raysPP, randSeed, haltonState, minT, worldPos.xyz, worldNorm);
-    //float          ao       = sampleAmbientOcclusion(raysPP, randSeed, haltonState, minT, aoRadius, worldPos.xyz, worldNorm);
-    
-    //// Pass through background/lights
-    //float2 backSelect = float2(worldPos.w, 1 - worldPos.w);
-    //direct            = (direct * backSelect.x)   + (albedo.rgb * backSelect.y);
-    //indirect          = (indirect * backSelect.x) + (float3(0, 0, 0) * backSelect.y);
-    //ao                = (ao * backSelect.x)       + (1.0f * backSelect.y);
-
-    // Accumulate results
-    //float4 finalDirectAO = temporalAccumulate(gSceneCB.AccumCount, gPrevDirectAO[launchIndex.xy], float4(direct, 1));
-    //float4 finalIndirect = temporalAccumulate(gSceneCB.AccumCount, gPrevIndirect[launchIndex.xy], float4(indirect, 1));
 
     // Zero out nan, inf, etc.
     validateLightingResult(directResult);

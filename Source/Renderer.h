@@ -73,6 +73,7 @@ private:
     void                        CleanupLoadingThread();
 
     void                        SetupGpuRaytracingPipeline();
+    void                        SetupDenoisePipeline();
     void                        SetupRasterRootSignatures();
     void                        SetupRenderBuffers();
     void                        SetupGui();
@@ -81,14 +82,14 @@ private:
     void                        SetupRasterDescriptors();
     void                        SetupGpuRaytracingRootSignatures();
     void                        SetupGpuRaytracingDescriptors();
+    void                        SetupDenoiseDescriptors();
     void                        SetupGpuRaytracingPSO();
 
     void                        OnResizeCpuRaytracer(bool startRaytrace = false);
-    void                        OnResizeGpuRaytracer();
-    void                        OnResizeRasterRender();
 
-    void                        CleanupGpuRaytracer();
-    void                        CleanupRasterRender();
+    void                        CleanupGpuRaytracerPass();
+    void                        CleanupRasterPass();
+    void                        CleanupDenoisePass();
 
     void                        ToggleCpuRaytracer();
     static void                 OnCpuRaytraceComplete(Core::Raytracer* tracer, bool actuallyFinished);
@@ -101,12 +102,13 @@ private:
     void                        RenderSceneList(GraphicsContext& renderContext);
     void                        RenderGeometryPass();
     void                        RenderGpuRaytracing();
+    void                        RenderDenoisePass();
     void                        RenderCompositePass();
     void                        RenderGui();
     void                        RenderGuiOptionsWindow();
     void                        RenderGuiLoadingScreen();
 
-    const char* GetSelectedBufferName();
+    const char*                 GetSelectedBufferName();
     uint32_t                    GetNumberHitPrograms();
     D3D12_SAMPLER_DESC          GetLinearSamplerDesc();
     D3D12_SAMPLER_DESC          GetAnisoSamplerDesc();
@@ -129,7 +131,8 @@ private:
         GBufferType_Normal,
         GBufferType_TexCoordAndDepth,
         GBufferType_Albedo,
-        GBufferType_SVGFLinearZ,
+        GBufferType_CurrSVGFLinearZ,
+        GBufferType_PrevSVGFLinearZ,
         GBufferType_SVGFMoVec,
         GBufferType_SVGFCompact,
 
@@ -142,7 +145,8 @@ private:
         "Normals",
         "TexCoordsAnd Depth",
         "Albedo",
-        "SVGFLinearZ",
+        "Current SVGFLinearZ",
+        "Previous SVGFLinearZ",
         "SVGFMoVec",
         "SVGFCompact",
     };
@@ -153,6 +157,7 @@ private:
         LightingBufferType_CurrResults,
         LightingBufferType_PrevAlbedo,
         LightingBufferType_CurrAlbedo,
+        LightingBufferType_DenoiseOutput,
 
         LightingBufferType_Num
     };
@@ -163,6 +168,7 @@ private:
         "Curr Results",
         "Prev Albedo",
         "Curr Albedo",
+        "Denoise Output",
     };
 
     enum RaytracingShaderType
@@ -236,7 +242,9 @@ private:
 
     DXGI_FORMAT                     BackbufferFormat;
     DXGI_FORMAT                     GBufferRTTypes[GBufferType_Num];
-    DXGI_FORMAT                     RaytracingBufferType;
+    DXGI_FORMAT                     DirectIndirectBufferType;
+    DXGI_FORMAT                     MomentsBufferType;
+    DXGI_FORMAT                     HistoryBufferType;
     DXGI_FORMAT                     CPURaytracerTexType;
 
     DescriptorHeapCollection        RendererDescriptorHeapCollection;
@@ -246,6 +254,8 @@ private:
     ColorTarget                     GBuffers[GBufferType_Num];
     ColorTarget                     DirectLightingBuffer[LightingBufferType_Num];
     ColorTarget                     IndirectLightingBuffer[LightingBufferType_Num];
+    ColorTarget                     MomentsBuffer[2];
+    ColorTarget                     HistoryBuffer[2];
 
     RootSignature                   RasterRootSignature;
     GraphicsPSO                     RasterGeometryPassPSO;
@@ -261,4 +271,9 @@ private:
     int32_t                         RaytracingShaderIndex[RaytracingShaderType_Num];
     uint32_t                        RaytracingGlobalSigDataIndexStart;
     uint32_t                        RaytracingLocalSigDataIndexStart;
+
+    RootSignature                   DenoiseRootSig;
+    ComputePSO                      DenoiseReprojectPSO;
+    uint32_t                        DenoiseDescriptorIndexStart;
+    UploadBuffer                    DenoiseShaderConstantBuffer;
 };

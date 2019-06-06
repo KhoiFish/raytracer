@@ -163,6 +163,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\DenoisePass.hpp" />
     <ClInclude Include="..\..\Source\HandleGui.hpp" />
     <ClInclude Include="..\..\Source\HandleInput.hpp" />
     <ClInclude Include="..\..\Source\RaytracingPass.hpp" />
@@ -171,6 +172,9 @@
     <ClInclude Include="..\..\Source\Renderer.h" />
     <ClInclude Include="..\..\Source\RendererShaderInclude.h" />
     <ClInclude Include="..\..\Source\SampleScenes.h" />
+    <ClInclude Include="..\..\Source\Shaders\SVGF\SVGFCommon.h" />
+    <ClInclude Include="..\..\Source\Shaders\SVGF\SVGFEdgeStoppingFunctions.h" />
+    <ClInclude Include="..\..\Source\Shaders\SVGF\SVGFPackNormal.h" />
     <ClInclude Include="..\..\Source\Windows\Resource.h" />
   </ItemGroup>
   <ItemGroup>
@@ -251,6 +255,16 @@
       </EntryPointName>
       <DisableOptimizations Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DisableOptimizations>
       <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\Shaders\SVGF\SVGFReproject_CS.hlsl">
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)ShaderBuild\%(Filename).cso</ObjectFileOutput>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.3</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)ShaderBuild\%(Filename).cso</ObjectFileOutput>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.3</ShaderModel>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/enable_unbounded_descriptor_tables</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/enable_unbounded_descriptor_tables</AdditionalOptions>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

@@ -214,16 +214,9 @@ const char* Renderer::GetSelectedBufferName()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void Renderer::CleanupRasterRender()
+void Renderer::CleanupRasterPass()
 {
     ;
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-void Renderer::OnResizeRasterRender()
-{
-    SetupRasterDescriptors();
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -323,19 +316,19 @@ void Renderer::SetupRasterDescriptors()
 
     RendererDescriptorHeap->AllocateTexture2DSrv(
         DirectLightingBuffer[LightingBufferType_CurrResults].GetResource(),
-        RaytracingBufferType);
+        DirectIndirectBufferType);
 
     RendererDescriptorHeap->AllocateTexture2DSrv(
         DirectLightingBuffer[LightingBufferType_CurrAlbedo].GetResource(),
-        RaytracingBufferType);
+        DirectIndirectBufferType);
 
     RendererDescriptorHeap->AllocateTexture2DSrv(
         IndirectLightingBuffer[LightingBufferType_CurrResults].GetResource(),
-        RaytracingBufferType);
+        DirectIndirectBufferType);
 
     RendererDescriptorHeap->AllocateTexture2DSrv(
         IndirectLightingBuffer[LightingBufferType_CurrAlbedo].GetResource(),
-        RaytracingBufferType);
+        DirectIndirectBufferType);
 
     RendererDescriptorHeap->AllocateTexture2DSrv(
         CPURaytracerTex.GetResource(),

@@ -30,6 +30,7 @@ using namespace RealtimeEngine;
 
 #include "RaytracingPass.hpp"
 #include "RasterPass.hpp"
+#include "DenoisePass.hpp"
 #include "HandleInput.hpp"
 #include "HandleGui.hpp"
 
@@ -56,12 +57,15 @@ Renderer::Renderer(uint32_t width, uint32_t height)
 {
     BackbufferFormat                             = DXGI_FORMAT_R10G10B10A2_UNORM;
     CPURaytracerTexType                          = DXGI_FORMAT_R32G32B32A32_FLOAT;
-    RaytracingBufferType                         = DXGI_FORMAT_R32G32B32A32_FLOAT;
+    DirectIndirectBufferType                     = DXGI_FORMAT_R32G32B32A32_FLOAT;
+    MomentsBufferType                            = DXGI_FORMAT_R32G32B32A32_FLOAT;
+    HistoryBufferType                            = DXGI_FORMAT_R32_UINT;
     GBufferRTTypes[GBufferType_Position]         = DXGI_FORMAT_R32G32B32A32_FLOAT;
     GBufferRTTypes[GBufferType_Normal]           = DXGI_FORMAT_R16G16B16A16_FLOAT;
     GBufferRTTypes[GBufferType_TexCoordAndDepth] = DXGI_FORMAT_R8G8B8A8_UNORM;
     GBufferRTTypes[GBufferType_Albedo]           = DXGI_FORMAT_R16G16B16A16_FLOAT;
-    GBufferRTTypes[GBufferType_SVGFLinearZ]      = DXGI_FORMAT_R32G32B32A32_FLOAT;
+    GBufferRTTypes[GBufferType_CurrSVGFLinearZ]  = DXGI_FORMAT_R32G32B32A32_FLOAT;
+    GBufferRTTypes[GBufferType_PrevSVGFLinearZ]  = DXGI_FORMAT_R32G32B32A32_FLOAT;
     GBufferRTTypes[GBufferType_SVGFMoVec]        = DXGI_FORMAT_R32G32B32A32_FLOAT;
     GBufferRTTypes[GBufferType_SVGFCompact]      = DXGI_FORMAT_R32G32B32A32_FLOAT;
 }
@@ -73,8 +77,9 @@ Renderer::~Renderer()
     CommandListManager::Get().IdleGPU();
 
     CleanupLoadingThread();
-    CleanupGpuRaytracer();
-    CleanupRasterRender();
+    CleanupGpuRaytracerPass();
+    CleanupRasterPass();
+    CleanupDenoisePass();
 
     if (TheRaytracer != nullptr)
     {
@@ -134,6 +139,7 @@ void Renderer::OnInit()
     SetupRenderBuffers();
     SetupRasterRootSignatures();
     SetupGpuRaytracingRootSignatures();
+    SetupDenoisePipeline();
 
     // Load the scene data
     StartSceneLoad();
@@ -163,8 +169,17 @@ void Renderer::SetupRenderBuffers()
         std::string directName   = std::string("Direct ") + LightingBufferTypeStrings[i];
         std::string indirectName = std::string("Indirect ") + LightingBufferTypeStrings[i];
 
-        DirectLightingBuffer[i].CreateEx(directName, width, height, 1, RaytracingBufferType, nullptr, D3D12_HEAP_TYPE_DEFAULT, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
-        IndirectLightingBuffer[i].CreateEx(indirectName, width, height, 1, RaytracingBufferType, nullptr, D3D12_HEAP_TYPE_DEFAULT, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
+        DirectLightingBuffer[i].CreateEx(directName, width, height, 1, DirectIndirectBufferType, nullptr, D3D12_HEAP_TYPE_DEFAULT, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
+        IndirectLightingBuffer[i].CreateEx(indirectName, width, height, 1, DirectIndirectBufferType, nullptr, D3D12_HEAP_TYPE_DEFAULT, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
+    }
+
+    for (int i = 0; i < 2; i++)
+    {
+        MomentsBuffer[i].Destroy();
+        HistoryBuffer[i].Destroy();
+
+        MomentsBuffer[i].CreateEx("Moments Buffer", width, height, 1, MomentsBufferType, nullptr, D3D12_HEAP_TYPE_DEFAULT, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
+        HistoryBuffer[i].CreateEx("History Buffer", width, height, 1, HistoryBufferType, nullptr, D3D12_HEAP_TYPE_DEFAULT, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
     }
 }
 
@@ -210,6 +225,7 @@ void Renderer::LoadingThread(Renderer* pRenderer)
     pRenderer->SetupRasterDescriptors();
     pRenderer->SetupGpuRaytracingDescriptors();
     pRenderer->SetupGpuRaytracingPSO();
+    pRenderer->SetupDenoiseDescriptors();
     pRenderer->SetCameraDirty();
 
     // Done loading
@@ -296,8 +312,10 @@ bool Renderer::OnSizeChanged(uint32_t width, uint32_t height, bool minimized)
     TheRenderScene->SetupResourceViews(*RendererDescriptorHeap);
     OnResizeCpuRaytracer();
     SetupRenderBuffers();
-    OnResizeRasterRender();
-    OnResizeGpuRaytracer();
+    SetupRasterDescriptors();
+    SetupGpuRaytracingDescriptors();
+    SetupGpuRaytracingPSO();
+    SetupDenoiseDescriptors();
     SetCameraDirty();
 
     return true;
@@ -424,7 +442,8 @@ void Renderer::OnRender()
             FrameCount++;
         }
 
-        // Composite results and GUI render
+        // Denoise and composite
+        RenderDenoisePass();
         RenderCompositePass();
     }
 

@@ -22,6 +22,14 @@
 
 #include "RealtimeEngine/ShaderCompat.h"
 
+// ----------------------------------------------------------------------------------------------------------------------------
+
+#define COMPUTE_THREAD_GROUPSIZE_X  128
+#define COMPUTE_THREAD_GROUPSIZE_Y  1
+#define COMPUTE_THREAD_GROUPSIZE_Z  1
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 // Align the following structs to 16 bytes
 ALIGN_BEGIN(16)
 
@@ -49,6 +57,17 @@ struct CompositeConstantBuffer
     XMFLOAT4    CompositeMultipliers[3];
     XMFLOAT2    DirectIndirectLightMult;
     float       CpuNormalizeFactor;
+    float       Padding0;
+};
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+struct DenoiseConstantBuffer
+{
+    float Alpha;
+    float MomentsAlpha;
+    float Padding0;
+    float Padding1;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------

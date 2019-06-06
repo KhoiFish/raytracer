@@ -123,17 +123,17 @@ private:
         AppState_RenderScene,
     };
 
-    enum DeferredBufferType
+    enum GBufferType
     {
-        DeferredBufferType_Position = 0,
-        DeferredBufferType_Normal,
-        DeferredBufferType_TexCoordAndDepth,
-        DeferredBufferType_Albedo,
+        GBufferType_Position = 0,
+        GBufferType_Normal,
+        GBufferType_TexCoordAndDepth,
+        GBufferType_Albedo,
 
-        DeferredBufferType_Num
+        GBufferType_Num
     };
 
-    static constexpr const char* DeferredBufferTypeStrings[DeferredBufferType_Num] =
+    static constexpr const char* DeferredBufferTypeStrings[GBufferType_Num] =
     {
         "Positions",
         "Normals",
@@ -211,7 +211,7 @@ private:
     std::mt19937                    RandGen;
 
     DXGI_FORMAT                     BackbufferFormat;
-    DXGI_FORMAT                     DeferredBuffersRTTypes[DeferredBufferType_Num];
+    DXGI_FORMAT                     GBufferRTTypes[GBufferType_Num];
     DXGI_FORMAT                     RaytracingBufferType;
     DXGI_FORMAT                     CPURaytracerTexType;
 
@@ -219,7 +219,7 @@ private:
     DescriptorHeapStack*            RendererDescriptorHeap;
 
     ColorTarget                     CPURaytracerTex;
-    ColorTarget                     DeferredBuffers[DeferredBufferType_Num];
+    ColorTarget                     GBuffers[GBufferType_Num];
     ColorTarget                     DirectLightingAOBuffer[2];
     ColorTarget                     IndirectLightingBuffer[2];
 

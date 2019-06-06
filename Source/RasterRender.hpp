@@ -266,7 +266,7 @@ void Renderer::SetupRasterRootSignatures()
         RasterGeometryPassPSO.SetDepthStencilState(GetDepthEnabledState());
         RasterGeometryPassPSO.SetInputLayout(RealtimeSceneVertexEx::InputElementCount, RealtimeSceneVertexEx::InputElements);
         RasterGeometryPassPSO.SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
-        RasterGeometryPassPSO.SetRenderTargetFormats(_countof(DeferredBuffersRTTypes), DeferredBuffersRTTypes, RenderDevice::Get().GetDepthBufferFormat());
+        RasterGeometryPassPSO.SetRenderTargetFormats(_countof(GBufferRTTypes), GBufferRTTypes, RenderDevice::Get().GetDepthBufferFormat());
         RasterGeometryPassPSO.SetVertexShader(vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize());
         RasterGeometryPassPSO.SetPixelShader(pixelShaderBlob->GetBufferPointer(), pixelShaderBlob->GetBufferSize());
         RasterGeometryPassPSO.Finalize();
@@ -329,11 +329,11 @@ void Renderer::SetupRasterDescriptors()
         CPURaytracerTex.GetResource(),
         CPURaytracerTexType);
 
-    for (int i = 0; i < DeferredBufferType_Num; i++)
+    for (int i = 0; i < GBufferType_Num; i++)
     {
         RendererDescriptorHeap->AllocateTexture2DSrv(
-            DeferredBuffers[i].GetResource(),
-            DeferredBuffersRTTypes[i]);
+            GBuffers[i].GetResource(),
+            GBufferRTTypes[i]);
     }
 }
 
@@ -408,25 +408,25 @@ void Renderer::RenderGeometryPass()
             RasterSceneConstantBuffer.Upload(&sceneCB, sizeof(sceneCB));
 
             // Transition resources
-            for (int i = 0; i < DeferredBufferType_Num; i++)
+            for (int i = 0; i < GBufferType_Num; i++)
             {
-                renderContext.TransitionResource(DeferredBuffers[i], D3D12_RESOURCE_STATE_RENDER_TARGET);
+                renderContext.TransitionResource(GBuffers[i], D3D12_RESOURCE_STATE_RENDER_TARGET);
             }
             renderContext.TransitionResource(RenderDevice::Get().GetDepthStencil(), D3D12_RESOURCE_STATE_DEPTH_WRITE, true);
             
             // Bind gbuffer
             D3D12_CPU_DESCRIPTOR_HANDLE rtvs[]
             {
-                DeferredBuffers[DeferredBufferType_Position].GetRTV(),
-                DeferredBuffers[DeferredBufferType_Normal].GetRTV(),
-                DeferredBuffers[DeferredBufferType_TexCoordAndDepth].GetRTV(),
-                DeferredBuffers[DeferredBufferType_Albedo].GetRTV()
+                GBuffers[GBufferType_Position].GetRTV(),
+                GBuffers[GBufferType_Normal].GetRTV(),
+                GBuffers[GBufferType_TexCoordAndDepth].GetRTV(),
+                GBuffers[GBufferType_Albedo].GetRTV()
             };
             renderContext.SetRenderTargets(ARRAYSIZE(rtvs), rtvs, RenderDevice::Get().GetDepthStencil().GetDSV());
 
-            for (int i = 0; i < DeferredBufferType_Num; i++)
+            for (int i = 0; i < GBufferType_Num; i++)
             {
-                renderContext.ClearColor(DeferredBuffers[i]);
+                renderContext.ClearColor(GBuffers[i]);
             }
 
             // Set descriptor heaps and tables
@@ -518,9 +518,9 @@ void Renderer::RenderCompositePass()
             renderContext.TransitionResource(CPURaytracerTex, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
             renderContext.TransitionResource(DirectLightingAOBuffer[1], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
             renderContext.TransitionResource(IndirectLightingBuffer[1], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-            for (int i = 0; i < DeferredBufferType_Num; i++)
+            for (int i = 0; i < GBufferType_Num; i++)
             {
-                renderContext.TransitionResource(DeferredBuffers[i], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+                renderContext.TransitionResource(GBuffers[i], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
             }
             renderContext.TransitionResource(RenderDevice::Get().GetRenderTarget(), D3D12_RESOURCE_STATE_RENDER_TARGET);
             renderContext.TransitionResource(RenderDevice::Get().GetDepthStencil(), D3D12_RESOURCE_STATE_DEPTH_READ);

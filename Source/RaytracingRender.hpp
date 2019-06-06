@@ -315,26 +315,26 @@ void Renderer::SetupGpuRaytracingDescriptors()
     // Positions
     RaytracingGlobalRootSigSlot::DescriptorHeapOffsets[RaytracingGlobalRootSigSlot::Positions] = currOffset++;
     RendererDescriptorHeap->AllocateTexture2DSrv(
-        DeferredBuffers[DeferredBufferType_Position].GetResource(),
-        DeferredBuffersRTTypes[DeferredBufferType_Position]);
+        GBuffers[GBufferType_Position].GetResource(),
+        GBufferRTTypes[GBufferType_Position]);
 
     // Normals
     RaytracingGlobalRootSigSlot::DescriptorHeapOffsets[RaytracingGlobalRootSigSlot::Normals] = currOffset++;
     RendererDescriptorHeap->AllocateTexture2DSrv(
-        DeferredBuffers[DeferredBufferType_Normal].GetResource(),
-        DeferredBuffersRTTypes[DeferredBufferType_Normal]);
+        GBuffers[GBufferType_Normal].GetResource(),
+        GBufferRTTypes[GBufferType_Normal]);
 
     // TexCoords and Depth
     RaytracingGlobalRootSigSlot::DescriptorHeapOffsets[RaytracingGlobalRootSigSlot::TexCoordsAndDepth] = currOffset++;
     RendererDescriptorHeap->AllocateTexture2DSrv(
-        DeferredBuffers[DeferredBufferType_TexCoordAndDepth].GetResource(),
-        DeferredBuffersRTTypes[DeferredBufferType_TexCoordAndDepth]);
+        GBuffers[GBufferType_TexCoordAndDepth].GetResource(),
+        GBufferRTTypes[GBufferType_TexCoordAndDepth]);
 
     // Albedo
     RaytracingGlobalRootSigSlot::DescriptorHeapOffsets[RaytracingGlobalRootSigSlot::Albedo] = currOffset++;
     RendererDescriptorHeap->AllocateTexture2DSrv(
-        DeferredBuffers[DeferredBufferType_Albedo].GetResource(),
-        DeferredBuffersRTTypes[DeferredBufferType_Albedo]);
+        GBuffers[GBufferType_Albedo].GetResource(),
+        GBufferRTTypes[GBufferType_Albedo]);
 
     // Vertex buffer array
     RaytracingGlobalRootSigSlot::DescriptorHeapOffsets[RaytracingGlobalRootSigSlot::VertexBufferArray] = currOffset;

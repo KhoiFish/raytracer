@@ -54,13 +54,13 @@ Renderer::Renderer(uint32_t width, uint32_t height)
     , RaytracingGlobalSigDataIndexStart(0)
     , RaytracingLocalSigDataIndexStart(0)
 {
-    BackbufferFormat                                            = DXGI_FORMAT_R10G10B10A2_UNORM;
-    CPURaytracerTexType                                         = DXGI_FORMAT_R32G32B32A32_FLOAT;
-    RaytracingBufferType                                        = DXGI_FORMAT_R32G32B32A32_FLOAT;
-    DeferredBuffersRTTypes[DeferredBufferType_Position]         = DXGI_FORMAT_R32G32B32A32_FLOAT;
-    DeferredBuffersRTTypes[DeferredBufferType_Normal]           = DXGI_FORMAT_R16G16B16A16_FLOAT;
-    DeferredBuffersRTTypes[DeferredBufferType_TexCoordAndDepth] = DXGI_FORMAT_R8G8B8A8_UNORM;
-    DeferredBuffersRTTypes[DeferredBufferType_Albedo]           = DXGI_FORMAT_R16G16B16A16_FLOAT;
+    BackbufferFormat                             = DXGI_FORMAT_R10G10B10A2_UNORM;
+    CPURaytracerTexType                          = DXGI_FORMAT_R32G32B32A32_FLOAT;
+    RaytracingBufferType                         = DXGI_FORMAT_R32G32B32A32_FLOAT;
+    GBufferRTTypes[GBufferType_Position]         = DXGI_FORMAT_R32G32B32A32_FLOAT;
+    GBufferRTTypes[GBufferType_Normal]           = DXGI_FORMAT_R16G16B16A16_FLOAT;
+    GBufferRTTypes[GBufferType_TexCoordAndDepth] = DXGI_FORMAT_R8G8B8A8_UNORM;
+    GBufferRTTypes[GBufferType_Albedo]           = DXGI_FORMAT_R16G16B16A16_FLOAT;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -143,10 +143,10 @@ void Renderer::SetupRenderBuffers()
     uint32_t width  = RenderDevice::Get().GetBackbufferWidth();
     uint32_t height = RenderDevice::Get().GetBackbufferHeight();
 
-    for (int i = 0; i < DeferredBufferType_Num; i++)
+    for (int i = 0; i < GBufferType_Num; i++)
     {
-        DeferredBuffers[i].Destroy();
-        DeferredBuffers[i].Create(DeferredBufferTypeStrings[i], width, height, 1, DeferredBuffersRTTypes[i]);
+        GBuffers[i].Destroy();
+        GBuffers[i].Create(DeferredBufferTypeStrings[i], width, height, 1, GBufferRTTypes[i]);
     }
 
     CPURaytracerTex.Destroy();

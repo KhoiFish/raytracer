@@ -32,11 +32,13 @@ struct VertexPositionNormalTexture
 
 struct VertexShaderOutput
 {
-    float4 PositionWS   : TEXCOORD0;
-    float3 NormalWS     : TEXCOORD1;
-    float2 TexCoord     : TEXCOORD2;
-    float  LinearDepth  : TEXCOORD3;
-    float4 Position     : SV_Position;
+    float4 PositionWS     : TEXCOORD0;
+    float3 NormalWS       : TEXCOORD1;
+    float2 TexCoord       : TEXCOORD2;
+    float  LinearDepth    : TEXCOORD3;
+    float3 NormalOS       : TEXCOORD4;
+    float4 PrevPositionHS : TEXCOORD5;
+    float4 PositionHS     : SV_Position;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -52,11 +54,13 @@ VertexShaderOutput main(VertexPositionNormalTexture IN)
 
     float4 worldPos = mul(float4(IN.Position, 1.0f), InstanceCb.WorldMatrix);
 
-    OUT.Position    = mul(worldPos, SceneCb.ViewProjectionMatrix);
-    OUT.PositionWS  = worldPos;
-    OUT.NormalWS    = mul(IN.Normal, (float3x3)InstanceCb.WorldMatrix);
-    OUT.LinearDepth = mul(float4(OUT.PositionWS.xyz, 1.0f), SceneCb.ViewMatrix).z / SceneCb.FarClipDist;
-    OUT.TexCoord    = IN.TexCoord;
+    OUT.PositionWS     = worldPos;
+    OUT.NormalWS       = mul(IN.Normal, (float3x3)InstanceCb.WorldMatrix);
+    OUT.TexCoord       = IN.TexCoord;
+    OUT.LinearDepth    = mul(float4(OUT.PositionWS.xyz, 1.0f), SceneCb.ViewMatrix).z / SceneCb.FarClipDist;
+    OUT.NormalOS       = IN.Normal;
+    OUT.PrevPositionHS = mul(worldPos, SceneCb.ViewProjectionMatrix);
+    OUT.PositionHS     = mul(worldPos, SceneCb.ViewProjectionMatrix);
 
     return OUT;
 }

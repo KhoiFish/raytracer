@@ -212,6 +212,13 @@ XMVECTOR RealtimeCamera::GetTarget()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+XMFLOAT2 RealtimeCamera::GetJitter()
+{
+    return XMFLOAT2(ProjectionJitter[0], ProjectionJitter[1]);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 void RealtimeCamera::UpdateViewMatrix()
 {
     XMMATRIX rotationMatrix    = XMMatrixTranspose(XMMatrixRotationQuaternion(TheCameraData->Rotation));

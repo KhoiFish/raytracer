@@ -129,24 +129,40 @@ private:
         GBufferType_Normal,
         GBufferType_TexCoordAndDepth,
         GBufferType_Albedo,
+        GBufferType_SVGFLinearZ,
+        GBufferType_SVGFMoVec,
+        GBufferType_SVGFCompact,
 
         GBufferType_Num
     };
 
-    static constexpr const char* DeferredBufferTypeStrings[GBufferType_Num] =
+    static constexpr const char* GBufferTypeStrings[GBufferType_Num] =
     {
         "Positions",
         "Normals",
         "TexCoordsAnd Depth",
         "Albedo",
+        "SVGFLinearZ",
+        "SVGFMoVec",
+        "SVGFCompact",
     };
 
     enum LightingBufferType
     {
-        LightingBufferType_Results = 0,
-        LightingBufferType_Albedo,
+        LightingBufferType_PrevResults = 0,
+        LightingBufferType_CurrResults,
+        LightingBufferType_PrevAlbedo,
+        LightingBufferType_CurrAlbedo,
 
         LightingBufferType_Num
+    };
+
+    static constexpr const char* LightingBufferTypeStrings[LightingBufferType_Num] =
+    {
+        "Prev Results",
+        "Curr Results",
+        "Prev Albedo",
+        "Curr Albedo",
     };
 
     enum RaytracingShaderType

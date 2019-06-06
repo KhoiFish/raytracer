@@ -322,19 +322,19 @@ void Renderer::SetupRasterDescriptors()
         (UINT)RasterCompositeConstantBuffer.GetBufferSize());
 
     RendererDescriptorHeap->AllocateTexture2DSrv(
-        DirectLightingBuffer[LightingBufferType_Results].GetResource(),
+        DirectLightingBuffer[LightingBufferType_CurrResults].GetResource(),
         RaytracingBufferType);
 
     RendererDescriptorHeap->AllocateTexture2DSrv(
-        DirectLightingBuffer[LightingBufferType_Albedo].GetResource(),
+        DirectLightingBuffer[LightingBufferType_CurrAlbedo].GetResource(),
         RaytracingBufferType);
 
     RendererDescriptorHeap->AllocateTexture2DSrv(
-        IndirectLightingBuffer[LightingBufferType_Results].GetResource(),
+        IndirectLightingBuffer[LightingBufferType_CurrResults].GetResource(),
         RaytracingBufferType);
 
     RendererDescriptorHeap->AllocateTexture2DSrv(
-        IndirectLightingBuffer[LightingBufferType_Albedo].GetResource(),
+        IndirectLightingBuffer[LightingBufferType_CurrAlbedo].GetResource(),
         RaytracingBufferType);
 
     RendererDescriptorHeap->AllocateTexture2DSrv(
@@ -355,8 +355,9 @@ void Renderer::SetupSceneConstantBuffer(SceneConstantBuffer& sceneCB)
 {
     RealtimeCamera& camera = TheRenderScene->GetCamera();
 
-    sceneCB.FarClipDist = camera.GetZFar();
-
+    sceneCB.FarClipDist  = camera.GetZFar();
+    sceneCB.OutputSize   = XMFLOAT4(float(Width), float(Height), 1.0f / float(Width), 1.0f / float(Height));
+    sceneCB.CameraJitter = camera.GetJitter();
     XMStoreFloat4(&sceneCB.CameraPosition, camera.GetEye());
     XMStoreFloat4x4(&sceneCB.ViewMatrix, XMMatrixTranspose(camera.GetViewMatrix()));
     XMStoreFloat4x4(&sceneCB.ProjectionMatrix, XMMatrixTranspose(camera.GetProjectionMatrix()));
@@ -427,13 +428,11 @@ void Renderer::RenderGeometryPass()
             renderContext.TransitionResource(RenderDevice::Get().GetDepthStencil(), D3D12_RESOURCE_STATE_DEPTH_WRITE, true);
             
             // Bind gbuffer
-            D3D12_CPU_DESCRIPTOR_HANDLE rtvs[]
+            D3D12_CPU_DESCRIPTOR_HANDLE rtvs[GBufferType_Num];
+            for (int i = 0; i < GBufferType_Num; i++)
             {
-                GBuffers[GBufferType_Position].GetRTV(),
-                GBuffers[GBufferType_Normal].GetRTV(),
-                GBuffers[GBufferType_TexCoordAndDepth].GetRTV(),
-                GBuffers[GBufferType_Albedo].GetRTV()
-            };
+                rtvs[i] = GBuffers[i].GetRTV();
+            }
             renderContext.SetRenderTargets(ARRAYSIZE(rtvs), rtvs, RenderDevice::Get().GetDepthStencil().GetDSV());
 
             for (int i = 0; i < GBufferType_Num; i++)
@@ -528,10 +527,10 @@ void Renderer::RenderCompositePass()
 
             // Transition resources
             renderContext.TransitionResource(CPURaytracerTex, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-            renderContext.TransitionResource(DirectLightingBuffer[LightingBufferType_Results], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-            renderContext.TransitionResource(DirectLightingBuffer[LightingBufferType_Albedo], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-            renderContext.TransitionResource(IndirectLightingBuffer[LightingBufferType_Results], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-            renderContext.TransitionResource(IndirectLightingBuffer[LightingBufferType_Albedo], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+            renderContext.TransitionResource(DirectLightingBuffer[LightingBufferType_CurrResults], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+            renderContext.TransitionResource(DirectLightingBuffer[LightingBufferType_CurrAlbedo], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+            renderContext.TransitionResource(IndirectLightingBuffer[LightingBufferType_CurrResults], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+            renderContext.TransitionResource(IndirectLightingBuffer[LightingBufferType_CurrAlbedo], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
             for (int i = 0; i < GBufferType_Num; i++)
             {
                 renderContext.TransitionResource(GBuffers[i], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);

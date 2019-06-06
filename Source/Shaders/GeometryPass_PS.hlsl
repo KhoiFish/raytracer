@@ -25,10 +25,13 @@
 
 struct PixelShaderInput
 {
-    float4 PositionWS  : TEXCOORD0;
-    float3 NormalWS    : TEXCOORD1;
-    float2 TexCoord    : TEXCOORD2;
-    float  LinearDepth : TEXCOORD3;
+    float4 PositionWS     : TEXCOORD0;
+    float3 NormalWS       : TEXCOORD1;
+    float2 TexCoord       : TEXCOORD2;
+    float  LinearDepth    : TEXCOORD3;
+    float3 NormalOS       : TEXCOORD4;
+    float4 PrevPositionHS : TEXCOORD5;
+    float4 PositionHS     : SV_Position;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -39,6 +42,9 @@ struct MRT
     float4 Normal           : SV_Target1;
     float4 TexCoordAndDepth : SV_Target2;
     float4 Diffuse          : SV_Target3;
+    float4 SVGFLinearZ      : SV_Target4;
+    float4 SVGFMoVec        : SV_Target5;
+    float4 SVGFCompact      : SV_Target6;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -48,23 +54,65 @@ SamplerState                            AnisoRepeatSampler  : register(s1);
 
 Texture2D                               DiffuseTexture      : register(t8);
 
+ConstantBuffer<SceneConstantBuffer>     SceneCb             : register(b0);
 ConstantBuffer<RenderNodeInstanceData>  InstanceCb          : register(b1);
 ConstantBuffer<RenderMaterial>          MaterialCb          : register(b2);
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+// A simple utility to convert a float to a 2-component octohedral representation packed into one uint
+uint dirToOct(float3 normal)
+{
+    float2 p = normal.xy * (1.0 / dot(abs(normal), 1.0.xxx));
+    float2 e = normal.z > 0.0 ? p : (1.0 - abs(p.yx)) * (step(0.0, p) * 2.0 - (float2)(1.0));
+
+    return (asuint(f32tof16(e.y)) << 16) + (asuint(f32tof16(e.x)));
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+// Take current clip position, last frame pixel position and compute a motion vector
+float2 calcMotionVector(float4 prevClipPos, float2 currentPixelPos, float2 invFrameSize)
+{
+    float2 prevPosNDC = (prevClipPos.xy / prevClipPos.w) * float2(0.5, -0.5) + float2(0.5, 0.5);
+    float2 motionVec  = prevPosNDC - (currentPixelPos * invFrameSize);
+
+    // Guard against inf/nan due to projection by w <= 0.
+    const float epsilon = 1e-5f;
+    motionVec = (prevClipPos.w < epsilon) ? float2(0, 0) : motionVec;
+
+    return motionVec;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 MRT main(PixelShaderInput IN)
 {
+    // Linear Z buffer
+    float  linearZ          = IN.PositionHS.z * IN.PositionHS.w;
+    float  maxChangeZ       = max(abs(ddx(linearZ)), abs(ddy(linearZ)));
+    float  objNorm          = asfloat(dirToOct(normalize(IN.NormalOS)));
+    float4 svgfLinearZOut   = float4(linearZ, maxChangeZ, IN.PrevPositionHS.z, objNorm);
+
+    // Motion vector buffer
+    float2 svgfMotionVec    = calcMotionVector(IN.PrevPositionHS, IN.PositionHS.xy, SceneCb.OutputSize.zw) + float2(SceneCb.CameraJitter.x, -SceneCb.CameraJitter.y);
+    float2 posNormFWidth    = float2(length(fwidth(IN.PositionWS)), length(fwidth(IN.NormalWS)));
+    float4 svgfMotionVecOut = float4(svgfMotionVec, posNormFWidth);
+
     // Have lights be pass through like the background
     float4 outPos = (InstanceCb.LightIndex < 0) 
                         ? float4(IN.PositionWS.xyz, 1) 
                         : float4(0, 0, 0, 0);
 
+    // Write out MRT
     MRT mrt;
     mrt.Position         = outPos;
     mrt.Normal           = float4(IN.NormalWS, InstanceCb.InstanceId);
     mrt.TexCoordAndDepth = float4(IN.TexCoord, IN.LinearDepth, 0);
     mrt.Diffuse          = DiffuseTexture.Sample(AnisoRepeatSampler, IN.TexCoord);
+    mrt.SVGFLinearZ      = svgfLinearZOut;
+    mrt.SVGFMoVec        = svgfMotionVecOut;
+    mrt.SVGFCompact      = float4(asfloat(dirToOct(IN.NormalWS)), linearZ, maxChangeZ, 0.0f);
 
     return mrt;
 }

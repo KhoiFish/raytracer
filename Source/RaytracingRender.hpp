@@ -237,29 +237,36 @@ void Renderer::SetupGpuRaytracingDescriptors()
 
     UINT currOffset = 0;
 
-    // Allocate descriptors for prev and current direct lighting + ao
+    // Allocate descriptors for direct lighting
     RaytracingGlobalRootSigSlot::DescriptorHeapOffsets[RaytracingGlobalRootSigSlot::DirectResult] = currOffset++;
-    RaytracingGlobalRootSigSlot::DescriptorHeapOffsets[RaytracingGlobalRootSigSlot::DirectAlbedo] = currOffset++;
-    for (int i = 0; i < 2; i++)
-    {
-        RendererDescriptorHeap->AllocateBufferUav(
-            *DirectLightingBuffer[i].GetResource(),
-            D3D12_UAV_DIMENSION_TEXTURE2D,
-            D3D12_BUFFER_UAV_FLAG_NONE,
-            RaytracingBufferType);
-    }
+    RendererDescriptorHeap->AllocateBufferUav(
+        *DirectLightingBuffer[LightingBufferType_CurrResults].GetResource(),
+        D3D12_UAV_DIMENSION_TEXTURE2D,
+        D3D12_BUFFER_UAV_FLAG_NONE,
+        RaytracingBufferType);
 
-    // Allocate descriptors for prev and current indirect lighting
+    RaytracingGlobalRootSigSlot::DescriptorHeapOffsets[RaytracingGlobalRootSigSlot::DirectAlbedo] = currOffset++;
+    RendererDescriptorHeap->AllocateBufferUav(
+        *DirectLightingBuffer[LightingBufferType_CurrAlbedo].GetResource(),
+        D3D12_UAV_DIMENSION_TEXTURE2D,
+        D3D12_BUFFER_UAV_FLAG_NONE,
+        RaytracingBufferType);
+
+
+    // Allocate descriptors for indirect lighting
     RaytracingGlobalRootSigSlot::DescriptorHeapOffsets[RaytracingGlobalRootSigSlot::IndirectResult] = currOffset++;
+    RendererDescriptorHeap->AllocateBufferUav(
+        *IndirectLightingBuffer[LightingBufferType_CurrResults].GetResource(),
+        D3D12_UAV_DIMENSION_TEXTURE2D,
+        D3D12_BUFFER_UAV_FLAG_NONE,
+        RaytracingBufferType);
+
     RaytracingGlobalRootSigSlot::DescriptorHeapOffsets[RaytracingGlobalRootSigSlot::IndirectAlbedo] = currOffset++;
-    for (int i = 0; i < 2; i++)
-    {
-        RendererDescriptorHeap->AllocateBufferUav(
-            *IndirectLightingBuffer[i].GetResource(),
-            D3D12_UAV_DIMENSION_TEXTURE2D,
-            D3D12_BUFFER_UAV_FLAG_NONE,
-            RaytracingBufferType);
-    }
+    RendererDescriptorHeap->AllocateBufferUav(
+        *IndirectLightingBuffer[LightingBufferType_CurrAlbedo].GetResource(),
+        D3D12_UAV_DIMENSION_TEXTURE2D,
+        D3D12_BUFFER_UAV_FLAG_NONE,
+        RaytracingBufferType);
 
     // Scene CB
     RaytracingGlobalRootSigSlot::DescriptorHeapOffsets[RaytracingGlobalRootSigSlot::SceneCB] = currOffset++;

@@ -48,6 +48,7 @@ namespace RealtimeEngine
         float               GetVertFov();
         float               GetZFar();
         float               GetZNear();
+        DirectX::XMFLOAT2   GetJitter();
 
     private:
 

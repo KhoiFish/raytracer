@@ -17,6 +17,9 @@
     <Filter Include="Shaders\Raytrace">
       <UniqueIdentifier>{4bc2bbf9-863d-46be-a90e-52774b45d6a7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\SVGF">
+      <UniqueIdentifier>{c097e8d8-94ec-4a96-8d99-8e20b82380fd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Source\SampleScenes.h">

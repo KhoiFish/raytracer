@@ -61,6 +61,9 @@ Renderer::Renderer(uint32_t width, uint32_t height)
     GBufferRTTypes[GBufferType_Normal]           = DXGI_FORMAT_R16G16B16A16_FLOAT;
     GBufferRTTypes[GBufferType_TexCoordAndDepth] = DXGI_FORMAT_R8G8B8A8_UNORM;
     GBufferRTTypes[GBufferType_Albedo]           = DXGI_FORMAT_R16G16B16A16_FLOAT;
+    GBufferRTTypes[GBufferType_SVGFLinearZ]      = DXGI_FORMAT_R32G32B32A32_FLOAT;
+    GBufferRTTypes[GBufferType_SVGFMoVec]        = DXGI_FORMAT_R32G32B32A32_FLOAT;
+    GBufferRTTypes[GBufferType_SVGFCompact]      = DXGI_FORMAT_R32G32B32A32_FLOAT;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -146,19 +149,22 @@ void Renderer::SetupRenderBuffers()
     for (int i = 0; i < GBufferType_Num; i++)
     {
         GBuffers[i].Destroy();
-        GBuffers[i].Create(DeferredBufferTypeStrings[i], width, height, 1, GBufferRTTypes[i]);
+        GBuffers[i].Create(GBufferTypeStrings[i], width, height, 1, GBufferRTTypes[i]);
     }
 
     CPURaytracerTex.Destroy();
     CPURaytracerTex.Create("CpuRaytracerTex", width, height, 1, CPURaytracerTexType);
 
-    for (int i = 0; i < 2; i++)
+    for (int i = 0; i < LightingBufferType_Num; i++)
     {
         DirectLightingBuffer[i].Destroy();
-        DirectLightingBuffer[i].CreateEx("Direct Lighting + AO", width, height, 1, RaytracingBufferType, nullptr, D3D12_HEAP_TYPE_DEFAULT, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
-
         IndirectLightingBuffer[i].Destroy();
-        IndirectLightingBuffer[i].CreateEx("Indirect Lighting", width, height, 1, RaytracingBufferType, nullptr, D3D12_HEAP_TYPE_DEFAULT, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
+
+        std::string directName   = std::string("Direct ") + LightingBufferTypeStrings[i];
+        std::string indirectName = std::string("Indirect ") + LightingBufferTypeStrings[i];
+
+        DirectLightingBuffer[i].CreateEx(directName, width, height, 1, RaytracingBufferType, nullptr, D3D12_HEAP_TYPE_DEFAULT, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
+        IndirectLightingBuffer[i].CreateEx(indirectName, width, height, 1, RaytracingBufferType, nullptr, D3D12_HEAP_TYPE_DEFAULT, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
     }
 }
 

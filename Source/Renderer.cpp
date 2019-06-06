@@ -28,8 +28,8 @@
 using namespace Core;
 using namespace RealtimeEngine;
 
-#include "RaytracingRender.hpp"
-#include "RasterRender.hpp"
+#include "RaytracingPass.hpp"
+#include "RasterPass.hpp"
 #include "HandleInput.hpp"
 #include "HandleGui.hpp"
 

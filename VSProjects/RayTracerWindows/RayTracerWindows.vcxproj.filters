@@ -43,10 +43,10 @@
     <ClInclude Include="..\..\Source\RaytracingShaderInclude.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\RaytracingRender.hpp">
+    <ClInclude Include="..\..\Source\RaytracingPass.hpp">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\RasterRender.hpp">
+    <ClInclude Include="..\..\Source\RasterPass.hpp">
       <Filter>Source</Filter>
     </ClInclude>
   </ItemGroup>

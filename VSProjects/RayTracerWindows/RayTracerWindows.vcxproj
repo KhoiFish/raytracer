@@ -165,9 +165,9 @@
   <ItemGroup>
     <ClInclude Include="..\..\Source\HandleGui.hpp" />
     <ClInclude Include="..\..\Source\HandleInput.hpp" />
-    <ClInclude Include="..\..\Source\RaytracingRender.hpp" />
+    <ClInclude Include="..\..\Source\RaytracingPass.hpp" />
     <ClInclude Include="..\..\Source\RaytracingShaderInclude.h" />
-    <ClInclude Include="..\..\Source\RasterRender.hpp" />
+    <ClInclude Include="..\..\Source\RasterPass.hpp" />
     <ClInclude Include="..\..\Source\Renderer.h" />
     <ClInclude Include="..\..\Source\RendererShaderInclude.h" />
     <ClInclude Include="..\..\Source\SampleScenes.h" />

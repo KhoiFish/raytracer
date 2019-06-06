@@ -32,15 +32,16 @@ struct PixelShaderInput
 
 ConstantBuffer<CompositeConstantBuffer> CompositeCB             : register(b3, space0);
 
-Texture2D                               DirectLightAO           : register(t0, space0);
-Texture2D                               IndirectLight           : register(t1, space0);
-Texture2D                               CpuResultsTex           : register(t2, space0);
-Texture2D                               PositionsTexture        : register(t3, space0);
-Texture2D                               NormalsTexture          : register(t4, space0);
-Texture2D                               TexCoordsTexture        : register(t5, space0);
-Texture2D                               DiffuseTexture          : register(t6, space0);
+Texture2D                               DirectResult            : register(t0, space0);
+Texture2D                               DirectAlbedo            : register(t1, space0);
+Texture2D                               IndirectResult          : register(t2, space0);
+Texture2D                               IndirectAlbedo          : register(t3, space0);
+Texture2D                               CpuResultsTex           : register(t4, space0);
+Texture2D                               PositionsTexture        : register(t5, space0);
+Texture2D                               NormalsTexture          : register(t6, space0);
+Texture2D                               TexCoordsTexture        : register(t7, space0);
+Texture2D                               DiffuseTexture          : register(t8, space0);
 
-SamplerState                            LinearRepeatSampler     : register(s0, space0);
 SamplerState                            AnisoRepeatSampler      : register(s1, space0);
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -90,12 +91,15 @@ float3 ACESFitted(float3 color)
 float4 main(PixelShaderInput IN) : SV_Target
 {
     // Direct lighting and ao stored in the same buffer
-    float4 directLightAO = DirectLightAO.Sample(LinearRepeatSampler, IN.TexCoord);
+    float4 computedDirect   = DirectResult.Sample(AnisoRepeatSampler, IN.TexCoord)   * DirectAlbedo.Sample(AnisoRepeatSampler, IN.TexCoord);
+    float4 computedIndirect = IndirectResult.Sample(AnisoRepeatSampler, IN.TexCoord) * IndirectAlbedo.Sample(AnisoRepeatSampler, IN.TexCoord);
+    //float4 computedDirect   = DirectAlbedo.Sample(AnisoRepeatSampler, IN.TexCoord);
+    //float4 computedIndirect = IndirectAlbedo.Sample(AnisoRepeatSampler, IN.TexCoord);
 
     // Get all the buffer contributions
-    float4 directLight   = float4(directLightAO.rgb, 1)                             * CompositeCB.TextureMultipliers[1] * CompositeCB.DirectIndirectLightMult.x;
-    float4 indirectLight = IndirectLight.Sample(AnisoRepeatSampler, IN.TexCoord)    * CompositeCB.TextureMultipliers[2] * CompositeCB.DirectIndirectLightMult.y;
-    float4 ao            = directLightAO.a                                          * CompositeCB.TextureMultipliers[3];
+    float4 directLight   = computedDirect                                           * CompositeCB.TextureMultipliers[1] * CompositeCB.DirectIndirectLightMult.x;
+    float4 indirectLight = computedIndirect                                         * CompositeCB.TextureMultipliers[2] * CompositeCB.DirectIndirectLightMult.y;
+    float4 ao            = 1.0f                                                     * CompositeCB.TextureMultipliers[3];
     float4 cpuRT         = CpuResultsTex.Sample(AnisoRepeatSampler, IN.TexCoord)    * CompositeCB.TextureMultipliers[4];
     float4 positions     = PositionsTexture.Sample(AnisoRepeatSampler, IN.TexCoord) * CompositeCB.TextureMultipliers[5];
     float4 normals       = NormalsTexture.Sample(AnisoRepeatSampler, IN.TexCoord)   * CompositeCB.TextureMultipliers[6];

@@ -30,8 +30,10 @@ namespace RasterRenderRootSig
         MaterialCB,
         CompositeCB,
 
-        DirectLightAOTex,
-        IndirectLightTex,
+        DirectLightResult,
+        DirectLightAlbedo,
+        IndirectLightResult,
+        IndirectLightAlbedo,
         CpuResultsTex,
         PositionsTex,
         NormalsTex,
@@ -57,13 +59,15 @@ namespace RasterRenderRootSig
         { 2, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_CBV },   // MaterialCB
         { 3, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_CBV },   // CompositeCB
 
-        { 0, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // DirectLightAOTex   
-        { 1, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // IndirectLightTex   
-        { 2, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // CpuResultsTex   
-        { 3, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // PositionsTex
-        { 4, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // NormalsTex  
-        { 5, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // TexCoordsTex
-        { 6, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // DiffuseTex  
+        { 0, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // DirectLightResult
+        { 1, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // DirectLightAlbedo
+        { 2, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // IndirectLightResult
+        { 3, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // IndirectLightAlbedo
+        { 4, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // CpuResultsTex   
+        { 5, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // PositionsTex
+        { 6, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // NormalsTex  
+        { 7, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // TexCoordsTex
+        { 8, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // DiffuseTex  
     };
 }
 
@@ -318,11 +322,19 @@ void Renderer::SetupRasterDescriptors()
         (UINT)RasterCompositeConstantBuffer.GetBufferSize());
 
     RendererDescriptorHeap->AllocateTexture2DSrv(
-        DirectLightingAOBuffer[1].GetResource(),
+        DirectLightingBuffer[LightingBufferType_Results].GetResource(),
         RaytracingBufferType);
 
     RendererDescriptorHeap->AllocateTexture2DSrv(
-        IndirectLightingBuffer[1].GetResource(),
+        DirectLightingBuffer[LightingBufferType_Albedo].GetResource(),
+        RaytracingBufferType);
+
+    RendererDescriptorHeap->AllocateTexture2DSrv(
+        IndirectLightingBuffer[LightingBufferType_Results].GetResource(),
+        RaytracingBufferType);
+
+    RendererDescriptorHeap->AllocateTexture2DSrv(
+        IndirectLightingBuffer[LightingBufferType_Albedo].GetResource(),
         RaytracingBufferType);
 
     RendererDescriptorHeap->AllocateTexture2DSrv(
@@ -516,8 +528,10 @@ void Renderer::RenderCompositePass()
 
             // Transition resources
             renderContext.TransitionResource(CPURaytracerTex, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-            renderContext.TransitionResource(DirectLightingAOBuffer[1], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-            renderContext.TransitionResource(IndirectLightingBuffer[1], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+            renderContext.TransitionResource(DirectLightingBuffer[LightingBufferType_Results], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+            renderContext.TransitionResource(DirectLightingBuffer[LightingBufferType_Albedo], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+            renderContext.TransitionResource(IndirectLightingBuffer[LightingBufferType_Results], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+            renderContext.TransitionResource(IndirectLightingBuffer[LightingBufferType_Albedo], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
             for (int i = 0; i < GBufferType_Num; i++)
             {
                 renderContext.TransitionResource(GBuffers[i], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);

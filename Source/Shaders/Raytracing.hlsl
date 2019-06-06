@@ -31,10 +31,10 @@
 // ----------------------------------------------------------------------------------------------------------------------------
 
 // Global root signature
-RWTexture2D<float4>                         gPrevDirectAO         : register(u0, space0);
-RWTexture2D<float4>                         gCurrDirectAO         : register(u1, space0);
-RWTexture2D<float4>                         gPrevIndirect         : register(u2, space0);
-RWTexture2D<float4>                         gCurrIndirect         : register(u3, space0);
+RWTexture2D<float4>                         gDirectResult         : register(u0, space0);
+RWTexture2D<float4>                         gDirectAlbedo         : register(u1, space0);
+RWTexture2D<float4>                         gIndirectResult       : register(u2, space0);
+RWTexture2D<float4>                         gIndirectAlbedo       : register(u3, space0);
 
 ConstantBuffer<RaytracingGlobalCB>          gSceneCB              : register(b0, space0);
 ConstantBuffer<RealtimeAreaLight>           gLightsCB[]           : register(b0, space1);
@@ -113,12 +113,14 @@ inline AreaLightRayPayload shootAreaLightVisibilityRay(float3 orig, float3 dir, 
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline float3 shootShadeRay(uint instanceInclusionMask, inout uint randSeed, inout HaltonState state, float minT, float3 origin, float3 dir, uint curRayDepth)
+inline LightingResult shootShadeRay(uint instanceInclusionMask, inout uint randSeed, inout HaltonState state, float minT, float3 origin, float3 dir, uint curRayDepth)
 {
     ShadeRayPayload payload;
-    payload.Color    = float3(0, 0, 0);
-    payload.RndSeed  = randSeed;
-    payload.RayDepth = curRayDepth + 1;
+    payload.RndSeed        = randSeed;
+    payload.RayDepth       = curRayDepth + 1;
+    payload.HState         = state;
+    payload.Results.Result = float3(0, 0, 0); 
+    payload.Results.Albedo = float3(0, 0, 0);
 
     // Shoot ray within the max ray depth
     if (payload.RayDepth <= gSceneCB.MaxRayDepth)
@@ -142,12 +144,12 @@ inline float3 shootShadeRay(uint instanceInclusionMask, inout uint randSeed, ino
         state    = payload.HState;
     }
 
-    return payload.Color;
+    return payload.Results;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline float3 shootIndirectLightRay(inout uint randSeed, inout HaltonState state, float minT, float3 worldPos, float3 worldNorm, uint curRayDepth)
+inline LightingResult shootIndirectLightRay(inout uint randSeed, inout HaltonState state, float minT, float3 worldPos, float3 worldNorm, uint curRayDepth)
 {
     float3 bounceDir = getCosHemisphereSample(randSeed, state, worldNorm);
     return shootShadeRay(RAYTRACING_INSTANCEMASK_OPAQUE, randSeed, state, minT, worldPos, bounceDir, curRayDepth);
@@ -170,13 +172,14 @@ inline float3 getRandomPointOnAreaLight(inout uint randSeed, inout HaltonState s
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline float3 shadeLambert(RenderMaterial material, int raysPP, inout uint randSeed, inout HaltonState state, float minT, float3 worldPos, float3 worldNorm, float4 albedo)
+inline LightingResult shadeLambert(RenderMaterial material, int raysPP, inout uint randSeed, inout HaltonState state, float minT, float3 worldPos, float3 worldNorm, float4 albedo)
 {
-    float3 shadeResult = float3(0, 0, 0);
+    LightingResult lightResult;
+    lightResult.Result = float3(0, 0, 0);
+    lightResult.Albedo = float3(0, 0, 0);
     for (int i = 0; i < raysPP; i++)
     {
         // Pick a random light to sample
-        float3            lightResult = float3(0, 0, 0);
         int               lightIndex  = min(int(nextRand(randSeed) * gSceneCB.NumLights), gSceneCB.NumLights - 1);
         RealtimeAreaLight light       = gLightsCB[lightIndex];
         float3            onLight     = getRandomPointOnAreaLight(randSeed, state, light);
@@ -195,38 +198,43 @@ inline float3 shadeLambert(RenderMaterial material, int raysPP, inout uint randS
 
             if (cosine > 0 && dot(lightDir, worldNorm) >= 0)
             {
-                shadeResult += lightPayload.LightColor / pdf;
+                lightResult.Result += lightPayload.LightColor / pdf;
             }
         }
     }
 
-    // Modulate based on the physically based Lambertian term (albedo/pi)
-    shadeResult *= (albedo.rgb / SHADER_PI);
-    shadeResult /= raysPP;
+    // Modulate albedo based on the physically based Lambertian term (albedo/pi)
+    lightResult.Albedo = (albedo.rgb / SHADER_PI);
 
-    return shadeResult;
+    lightResult.Result /= raysPP;
+    //lightResult.Albedo /= raysPP;
+
+    return lightResult;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline float3 shadeMetal(RenderMaterial material, float3 incomingRayDir, inout uint randSeed, inout HaltonState state, float minT, float3 worldPos, float3 worldNorm, float4 albedo, uint curRayDepth)
+inline LightingResult shadeMetal(RenderMaterial material, float3 incomingRayDir, inout uint randSeed, inout HaltonState state, float minT, float3 worldPos, float3 worldNorm, float4 albedo, uint curRayDepth)
 {
+    LightingResult lightResult;
+    lightResult.Result = float3(0, 0, 0);
+    lightResult.Albedo = float3(0, 0, 0);
+
     float3 reflDir = reflect(incomingRayDir, worldNorm) + (material.Fuzz * getCosHemisphereSample(randSeed, state, worldNorm));
 
     if (dot(reflDir, worldNorm) > 0.0f)
     {
-        return albedo.rgb * shootShadeRay(RAYTRACING_INSTANCEMASK_ALL, randSeed, state, minT, worldPos, reflDir, curRayDepth);
+        lightResult         = shootShadeRay(RAYTRACING_INSTANCEMASK_ALL, randSeed, state, minT, worldPos, reflDir, curRayDepth);
+        lightResult.Albedo *= albedo.rgb;
     }
 
-    return float3(0, 0, 0);
+    return lightResult;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline float3 shadeDielectric(RenderMaterial material, float3 incomingRayDir, inout uint randSeed, inout HaltonState state, float minT, float3 worldPos, float3 worldNorm, float4 albedo, uint curRayDepth)
+inline LightingResult shadeDielectric(RenderMaterial material, float3 incomingRayDir, inout uint randSeed, inout HaltonState state, float minT, float3 worldPos, float3 worldNorm, float4 albedo, uint curRayDepth)
 {
-    const float reflIndex = material.ReflIndex;
-
     float  niOverNt, cosine;
     float3 outwardNormal;
     float  dirDotNorm = dot(incomingRayDir, worldNorm);
@@ -234,14 +242,14 @@ inline float3 shadeDielectric(RenderMaterial material, float3 incomingRayDir, in
     {
         // Exiting triangle
         outwardNormal = -worldNorm;
-        niOverNt      = reflIndex;
+        niOverNt      = material.ReflIndex;
         cosine        = material.ReflIndex * dirDotNorm;
     }
     else
     {
         // Entering triangle
         outwardNormal = worldNorm;
-        niOverNt      = 1.0f / reflIndex;
+        niOverNt      = 1.0f / material.ReflIndex;
         cosine        = -dirDotNorm;
     }
 
@@ -250,7 +258,7 @@ inline float3 shadeDielectric(RenderMaterial material, float3 incomingRayDir, in
     float  reflectProb;
     if (any(refracted))
     {
-        reflectProb = schlick(cosine, reflIndex);
+        reflectProb = schlick(cosine, material.ReflIndex);
     }
     else
     {
@@ -268,34 +276,38 @@ inline float3 shadeDielectric(RenderMaterial material, float3 incomingRayDir, in
         specularDir = refracted;
     }
 
-    return albedo.rgb * shootShadeRay(RAYTRACING_INSTANCEMASK_ALL, randSeed, state, minT, worldPos, specularDir, curRayDepth);
+    LightingResult lightResult = shootShadeRay(RAYTRACING_INSTANCEMASK_ALL, randSeed, state, minT, worldPos, specularDir, curRayDepth);
+    lightResult.Albedo *= albedo.rgb;
+
+    return lightResult;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline float3 shade(RenderMaterial material, float3 incomingRayDir, int raysPP, inout uint randSeed, inout HaltonState state, float minT, float3 worldPos, float3 worldNorm, float4 albedo, uint curRayDepth)
+inline LightingResult shade(RenderMaterial material, float3 incomingRayDir, int raysPP, inout uint randSeed, inout HaltonState state, float minT, float3 worldPos, float3 worldNorm, float4 albedo, uint curRayDepth)
 {
-    float3 shadeColor;
+    LightingResult result;
     switch (material.Type)
     {
         case RenderMaterialType_Light:
-            shadeColor = material.Diffuse.rgb;
+            result.Albedo = float3(1, 1, 1);
+            result.Result = material.Diffuse.rgb;
         break;
 
         case RenderMaterialType_Lambert:
-            shadeColor = shadeLambert(material, raysPP, randSeed, state, minT, worldPos, worldNorm, albedo);
+            result = shadeLambert(material, raysPP, randSeed, state, minT, worldPos, worldNorm, albedo);
         break;
 
         case RenderMaterialType_Metal:
-            shadeColor = shadeMetal(material, incomingRayDir, randSeed, state, minT, worldPos, worldNorm, albedo, curRayDepth);
+            result = shadeMetal(material, incomingRayDir, randSeed, state, minT, worldPos, worldNorm, albedo, curRayDepth);
         break;
 
         case RenderMaterialType_MDielectric:
-            shadeColor = shadeDielectric(material, incomingRayDir, randSeed, state, minT, worldPos, worldNorm, albedo, curRayDepth);
+            result = shadeDielectric(material, incomingRayDir, randSeed, state, minT, worldPos, worldNorm, albedo, curRayDepth);
         break;
     }
 
-    return shadeColor;
+    return result;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -315,37 +327,43 @@ inline float sampleAmbientOcclusion(int raysPP, inout uint randSeed, inout Halto
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline float3 sampleDirectLighting(RenderMaterial material, float3 incomingRayDir, int raysPP, inout uint randSeed, inout HaltonState state, float minT, float3 worldPos, float3 worldNorm, float4 albedo)
+inline LightingResult sampleDirectLighting(RenderMaterial material, float3 incomingRayDir, int raysPP, inout uint randSeed, inout HaltonState state, float minT, float3 worldPos, float3 worldNorm, float4 albedo)
 {
-    float3 shadeColor;
+    LightingResult lightResult;
     if (gSceneCB.NumLights > 0)
     {
-        shadeColor = shade(material, incomingRayDir, raysPP, randSeed, state, minT, worldPos, worldNorm, albedo, 0);
+        lightResult = shade(material, incomingRayDir, raysPP, randSeed, state, minT, worldPos, worldNorm, albedo, 0);
     }
     else
     {
-        shadeColor = albedo.rgb;
-        shadeColor /= raysPP;
+        lightResult.Result = float3(1, 1, 1);
+        lightResult.Albedo = (albedo.rgb / raysPP);
     }
 
-    return shadeColor;
+    return lightResult;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline float3 sampleIndirectLighting(int raysPP, inout uint randSeed, inout HaltonState state, float minT, float3 worldPos, float3 worldNorm)
+inline LightingResult sampleIndirectLighting(int raysPP, inout uint randSeed, inout HaltonState state, float minT, float3 worldPos, float3 worldNorm)
 {
-    float3 bounceColor = float3(0, 0, 0);
+    LightingResult lightResult;
+    lightResult.Result = float3(0, 0, 0);
+    lightResult.Albedo = float3(0, 0, 0);
+
     if (gSceneCB.NumLights > 0)
     {
         for (int i = 0; i < raysPP; i++)
         {
-            bounceColor += shootIndirectLightRay(randSeed, state, minT, worldPos, worldNorm, 0);
+            LightingResult result = shootIndirectLightRay(randSeed, state, minT, worldPos, worldNorm, 0);
+            lightResult.Result += result.Result;
+            lightResult.Albedo += result.Albedo;
         }
-        bounceColor /= raysPP;
+        lightResult.Result /= raysPP;
+        lightResult.Albedo /= raysPP;
     }
 
-    return bounceColor;
+    return lightResult;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -407,7 +425,15 @@ void ShadeClosest(inout ShadeRayPayload payload, in BuiltInTriangleIntersectionA
     float4               albedo     = gAlbedoArray[gMaterial.DiffuseTextureId].SampleLevel(AnisoRepeatSampler, vert.TexCoord, 0);
 
     // Shade
-    payload.Color = shade(gMaterial, WorldRayDirection(), gSceneCB.RaysPerPixel, payload.RndSeed, payload.HState, RayTMin(), worldPos, worldNorm, albedo, payload.RayDepth);
+    payload.Results = shade(gMaterial, WorldRayDirection(), gSceneCB.RaysPerPixel, payload.RndSeed, payload.HState, RayTMin(), worldPos, worldNorm, albedo, payload.RayDepth);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+inline void validateLightingResult(inout LightingResult lightResult)
+{
+    lightResult.Result = any(isnan(lightResult.Result)) ? float3(0, 0, 0) : lightResult.Result;
+    lightResult.Albedo = any(isnan(lightResult.Albedo)) ? float3(0, 0, 0) : lightResult.Albedo;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -432,25 +458,27 @@ void RayGeneration()
     float           minT        = 0.001f;
 
     // Get direct, indirect and AO contributions
-    float3 direct   = sampleDirectLighting(material, rayInDir, raysPP, randSeed, haltonState, minT, worldPos.xyz, worldNorm, albedo);
-    float3 indirect = sampleIndirectLighting(raysPP, randSeed, haltonState, minT, worldPos.xyz, worldNorm);
-    float  ao       = sampleAmbientOcclusion(raysPP, randSeed, haltonState, minT, aoRadius, worldPos.xyz, worldNorm);
+    LightingResult directResult   = sampleDirectLighting(material, rayInDir, raysPP, randSeed, haltonState, minT, worldPos.xyz, worldNorm, albedo);
+    LightingResult indirectResult = sampleIndirectLighting(raysPP, randSeed, haltonState, minT, worldPos.xyz, worldNorm);
+    //float          ao       = sampleAmbientOcclusion(raysPP, randSeed, haltonState, minT, aoRadius, worldPos.xyz, worldNorm);
     
-    // Pass through background/lights
-    float2 backSelect = float2(worldPos.w, 1 - worldPos.w);
-    direct            = (direct * backSelect.x)   + (albedo.rgb * backSelect.y);
-    indirect          = (indirect * backSelect.x) + (float3(0, 0, 0) * backSelect.y);
-    ao                = (ao * backSelect.x)       + (1.0f * backSelect.y);
+    //// Pass through background/lights
+    //float2 backSelect = float2(worldPos.w, 1 - worldPos.w);
+    //direct            = (direct * backSelect.x)   + (albedo.rgb * backSelect.y);
+    //indirect          = (indirect * backSelect.x) + (float3(0, 0, 0) * backSelect.y);
+    //ao                = (ao * backSelect.x)       + (1.0f * backSelect.y);
 
     // Accumulate results
-    float4 finalDirectAO = temporalAccumulate(gSceneCB.AccumCount, gPrevDirectAO[launchIndex.xy], float4(direct, ao));
-    float4 finalIndirect = temporalAccumulate(gSceneCB.AccumCount, gPrevIndirect[launchIndex.xy], float4(indirect, 1));
+    //float4 finalDirectAO = temporalAccumulate(gSceneCB.AccumCount, gPrevDirectAO[launchIndex.xy], float4(direct, 1));
+    //float4 finalIndirect = temporalAccumulate(gSceneCB.AccumCount, gPrevIndirect[launchIndex.xy], float4(indirect, 1));
 
     // Zero out nan, inf, etc.
-    finalDirectAO = any(isnan(finalDirectAO)) ? float4(1, 1, 1, 1) : finalDirectAO;
-    finalIndirect = any(isnan(finalIndirect)) ? float4(1, 1, 1, 1) : finalIndirect;
+    validateLightingResult(directResult);
+    validateLightingResult(indirectResult);
 
     // Write final results to the output
-    gCurrDirectAO[launchIndex.xy] = finalDirectAO;
-    gCurrIndirect[launchIndex.xy] = finalIndirect;
+    gDirectResult[launchIndex.xy]   = float4(directResult.Result, 1);
+    gDirectAlbedo[launchIndex.xy]   = float4(directResult.Albedo, 1);
+    gIndirectResult[launchIndex.xy] = float4(indirectResult.Result, 1);
+    gIndirectAlbedo[launchIndex.xy] = float4(indirectResult.Albedo, 1);
 }

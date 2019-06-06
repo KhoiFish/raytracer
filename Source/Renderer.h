@@ -106,7 +106,7 @@ private:
     void                        RenderGuiOptionsWindow();
     void                        RenderGuiLoadingScreen();
 
-    const char*                 GetSelectedBufferName();
+    const char* GetSelectedBufferName();
     uint32_t                    GetNumberHitPrograms();
     D3D12_SAMPLER_DESC          GetLinearSamplerDesc();
     D3D12_SAMPLER_DESC          GetAnisoSamplerDesc();
@@ -139,6 +139,14 @@ private:
         "Normals",
         "TexCoordsAnd Depth",
         "Albedo",
+    };
+
+    enum LightingBufferType
+    {
+        LightingBufferType_Results = 0,
+        LightingBufferType_Albedo,
+
+        LightingBufferType_Num
     };
 
     enum RaytracingShaderType
@@ -220,8 +228,8 @@ private:
 
     ColorTarget                     CPURaytracerTex;
     ColorTarget                     GBuffers[GBufferType_Num];
-    ColorTarget                     DirectLightingAOBuffer[2];
-    ColorTarget                     IndirectLightingBuffer[2];
+    ColorTarget                     DirectLightingBuffer[LightingBufferType_Num];
+    ColorTarget                     IndirectLightingBuffer[LightingBufferType_Num];
 
     RootSignature                   RasterRootSignature;
     GraphicsPSO                     RasterGeometryPassPSO;

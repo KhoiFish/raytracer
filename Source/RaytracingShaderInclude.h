@@ -30,6 +30,12 @@ struct HaltonState
     UINT SequenceIndex;
 };
 
+struct LightingResult
+{
+    XMFLOAT3 Result;
+    XMFLOAT3 Albedo;
+};
+
 // ----------------------------------------------------------------------------------------------------------------------------
 
 struct ShadowRayPayload
@@ -45,10 +51,10 @@ struct AreaLightRayPayload
 
 struct ShadeRayPayload
 {
-    XMFLOAT3    Color;
-    UINT        RndSeed;
-    UINT        RayDepth;
-    HaltonState HState;
+    LightingResult  Results;
+    UINT            RndSeed;
+    UINT            RayDepth;
+    HaltonState     HState;
 };
 
 // Set this to the largest payload struct from above

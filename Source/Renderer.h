@@ -227,6 +227,7 @@ private:
         float   GpuDirectLightMult              = 1.00f;
         float   GpuIndirectLightMult            = 0.35f;
         bool    GpuEnableToneMapping            = true;
+        int     GpuDenoiseFilterIterations      = 4;
     };
 
     typedef std::uniform_real_distribution<float> RandFloatDist;
@@ -291,6 +292,7 @@ private:
     RootSignature                   DenoiseRootSig;
     ComputePSO                      DenoiseReprojectPSO;
     ComputePSO                      DenoiseFilterMomentsPSO;
+    ComputePSO                      DenoiseAtrousPSO;
     uint32_t                        DenoiseDescriptorIndexStart;
     UploadBuffer                    DenoiseShaderConstantBuffer;
 };

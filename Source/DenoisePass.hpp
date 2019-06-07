@@ -54,6 +54,9 @@ namespace DenoisePassRootSig
         Num,
     };
 
+    const int RootConstantsRegister = 1;
+    const int RootConstantsIndex    = Num;
+
     enum IndexTypes
     {
         Register = 0,
@@ -115,7 +118,7 @@ void Renderer::SetupDenoisePipeline()
 
     // Root sig setup
     {
-        DenoiseRootSig.Reset(DenoisePassRootSig::Num, 0);
+        DenoiseRootSig.Reset(DenoisePassRootSig::Num + 1, 0);
         {
             for (int i = 0; i < DenoisePassRootSig::Num; i++)
             {
@@ -126,6 +129,8 @@ void Renderer::SetupDenoisePipeline()
                     DenoisePassRootSig::Range[i][DenoisePassRootSig::Space],
                     D3D12_SHADER_VISIBILITY_ALL);
             }
+
+            DenoiseRootSig[DenoisePassRootSig::RootConstantsIndex].InitAsConstants(DenoisePassRootSig::RootConstantsRegister, sizeof(DenoiseRootConstants) / sizeof(uint32_t), D3D12_SHADER_VISIBILITY_ALL);
         }
         DenoiseRootSig.Finalize("DenoiseRootSig", D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
     }
@@ -148,6 +153,16 @@ void Renderer::SetupDenoisePipeline()
         DenoiseFilterMomentsPSO.SetRootSignature(DenoiseRootSig);
         DenoiseFilterMomentsPSO.SetComputeShader(computeShaderBlob->GetBufferPointer(), computeShaderBlob->GetBufferSize());
         DenoiseFilterMomentsPSO.Finalize();
+    }
+
+    // Atrous PSO Setup
+    {
+        Microsoft::WRL::ComPtr<ID3DBlob> computeShaderBlob;
+        ThrowIfFailed(D3DReadFileToBlob(SHADERBUILD_DIR L"\\SVGFAtrous_CS.cso", &computeShaderBlob));
+
+        DenoiseAtrousPSO.SetRootSignature(DenoiseRootSig);
+        DenoiseAtrousPSO.SetComputeShader(computeShaderBlob->GetBufferPointer(), computeShaderBlob->GetBufferSize());
+        DenoiseAtrousPSO.Finalize();
     }
 }
 
@@ -397,6 +412,38 @@ void Renderer::RenderDenoisePass()
         DenoiseDirectOutputDescriptor.PingPong();
         DenoiseIndirectOutputDescriptor.PingPong();
 
+        // Atrous Decomposition
+        {
+            computeContext.SetPipelineState(DenoiseAtrousPSO);
+
+            // Set descriptor tables
+            for (int i = 0; i < DenoisePassRootSig::Num; i++)
+            {
+                uint32_t heapIndex = DenoiseDescriptorIndexStart + DenoisePassRootSig::HeapOffsets[i];
+                computeContext.SetDescriptorTable(i, RendererDescriptorHeap->GetGpuHandle(heapIndex));
+            }
+
+            for (int i = 0; i < TheUserInputData.GpuDenoiseFilterIterations; i++)
+            {
+                // Set root signature constants
+                {
+                    DenoiseRootConstants rootConstants;
+                    rootConstants.StepSize = (1 << i);
+                    computeContext.SetConstant(DenoisePassRootSig::RootConstantsIndex, rootConstants.StepSize, 0);
+                }
+
+                // Set ping pong descriptors
+                computeContext.SetDescriptorTable(DenoiseDirectOutputDescriptor);
+                computeContext.SetDescriptorTable(DenoiseIndirectOutputDescriptor);
+
+                // Dispatch
+                computeContext.Dispatch2D(Width, Height, COMPUTE_THREAD_GROUPSIZE_X, COMPUTE_THREAD_GROUPSIZE_Y);
+
+                // Ping pong outputs for the next iteration
+                DenoiseDirectOutputDescriptor.PingPong();
+                DenoiseIndirectOutputDescriptor.PingPong();
+            }
+        }
 
         // Ping pong resources
         for (int i = 0; i < ReprojBufferType_Num; i++)
@@ -405,5 +452,5 @@ void Renderer::RenderDenoisePass()
         }
         computeContext.CopyBuffer(GBuffers[GBufferType_PrevSVGFLinearZ], GBuffers[GBufferType_CurrSVGFLinearZ]);
     }
-    computeContext.Finish();
+    computeContext.Finish(true);
 }

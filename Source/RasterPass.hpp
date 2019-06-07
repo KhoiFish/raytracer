@@ -315,20 +315,20 @@ void Renderer::SetupRasterDescriptors()
         (UINT)RasterCompositeConstantBuffer.GetBufferSize());
 
     RendererDescriptorHeap->AllocateTexture2DSrv(
-        DirectLightingBuffer[LightingBufferType_CurrResults].GetResource(),
-        DirectIndirectBufferType);
+        DirectLightingBuffer[DirectIndirectBufferType_Results].GetResource(),
+        DirectIndirectRTBufferType);
 
     RendererDescriptorHeap->AllocateTexture2DSrv(
-        DirectLightingBuffer[LightingBufferType_CurrAlbedo].GetResource(),
-        DirectIndirectBufferType);
+        DirectLightingBuffer[DirectIndirectBufferType_Albedo].GetResource(),
+        DirectIndirectRTBufferType);
 
     RendererDescriptorHeap->AllocateTexture2DSrv(
-        IndirectLightingBuffer[LightingBufferType_CurrResults].GetResource(),
-        DirectIndirectBufferType);
+        IndirectLightingBuffer[DirectIndirectBufferType_Results].GetResource(),
+        DirectIndirectRTBufferType);
 
     RendererDescriptorHeap->AllocateTexture2DSrv(
-        IndirectLightingBuffer[LightingBufferType_CurrAlbedo].GetResource(),
-        DirectIndirectBufferType);
+        IndirectLightingBuffer[DirectIndirectBufferType_Albedo].GetResource(),
+        DirectIndirectRTBufferType);
 
     RendererDescriptorHeap->AllocateTexture2DSrv(
         CPURaytracerTex.GetResource(),
@@ -520,10 +520,10 @@ void Renderer::RenderCompositePass()
 
             // Transition resources
             renderContext.TransitionResource(CPURaytracerTex, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-            renderContext.TransitionResource(DirectLightingBuffer[LightingBufferType_CurrResults], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-            renderContext.TransitionResource(DirectLightingBuffer[LightingBufferType_CurrAlbedo], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-            renderContext.TransitionResource(IndirectLightingBuffer[LightingBufferType_CurrResults], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-            renderContext.TransitionResource(IndirectLightingBuffer[LightingBufferType_CurrAlbedo], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+            renderContext.TransitionResource(DirectLightingBuffer[DirectIndirectBufferType_Results], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+            renderContext.TransitionResource(DirectLightingBuffer[DirectIndirectBufferType_Albedo], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+            renderContext.TransitionResource(IndirectLightingBuffer[DirectIndirectBufferType_Results], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+            renderContext.TransitionResource(IndirectLightingBuffer[DirectIndirectBufferType_Albedo], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
             for (int i = 0; i < GBufferType_Num; i++)
             {
                 renderContext.TransitionResource(GBuffers[i], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);

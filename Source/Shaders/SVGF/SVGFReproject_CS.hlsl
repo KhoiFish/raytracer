@@ -26,35 +26,29 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-enum LightingBufType
-{
-    LightingBufType_Prev = 0,
-    LightingBufType_Current,
-    LightingBufType_Output,
-};
+ConstantBuffer<DenoiseConstantBuffer>   PassCB                  : register(b0, space0);
 
-enum PingPong
-{
-    PingPong_Prev = 0,
-    PingPong_Output
-};
+RWTexture2D<float4>                     PrevReprojMoments       : register(u0, space0);
+RWTexture2D<float4>                     OutpReprojMoments       : register(u1, space0);
 
-// ----------------------------------------------------------------------------------------------------------------------------
+RWTexture2D<uint>                       PrevReprojHistoryLength : register(u2, space0);
+RWTexture2D<uint>                       OutpReprojHistoryLength : register(u3, space0);
 
-ConstantBuffer<DenoiseConstantBuffer>   PassCB            : register(b0, space0);
+RWTexture2D<float4>                     PrevReprojDirect        : register(u4, space0);
+RWTexture2D<float4>                     OutpReprojDirect        : register(u5, space0);
 
-RWTexture2D<float4>                     Moments[]         : register(u0, space0);
-RWTexture2D<uint>                       HistoryLength[]   : register(u0, space1);
-RWTexture2D<float4>                     Direct[]          : register(u0, space2);
-RWTexture2D<float4>                     Indirect[]        : register(u0, space3);
+RWTexture2D<float4>                     PrevReprojIndirect      : register(u6, space0);
+RWTexture2D<float4>                     OutpReprojIndirect      : register(u7, space0);
 
-Texture2D                               Motion            : register(t0, space0);
-Texture2D                               PrevLinearZ       : register(t1, space0);
-Texture2D                               CurrLinearZ       : register(t2, space0);
+Texture2D                               Motion                  : register(t0, space0);
+Texture2D                               PrevLinearZ             : register(t1, space0);
+Texture2D                               CurrLinearZ             : register(t2, space0);
+Texture2D                               SourceDirect            : register(t3, space0);
+Texture2D                               SourceIndirect          : register(t4, space0);
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-int2 getTextureRes(RWTexture2D<float4> tex, uint mip)
+int2 getTextureRes(Texture2D tex, uint mip)
 {
     uint w, h;
     tex.GetDimensions(w, h);
@@ -73,7 +67,7 @@ inline float3 demodulate(float3 x, float3 albedo)
 
 inline bool isReprojectionValid(int2 coord, float Z, float Zprev, float fwidthZ, float3 normal, float3 normalPrev, float fwidthNormal)
 {
-    const int2 imageDim = getTextureRes(Direct[LightingBufType_Current], 0);
+    const int2 imageDim = getTextureRes(SourceDirect, 0);
 
     // Check whether reprojected pixel is inside of the screen
     if (any(lessThan(coord, int2(1,1))) || any(greaterThan(coord, imageDim - int2(1,1)))) return false;
@@ -89,23 +83,22 @@ inline bool isReprojectionValid(int2 coord, float Z, float Zprev, float fwidthZ,
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline bool loadPrevData(float2 fragCoord, out float4 prevDirect, out float4 prevIndirect, out float4 prevMoments, out float historyLength)
+inline bool loadPrevData(int2 ipos, out float4 prevDirect, out float4 prevIndirect, out float4 prevMoments, out float historyLength)
 {
-    const int2   ipos      = fragCoord;
-    const float2 imageDim  = float2(getTextureRes(Direct[LightingBufType_Current], 0));
-	float4       motion    = Motion[ipos];                                                 // xy = motion, z = length(fwidth(pos)), w = length(fwidth(normal))
-    const int2   iposPrev  = int2(float2(ipos) + motion.xy * imageDim + float2(0.5,0.5));  // +0.5 to account for texel center offset
-	float4       depth     = CurrLinearZ[ipos];                                            // stores: Z, fwidth(z), z_prev
-    float3       normal    = octToDir(asuint(depth.w));
-    const float2 posPrev   = floor(fragCoord.xy) + motion.xy * imageDim;
-    int2         offset[4] = { int2(0, 0), int2(1, 0), int2(0, 1), int2(1, 1) };
-    bool         v[4];
+    const float2  imageDim  = float2(getTextureRes(SourceDirect, 0));
+	const float4  motion    = Motion[ipos];                                                 // xy = motion, z = length(fwidth(pos)), w = length(fwidth(normal))
+    const int2    iposPrev  = int2(float2(ipos) + motion.xy * imageDim + float2(0.5, 0.5)); // +0.5 to account for texel center offset
+	const float4  depth     = CurrLinearZ[ipos];                                            // stores: Z, fwidth(z), z_prev
+    const float3  normal    = octToDir(asuint(depth.w));
+    const float2  posPrev   = ipos + motion.xy * imageDim;
+    const int2    offset[4] = { int2(0, 0), int2(1, 0), int2(0, 1), int2(1, 1) };
 
     prevDirect   = float4(0,0,0,0);
     prevIndirect = float4(0,0,0,0);
     prevMoments  = float4(0,0,0,0);
     
-    // check for all 4 taps of the bilinear filter for validity
+    // Check for all 4 taps of the bilinear filter for validity
+    bool v[4];
 	bool valid = false;
     for (int sampleIdx = 0; sampleIdx < 4; sampleIdx++)
     { 
@@ -140,9 +133,9 @@ inline bool loadPrevData(float2 fragCoord, out float4 prevDirect, out float4 pre
             int2 loc = int2(posPrev) + offset[sampleIdx];            
             if (v[sampleIdx])
             {
-                prevDirect   += w[sampleIdx] * Direct[LightingBufType_Prev][loc];
-                prevIndirect += w[sampleIdx] * Indirect[LightingBufType_Prev][loc];
-                prevMoments  += w[sampleIdx] * Moments[PingPong_Prev][loc];
+                prevDirect   += w[sampleIdx] * PrevReprojDirect[loc];
+                prevIndirect += w[sampleIdx] * PrevReprojIndirect[loc];
+                prevMoments  += w[sampleIdx] * PrevReprojMoments[loc];
                 sumw         += w[sampleIdx];
             }
         }
@@ -165,15 +158,15 @@ inline bool loadPrevData(float2 fragCoord, out float4 prevDirect, out float4 pre
         {
             for (int xx = -radius; xx <= radius; xx++)
             {
-                int2   p            = iposPrev + int2(xx, yy);
-                float4 depthFilter  = PrevLinearZ[p];
-				float3 normalFilter = octToDir(asuint(depthFilter.w));
+                const int2  p            = iposPrev + int2(xx, yy);
+                float4      depthFilter  = PrevLinearZ[p];
+				float3      normalFilter = octToDir(asuint(depthFilter.w));
 
                 if (isReprojectionValid(iposPrev, depth.z, depthFilter.x, depth.y, normal, normalFilter, motion.w) )
                 {
-					prevDirect   += Direct[LightingBufType_Prev][p];
-                    prevIndirect += Indirect[LightingBufType_Prev][p];
-					prevMoments  += Moments[PingPong_Prev][p];
+					prevDirect   += PrevReprojDirect[p];
+                    prevIndirect += PrevReprojIndirect[p];
+					prevMoments  += PrevReprojMoments[p];
                     cnt += 1.0;
                 }
             }
@@ -190,7 +183,7 @@ inline bool loadPrevData(float2 fragCoord, out float4 prevDirect, out float4 pre
     if (valid)
     {
         // crude, fixme
-        historyLength = HistoryLength[PingPong_Prev][iposPrev];
+        historyLength = PrevReprojHistoryLength[iposPrev];
     }
     else
     {
@@ -207,8 +200,8 @@ inline bool loadPrevData(float2 fragCoord, out float4 prevDirect, out float4 pre
 
 inline void loadCurrData(int2 fragCoord, out float3 direct, out float3 indirect)
 {
-	direct   = Direct[LightingBufType_Current][fragCoord].rgb;
-    indirect = Indirect[LightingBufType_Current][fragCoord].rgb;
+	direct   = SourceDirect[fragCoord].rgb;
+    indirect = SourceIndirect[fragCoord].rgb;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -216,18 +209,14 @@ inline void loadCurrData(int2 fragCoord, out float3 direct, out float3 indirect)
 [numthreads(COMPUTE_THREAD_GROUPSIZE_X, COMPUTE_THREAD_GROUPSIZE_Y, COMPUTE_THREAD_GROUPSIZE_Z)]
 void main(uint2 coord : SV_DispatchThreadID)
 {
-    float3  direct;
-    float3  indirect;
-    float   historyLength;
-    float4  prevDirect;
-    float4  prevIndirect;
-    float4  prevMoments;
-    bool    success;
-
     // Load current
+    float3 direct, indirect;
     loadCurrData(coord, direct, indirect);
 
     // Load previous
+    float4  prevDirect, prevIndirect, prevMoments;
+    float   historyLength;
+    bool    success;
 	success       = loadPrevData(coord, prevDirect, prevIndirect, prevMoments, historyLength);
 	historyLength = min( 32.0f, success ? historyLength + 1.0f : 1.0f );
 
@@ -253,8 +242,8 @@ void main(uint2 coord : SV_DispatchThreadID)
     float4 temporalIndirect = lerp(prevIndirect, float4(indirect, 0), alpha);
 
     // Write out results
-    Moments[PingPong_Output][coord]         = moments;
-    HistoryLength[PingPong_Output][coord]   = historyLength;
-    Direct[LightingBufType_Output][coord]   = float4(temporalDirect.rgb, variance.r);
-    Indirect[LightingBufType_Output][coord] = float4(temporalIndirect.rgb, variance.g);
+    OutpReprojMoments[coord]        = moments;
+    OutpReprojHistoryLength[coord]  = historyLength;
+    OutpReprojDirect[coord]         = float4(temporalDirect.rgb, variance.r);
+    OutpReprojIndirect[coord]       = float4(temporalIndirect.rgb, variance.g);
 }

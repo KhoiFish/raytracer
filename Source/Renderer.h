@@ -150,25 +150,37 @@ private:
         "SVGFMoVec",
         "SVGFCompact",
     };
-
-    enum LightingBufferType
+    
+    enum DirectIndirectBufferType
     {
-        LightingBufferType_PrevResults = 0,
-        LightingBufferType_CurrResults,
-        LightingBufferType_PrevAlbedo,
-        LightingBufferType_CurrAlbedo,
-        LightingBufferType_DenoiseOutput,
+        DirectIndirectBufferType_Results,
+        DirectIndirectBufferType_Albedo,
 
-        LightingBufferType_Num
+        DirectIndirectBufferType_Num
     };
 
-    static constexpr const char* LightingBufferTypeStrings[LightingBufferType_Num] =
+    static constexpr const char* DirectIndirectBufferTypeStrings[DirectIndirectBufferType_Num] =
     {
-        "Prev Results",
-        "Curr Results",
-        "Prev Albedo",
-        "Curr Albedo",
-        "Denoise Output",
+        "Direct/Indirect Results",
+        "Direct/Indirect Albedo",
+    };
+
+    enum ReprojBufferType
+    {
+        ReprojBufferType_Direct,
+        ReprojBufferType_Indirect,
+        ReprojBufferType_Moments,
+        ReprojBufferType_History,
+
+        ReprojBufferType_Num
+    };
+
+    static constexpr const char* ReprojBufferTypeStrings[ReprojBufferType_Num] =
+    {
+        "Reproj Direct",
+        "Reproj Indirect",
+        "Reproj Moments",
+        "Reproj History",
     };
 
     enum RaytracingShaderType
@@ -242,20 +254,20 @@ private:
 
     DXGI_FORMAT                     BackbufferFormat;
     DXGI_FORMAT                     GBufferRTTypes[GBufferType_Num];
-    DXGI_FORMAT                     DirectIndirectBufferType;
+    DXGI_FORMAT                     DirectIndirectRTBufferType;
     DXGI_FORMAT                     MomentsBufferType;
     DXGI_FORMAT                     HistoryBufferType;
     DXGI_FORMAT                     CPURaytracerTexType;
 
     DescriptorHeapCollection        RendererDescriptorHeapCollection;
     DescriptorHeapStack*            RendererDescriptorHeap;
+    PingPongDescriptor              ReprojDescriptors[ReprojBufferType_Num];
 
     ColorTarget                     CPURaytracerTex;
     ColorTarget                     GBuffers[GBufferType_Num];
-    ColorTarget                     DirectLightingBuffer[LightingBufferType_Num];
-    ColorTarget                     IndirectLightingBuffer[LightingBufferType_Num];
-    ColorTarget                     MomentsBuffer[2];
-    ColorTarget                     HistoryBuffer[2];
+    ColorTarget                     DirectLightingBuffer[DirectIndirectBufferType_Num];
+    ColorTarget                     IndirectLightingBuffer[DirectIndirectBufferType_Num];
+    ColorTarget                     ReprojectionBuffers[2][ReprojBufferType_Num];
 
     RootSignature                   RasterRootSignature;
     GraphicsPSO                     RasterGeometryPassPSO;

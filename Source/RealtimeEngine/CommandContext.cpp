@@ -489,6 +489,14 @@ void ComputeContext::SetDescriptorTable(uint32_t rootIndex, D3D12_GPU_DESCRIPTOR
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+void RealtimeEngine::ComputeContext::SetDescriptorTable(const PingPongDescriptor& pingPongDescriptor)
+{
+    TheCommandList->SetComputeRootDescriptorTable(pingPongDescriptor.GetCurrentRootIndex(), pingPongDescriptor.GetCurrentGpuDescriptor());
+    TheCommandList->SetComputeRootDescriptorTable(pingPongDescriptor.GetPreviousRootIndex(), pingPongDescriptor.GePreviousGpuDescriptor());
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 void GraphicsContext::ClearColor(ColorTarget& target)
 {
     TheCommandList->ClearRenderTargetView(target.GetRTV(), target.GetClearColor(), 0, nullptr);
@@ -749,6 +757,14 @@ void GraphicsContext::SetBufferUAV(uint32_t rootIndex, const GpuBuffer& uav, UIN
 void GraphicsContext::SetDescriptorTable(uint32_t rootIndex, D3D12_GPU_DESCRIPTOR_HANDLE firstHandle)
 {
     TheCommandList->SetGraphicsRootDescriptorTable(rootIndex, firstHandle);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void GraphicsContext::SetDescriptorTable(const PingPongDescriptor& pingPongDescriptor)
+{
+    TheCommandList->SetGraphicsRootDescriptorTable(pingPongDescriptor.GetCurrentRootIndex(), pingPongDescriptor.GetCurrentGpuDescriptor());
+    TheCommandList->SetGraphicsRootDescriptorTable(pingPongDescriptor.GetPreviousRootIndex(), pingPongDescriptor.GePreviousGpuDescriptor());
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

@@ -83,4 +83,29 @@ namespace RealtimeEngine
         UINT                        NodeMask;
         DescriptorHeapStack*        DescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
     };
+
+    // ----------------------------------------------------------------------------------------------------------------------------
+
+    class PingPongDescriptor
+    {
+        public:
+
+            PingPongDescriptor();
+            PingPongDescriptor(DescriptorHeapStack* pParentHeap, UINT prevRootIndex, UINT currentRootIndex, UINT prevHeapIndex, UINT currentHeapIndex);
+
+            void                            Reset(DescriptorHeapStack* pParentHeap, UINT prevRootIndex, UINT currentRootIndex, UINT prevHeapIndex, UINT currentHeapIndex);
+            UINT                            GetPingPongIndex() const;
+            UINT                            GetCurrentRootIndex() const;
+            UINT                            GetPreviousRootIndex() const;
+            D3D12_GPU_DESCRIPTOR_HANDLE     GePreviousGpuDescriptor() const;
+            D3D12_GPU_DESCRIPTOR_HANDLE     GetCurrentGpuDescriptor() const;
+            void                            PingPong();
+
+        private:
+
+            DescriptorHeapStack*  ParentHeap;
+            UINT                  RootIndices[2];
+            UINT                  HeapIndices[2];
+            UINT                  PingPongIndex;
+    };
 }

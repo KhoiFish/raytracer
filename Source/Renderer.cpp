@@ -57,7 +57,7 @@ Renderer::Renderer(uint32_t width, uint32_t height)
 {
     BackbufferFormat                             = DXGI_FORMAT_R10G10B10A2_UNORM;
     CPURaytracerTexType                          = DXGI_FORMAT_R32G32B32A32_FLOAT;
-    DirectIndirectBufferType                     = DXGI_FORMAT_R32G32B32A32_FLOAT;
+    DirectIndirectRTBufferType                     = DXGI_FORMAT_R32G32B32A32_FLOAT;
     MomentsBufferType                            = DXGI_FORMAT_R32G32B32A32_FLOAT;
     HistoryBufferType                            = DXGI_FORMAT_R32_UINT;
     GBufferRTTypes[GBufferType_Position]         = DXGI_FORMAT_R32G32B32A32_FLOAT;
@@ -161,25 +161,25 @@ void Renderer::SetupRenderBuffers()
     CPURaytracerTex.Destroy();
     CPURaytracerTex.Create("CpuRaytracerTex", width, height, 1, CPURaytracerTexType);
 
-    for (int i = 0; i < LightingBufferType_Num; i++)
+    for (int i = 0; i < DirectIndirectBufferType_Num; i++)
     {
         DirectLightingBuffer[i].Destroy();
         IndirectLightingBuffer[i].Destroy();
-
-        std::string directName   = std::string("Direct ") + LightingBufferTypeStrings[i];
-        std::string indirectName = std::string("Indirect ") + LightingBufferTypeStrings[i];
-
-        DirectLightingBuffer[i].CreateEx(directName, width, height, 1, DirectIndirectBufferType, nullptr, D3D12_HEAP_TYPE_DEFAULT, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
-        IndirectLightingBuffer[i].CreateEx(indirectName, width, height, 1, DirectIndirectBufferType, nullptr, D3D12_HEAP_TYPE_DEFAULT, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
+        DirectLightingBuffer[i].CreateEx(DirectIndirectBufferTypeStrings[i], width, height, 1, DirectIndirectRTBufferType, nullptr, D3D12_HEAP_TYPE_DEFAULT, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
+        IndirectLightingBuffer[i].CreateEx(DirectIndirectBufferTypeStrings[i], width, height, 1, DirectIndirectRTBufferType, nullptr, D3D12_HEAP_TYPE_DEFAULT, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
     }
 
     for (int i = 0; i < 2; i++)
     {
-        MomentsBuffer[i].Destroy();
-        HistoryBuffer[i].Destroy();
+        ReprojectionBuffers[i][ReprojBufferType_Direct].Destroy();
+        ReprojectionBuffers[i][ReprojBufferType_Indirect].Destroy();
+        ReprojectionBuffers[i][ReprojBufferType_Moments].Destroy();
+        ReprojectionBuffers[i][ReprojBufferType_History].Destroy();
 
-        MomentsBuffer[i].CreateEx("Moments Buffer", width, height, 1, MomentsBufferType, nullptr, D3D12_HEAP_TYPE_DEFAULT, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
-        HistoryBuffer[i].CreateEx("History Buffer", width, height, 1, HistoryBufferType, nullptr, D3D12_HEAP_TYPE_DEFAULT, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
+        ReprojectionBuffers[i][ReprojBufferType_Direct].CreateEx(ReprojBufferTypeStrings[ReprojBufferType_Direct], width, height, 1, DirectIndirectRTBufferType, nullptr, D3D12_HEAP_TYPE_DEFAULT, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
+        ReprojectionBuffers[i][ReprojBufferType_Indirect].CreateEx(ReprojBufferTypeStrings[ReprojBufferType_Indirect], width, height, 1, DirectIndirectRTBufferType, nullptr, D3D12_HEAP_TYPE_DEFAULT, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
+        ReprojectionBuffers[i][ReprojBufferType_Moments].CreateEx(ReprojBufferTypeStrings[ReprojBufferType_Moments], width, height, 1, MomentsBufferType, nullptr, D3D12_HEAP_TYPE_DEFAULT, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
+        ReprojectionBuffers[i][ReprojBufferType_History].CreateEx(ReprojBufferTypeStrings[ReprojBufferType_History], width, height, 1, HistoryBufferType, nullptr, D3D12_HEAP_TYPE_DEFAULT, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
     }
 }
 

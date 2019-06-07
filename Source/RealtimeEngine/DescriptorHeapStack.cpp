@@ -237,3 +237,74 @@ void DescriptorHeapCollection::Reset()
         DescriptorAllocators[i]->Reset();
     }
 }
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+PingPongDescriptor::PingPongDescriptor()
+    : PingPongIndex(0), ParentHeap(nullptr)
+{
+    RootIndices[0] = RootIndices[1] = 0;
+    HeapIndices[0] = HeapIndices[1] = 0;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+PingPongDescriptor::PingPongDescriptor(DescriptorHeapStack* pParentHeap, UINT prevRootIndex, UINT currentRootIndex, UINT prevHeapIndex, UINT currentHeapIndex)
+{
+    Reset(pParentHeap, prevRootIndex, currentRootIndex, prevHeapIndex, currentHeapIndex);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void PingPongDescriptor::Reset(DescriptorHeapStack* pParentHeap, UINT prevRootIndex, UINT currentRootIndex, UINT prevHeapIndex, UINT currentHeapIndex)
+{
+    PingPongIndex  = 1;
+    ParentHeap     = pParentHeap;
+    RootIndices[0] = prevRootIndex;
+    RootIndices[1] = currentRootIndex;
+    HeapIndices[0] = prevHeapIndex;
+    HeapIndices[1] = currentHeapIndex;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+UINT PingPongDescriptor::GetPingPongIndex() const
+{
+    return PingPongIndex;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+UINT PingPongDescriptor::GetPreviousRootIndex() const
+{
+    return RootIndices[0];
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+UINT PingPongDescriptor::GetCurrentRootIndex() const
+{
+    return RootIndices[1];
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+D3D12_GPU_DESCRIPTOR_HANDLE PingPongDescriptor::GePreviousGpuDescriptor() const
+{
+    const UINT prevIndex = (PingPongIndex + 1) % 2;
+    return ParentHeap->GetGpuHandle(HeapIndices[prevIndex]);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+D3D12_GPU_DESCRIPTOR_HANDLE PingPongDescriptor::GetCurrentGpuDescriptor() const
+{
+    return ParentHeap->GetGpuHandle(HeapIndices[PingPongIndex]);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void PingPongDescriptor::PingPong()
+{
+    PingPongIndex = (PingPongIndex + 1) % 2;
+}

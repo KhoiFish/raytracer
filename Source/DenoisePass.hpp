@@ -23,14 +23,25 @@ namespace DenoisePassRootSig
     {
         DenoiseCB = 0,
 
-        Moments,
-        History,
-        Direct,
-        Indirect,
+        PrevReprojMoments,
+        OutpReprojMoments,
+
+        PrevReprojHistory,
+        OutpReprojHistory,
+
+        PrevReprojDirect,
+        OutpReprojDirect,
+
+        PrevReprojIndirect,
+        OutpReprojIndirect,
 
         Motion,
+
         PrevLinearZ,
         CurrLinearZ,
+        
+        SourceDirect,
+        SourceIndirect,
 
         Num,
     };
@@ -48,14 +59,25 @@ namespace DenoisePassRootSig
     {
         { 0, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_CBV },   // DenoiseCB
 
-        { 0, 2, 0, D3D12_DESCRIPTOR_RANGE_TYPE_UAV },   // Moments
-        { 0, 2, 1, D3D12_DESCRIPTOR_RANGE_TYPE_UAV },   // History
-        { 0, 3, 2, D3D12_DESCRIPTOR_RANGE_TYPE_UAV },   // Direct
-        { 0, 3, 3, D3D12_DESCRIPTOR_RANGE_TYPE_UAV },   // Indirect
+        { 0, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_UAV },   // PrevReprojMoments
+        { 1, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_UAV },   // OutpReprojMoments
 
-        { 0, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // Motion   
+        { 2, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_UAV },   // PrevReprojHistory
+        { 3, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_UAV },   // OutpReprojHistory
+
+        { 4, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_UAV },   // PrevReprojDirect
+        { 5, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_UAV },   // OuptpReprojDirect
+
+        { 6, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_UAV },   // PrevReprojIndirect
+        { 7, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_UAV },   // OutpReprojIndirect
+
+        { 0, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // Motion
+
         { 1, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // PrevLinearZ
-        { 2, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // CurrLinearZ  
+        { 2, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // CurrLinearZ
+
+        { 3, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // SourceDirect
+        { 4, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // SourceIndirect
     };
 
     static INT HeapOffsets[DenoisePassRootSig::Num];
@@ -117,71 +139,89 @@ void Renderer::SetupDenoiseDescriptors()
         DenoiseShaderConstantBuffer.GetGpuVirtualAddress(),
         (UINT)DenoiseShaderConstantBuffer.GetBufferSize());
 
-    // Moments
-    DenoisePassRootSig::HeapOffsets[DenoisePassRootSig::Moments] = curHeapOffset;
-    curHeapOffset += ARRAYSIZE(MomentsBuffer);
-    for (size_t i = 0; i < ARRAYSIZE(MomentsBuffer); i++)
-    {
+    // Reproj Moments
+    curHeapOffset += 2;
+    ReprojDescriptors[ReprojBufferType_Moments].Reset
+    (
+        RendererDescriptorHeap,
+
+        DenoisePassRootSig::PrevReprojMoments,
+        DenoisePassRootSig::OutpReprojMoments,
+
         RendererDescriptorHeap->AllocateBufferUav(
-            *MomentsBuffer[i].GetResource(),
+            *ReprojectionBuffers[0][ReprojBufferType_Moments].GetResource(),
             D3D12_UAV_DIMENSION_TEXTURE2D,
             D3D12_BUFFER_UAV_FLAG_NONE,
-            MomentsBufferType);
-    }
+            MomentsBufferType),
+        RendererDescriptorHeap->AllocateBufferUav(
+            *ReprojectionBuffers[1][ReprojBufferType_Moments].GetResource(),
+            D3D12_UAV_DIMENSION_TEXTURE2D,
+            D3D12_BUFFER_UAV_FLAG_NONE,
+            MomentsBufferType)
+    );
     
-    // History
-    DenoisePassRootSig::HeapOffsets[DenoisePassRootSig::History] = curHeapOffset;
-    curHeapOffset += ARRAYSIZE(HistoryBuffer);
-    for (size_t i = 0; i < ARRAYSIZE(HistoryBuffer); i++)
-    {
+    // Reproj History
+    curHeapOffset += 2;
+    ReprojDescriptors[ReprojBufferType_History].Reset
+    (
+        RendererDescriptorHeap,
+
+        DenoisePassRootSig::PrevReprojHistory,
+        DenoisePassRootSig::OutpReprojHistory,
+
         RendererDescriptorHeap->AllocateBufferUav(
-            *HistoryBuffer[i].GetResource(),
+            *ReprojectionBuffers[0][ReprojBufferType_History].GetResource(),
             D3D12_UAV_DIMENSION_TEXTURE2D,
             D3D12_BUFFER_UAV_FLAG_NONE,
-            HistoryBufferType);
-    }
+            HistoryBufferType),
+        RendererDescriptorHeap->AllocateBufferUav(
+            *ReprojectionBuffers[1][ReprojBufferType_History].GetResource(),
+            D3D12_UAV_DIMENSION_TEXTURE2D,
+            D3D12_BUFFER_UAV_FLAG_NONE,
+            HistoryBufferType)
+    );
 
-    // Direct
-    DenoisePassRootSig::HeapOffsets[DenoisePassRootSig::Direct] = curHeapOffset;
-    curHeapOffset += 3;
-    RendererDescriptorHeap->AllocateBufferUav(
-        *DirectLightingBuffer[LightingBufferType_PrevResults].GetResource(),
-        D3D12_UAV_DIMENSION_TEXTURE2D,
-        D3D12_BUFFER_UAV_FLAG_NONE,
-        DirectIndirectBufferType);
+    // Reproj Direct
+    curHeapOffset += 2;
+    ReprojDescriptors[ReprojBufferType_Direct].Reset
+    (
+        RendererDescriptorHeap,
 
-    RendererDescriptorHeap->AllocateBufferUav(
-        *DirectLightingBuffer[LightingBufferType_CurrResults].GetResource(),
-        D3D12_UAV_DIMENSION_TEXTURE2D,
-        D3D12_BUFFER_UAV_FLAG_NONE,
-        DirectIndirectBufferType);
+        DenoisePassRootSig::PrevReprojDirect,
+        DenoisePassRootSig::OutpReprojDirect,
 
-    RendererDescriptorHeap->AllocateBufferUav(
-        *DirectLightingBuffer[LightingBufferType_DenoiseOutput].GetResource(),
-        D3D12_UAV_DIMENSION_TEXTURE2D,
-        D3D12_BUFFER_UAV_FLAG_NONE,
-        DirectIndirectBufferType);
+        RendererDescriptorHeap->AllocateBufferUav(
+            *ReprojectionBuffers[0][ReprojBufferType_Direct].GetResource(),
+            D3D12_UAV_DIMENSION_TEXTURE2D,
+            D3D12_BUFFER_UAV_FLAG_NONE,
+            DirectIndirectRTBufferType),
+        RendererDescriptorHeap->AllocateBufferUav(
+            *ReprojectionBuffers[1][ReprojBufferType_Direct].GetResource(),
+            D3D12_UAV_DIMENSION_TEXTURE2D,
+            D3D12_BUFFER_UAV_FLAG_NONE,
+            DirectIndirectRTBufferType)
+    );
 
-    // Indirect
-    DenoisePassRootSig::HeapOffsets[DenoisePassRootSig::Indirect] = curHeapOffset;
-    curHeapOffset += 3;
-    RendererDescriptorHeap->AllocateBufferUav(
-        *IndirectLightingBuffer[LightingBufferType_PrevResults].GetResource(),
-        D3D12_UAV_DIMENSION_TEXTURE2D,
-        D3D12_BUFFER_UAV_FLAG_NONE,
-        DirectIndirectBufferType);
+    // Reproj Indirect
+    curHeapOffset += 2;
+    ReprojDescriptors[ReprojBufferType_Indirect].Reset
+    (
+        RendererDescriptorHeap,
 
-    RendererDescriptorHeap->AllocateBufferUav(
-        *IndirectLightingBuffer[LightingBufferType_CurrResults].GetResource(),
-        D3D12_UAV_DIMENSION_TEXTURE2D,
-        D3D12_BUFFER_UAV_FLAG_NONE,
-        DirectIndirectBufferType);
+        DenoisePassRootSig::PrevReprojIndirect,
+        DenoisePassRootSig::OutpReprojIndirect,
 
-    RendererDescriptorHeap->AllocateBufferUav(
-        *IndirectLightingBuffer[LightingBufferType_DenoiseOutput].GetResource(),
-        D3D12_UAV_DIMENSION_TEXTURE2D,
-        D3D12_BUFFER_UAV_FLAG_NONE,
-        DirectIndirectBufferType);
+        RendererDescriptorHeap->AllocateBufferUav(
+            *ReprojectionBuffers[0][ReprojBufferType_Indirect].GetResource(),
+            D3D12_UAV_DIMENSION_TEXTURE2D,
+            D3D12_BUFFER_UAV_FLAG_NONE,
+            DirectIndirectRTBufferType),
+        RendererDescriptorHeap->AllocateBufferUav(
+            *ReprojectionBuffers[1][ReprojBufferType_Indirect].GetResource(),
+            D3D12_UAV_DIMENSION_TEXTURE2D,
+            D3D12_BUFFER_UAV_FLAG_NONE,
+            DirectIndirectRTBufferType)
+    );
 
     // Motion
     DenoisePassRootSig::HeapOffsets[DenoisePassRootSig::Motion] = curHeapOffset++;
@@ -200,6 +240,18 @@ void Renderer::SetupDenoiseDescriptors()
     RendererDescriptorHeap->AllocateTexture2DSrv(
         GBuffers[GBufferType_CurrSVGFLinearZ].GetResource(),
         GBufferRTTypes[GBufferType_CurrSVGFLinearZ]);
+
+    // Source Direct
+    DenoisePassRootSig::HeapOffsets[DenoisePassRootSig::SourceDirect] = curHeapOffset++;
+    RendererDescriptorHeap->AllocateTexture2DSrv(
+        DirectLightingBuffer[DirectIndirectBufferType_Results].GetResource(),
+        DirectIndirectRTBufferType);
+
+    // Source Indirect
+    DenoisePassRootSig::HeapOffsets[DenoisePassRootSig::SourceIndirect] = curHeapOffset++;
+    RendererDescriptorHeap->AllocateTexture2DSrv(
+        IndirectLightingBuffer[DirectIndirectBufferType_Results].GetResource(),
+        DirectIndirectRTBufferType);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -216,18 +268,38 @@ void Renderer::RenderDenoisePass()
 
             DenoiseShaderConstantBuffer.Upload(&denoiseCB, sizeof(denoiseCB));
         }
-
+        
+        // Set root signature and heap
         computeContext.SetRootSignature(DenoiseRootSig);
-        computeContext.SetPipelineState(DenoiseReprojectPSO);
         computeContext.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, RendererDescriptorHeap->GetDescriptorHeap());
 
-        for (uint32_t i = 0; i < DenoisePassRootSig::Num; i++)
+        // Reprojection
         {
-            uint32_t heapIndex = DenoiseDescriptorIndexStart + DenoisePassRootSig::HeapOffsets[i];
-            computeContext.SetDescriptorTable(i, RendererDescriptorHeap->GetGpuHandle(heapIndex));
+            computeContext.SetPipelineState(DenoiseReprojectPSO);
+            
+            // Set descriptor tables
+            for (int i = 0; i < DenoisePassRootSig::Num; i++)
+            {
+                uint32_t heapIndex = DenoiseDescriptorIndexStart + DenoisePassRootSig::HeapOffsets[i];
+                computeContext.SetDescriptorTable(i, RendererDescriptorHeap->GetGpuHandle(heapIndex));
+            }
+
+            for (int i = 0; i < ReprojBufferType_Num; i++)
+            {
+                computeContext.SetDescriptorTable(ReprojDescriptors[i]);
+            }
+
+            // Dispatch
+            computeContext.Dispatch2D(Width, Height, COMPUTE_THREAD_GROUPSIZE_X, COMPUTE_THREAD_GROUPSIZE_Y);
         }
 
-        computeContext.Dispatch2D(Width, Height, COMPUTE_THREAD_GROUPSIZE_X, COMPUTE_THREAD_GROUPSIZE_Y);
+
+        // Ping pong resources
+        for (int i = 0; i < ReprojBufferType_Num; i++)
+        {
+            ReprojDescriptors[i].PingPong();
+        }
+        computeContext.CopyBuffer(GBuffers[GBufferType_PrevSVGFLinearZ], GBuffers[GBufferType_CurrSVGFLinearZ]);
     }
     computeContext.Finish();
 }

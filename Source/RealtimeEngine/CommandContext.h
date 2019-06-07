@@ -228,6 +228,7 @@ namespace RealtimeEngine
         void SetBufferSRV(uint32_t rootIndex, const GpuBuffer& srv, UINT64 offset = 0);
         void SetBufferUAV(uint32_t rootIndex, const GpuBuffer& uav, UINT64 offset = 0);
         void SetDescriptorTable(uint32_t rootIndex, D3D12_GPU_DESCRIPTOR_HANDLE firstHandle);
+        void SetDescriptorTable(const PingPongDescriptor& pingPongDescriptor);
 
         void SetIndexBuffer(const D3D12_INDEX_BUFFER_VIEW& ibView);
         void SetVertexBuffer(uint32_t Slot, const D3D12_VERTEX_BUFFER_VIEW& vbView);
@@ -272,6 +273,7 @@ namespace RealtimeEngine
         void SetBufferSRV(uint32_t rootIndex, D3D12_GPU_VIRTUAL_ADDRESS gpuAddr, UINT64 offset = 0);
         void SetBufferUAV(uint32_t rootIndex, D3D12_GPU_VIRTUAL_ADDRESS gpuAddr, UINT64 offset = 0);
         void SetDescriptorTable(uint32_t rootIndex, D3D12_GPU_DESCRIPTOR_HANDLE firstHandle);
+        void SetDescriptorTable(const PingPongDescriptor& pingPongDescriptor);
 
         void SetDynamicDescriptor(uint32_t rootIndex, uint32_t offset, D3D12_CPU_DESCRIPTOR_HANDLE handle);
         void SetDynamicSampler(uint32_t rootIndex, uint32_t offset, D3D12_CPU_DESCRIPTOR_HANDLE handle);

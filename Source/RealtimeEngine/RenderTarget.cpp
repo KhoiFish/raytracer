@@ -147,7 +147,7 @@ static DXGI_FORMAT GetUAVFormat(DXGI_FORMAT defaultFormat)
     case DXGI_FORMAT_X24_TYPELESS_G8_UINT:
     case DXGI_FORMAT_D16_UNORM:
 
-    RTL_ASSERT(false, "Requested a UAV format for a depth stencil format.");
+    RTL_ASSERT_MSG(false, "Requested a UAV format for a depth stencil format.");
 #endif
 
     default:

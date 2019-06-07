@@ -105,6 +105,9 @@
     <FxCompile Include="..\..\Source\Shaders\SVGF\SVGFReproject_CS.hlsl">
       <Filter>Shaders\Denoise</Filter>
     </FxCompile>
+    <FxCompile Include="..\..\Source\Shaders\SVGF\SVGFFilterMoments_CS.hlsl">
+      <Filter>Shaders\Denoise</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\RayTracerLib\RayTracerLib.licenseheader" />

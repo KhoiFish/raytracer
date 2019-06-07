@@ -112,7 +112,7 @@ namespace RealtimeEngine
         uint32_t                                      NumInitializedStaticSamplers;
         uint32_t                                      DescriptorTableBitMap;
         uint32_t                                      SamplerTableBitMap;
-        uint32_t                                      DescriptorTableSize[16];
+        uint32_t                                      DescriptorTableSize[4096];
         std::unique_ptr<RootParameter[]>              ParamArray;
         std::unique_ptr<D3D12_STATIC_SAMPLER_DESC[]>  SamplerArray;
         ID3D12RootSignature*                          Signature;

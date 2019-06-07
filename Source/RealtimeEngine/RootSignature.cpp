@@ -123,6 +123,8 @@ void RootSignature::Finalize(const string_t & name, D3D12_ROOT_SIGNATURE_FLAGS f
         rootDesc.Flags             = flags;
     }
 
+    RTL_ASSERT(NumParameters <= ARRAYSIZE(DescriptorTableSize));
+
     hashCode              = HashState(rootDesc.pStaticSamplers, NumSamplers, HashState(&rootDesc.Flags));
     DescriptorTableBitMap = 0;
     SamplerTableBitMap    = 0;

@@ -24,16 +24,22 @@ namespace DenoisePassRootSig
         DenoiseCB = 0,
 
         PrevReprojMoments,
-        OutpReprojMoments,
+        CurrReprojMoments,
 
         PrevReprojHistory,
-        OutpReprojHistory,
+        CurrReprojHistory,
 
         PrevReprojDirect,
-        OutpReprojDirect,
+        CurrReprojDirect,
 
         PrevReprojIndirect,
-        OutpReprojIndirect,
+        CurrReprojIndirect,
+
+        PrevDenoiseOutputDirect,
+        CurrDenoiseOutputDirect,
+
+        PrevDenoiseOutputIndirect,
+        CurrDenoiseOutputIndirect,
 
         Motion,
 
@@ -42,6 +48,8 @@ namespace DenoisePassRootSig
         
         SourceDirect,
         SourceIndirect,
+
+        Compact,
 
         Num,
     };
@@ -57,27 +65,35 @@ namespace DenoisePassRootSig
     // [register, count, space, D3D12_DESCRIPTOR_RANGE_TYPE]
     static UINT Range[DenoisePassRootSig::Num][4] =
     {
-        { 0, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_CBV },   // DenoiseCB
+        { 0,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_CBV },   // DenoiseCB
 
-        { 0, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_UAV },   // PrevReprojMoments
-        { 1, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_UAV },   // OutpReprojMoments
+        { 0,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_UAV },   // PrevReprojMoments
+        { 1,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_UAV },   // CurrReprojMoments
 
-        { 2, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_UAV },   // PrevReprojHistory
-        { 3, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_UAV },   // OutpReprojHistory
+        { 2,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_UAV },   // PrevReprojHistory
+        { 3,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_UAV },   // CurrReprojHistory
 
-        { 4, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_UAV },   // PrevReprojDirect
-        { 5, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_UAV },   // OuptpReprojDirect
+        { 4,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_UAV },   // PrevReprojDirect
+        { 5,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_UAV },   // CurrReprojDirect
 
-        { 6, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_UAV },   // PrevReprojIndirect
-        { 7, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_UAV },   // OutpReprojIndirect
+        { 6,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_UAV },   // PrevReprojIndirect
+        { 7,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_UAV },   // CurrReprojIndirect
 
-        { 0, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // Motion
+        { 8,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_UAV },   // PrevDenoiseOutputDirect
+        { 9,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_UAV },   // CurrDenoiseOutputDirect
 
-        { 1, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // PrevLinearZ
-        { 2, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // CurrLinearZ
+        { 10, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_UAV },   // PrevDenoiseOutputIndirect
+        { 11, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_UAV },   // CurrDenoiseOutputIndirect
 
-        { 3, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // SourceDirect
-        { 4, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // SourceIndirect
+        { 0,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // Motion
+
+        { 1,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // PrevLinearZ
+        { 2,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // CurrLinearZ
+
+        { 3,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // SourceDirect
+        { 4,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // SourceIndirect
+
+        { 5,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // Compact
     };
 
     static INT HeapOffsets[DenoisePassRootSig::Num];
@@ -123,6 +139,16 @@ void Renderer::SetupDenoisePipeline()
         DenoiseReprojectPSO.SetComputeShader(computeShaderBlob->GetBufferPointer(), computeShaderBlob->GetBufferSize());
         DenoiseReprojectPSO.Finalize();
     }
+
+    // Filter Moments PSO Setup
+    {
+        Microsoft::WRL::ComPtr<ID3DBlob> computeShaderBlob;
+        ThrowIfFailed(D3DReadFileToBlob(SHADERBUILD_DIR L"\\SVGFFilterMoments_CS.cso", &computeShaderBlob));
+
+        DenoiseFilterMomentsPSO.SetRootSignature(DenoiseRootSig);
+        DenoiseFilterMomentsPSO.SetComputeShader(computeShaderBlob->GetBufferPointer(), computeShaderBlob->GetBufferSize());
+        DenoiseFilterMomentsPSO.Finalize();
+    }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -146,7 +172,7 @@ void Renderer::SetupDenoiseDescriptors()
         RendererDescriptorHeap,
 
         DenoisePassRootSig::PrevReprojMoments,
-        DenoisePassRootSig::OutpReprojMoments,
+        DenoisePassRootSig::CurrReprojMoments,
 
         RendererDescriptorHeap->AllocateBufferUav(
             *ReprojectionBuffers[0][ReprojBufferType_Moments].GetResource(),
@@ -167,7 +193,7 @@ void Renderer::SetupDenoiseDescriptors()
         RendererDescriptorHeap,
 
         DenoisePassRootSig::PrevReprojHistory,
-        DenoisePassRootSig::OutpReprojHistory,
+        DenoisePassRootSig::CurrReprojHistory,
 
         RendererDescriptorHeap->AllocateBufferUav(
             *ReprojectionBuffers[0][ReprojBufferType_History].GetResource(),
@@ -188,7 +214,7 @@ void Renderer::SetupDenoiseDescriptors()
         RendererDescriptorHeap,
 
         DenoisePassRootSig::PrevReprojDirect,
-        DenoisePassRootSig::OutpReprojDirect,
+        DenoisePassRootSig::CurrReprojDirect,
 
         RendererDescriptorHeap->AllocateBufferUav(
             *ReprojectionBuffers[0][ReprojBufferType_Direct].GetResource(),
@@ -209,7 +235,7 @@ void Renderer::SetupDenoiseDescriptors()
         RendererDescriptorHeap,
 
         DenoisePassRootSig::PrevReprojIndirect,
-        DenoisePassRootSig::OutpReprojIndirect,
+        DenoisePassRootSig::CurrReprojIndirect,
 
         RendererDescriptorHeap->AllocateBufferUav(
             *ReprojectionBuffers[0][ReprojBufferType_Indirect].GetResource(),
@@ -218,6 +244,48 @@ void Renderer::SetupDenoiseDescriptors()
             DirectIndirectRTBufferType),
         RendererDescriptorHeap->AllocateBufferUav(
             *ReprojectionBuffers[1][ReprojBufferType_Indirect].GetResource(),
+            D3D12_UAV_DIMENSION_TEXTURE2D,
+            D3D12_BUFFER_UAV_FLAG_NONE,
+            DirectIndirectRTBufferType)
+    );
+
+    // Denoise Output Direct
+    curHeapOffset += 2;
+    DenoiseDirectOutputDescriptor.Reset
+    (
+        RendererDescriptorHeap,
+
+        DenoisePassRootSig::PrevDenoiseOutputDirect,
+        DenoisePassRootSig::CurrDenoiseOutputDirect,
+
+        RendererDescriptorHeap->AllocateBufferUav(
+            *DenoiseDirectOutputBuffer[0].GetResource(),
+            D3D12_UAV_DIMENSION_TEXTURE2D,
+            D3D12_BUFFER_UAV_FLAG_NONE,
+            DirectIndirectRTBufferType),
+        RendererDescriptorHeap->AllocateBufferUav(
+            *DenoiseDirectOutputBuffer[1].GetResource(),
+            D3D12_UAV_DIMENSION_TEXTURE2D,
+            D3D12_BUFFER_UAV_FLAG_NONE,
+            DirectIndirectRTBufferType)
+    );
+
+    // Denoise Output Indirect
+    curHeapOffset += 2;
+    DenoiseIndirectOutputDescriptor.Reset
+    (
+        RendererDescriptorHeap,
+
+        DenoisePassRootSig::PrevDenoiseOutputIndirect,
+        DenoisePassRootSig::CurrDenoiseOutputIndirect,
+
+        RendererDescriptorHeap->AllocateBufferUav(
+            *DenoiseIndirectOutputBuffer[0].GetResource(),
+            D3D12_UAV_DIMENSION_TEXTURE2D,
+            D3D12_BUFFER_UAV_FLAG_NONE,
+            DirectIndirectRTBufferType),
+        RendererDescriptorHeap->AllocateBufferUav(
+            *DenoiseIndirectOutputBuffer[1].GetResource(),
             D3D12_UAV_DIMENSION_TEXTURE2D,
             D3D12_BUFFER_UAV_FLAG_NONE,
             DirectIndirectRTBufferType)
@@ -252,6 +320,12 @@ void Renderer::SetupDenoiseDescriptors()
     RendererDescriptorHeap->AllocateTexture2DSrv(
         IndirectLightingBuffer[DirectIndirectBufferType_Results].GetResource(),
         DirectIndirectRTBufferType);
+
+    // Compact Norm Depth
+    DenoisePassRootSig::HeapOffsets[DenoisePassRootSig::Compact] = curHeapOffset++;
+    RendererDescriptorHeap->AllocateTexture2DSrv(
+        GBuffers[GBufferType_SVGFCompact].GetResource(),
+        GBufferRTTypes[GBufferType_SVGFCompact]);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -265,6 +339,8 @@ void Renderer::RenderDenoisePass()
             DenoiseConstantBuffer denoiseCB;
             denoiseCB.Alpha        = 0.05f;
             denoiseCB.MomentsAlpha = 0.2f;
+            denoiseCB.PhiColor     = 10.0f;
+            denoiseCB.PhiNormal    = 128.0f;
 
             DenoiseShaderConstantBuffer.Upload(&denoiseCB, sizeof(denoiseCB));
         }
@@ -284,6 +360,7 @@ void Renderer::RenderDenoisePass()
                 computeContext.SetDescriptorTable(i, RendererDescriptorHeap->GetGpuHandle(heapIndex));
             }
 
+            // Set ping pong descriptors
             for (int i = 0; i < ReprojBufferType_Num; i++)
             {
                 computeContext.SetDescriptorTable(ReprojDescriptors[i]);
@@ -292,6 +369,33 @@ void Renderer::RenderDenoisePass()
             // Dispatch
             computeContext.Dispatch2D(Width, Height, COMPUTE_THREAD_GROUPSIZE_X, COMPUTE_THREAD_GROUPSIZE_Y);
         }
+
+        // Filter moments
+        {
+            computeContext.SetPipelineState(DenoiseFilterMomentsPSO);
+
+            // Set descriptor tables
+            for (int i = 0; i < DenoisePassRootSig::Num; i++)
+            {
+                uint32_t heapIndex = DenoiseDescriptorIndexStart + DenoisePassRootSig::HeapOffsets[i];
+                computeContext.SetDescriptorTable(i, RendererDescriptorHeap->GetGpuHandle(heapIndex));
+            }
+
+            // Set ping pong descriptors
+            for (int i = 0; i < ReprojBufferType_Num; i++)
+            {
+                computeContext.SetDescriptorTable(ReprojDescriptors[i]);
+            }
+            computeContext.SetDescriptorTable(DenoiseDirectOutputDescriptor);
+            computeContext.SetDescriptorTable(DenoiseIndirectOutputDescriptor);
+
+            // Dispatch
+            computeContext.Dispatch2D(Width, Height, COMPUTE_THREAD_GROUPSIZE_X, COMPUTE_THREAD_GROUPSIZE_Y);
+        }
+
+        // Ping pong outputs for the next pass
+        DenoiseDirectOutputDescriptor.PingPong();
+        DenoiseIndirectOutputDescriptor.PingPong();
 
 
         // Ping pong resources

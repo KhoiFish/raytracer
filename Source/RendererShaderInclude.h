@@ -66,8 +66,8 @@ struct DenoiseConstantBuffer
 {
     float Alpha;
     float MomentsAlpha;
-    float Padding0;
-    float Padding1;
+    float PhiColor;
+    float PhiNormal;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------

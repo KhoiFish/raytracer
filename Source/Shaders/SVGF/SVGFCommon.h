@@ -34,6 +34,22 @@ inline float luminance(float3 rgb)
     return dot(rgb, float3(0.2126f, 0.7152f, 0.0722f));
 }
 
+int2 getTextureDims(Texture2D tex, uint mip)
+{
+    uint w, h;
+    tex.GetDimensions(w, h);
+
+    return int2(w, h);
+}
+
+int2 getTextureDims(RWTexture2D<float4> tex, uint mip)
+{
+    uint w, h;
+    tex.GetDimensions(w, h);
+
+    return int2(w, h);
+}
+
 // TODO: These clash with the functions in Utils/PackedFormatConversion.hlsli
 uint packSnorm2x16(float2 val)
 {

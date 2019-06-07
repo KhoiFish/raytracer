@@ -262,12 +262,16 @@ private:
     DescriptorHeapCollection        RendererDescriptorHeapCollection;
     DescriptorHeapStack*            RendererDescriptorHeap;
     PingPongDescriptor              ReprojDescriptors[ReprojBufferType_Num];
+    PingPongDescriptor              DenoiseDirectOutputDescriptor;
+    PingPongDescriptor              DenoiseIndirectOutputDescriptor;
 
     ColorTarget                     CPURaytracerTex;
     ColorTarget                     GBuffers[GBufferType_Num];
     ColorTarget                     DirectLightingBuffer[DirectIndirectBufferType_Num];
     ColorTarget                     IndirectLightingBuffer[DirectIndirectBufferType_Num];
     ColorTarget                     ReprojectionBuffers[2][ReprojBufferType_Num];
+    ColorTarget                     DenoiseDirectOutputBuffer[2];
+    ColorTarget                     DenoiseIndirectOutputBuffer[2];
 
     RootSignature                   RasterRootSignature;
     GraphicsPSO                     RasterGeometryPassPSO;
@@ -286,6 +290,7 @@ private:
 
     RootSignature                   DenoiseRootSig;
     ComputePSO                      DenoiseReprojectPSO;
+    ComputePSO                      DenoiseFilterMomentsPSO;
     uint32_t                        DenoiseDescriptorIndexStart;
     UploadBuffer                    DenoiseShaderConstantBuffer;
 };

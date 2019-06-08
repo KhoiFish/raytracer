@@ -30,13 +30,10 @@ ConstantBuffer<DenoiseConstantBuffer>   PassCB                  : register(b0, s
 
 RWTexture2D<float4>                     PrevReprojMoments       : register(u0, space0);
 RWTexture2D<float4>                     CurrReprojMoments       : register(u1, space0);
-
 RWTexture2D<float>                      PrevReprojHistoryLength : register(u2, space0);
 RWTexture2D<float>                      CurrReprojHistoryLength : register(u3, space0);
-
 RWTexture2D<float4>                     PrevReprojDirect        : register(u4, space0);
 RWTexture2D<float4>                     CurrReprojDirect        : register(u5, space0);
-
 RWTexture2D<float4>                     PrevReprojIndirect      : register(u6, space0);
 RWTexture2D<float4>                     CurrReprojIndirect      : register(u7, space0);
 
@@ -55,20 +52,29 @@ inline float3 demodulate(float3 x, float3 albedo)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline bool isReprojectionValid(int2 coord, float Z, float Zprev, float fwidthZ, float3 normal, float3 normalPrev, float fwidthNormal)
+inline bool isReprojectionValid(int2 coord, int2 imageDim, float currentZ, float previousZ, float fwidthZ, float3 currentNormal, float3 prevNormal, float fwidthNormal)
 {
-    const int2 imageDim = getTextureDims(SourceDirect, 0);
+    bool valid = true;
 
     // Check whether reprojected pixel is inside of the screen
-    if (any(lessThan(coord, int2(1,1))) || any(greaterThan(coord, imageDim - int2(1,1)))) return false;
+    if (any(lessThan(coord, int2(1, 1))) || any(greaterThan(coord, imageDim - int2(1, 1))))
+    {
+        valid = false;
+    }
 
     // Check if deviation of depths is acceptable
-    if (abs(Zprev - Z) / (fwidthZ + 1e-4) > 2.0) return false;
+    if (abs(previousZ - currentZ) / (fwidthZ + 1e-4) > 2.0)
+    {
+        valid = false;
+    }
 
     // Check normals for compatibility
-    if (distance(normal, normalPrev) / (fwidthNormal + 1e-2) > 16.0) return false;
+    if (distance(currentNormal, prevNormal) / (fwidthNormal + 1e-2) > 16.0)
+    {
+        valid = false;
+    }
 
-    return true;
+    return valid;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -96,7 +102,7 @@ inline bool loadPrevData(int2 ipos, out float4 prevDirect, out float4 prevIndire
         float4 depthPrev  = PrevLinearZ[loc];
         float3 normalPrev = octToDir(asuint(depthPrev.w));
 
-        v[sampleIdx] = isReprojectionValid(iposPrev, depth.z, depthPrev.x, depth.y, normal, normalPrev, motion.w);
+        v[sampleIdx] = isReprojectionValid(iposPrev, imageDim, depth.z, depthPrev.x, depth.y, normal, normalPrev, motion.w);
 
         valid = valid || v[sampleIdx];
     }    
@@ -152,7 +158,7 @@ inline bool loadPrevData(int2 ipos, out float4 prevDirect, out float4 prevIndire
                 float4      depthFilter  = PrevLinearZ[p];
 				float3      normalFilter = octToDir(asuint(depthFilter.w));
 
-                if (isReprojectionValid(iposPrev, depth.z, depthFilter.x, depth.y, normal, normalFilter, motion.w) )
+                if (isReprojectionValid(iposPrev, imageDim, depth.z, depthFilter.x, depth.y, normal, normalFilter, motion.w) )
                 {
 					prevDirect   += PrevReprojDirect[p];
                     prevIndirect += PrevReprojIndirect[p];

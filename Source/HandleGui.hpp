@@ -221,6 +221,26 @@ void Renderer::RenderGuiOptionsWindow()
             gpuOptionsChanged = true;
         }
 
+        if (ImGui::SliderFloat("Denoise Alpha", &TheUserInputData.GpuDenoiseAlpha, 0.0f, 1.0f))
+        {
+            gpuOptionsChanged = true;
+        }
+
+        if (ImGui::SliderFloat("Denoise Moments Alpha", &TheUserInputData.GpuDenoiseMomentsAlpha, 0.0f, 1.0f))
+        {
+            gpuOptionsChanged = true;
+        }
+
+        if (ImGui::SliderFloat("Denoise Phi Color", &TheUserInputData.GpuDenoisePhiColor, 0.0f, 250.0f))
+        {
+            gpuOptionsChanged = true;
+        }
+
+        if (ImGui::SliderFloat("Denoise Phi Normal", &TheUserInputData.GpuDenoisePhiNormal, 0.0f, 250.0f))
+        {
+            gpuOptionsChanged = true;
+        }
+
         if (ImGui::Checkbox("Enable Camera Jitter", &TheUserInputData.GpuCameraJitter))
         {
             gpuOptionsChanged = true;

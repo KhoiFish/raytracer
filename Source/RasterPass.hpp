@@ -539,6 +539,10 @@ void Renderer::RenderCompositePass()
                 renderContext.SetDescriptorTable(i, RendererDescriptorHeap->GetGpuHandle(heapIndex));
             }
 
+            // Set direct and indirect textures to the denoised output
+            renderContext.SetDescriptorTable(RasterRenderRootSig::DirectLightResult, DenoiseDirectOutputDescriptor.GePreviousGpuDescriptor());
+            renderContext.SetDescriptorTable(RasterRenderRootSig::IndirectLightResult, DenoiseIndirectOutputDescriptor.GePreviousGpuDescriptor());
+
             // Setup rest of the pipeline
             renderContext.SetRenderTarget(RenderDevice::Get().GetRenderTarget().GetRTV(), RenderDevice::Get().GetDepthStencil().GetDSV());
             renderContext.SetPipelineState(RasterCompositePassPSO);

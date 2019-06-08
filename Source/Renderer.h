@@ -223,11 +223,16 @@ private:
         int     GpuRayRecursionDepth            = 3;
         int     GpuNumRaysPerPixel              = 1;
         float   GpuAORadius                     = 100.0f;
-        bool    GpuCameraJitter                 = true;
+        bool    GpuCameraJitter                 = false;
         float   GpuDirectLightMult              = 1.00f;
         float   GpuIndirectLightMult            = 0.35f;
         bool    GpuEnableToneMapping            = true;
         int     GpuDenoiseFilterIterations      = 4;
+        int     GpuDenoiseFeedbackTap           = 1;
+        float   GpuDenoiseAlpha                 = 0.05f;
+        float   GpuDenoiseMomentsAlpha          = 0.2f;
+        float   GpuDenoisePhiColor              = 10.0f;
+        float   GpuDenoisePhiNormal             = 128.0f;
     };
 
     typedef std::uniform_real_distribution<float> RandFloatDist;

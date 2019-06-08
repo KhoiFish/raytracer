@@ -352,10 +352,10 @@ void Renderer::RenderDenoisePass()
         // Setup Denoise CB
         {
             DenoiseConstantBuffer denoiseCB;
-            denoiseCB.Alpha        = 0.05f;
-            denoiseCB.MomentsAlpha = 0.2f;
-            denoiseCB.PhiColor     = 10.0f;
-            denoiseCB.PhiNormal    = 128.0f;
+            denoiseCB.Alpha        = TheUserInputData.GpuDenoiseAlpha;
+            denoiseCB.MomentsAlpha = TheUserInputData.GpuDenoiseMomentsAlpha;
+            denoiseCB.PhiColor     = TheUserInputData.GpuDenoisePhiColor;
+            denoiseCB.PhiNormal    = TheUserInputData.GpuDenoisePhiNormal;
 
             DenoiseShaderConstantBuffer.Upload(&denoiseCB, sizeof(denoiseCB));
         }
@@ -364,17 +364,17 @@ void Renderer::RenderDenoisePass()
         computeContext.SetRootSignature(DenoiseRootSig);
         computeContext.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, RendererDescriptorHeap->GetDescriptorHeap());
 
+        // Set descriptor tables
+        for (int i = 0; i < DenoisePassRootSig::Num; i++)
+        {
+            uint32_t heapIndex = DenoiseDescriptorIndexStart + DenoisePassRootSig::HeapOffsets[i];
+            computeContext.SetDescriptorTable(i, RendererDescriptorHeap->GetGpuHandle(heapIndex));
+        }
+
         // Reprojection
         {
             computeContext.SetPipelineState(DenoiseReprojectPSO);
             
-            // Set descriptor tables
-            for (int i = 0; i < DenoisePassRootSig::Num; i++)
-            {
-                uint32_t heapIndex = DenoiseDescriptorIndexStart + DenoisePassRootSig::HeapOffsets[i];
-                computeContext.SetDescriptorTable(i, RendererDescriptorHeap->GetGpuHandle(heapIndex));
-            }
-
             // Set ping pong descriptors
             for (int i = 0; i < ReprojBufferType_Num; i++)
             {
@@ -388,13 +388,6 @@ void Renderer::RenderDenoisePass()
         // Filter moments
         {
             computeContext.SetPipelineState(DenoiseFilterMomentsPSO);
-
-            // Set descriptor tables
-            for (int i = 0; i < DenoisePassRootSig::Num; i++)
-            {
-                uint32_t heapIndex = DenoiseDescriptorIndexStart + DenoisePassRootSig::HeapOffsets[i];
-                computeContext.SetDescriptorTable(i, RendererDescriptorHeap->GetGpuHandle(heapIndex));
-            }
 
             // Set ping pong descriptors
             for (int i = 0; i < ReprojBufferType_Num; i++)
@@ -416,13 +409,6 @@ void Renderer::RenderDenoisePass()
         {
             computeContext.SetPipelineState(DenoiseAtrousPSO);
 
-            // Set descriptor tables
-            for (int i = 0; i < DenoisePassRootSig::Num; i++)
-            {
-                uint32_t heapIndex = DenoiseDescriptorIndexStart + DenoisePassRootSig::HeapOffsets[i];
-                computeContext.SetDescriptorTable(i, RendererDescriptorHeap->GetGpuHandle(heapIndex));
-            }
-
             for (int i = 0; i < TheUserInputData.GpuDenoiseFilterIterations; i++)
             {
                 // Set root signature constants
@@ -433,11 +419,27 @@ void Renderer::RenderDenoisePass()
                 }
 
                 // Set ping pong descriptors
+                for (int i = 0; i < ReprojBufferType_Num; i++)
+                {
+                    computeContext.SetDescriptorTable(ReprojDescriptors[i]);
+                }
                 computeContext.SetDescriptorTable(DenoiseDirectOutputDescriptor);
                 computeContext.SetDescriptorTable(DenoiseIndirectOutputDescriptor);
 
                 // Dispatch
                 computeContext.Dispatch2D(Width, Height, COMPUTE_THREAD_GROUPSIZE_X, COMPUTE_THREAD_GROUPSIZE_Y);
+
+                // Feedback results
+                if (i == std::min(TheUserInputData.GpuDenoiseFeedbackTap, TheUserInputData.GpuDenoiseFilterIterations - 1))
+                {
+                    UINT directIndex   = ReprojDescriptors[ReprojBufferType_Direct].GetCurrentIndex();
+                    UINT indirectIndex = ReprojDescriptors[ReprojBufferType_Indirect].GetCurrentIndex();
+                    ColorTarget& currReprojDirect   = ReprojectionBuffers[directIndex][ReprojBufferType_Direct];
+                    ColorTarget& currReprojIndirect = ReprojectionBuffers[indirectIndex][ReprojBufferType_Indirect];
+
+                    computeContext.CopyBuffer(currReprojDirect, DenoiseDirectOutputBuffer[DenoiseDirectOutputDescriptor.GetCurrentIndex()]);
+                    computeContext.CopyBuffer(currReprojIndirect, DenoiseIndirectOutputBuffer[DenoiseIndirectOutputDescriptor.GetCurrentIndex()]);
+                }
 
                 // Ping pong outputs for the next iteration
                 DenoiseDirectOutputDescriptor.PingPong();
@@ -446,11 +448,13 @@ void Renderer::RenderDenoisePass()
         }
 
         // Ping pong resources
-        for (int i = 0; i < ReprojBufferType_Num; i++)
         {
-            ReprojDescriptors[i].PingPong();
+            for (int i = 0; i < ReprojBufferType_Num; i++)
+            {
+                ReprojDescriptors[i].PingPong();
+            }
+            computeContext.CopyBuffer(GBuffers[GBufferType_PrevSVGFLinearZ], GBuffers[GBufferType_CurrSVGFLinearZ]);
         }
-        computeContext.CopyBuffer(GBuffers[GBufferType_PrevSVGFLinearZ], GBuffers[GBufferType_CurrSVGFLinearZ]);
     }
-    computeContext.Finish(true);
+    computeContext.Finish();
 }

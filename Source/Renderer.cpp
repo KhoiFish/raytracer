@@ -422,7 +422,7 @@ void Renderer::OnUpdate(float dtSeconds)
         // Camera needs update
         if (mouseLButton || IsCameraDirty || !CompareFloatEqual(forwardAmount, 0) || !CompareFloatEqual(strafeAmount, 0) || !CompareFloatEqual(upDownAmount, 0))
         {
-            TheRenderScene->UpdateCamera(TheUserInputData.VertFov, forwardAmount, strafeAmount, upDownAmount, TheUserInputData.MouseDx, TheUserInputData.MouseDy, TheWorldScene->GetCamera());
+            TheRenderScene->UpdateCamera(TheUserInputData.GpuNearPlane, TheUserInputData.GpuFarPlane, TheUserInputData.VertFov, forwardAmount, strafeAmount, upDownAmount, TheUserInputData.MouseDx, TheUserInputData.MouseDy, TheWorldScene->GetCamera());
             TheUserInputData.MouseDx = 0;
             TheUserInputData.MouseDy = 0;
 

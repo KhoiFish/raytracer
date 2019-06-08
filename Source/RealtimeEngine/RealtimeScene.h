@@ -113,7 +113,7 @@ namespace RealtimeEngine
         ~RealtimeScene();
 
         void                                SetupResourceViews(DescriptorHeapStack& descriptorHeap);
-        void                                UpdateCamera(float newVertFov, float forwardAmount, float strafeAmount, float upDownAmount, int mouseDx, int mouseDy, Core::Camera& worldCamera);
+        void                                UpdateCamera(float nearPlane, float farPlane, float newVertFov, float forwardAmount, float strafeAmount, float upDownAmount, int mouseDx, int mouseDy, Core::Camera& worldCamera);
         void                                UpdateAllGpuBuffers(CommandContext& context);
 
         std::vector<RealtimeSceneNode*>&    GetRenderSceneList();

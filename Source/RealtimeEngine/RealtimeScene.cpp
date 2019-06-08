@@ -591,7 +591,7 @@ void RealtimeEngine::RealtimeScene::AddNewNode(RealtimeSceneNode* newNode, const
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void RealtimeScene::UpdateCamera(float newVertFov, float forwardAmount, float strafeAmount, float upDownAmount, int mouseDx, int mouseDy, Core::Camera& worldCamera)
+void RealtimeScene::UpdateCamera(float nearPlane, float farPlane, float newVertFov, float forwardAmount, float strafeAmount, float upDownAmount, int mouseDx, int mouseDy, Core::Camera& worldCamera)
 {
     // Get ray tracer camera params
     Core::Vec4   lookFrom, lookAt, up;
@@ -626,7 +626,7 @@ void RealtimeScene::UpdateCamera(float newVertFov, float forwardAmount, float st
     XMVECTOR cameraTarget = ConvertToXMVector(lookAt);
     XMVECTOR cameraUp     = ConvertToXMVector(up);
     TheRenderCamera.SetLookAt(cameraPos, cameraTarget, cameraUp);
-    TheRenderCamera.SetProjection(newVertFov, aspect, 0.1f, 10000.0f);
+    TheRenderCamera.SetProjection(newVertFov, aspect, nearPlane, farPlane);
 
     #if 0
         // Has mouse moved?

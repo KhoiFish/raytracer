@@ -82,8 +82,8 @@ void Renderer::RenderGui()
 
 void Renderer::RenderGuiOptionsWindow()
 {
-    ImGui::SetNextWindowPos(ImVec2(12, 18), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(615, 735), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(15, 20), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(635, 940), ImGuiCond_FirstUseEver);
 
     ImGuiWindowFlags windowFlags = ImGuiWindowFlags_AlwaysVerticalScrollbar;
     if (!ImGui::Begin("Options Window", nullptr, windowFlags))
@@ -190,6 +190,15 @@ void Renderer::RenderGuiOptionsWindow()
         ImGui::TextColored(gTextHeadingColor, "Gpu Raytracer");
         ImGui::Separator();
 
+        if (ImGui::SliderFloat("Near Plane", &TheUserInputData.GpuNearPlane, 0.0f, 1.0f))
+        {
+            gpuOptionsChanged = true;
+        }
+
+        if (ImGui::SliderFloat("Far Plane", &TheUserInputData.GpuFarPlane, 100.0f, 10000.0f))
+        {
+            gpuOptionsChanged = true;
+        }
 
         if (ImGui::SliderInt("Accum. Passes/Frame", &TheUserInputData.GpuNumAccumPasses, 1, 10))
         {

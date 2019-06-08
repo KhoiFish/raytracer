@@ -444,15 +444,8 @@ void Renderer::OnRender()
 {
     if (TheAppState == AppState_RenderScene)
     {
-        // Allow multiple temporal accumulation per frame
-        for (int i = 0; i < TheUserInputData.GpuNumAccumPasses; i++)
-        {
-            RenderGeometryPass();
-            RenderGpuRaytracing();
-            FrameCount++;
-        }
-
-        // Denoise and composite
+        RenderGeometryPass();
+        RenderGpuRaytracing();
         RenderDenoisePass();
         RenderCompositePass();
     }
@@ -461,4 +454,5 @@ void Renderer::OnRender()
 
     // Present
     RenderDevice::Get().Present();
+    FrameCount++;
 }

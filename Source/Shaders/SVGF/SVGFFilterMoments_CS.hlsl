@@ -29,7 +29,7 @@
 ConstantBuffer<DenoiseConstantBuffer>   PassCB                      : register(b0, space0);
 
 RWTexture2D<float4>                     CurrReprojMoments           : register(u1,  space0);
-RWTexture2D<uint>                       CurrReprojHistoryLength     : register(u3,  space0);
+RWTexture2D<float>                      CurrReprojHistoryLength     : register(u3,  space0);
 RWTexture2D<float4>                     CurrReprojDirect            : register(u5,  space0);
 RWTexture2D<float4>                     CurrReprojIndirect          : register(u7,  space0);
 

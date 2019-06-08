@@ -57,9 +57,9 @@ Renderer::Renderer(uint32_t width, uint32_t height)
 {
     BackbufferFormat                             = DXGI_FORMAT_R10G10B10A2_UNORM;
     CPURaytracerTexType                          = DXGI_FORMAT_R32G32B32A32_FLOAT;
-    DirectIndirectRTBufferType                     = DXGI_FORMAT_R32G32B32A32_FLOAT;
+    DirectIndirectRTBufferType                   = DXGI_FORMAT_R32G32B32A32_FLOAT;
     MomentsBufferType                            = DXGI_FORMAT_R32G32B32A32_FLOAT;
-    HistoryBufferType                            = DXGI_FORMAT_R32_UINT;
+    HistoryBufferType                            = DXGI_FORMAT_R16_FLOAT;
     GBufferRTTypes[GBufferType_Position]         = DXGI_FORMAT_R32G32B32A32_FLOAT;
     GBufferRTTypes[GBufferType_Normal]           = DXGI_FORMAT_R16G16B16A16_FLOAT;
     GBufferRTTypes[GBufferType_TexCoordAndDepth] = DXGI_FORMAT_R8G8B8A8_UNORM;

@@ -59,7 +59,7 @@ VertexShaderOutput main(VertexPositionNormalTexture IN)
     OUT.TexCoord       = IN.TexCoord;
     OUT.LinearDepth    = mul(float4(OUT.PositionWS.xyz, 1.0f), SceneCb.ViewMatrix).z / SceneCb.FarClipDist;
     OUT.NormalOS       = IN.Normal;
-    OUT.PrevPositionHS = mul(worldPos, SceneCb.ViewProjectionMatrix);
+    OUT.PrevPositionHS = mul(worldPos, SceneCb.PrevViewProjectionMatrix);
     OUT.PositionHS     = mul(worldPos, SceneCb.ViewProjectionMatrix);
 
     return OUT;

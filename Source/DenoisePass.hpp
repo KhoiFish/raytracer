@@ -25,19 +25,14 @@ namespace DenoisePassRootSig
 
         PrevReprojMoments,
         CurrReprojMoments,
-
         PrevReprojHistory,
         CurrReprojHistory,
-
         PrevReprojDirect,
         CurrReprojDirect,
-
         PrevReprojIndirect,
         CurrReprojIndirect,
-
         PrevDenoiseOutputDirect,
         CurrDenoiseOutputDirect,
-
         PrevDenoiseOutputIndirect,
         CurrDenoiseOutputIndirect,
 
@@ -72,30 +67,22 @@ namespace DenoisePassRootSig
 
         { 0,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_UAV },   // PrevReprojMoments
         { 1,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_UAV },   // CurrReprojMoments
-
         { 2,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_UAV },   // PrevReprojHistory
         { 3,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_UAV },   // CurrReprojHistory
-
         { 4,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_UAV },   // PrevReprojDirect
         { 5,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_UAV },   // CurrReprojDirect
-
         { 6,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_UAV },   // PrevReprojIndirect
         { 7,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_UAV },   // CurrReprojIndirect
-
         { 8,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_UAV },   // PrevDenoiseOutputDirect
         { 9,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_UAV },   // CurrDenoiseOutputDirect
-
         { 10, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_UAV },   // PrevDenoiseOutputIndirect
         { 11, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_UAV },   // CurrDenoiseOutputIndirect
 
         { 0,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // Motion
-
         { 1,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // PrevLinearZ
         { 2,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // CurrLinearZ
-
         { 3,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // SourceDirect
         { 4,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // SourceIndirect
-
         { 5,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // Compact
     };
 

@@ -94,7 +94,8 @@ namespace RealtimeEngine
             PingPongDescriptor(DescriptorHeapStack* pParentHeap, UINT prevRootIndex, UINT currentRootIndex, UINT prevHeapIndex, UINT currentHeapIndex);
 
             void                            Reset(DescriptorHeapStack* pParentHeap, UINT prevRootIndex, UINT currentRootIndex, UINT prevHeapIndex, UINT currentHeapIndex);
-            UINT                            GetPingPongIndex() const;
+            UINT                            GetCurrentIndex() const;
+            UINT                            GetPreviousIndex() const;
             UINT                            GetCurrentRootIndex() const;
             UINT                            GetPreviousRootIndex() const;
             D3D12_GPU_DESCRIPTOR_HANDLE     GePreviousGpuDescriptor() const;

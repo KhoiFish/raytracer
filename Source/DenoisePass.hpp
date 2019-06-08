@@ -419,8 +419,8 @@ void Renderer::RenderDenoisePass()
                 // Feedback results
                 if (i == std::min(TheUserInputData.GpuDenoiseFeedbackTap, TheUserInputData.GpuDenoiseFilterIterations - 1))
                 {
-                    UINT directIndex   = ReprojDescriptors[ReprojBufferType_Direct].GetCurrentIndex();
-                    UINT indirectIndex = ReprojDescriptors[ReprojBufferType_Indirect].GetCurrentIndex();
+                    const UINT   directIndex        = ReprojDescriptors[ReprojBufferType_Direct].GetCurrentIndex();
+                    const UINT   indirectIndex      = ReprojDescriptors[ReprojBufferType_Indirect].GetCurrentIndex();
                     ColorTarget& currReprojDirect   = ReprojectionBuffers[directIndex][ReprojBufferType_Direct];
                     ColorTarget& currReprojIndirect = ReprojectionBuffers[indirectIndex][ReprojBufferType_Indirect];
 

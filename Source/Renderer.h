@@ -219,7 +219,6 @@ private:
         int     CpuMaxScatterDepth              = 50;
         int     CpuNumThreads                   = 4;
 
-        int     GpuNumAccumPasses               = 1;
         int     GpuRayRecursionDepth            = 3;
         int     GpuNumRaysPerPixel              = 1;
         float   GpuAORadius                     = 100.0f;
@@ -228,7 +227,7 @@ private:
         float   GpuIndirectLightMult            = 0.35f;
         bool    GpuEnableToneMapping            = true;
         int     GpuDenoiseFilterIterations      = 2;
-        int     GpuDenoiseFeedbackTap           = 0;
+        int     GpuDenoiseFeedbackTap           = 2;
         float   GpuDenoiseAlpha                 = 0.05f;
         float   GpuDenoiseMomentsAlpha          = 0.2f;
         float   GpuDenoisePhiColor              = 10.0f;

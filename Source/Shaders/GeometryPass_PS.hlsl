@@ -43,8 +43,8 @@ struct MRT
     float4 TexCoordAndDepth : SV_Target2;
     float4 Diffuse          : SV_Target3;
     float4 SVGFLinearZ      : SV_Target4;
-    float4 SVGFMoVec        : SV_Target5;
-    float4 SVGFCompact      : SV_Target6;
+    float4 SVGFMoVec        : SV_Target6;
+    float4 SVGFCompact      : SV_Target7;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------

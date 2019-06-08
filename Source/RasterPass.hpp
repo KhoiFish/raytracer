@@ -346,7 +346,9 @@ void Renderer::SetupRasterDescriptors()
 
 void Renderer::SetupSceneConstantBuffer(SceneConstantBuffer& sceneCB)
 {
-    RealtimeCamera& camera = TheRenderScene->GetCamera();
+    RealtimeCamera& camera             = TheRenderScene->GetCamera();
+    XMMATRIX        currViewProjection = XMMatrixTranspose(camera.GetViewMatrix() * camera.GetProjectionMatrix());
+    static XMMATRIX prevViewProjection = currViewProjection;
 
     sceneCB.FarClipDist  = camera.GetZFar();
     sceneCB.OutputSize   = XMFLOAT4(float(Width), float(Height), 1.0f / float(Width), 1.0f / float(Height));
@@ -354,9 +356,13 @@ void Renderer::SetupSceneConstantBuffer(SceneConstantBuffer& sceneCB)
     XMStoreFloat4(&sceneCB.CameraPosition, camera.GetEye());
     XMStoreFloat4x4(&sceneCB.ViewMatrix, XMMatrixTranspose(camera.GetViewMatrix()));
     XMStoreFloat4x4(&sceneCB.ProjectionMatrix, XMMatrixTranspose(camera.GetProjectionMatrix()));
-    XMStoreFloat4x4(&sceneCB.ViewProjectionMatrix, XMMatrixTranspose(camera.GetViewMatrix() * camera.GetProjectionMatrix()));
+    XMStoreFloat4x4(&sceneCB.ViewProjectionMatrix, currViewProjection);
+    XMStoreFloat4x4(&sceneCB.PrevViewProjectionMatrix, prevViewProjection);
     XMStoreFloat4x4(&sceneCB.InverseViewProjectionMatrix, XMMatrixTranspose(XMMatrixInverse(nullptr, camera.GetViewMatrix() * camera.GetProjectionMatrix())));
     XMStoreFloat4x4(&sceneCB.InverseTransposeViewProjectionMatrix, XMMatrixInverse(nullptr, camera.GetViewMatrix() * camera.GetProjectionMatrix()));
+
+    // Update previous
+    prevViewProjection = currViewProjection;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

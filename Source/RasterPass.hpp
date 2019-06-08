@@ -428,10 +428,10 @@ void Renderer::RenderGeometryPass()
             }
             renderContext.SetRenderTargets(ARRAYSIZE(rtvs), rtvs, RenderDevice::Get().GetDepthStencil().GetDSV());
 
-            for (int i = 0; i < GBufferType_Num; i++)
-            {
-                renderContext.ClearColor(GBuffers[i]);
-            }
+            renderContext.ClearColor(GBuffers[GBufferType_Position]);
+            renderContext.ClearColor(GBuffers[GBufferType_Normal]);
+            renderContext.ClearColor(GBuffers[GBufferType_TexCoordAndDepth]);
+            renderContext.ClearColor(GBuffers[GBufferType_Albedo]);
 
             // Set descriptor heaps and tables
             renderContext.SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, RendererDescriptorHeap->GetDescriptorHeap());

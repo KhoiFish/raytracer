@@ -180,12 +180,12 @@ void Renderer::SetupDenoiseDescriptors()
             *ReprojectionBuffers[0][ReprojBufferType_Moments].GetResource(),
             D3D12_UAV_DIMENSION_TEXTURE2D,
             D3D12_BUFFER_UAV_FLAG_NONE,
-            MomentsBufferType),
+            ReprojBufferRTTypes[ReprojBufferType_Moments]),
         RendererDescriptorHeap->AllocateBufferUav(
             *ReprojectionBuffers[1][ReprojBufferType_Moments].GetResource(),
             D3D12_UAV_DIMENSION_TEXTURE2D,
             D3D12_BUFFER_UAV_FLAG_NONE,
-            MomentsBufferType)
+            ReprojBufferRTTypes[ReprojBufferType_Moments])
     );
     
     // Reproj History
@@ -201,12 +201,12 @@ void Renderer::SetupDenoiseDescriptors()
             *ReprojectionBuffers[0][ReprojBufferType_History].GetResource(),
             D3D12_UAV_DIMENSION_TEXTURE2D,
             D3D12_BUFFER_UAV_FLAG_NONE,
-            HistoryBufferType),
+            ReprojBufferRTTypes[ReprojBufferType_History]),
         RendererDescriptorHeap->AllocateBufferUav(
             *ReprojectionBuffers[1][ReprojBufferType_History].GetResource(),
             D3D12_UAV_DIMENSION_TEXTURE2D,
             D3D12_BUFFER_UAV_FLAG_NONE,
-            HistoryBufferType)
+            ReprojBufferRTTypes[ReprojBufferType_History])
     );
 
     // Reproj Direct
@@ -222,12 +222,12 @@ void Renderer::SetupDenoiseDescriptors()
             *ReprojectionBuffers[0][ReprojBufferType_Direct].GetResource(),
             D3D12_UAV_DIMENSION_TEXTURE2D,
             D3D12_BUFFER_UAV_FLAG_NONE,
-            DirectIndirectRTBufferType),
+            ReprojBufferRTTypes[ReprojBufferType_Direct]),
         RendererDescriptorHeap->AllocateBufferUav(
             *ReprojectionBuffers[1][ReprojBufferType_Direct].GetResource(),
             D3D12_UAV_DIMENSION_TEXTURE2D,
             D3D12_BUFFER_UAV_FLAG_NONE,
-            DirectIndirectRTBufferType)
+            ReprojBufferRTTypes[ReprojBufferType_Direct])
     );
 
     // Reproj Indirect
@@ -243,12 +243,12 @@ void Renderer::SetupDenoiseDescriptors()
             *ReprojectionBuffers[0][ReprojBufferType_Indirect].GetResource(),
             D3D12_UAV_DIMENSION_TEXTURE2D,
             D3D12_BUFFER_UAV_FLAG_NONE,
-            DirectIndirectRTBufferType),
+            ReprojBufferRTTypes[ReprojBufferType_Indirect]),
         RendererDescriptorHeap->AllocateBufferUav(
             *ReprojectionBuffers[1][ReprojBufferType_Indirect].GetResource(),
             D3D12_UAV_DIMENSION_TEXTURE2D,
             D3D12_BUFFER_UAV_FLAG_NONE,
-            DirectIndirectRTBufferType)
+            ReprojBufferRTTypes[ReprojBufferType_Indirect])
     );
 
     // Denoise Output Direct

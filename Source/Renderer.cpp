@@ -55,19 +55,23 @@ Renderer::Renderer(uint32_t width, uint32_t height)
     , RaytracingGlobalSigDataIndexStart(0)
     , RaytracingLocalSigDataIndexStart(0)
 {
-    BackbufferFormat                             = DXGI_FORMAT_R10G10B10A2_UNORM;
-    CPURaytracerTexType                          = DXGI_FORMAT_R32G32B32A32_FLOAT;
-    DirectIndirectRTBufferType                   = DXGI_FORMAT_R32G32B32A32_FLOAT;
-    MomentsBufferType                            = DXGI_FORMAT_R32G32B32A32_FLOAT;
-    HistoryBufferType                            = DXGI_FORMAT_R16_FLOAT;
-    GBufferRTTypes[GBufferType_Position]         = DXGI_FORMAT_R32G32B32A32_FLOAT;
-    GBufferRTTypes[GBufferType_Normal]           = DXGI_FORMAT_R16G16B16A16_FLOAT;
-    GBufferRTTypes[GBufferType_TexCoordAndDepth] = DXGI_FORMAT_R8G8B8A8_UNORM;
-    GBufferRTTypes[GBufferType_Albedo]           = DXGI_FORMAT_R16G16B16A16_FLOAT;
-    GBufferRTTypes[GBufferType_CurrSVGFLinearZ]  = DXGI_FORMAT_R32G32B32A32_FLOAT;
-    GBufferRTTypes[GBufferType_PrevSVGFLinearZ]  = DXGI_FORMAT_R32G32B32A32_FLOAT;
-    GBufferRTTypes[GBufferType_SVGFMoVec]        = DXGI_FORMAT_R32G32B32A32_FLOAT;
-    GBufferRTTypes[GBufferType_SVGFCompact]      = DXGI_FORMAT_R32G32B32A32_FLOAT;
+    BackbufferFormat                                = DXGI_FORMAT_R10G10B10A2_UNORM;
+    CPURaytracerTexType                             = DXGI_FORMAT_R32G32B32A32_FLOAT;
+    DirectIndirectRTBufferType                      = DXGI_FORMAT_R32G32B32A32_FLOAT;
+
+    ReprojBufferRTTypes[ReprojBufferType_Direct]    = DirectIndirectRTBufferType;
+    ReprojBufferRTTypes[ReprojBufferType_Indirect]  = DirectIndirectRTBufferType;
+    ReprojBufferRTTypes[ReprojBufferType_Moments]   = DXGI_FORMAT_R16G16B16A16_FLOAT;
+    ReprojBufferRTTypes[ReprojBufferType_History]   = DXGI_FORMAT_R16_FLOAT;
+
+    GBufferRTTypes[GBufferType_Position]            = DXGI_FORMAT_R32G32B32A32_FLOAT;
+    GBufferRTTypes[GBufferType_Normal]              = DXGI_FORMAT_R16G16B16A16_FLOAT;
+    GBufferRTTypes[GBufferType_TexCoordAndDepth]    = DXGI_FORMAT_R8G8B8A8_UNORM;
+    GBufferRTTypes[GBufferType_Albedo]              = DXGI_FORMAT_R16G16B16A16_FLOAT;
+    GBufferRTTypes[GBufferType_CurrSVGFLinearZ]     = DXGI_FORMAT_R16G16B16A16_FLOAT;
+    GBufferRTTypes[GBufferType_PrevSVGFLinearZ]     = DXGI_FORMAT_R16G16B16A16_FLOAT;
+    GBufferRTTypes[GBufferType_SVGFMoVec]           = DXGI_FORMAT_R16G16B16A16_FLOAT;
+    GBufferRTTypes[GBufferType_SVGFCompact]         = DXGI_FORMAT_R16G16B16A16_FLOAT;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -172,15 +176,11 @@ void Renderer::SetupRenderBuffers()
 
     for (int i = 0; i < 2; i++)
     {
-        ReprojectionBuffers[i][ReprojBufferType_Direct].Destroy();
-        ReprojectionBuffers[i][ReprojBufferType_Indirect].Destroy();
-        ReprojectionBuffers[i][ReprojBufferType_Moments].Destroy();
-        ReprojectionBuffers[i][ReprojBufferType_History].Destroy();
-
-        ReprojectionBuffers[i][ReprojBufferType_Direct].CreateEx(ReprojBufferTypeStrings[ReprojBufferType_Direct], width, height, 1, DirectIndirectRTBufferType, nullptr, D3D12_HEAP_TYPE_DEFAULT, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
-        ReprojectionBuffers[i][ReprojBufferType_Indirect].CreateEx(ReprojBufferTypeStrings[ReprojBufferType_Indirect], width, height, 1, DirectIndirectRTBufferType, nullptr, D3D12_HEAP_TYPE_DEFAULT, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
-        ReprojectionBuffers[i][ReprojBufferType_Moments].CreateEx(ReprojBufferTypeStrings[ReprojBufferType_Moments], width, height, 1, MomentsBufferType, nullptr, D3D12_HEAP_TYPE_DEFAULT, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
-        ReprojectionBuffers[i][ReprojBufferType_History].CreateEx(ReprojBufferTypeStrings[ReprojBufferType_History], width, height, 1, HistoryBufferType, nullptr, D3D12_HEAP_TYPE_DEFAULT, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
+        for (int j = 0; j < ReprojBufferType_Num; j++)
+        {
+            ReprojectionBuffers[i][j].Destroy();
+            ReprojectionBuffers[i][j].CreateEx(ReprojBufferTypeStrings[j], width, height, 1, ReprojBufferRTTypes[j], nullptr, D3D12_HEAP_TYPE_DEFAULT, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
+        }
     }
 
     for (int i = 0; i < 2; i++)

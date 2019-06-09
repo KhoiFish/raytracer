@@ -262,8 +262,7 @@ private:
     DXGI_FORMAT                     BackbufferFormat;
     DXGI_FORMAT                     GBufferRTTypes[GBufferType_Num];
     DXGI_FORMAT                     DirectIndirectRTBufferType;
-    DXGI_FORMAT                     MomentsBufferType;
-    DXGI_FORMAT                     HistoryBufferType;
+    DXGI_FORMAT                     ReprojBufferRTTypes[ReprojBufferType_Num];
     DXGI_FORMAT                     CPURaytracerTexType;
 
     DescriptorHeapCollection        RendererDescriptorHeapCollection;

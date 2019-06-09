@@ -170,8 +170,11 @@ void Renderer::SetupRenderBuffers()
         DirectLightingBuffer[i].Destroy();
         IndirectLightingBuffer[i].Destroy();
 
-        DirectLightingBuffer[i].CreateEx(DirectIndirectBufferTypeStrings[i], width, height, 1, DirectIndirectRTBufferType, nullptr, D3D12_HEAP_TYPE_DEFAULT, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
-        IndirectLightingBuffer[i].CreateEx(DirectIndirectBufferTypeStrings[i], width, height, 1, DirectIndirectRTBufferType, nullptr, D3D12_HEAP_TYPE_DEFAULT, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
+        string_t directString   = string_t("Source Direct ") + DirectIndirectBufferTypeStrings[i];
+        string_t indirectString = string_t("Source Indirect ") + DirectIndirectBufferTypeStrings[i];
+
+        DirectLightingBuffer[i].CreateEx(directString, width, height, 1, DirectIndirectRTBufferType, nullptr, D3D12_HEAP_TYPE_DEFAULT, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
+        IndirectLightingBuffer[i].CreateEx(indirectString, width, height, 1, DirectIndirectRTBufferType, nullptr, D3D12_HEAP_TYPE_DEFAULT, D3D12_GPU_VIRTUAL_ADDRESS_UNKNOWN, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE, true);
     }
 
     for (int i = 0; i < 2; i++)

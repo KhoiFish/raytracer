@@ -161,8 +161,8 @@ private:
 
     static constexpr const char* DirectIndirectBufferTypeStrings[DirectIndirectBufferType_Num] =
     {
-        "Direct/Indirect Results",
-        "Direct/Indirect Albedo",
+        "Results",
+        "Albedo",
     };
 
     enum ReprojBufferType

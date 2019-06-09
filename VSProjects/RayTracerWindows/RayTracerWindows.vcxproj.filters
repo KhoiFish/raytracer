@@ -55,12 +55,6 @@
     <ClInclude Include="..\..\Source\Shaders\SVGF\SVGFCommon.h">
       <Filter>Shaders\Denoise</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\Shaders\SVGF\SVGFEdgeStoppingFunctions.h">
-      <Filter>Shaders\Denoise</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Shaders\SVGF\SVGFPackNormal.h">
-      <Filter>Shaders\Denoise</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="RayTracerWindows.rc">

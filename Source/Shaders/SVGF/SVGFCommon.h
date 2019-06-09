@@ -1,71 +1,23 @@
-/**********************************************************************************************************************
-# Copyright (c) 2018, NVIDIA CORPORATION. All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
-# following conditions are met:
-#  * Redistributions of code must retain the copyright notice, this list of conditions and the following disclaimer.
-#  * Neither the name of NVIDIA CORPORATION nor the names of its contributors may be used to endorse or promote products
-#    derived from this software without specific prior written permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT
-# SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
-# OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-**********************************************************************************************************************/
-
-#ifndef SVGF_COMMON_H
-#define SVGF_COMMON_H
-
-#define f4red   float4(1,0,0,1)
-#define f4green float4(0,1,0,1)
-#define f4blue  float4(0,0,1,1)
-#define f4white float4(1,1,1,1)
-#define f4black float4(0,0,0,1)
-
-
-/** Returns a relative luminance of an input linear RGB color in the ITU-R BT.709 color space
-    \param RGBColor linear HDR RGB color in the ITU-R BT.709 color space
-*/
-inline float luminance(float3 rgb)
-{
-    return dot(rgb, float3(0.2126f, 0.7152f, 0.0722f));
-}
-
-int2 getTextureDims(Texture2D tex, uint mip)
-{
-    uint w, h;
-    tex.GetDimensions(w, h);
-
-    return int2(w, h);
-}
-
-int2 getTextureDims(RWTexture2D<float4> tex, uint mip)
-{
-    uint w, h;
-    tex.GetDimensions(w, h);
-
-    return int2(w, h);
-}
-
-// TODO: These clash with the functions in Utils/PackedFormatConversion.hlsli
-uint packSnorm2x16(float2 val)
-{
-    uint l = asuint(f32tof16(val.x));
-    uint h = asuint(f32tof16(val.y));
-
-    return (h << 16) + l;
-}
-
-float2 unpackSnorm2x16(uint val)
-{
-    uint l = (val) & 0xffff;
-    uint h = (val >> 16) & 0xffff;
-
-    return float2(f16tof32(l), f16tof32(h));
-}
+// ----------------------------------------------------------------------------------------------------------------------------
+// 
+// Copyright 2019 Khoi Nguyen
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
+// modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+// 
+//    The above copyright notice and this permission notice shall be included in all copies or substantial
+//    portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+// WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+// 
+// This file has been modified from https://research.nvidia.com/publication/2017-07_Spatiotemporal-Variance-Guided-Filtering%3A
+//
+// ----------------------------------------------------------------------------------------------------------------------------
 
 #define COMPARE_FUNC2(TYPE) \
 bool2 equal(TYPE a, TYPE b)              { return bool2(a.x == b.x, a.y == b.y); } \
@@ -106,5 +58,126 @@ COMPARE_FUNC4(float4)
 
 #undef COMPARE_FUNC4
 
+// ----------------------------------------------------------------------------------------------------------------------------
 
-#endif
+// Returns a relative luminance of an input linear RGB color in the ITU-R BT.709 color space
+// \param RGBColor linear HDR RGB color in the ITU-R BT.709 color space
+inline float luminance(float3 rgb)
+{
+    return dot(rgb, float3(0.2126f, 0.7152f, 0.0722f));
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+int2 getTextureDims(Texture2D tex, uint mip)
+{
+    uint w, h;
+    tex.GetDimensions(w, h);
+
+    return int2(w, h);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+int2 getTextureDims(RWTexture2D<float4> tex, uint mip)
+{
+    uint w, h;
+    tex.GetDimensions(w, h);
+
+    return int2(w, h);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+uint packSnorm2x16(float2 val)
+{
+    uint l = asuint(f32tof16(val.x));
+    uint h = asuint(f32tof16(val.y));
+
+    return (h << 16) + l;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+float2 unpackSnorm2x16(uint val)
+{
+    uint l = (val) & 0xffff;
+    uint h = (val >> 16) & 0xffff;
+
+    return float2(f16tof32(l), f16tof32(h));
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+float3 octToDir(uint octo)
+{
+    float2 e = float2(f16tof32(octo & 0xFFFF), f16tof32((octo >> 16) & 0xFFFF));
+    float3 v = float3(e, 1.0 - abs(e.x) - abs(e.y));
+    if (v.z < 0.0)
+        v.xy = (1.0 - abs(v.yx)) * (step(0.0, v.xy) * 2.0 - (float2)(1.0));
+    return normalize(v);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+uint dirToOct(float3 normal)
+{
+    float2 p = normal.xy * (1.0 / dot(abs(normal), 1.0.xxx));
+    float2 e = normal.z > 0.0 ? p : (1.0 - abs(p.yx)) * (step(0.0, p) * 2.0 - (float2)(1.0));
+    return (asuint(f32tof16(e.y)) << 16) + (asuint(f32tof16(e.x)));
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void fetchNormalAndLinearZ(in Texture2D ndTexture, in int2 ipos, out float3 norm, out float2 zLinear)
+{
+    float4 nd = ndTexture.Load(int3(ipos, 0));
+    norm = normalize(octToDir(asuint(nd.x)));
+    zLinear = float2(nd.y, nd.z);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+float normalDistanceCos(float3 n1, float3 n2, float power)
+{
+    //return pow(max(0.0, dot(n1, n2)), 128.0);
+    //return pow( saturate(dot(n1,n2)), power);
+    return 1.0f;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+float normalDistanceTan(float3 a, float3 b)
+{
+    const float d = max(1e-8, dot(a, b));
+
+    return sqrt(max(0.0, 1.0 - d * d)) / d;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+float2 computeWeight(
+    float depthCenter, float depthP, float phiDepth,
+    float3 normalCenter, float3 normalP, float normPower,
+    float luminanceDirectCenter, float luminanceDirectP, float phiDirect,
+    float luminanceIndirectCenter, float luminanceIndirectP, float phiIndirect)
+{
+    const float wNormal    = normalDistanceCos(normalCenter, normalP, normPower);
+    const float wZ         = (phiDepth == 0) ? 0.0f : abs(depthCenter - depthP) / phiDepth;
+    const float wLdirect   = abs(luminanceDirectCenter - luminanceDirectP) / phiDirect;
+    const float wLindirect = abs(luminanceIndirectCenter - luminanceIndirectP) / phiIndirect;
+    const float wDirect    = exp(0.0 - max(wLdirect, 0.0) - max(wZ, 0.0)) * wNormal;
+    const float wIndirect  = exp(0.0 - max(wLindirect, 0.0) - max(wZ, 0.0)) * wNormal;
+
+    return float2(wDirect, wIndirect);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+float computeWeightNoLuminance(float depthCenter, float depthP, float phiDepth, float3 normalCenter, float3 normalP)
+{
+    const float wNormal = normalDistanceCos(normalCenter, normalP, 128.0f);
+    const float wZ      = abs(depthCenter - depthP) / phiDepth;
+
+    return exp(-max(wZ, 0.0)) * wNormal;
+}

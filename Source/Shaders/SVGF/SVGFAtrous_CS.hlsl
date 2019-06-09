@@ -15,14 +15,13 @@
 // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // 
+// This file has been modified from https://research.nvidia.com/publication/2017-07_Spatiotemporal-Variance-Guided-Filtering%3A
+//
 // ----------------------------------------------------------------------------------------------------------------------------
 
-// This file has been modified from https://research.nvidia.com/publication/2017-07_Spatiotemporal-Variance-Guided-Filtering%3A
 #define HLSL
 #include "../../RendererShaderInclude.h"
 #include "SVGFCommon.h"
-#include "SVGFPackNormal.h"
-#include "SVGFEdgeStoppingFunctions.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 

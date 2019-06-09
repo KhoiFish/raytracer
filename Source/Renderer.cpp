@@ -67,7 +67,7 @@ Renderer::Renderer(uint32_t width, uint32_t height)
     GBufferRTTypes[GBufferType_Position]            = DXGI_FORMAT_R32G32B32A32_FLOAT;
     GBufferRTTypes[GBufferType_Normal]              = DXGI_FORMAT_R16G16B16A16_FLOAT;
     GBufferRTTypes[GBufferType_TexCoordAndDepth]    = DXGI_FORMAT_R8G8B8A8_UNORM;
-    GBufferRTTypes[GBufferType_Albedo]              = DXGI_FORMAT_R16G16B16A16_FLOAT;
+    GBufferRTTypes[GBufferType_Albedo]              = DXGI_FORMAT_R8G8B8A8_UNORM;
     GBufferRTTypes[GBufferType_CurrSVGFLinearZ]     = DXGI_FORMAT_R16G16B16A16_FLOAT;
     GBufferRTTypes[GBufferType_PrevSVGFLinearZ]     = DXGI_FORMAT_R16G16B16A16_FLOAT;
     GBufferRTTypes[GBufferType_SVGFMoVec]           = DXGI_FORMAT_R16G16B16A16_FLOAT;

@@ -173,8 +173,6 @@
     <ClInclude Include="..\..\Source\RendererShaderInclude.h" />
     <ClInclude Include="..\..\Source\SampleScenes.h" />
     <ClInclude Include="..\..\Source\Shaders\SVGF\SVGFCommon.h" />
-    <ClInclude Include="..\..\Source\Shaders\SVGF\SVGFEdgeStoppingFunctions.h" />
-    <ClInclude Include="..\..\Source\Shaders\SVGF\SVGFPackNormal.h" />
     <ClInclude Include="..\..\Source\Windows\Resource.h" />
   </ItemGroup>
   <ItemGroup>

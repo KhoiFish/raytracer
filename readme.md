@@ -53,6 +53,10 @@ The following are really good references for someone getting into raytracing. If
 <br>
 [https://github.com/microsoft/DirectX-Graphics-Samples]
 
+**SVGF Denoiser**
+<br>
+[https://research.nvidia.com/publication/2017-07_Spatiotemporal-Variance-Guided-Filtering%3A]
+
 **Stb**
 <br>
 [https://github.com/nothings/stb]

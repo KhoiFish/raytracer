@@ -96,6 +96,7 @@ private:
 
     void                        SetEnableCpuRaytrace(bool enable);
     void                        SetCameraDirty();
+    void                        SetGpuOptionsDirty();
     void                        SetupSceneConstantBuffer(SceneConstantBuffer& sceneCB);
     void                        UpdateWindowTitle();
 
@@ -253,6 +254,7 @@ private:
     int                             SelectedBufferIndex;
     int                             CpuResultsBufferIndex;
     bool                            IsCameraDirty;
+    bool                            IsGpuOptionsDirty;
     bool                            LoadSceneRequested;
     int                             MaxNumCpuThreads;
 

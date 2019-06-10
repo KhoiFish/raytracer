@@ -378,6 +378,13 @@ void Renderer::SetCameraDirty()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+void Renderer::SetGpuOptionsDirty()
+{
+    IsGpuOptionsDirty = true;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 void Renderer::ToggleCpuRaytracer()
 {
     SetEnableCpuRaytrace(TheRaytracer == nullptr);
@@ -447,6 +454,12 @@ void Renderer::OnUpdate(float dtSeconds)
 
             IsCameraDirty = false;
             AccumCount = 0;
+        }
+
+        if (IsGpuOptionsDirty)
+        {
+            AccumCount = 0;
+            IsGpuOptionsDirty = false;
         }
     }
 

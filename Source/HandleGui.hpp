@@ -210,11 +210,6 @@ void Renderer::RenderGuiOptionsWindow()
             gpuOptionsChanged = true;
         }
 
-        if (ImGui::SliderFloat("AO Radius", &TheUserInputData.GpuAORadius, 1.0f, 1000.0f))
-        {
-            gpuOptionsChanged = true;
-        }
-
         if (ImGui::SliderInt("Denoise Filter Iter", &TheUserInputData.GpuDenoiseFilterIterations, 0, 5))
         {
             gpuOptionsChanged = true;
@@ -257,10 +252,10 @@ void Renderer::RenderGuiOptionsWindow()
 
         // ------------------------------------------------------------
 
-        // If gpu options changed, trigger camera to update
+        // If gpu options changed, trigger gpu options dirty
         if (gpuOptionsChanged)
         {
-            SetCameraDirty();
+            SetGpuOptionsDirty();
         }
     }
 

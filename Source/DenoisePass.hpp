@@ -334,6 +334,12 @@ void Renderer::SetupDenoiseDescriptors()
 
 void Renderer::RenderDenoisePass()
 {
+    // Bail if denoise is disabled
+    if (!TheUserInputData.GpuEnableDenoise)
+    {
+        return;
+    }
+
     ComputeContext& computeContext = ComputeContext::Begin("Reprojection");
     {
         // Setup Denoise CB

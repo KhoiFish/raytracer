@@ -245,15 +245,14 @@ void Renderer::RenderGuiOptionsWindow()
             gpuOptionsChanged = true;
         }
 
-        if (ImGui::Checkbox("Enable Camera Jitter", &TheUserInputData.GpuCameraJitter))
+        if (ImGui::Checkbox("Enable Denoise (SVGF)", &TheUserInputData.GpuEnableDenoise))
         {
             gpuOptionsChanged = true;
         }
 
         if (ImGui::Checkbox("Enable Tone Mapping", &TheUserInputData.GpuEnableToneMapping))
         {
-            // This does not require flagging gpu as dirty
-            //gpuOptionsChanged = true;
+            gpuOptionsChanged = true;
         }
 
         // ------------------------------------------------------------

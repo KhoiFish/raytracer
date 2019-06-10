@@ -346,12 +346,12 @@ void Renderer::SetupRasterDescriptors()
 
     // Place holder
     RendererDescriptorHeap->AllocateTexture2DSrv(
-        DenoiseDirectOutputBuffer[0].GetResource(),
+        DirectLightingBuffer[DirectIndirectBufferType_Results].GetResource(),
         DirectIndirectRTBufferType);
 
     // Place holder
     RendererDescriptorHeap->AllocateTexture2DSrv(
-        DenoiseIndirectOutputBuffer[0].GetResource(),
+        IndirectLightingBuffer[DirectIndirectBufferType_Results].GetResource(),
         DirectIndirectRTBufferType);
 
     RendererDescriptorHeap->AllocateTexture2DSrv(
@@ -418,6 +418,9 @@ void Renderer::RenderGeometryPass()
 {
     // Jitter camera
     {
+        // Enable camera jitter only if denoise is disabled
+        TheUserInputData.GpuCameraJitter = !TheUserInputData.GpuEnableDenoise;
+
         if (TheUserInputData.GpuCameraJitter)
         {
             // Half pixel offset
@@ -582,9 +585,12 @@ void Renderer::RenderCompositePass()
             }
 
             // Set direct and indirect textures to the denoised output
-            renderContext.SetDescriptorTable(RasterRenderRootSig::DenoisedDirect, DenoiseDirectOutputDescriptor.GePreviousGpuDescriptor());
-            renderContext.SetDescriptorTable(RasterRenderRootSig::DenoisedIndirect, DenoiseIndirectOutputDescriptor.GePreviousGpuDescriptor());
-
+            if (TheUserInputData.GpuEnableDenoise)
+            {
+                renderContext.SetDescriptorTable(RasterRenderRootSig::DenoisedDirect, DenoiseDirectOutputDescriptor.GePreviousGpuDescriptor());
+                renderContext.SetDescriptorTable(RasterRenderRootSig::DenoisedIndirect, DenoiseIndirectOutputDescriptor.GePreviousGpuDescriptor());
+            }
+            
             // Bind render targets
             D3D12_CPU_DESCRIPTOR_HANDLE rtvs[2] =
             {

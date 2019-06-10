@@ -225,6 +225,7 @@ private:
         float   GpuIndirectLightMult            = 0.35f;
         bool    GpuUnfilteredComposite          = false;
         bool    GpuEnableToneMapping            = true;
+        bool    GpuEnableDenoise                = true;
         int     GpuDenoiseFilterIterations      = 1;
         int     GpuDenoiseFeedbackTap           = 1;
         float   GpuDenoiseAlpha                 = 0.025f;

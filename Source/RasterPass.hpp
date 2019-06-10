@@ -204,7 +204,6 @@ const char* Renderer::GetSelectedBufferName()
         "Composite Output",
         "Direct Lighting",
         "Indirect Lighting",
-        "Ambient Occlusion",
         "Cpu Raytrace",
         "Positions",
         "Normals",
@@ -234,7 +233,7 @@ void Renderer::CleanupRasterPass()
 void Renderer::SetupRasterRootSignatures()
 {
     // Refer to composite shader and match this to the TextureMultipliers[] index
-    CpuResultsBufferIndex = 4;
+    CpuResultsBufferIndex = 3;
 
     // Constant buffers
     RasterSceneConstantBuffer.Create(L"Raster Scene Constant Buffer", 1, (uint32_t)AlignUp(sizeof(SceneConstantBuffer), 256));

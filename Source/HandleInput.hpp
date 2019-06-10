@@ -165,6 +165,7 @@ void Renderer::OnKeyUp(uint8_t key)
         {
             SelectedBufferIndex = atoi((const char*)&key) - 1;
             UpdateWindowTitle();
+            SetCameraDirty();
             break;
         }
     }

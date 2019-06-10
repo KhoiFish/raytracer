@@ -153,6 +153,15 @@ void Renderer::OnKeyUp(uint8_t key)
             break;
         }
 
+        case 'U':
+        case 'u':
+        {
+            TheUserInputData.GpuUnfilteredComposite = !TheUserInputData.GpuUnfilteredComposite;
+            UpdateWindowTitle();
+            SetCameraDirty();
+            break;
+        }
+
         case '1':
         case '2':
         case '3':

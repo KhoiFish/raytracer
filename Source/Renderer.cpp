@@ -272,7 +272,8 @@ void Renderer::UpdateWindowTitle()
     std::string newTitle =
         std::string("Raytracer -- ") +
         std::string(SampleSceneNames[TheUserInputData.SampleScene]) + std::string("  [") +
-        GetSelectedBufferName() + std::string("] ");
+        GetSelectedBufferName() + std::string("] [") +
+        (TheUserInputData.GpuUnfilteredComposite ? std::string("Unfiltered/Raw") : std::string("Filtered")) + std::string("]");
 
     PlatformApp::SetWindowTitle(newTitle);
 }

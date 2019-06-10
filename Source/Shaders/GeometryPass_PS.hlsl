@@ -49,14 +49,14 @@ struct MRT
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-SamplerState                            LinearRepeatSampler : register(s0);
-SamplerState                            AnisoRepeatSampler  : register(s1);
+SamplerState                            LinearRepeatSampler : register(s0, space0);
+SamplerState                            AnisoRepeatSampler  : register(s1, space0);
 
-Texture2D                               DiffuseTexture      : register(t9);
+Texture2D                               DiffuseTexture      : register(t3, space1);
 
-ConstantBuffer<SceneConstantBuffer>     SceneCb             : register(b0);
-ConstantBuffer<RenderNodeInstanceData>  InstanceCb          : register(b1);
-ConstantBuffer<RenderMaterial>          MaterialCb          : register(b2);
+ConstantBuffer<SceneConstantBuffer>     SceneCb             : register(b0, space0);
+ConstantBuffer<RenderNodeInstanceData>  InstanceCb          : register(b1, space0);
+ConstantBuffer<RenderMaterial>          MaterialCb          : register(b2, space0);
 
 // ----------------------------------------------------------------------------------------------------------------------------
 

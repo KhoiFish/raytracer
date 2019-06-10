@@ -34,6 +34,8 @@ namespace RasterRenderRootSig
         DirectLightAlbedo,
         IndirectLightResult,
         IndirectLightAlbedo,
+        DenoisedDirect,
+        DenoisedIndirect,
         CpuResultsTex,
         PrevResultsTex,
         PositionsTex,
@@ -68,16 +70,19 @@ namespace RasterRenderRootSig
         { 1,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // DirectLightAlbedo
         { 2,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // IndirectLightResult
         { 3,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // IndirectLightAlbedo
-        { 4,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // CpuResultsTex   
-        { 5,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // PrevResultsTex
-        { 6,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // PositionsTex
-        { 7,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // NormalsTex  
-        { 8,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // TexCoordsTex
-        { 9,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // DiffuseTex  
-        { 10, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // CurrSVGFLinearZTex
-        { 11, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // PrevSVGFLinearZTex
-        { 12, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // SVGFMoVecTex
-        { 13, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // SVGFCompactTex
+        { 4,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // DenoisedDirect
+        { 5,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // DenoisedIndirect
+        { 6,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // CpuResultsTex   
+        { 7,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // PrevResultsTex
+
+        { 0, 1, 1, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // PositionsTex
+        { 1, 1, 1, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // NormalsTex  
+        { 2, 1, 1, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // TexCoordsTex
+        { 3, 1, 1, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // DiffuseTex  
+        { 4, 1, 1, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // CurrSVGFLinearZTex
+        { 5, 1, 1, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // PrevSVGFLinearZTex
+        { 6, 1, 1, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // SVGFMoVecTex
+        { 7, 1, 1, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // SVGFCompactTex
     };
 }
 
@@ -339,6 +344,16 @@ void Renderer::SetupRasterDescriptors()
         IndirectLightingBuffer[DirectIndirectBufferType_Albedo].GetResource(),
         DirectIndirectRTBufferType);
 
+    // Place holder
+    RendererDescriptorHeap->AllocateTexture2DSrv(
+        DenoiseDirectOutputBuffer[0].GetResource(),
+        DirectIndirectRTBufferType);
+
+    // Place holder
+    RendererDescriptorHeap->AllocateTexture2DSrv(
+        DenoiseIndirectOutputBuffer[0].GetResource(),
+        DirectIndirectRTBufferType);
+
     RendererDescriptorHeap->AllocateTexture2DSrv(
         CPURaytracerTex.GetResource(),
         CPURaytracerTexType);
@@ -535,6 +550,9 @@ void Renderer::RenderCompositePass()
                 // Tone mapping
                 compositeCB.CompositeMultipliers[2] = enableToneMapping ? bufferOn : bufferOff;
 
+                // Unfiltered composite
+                compositeCB.CompositeMultipliers[3] = TheUserInputData.GpuUnfilteredComposite ? bufferOn : bufferOff;
+
                 // Accum count
                 compositeCB.AccumCount = float(AccumCount);
             }
@@ -564,8 +582,8 @@ void Renderer::RenderCompositePass()
             }
 
             // Set direct and indirect textures to the denoised output
-            renderContext.SetDescriptorTable(RasterRenderRootSig::DirectLightResult, DenoiseDirectOutputDescriptor.GePreviousGpuDescriptor());
-            renderContext.SetDescriptorTable(RasterRenderRootSig::IndirectLightResult, DenoiseIndirectOutputDescriptor.GePreviousGpuDescriptor());
+            renderContext.SetDescriptorTable(RasterRenderRootSig::DenoisedDirect, DenoiseDirectOutputDescriptor.GePreviousGpuDescriptor());
+            renderContext.SetDescriptorTable(RasterRenderRootSig::DenoisedIndirect, DenoiseIndirectOutputDescriptor.GePreviousGpuDescriptor());
 
             // Bind render targets
             D3D12_CPU_DESCRIPTOR_HANDLE rtvs[2] =

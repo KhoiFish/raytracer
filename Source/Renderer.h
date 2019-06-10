@@ -223,6 +223,7 @@ private:
         bool    GpuCameraJitter                 = false;
         float   GpuDirectLightMult              = 1.00f;
         float   GpuIndirectLightMult            = 0.35f;
+        bool    GpuUnfilteredComposite          = false;
         bool    GpuEnableToneMapping            = true;
         int     GpuDenoiseFilterIterations      = 1;
         int     GpuDenoiseFeedbackTap           = 1;

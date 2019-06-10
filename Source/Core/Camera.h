@@ -84,6 +84,9 @@ namespace Core
             clearColor = BackgroundColor;
         }
 
+        const Vec4& GetEye() const    { return LookFrom; }
+        const Vec4& GetTarget() const { return LookAt; }
+
     private:
 
         void UpdateInternalSettings();

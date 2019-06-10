@@ -109,8 +109,8 @@ static Camera getCameraForSample(SampleScene scene)
         case SceneMesh:
         {
             // Camera options
-            const Vec4   lookFrom = Vec4(-495.333893f, 303.848877f, -828.657288f);
-            const Vec4   lookAt   = Vec4(-494.744324f, 303.853485f, -827.849609f);
+            const Vec4   lookFrom = Vec4(-500, 400, -900);
+            const Vec4   lookAt   = Vec4( 200, 300,  0);
             const Vec4   upVec = Vec4(0, 1, 0);
             const float  vertFov = 40.f;
             const float  aperture = 0.0f;

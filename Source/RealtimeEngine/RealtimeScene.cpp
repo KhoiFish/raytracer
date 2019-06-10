@@ -602,7 +602,7 @@ void RealtimeScene::UpdateCamera(float nearPlane, float farPlane, float newVertF
 
     // Update render camera look at
     Core::Vec4  diffVec = (lookAt - lookFrom);
-    Core::Vec4  viewDir = diffVec.MakeUnitVector();
+    Core::Vec4  viewDir = UnitVector(diffVec);
     Core::Vec4  rightDir = Cross(up, viewDir).MakeUnitVector();
     float upAngle = mouseDx * -.1f;
     float rightAngle = mouseDy * -.1f;
@@ -652,6 +652,27 @@ void RealtimeScene::UpdateCamera(float nearPlane, float farPlane, float newVertF
             );
         }
     #endif
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+void RealtimeScene::UpdateCamera(float nearPlane, float farPlane, float newVertFov, const Core::Vec4& eye, const Core::Vec4& target, Core::Camera& worldCamera)
+{
+    // Get ray tracer camera params
+    Core::Vec4   lookFrom, lookAt, up;
+    float        vertFov, aspect, aperture, focusDist, t0, t1;
+    Core::Vec4   clearColor;
+    worldCamera.GetCameraParams(lookFrom, lookAt, up, vertFov, aspect, aperture, focusDist, t0, t1, clearColor);
+
+    // Update world camera
+    worldCamera.Setup(eye, target, up, newVertFov, aspect, aperture, focusDist, t0, t1, clearColor);
+
+    // Update render camera
+    XMVECTOR cameraPos    = ConvertToXMVector(eye);
+    XMVECTOR cameraTarget = ConvertToXMVector(target);
+    XMVECTOR cameraUp     = ConvertToXMVector(up);
+    TheRenderCamera.SetLookAt(cameraPos, cameraTarget, cameraUp);
+    TheRenderCamera.SetProjection(newVertFov, aspect, nearPlane, farPlane);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

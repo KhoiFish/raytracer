@@ -258,6 +258,11 @@ private:
     bool                            LoadSceneRequested;
     int                             MaxNumCpuThreads;
 
+    float                           RotateCameraAnimValue;
+    Core::Vec4                      OriginalCameraEye;
+    Core::Vec4                      OriginalCameraTarget;
+    bool                            RotateCameraAroundTarget;
+
     RandFloatDist                   RandDist;
     std::mt19937                    RandGen;
 

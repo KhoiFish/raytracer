@@ -235,12 +235,12 @@ void Renderer::RenderGuiOptionsWindow()
             gpuOptionsChanged = true;
         }
 
-        if (ImGui::SliderFloat("Denoise Phi Color", &TheUserInputData.GpuDenoisePhiColor, 0.0f, 250.0f))
+        if (ImGui::SliderFloat("Denoise Phi Color", &TheUserInputData.GpuDenoisePhiColor, 0.0f, 10.0f))
         {
             gpuOptionsChanged = true;
         }
 
-        if (ImGui::SliderFloat("Denoise Phi Normal", &TheUserInputData.GpuDenoisePhiNormal, 0.0f, 250.0f))
+        if (ImGui::SliderFloat("Denoise Phi Normal", &TheUserInputData.GpuDenoisePhiNormal, 0.0f, 10.0f))
         {
             gpuOptionsChanged = true;
         }

@@ -229,8 +229,8 @@ private:
         int     GpuDenoiseFilterIterations      = 1;
         int     GpuDenoiseFeedbackTap           = 1;
         float   GpuDenoiseAlpha                 = 0.025f;
-        float   GpuDenoiseMomentsAlpha          = 1.0f;
-        float   GpuDenoisePhiColor              = 10.0f;
+        float   GpuDenoiseMomentsAlpha          = 0.90f;
+        float   GpuDenoisePhiColor              = 0.25f;
         float   GpuDenoisePhiNormal             = 128.0f;
         float   GpuNearPlane                    = 0.1f;
         float   GpuFarPlane                     = 5000.0f;

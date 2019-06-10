@@ -52,14 +52,15 @@ VertexShaderOutput main(VertexPositionNormalTexture IN)
 {
     VertexShaderOutput OUT;
 
-    float4 worldPos = mul(float4(IN.Position, 1.0f), InstanceCb.WorldMatrix);
+    float4 worldPos     = mul(float4(IN.Position, 1.0f), InstanceCb.WorldMatrix);
+    float4 prevWorldPos = mul(float4(IN.Position, 1.0f), InstanceCb.PrevWorldMatrix);
 
     OUT.PositionWS     = worldPos;
     OUT.NormalWS       = mul(IN.Normal, (float3x3)InstanceCb.WorldMatrix);
     OUT.TexCoord       = IN.TexCoord;
     OUT.LinearDepth    = mul(float4(OUT.PositionWS.xyz, 1.0f), SceneCb.ViewMatrix).z / SceneCb.FarClipDist;
     OUT.NormalOS       = IN.Normal;
-    OUT.PrevPositionHS = mul(worldPos, SceneCb.PrevViewProjectionMatrix);
+    OUT.PrevPositionHS = mul(prevWorldPos, SceneCb.PrevViewProjectionMatrix);
     OUT.PositionHS     = mul(worldPos, SceneCb.ViewProjectionMatrix);
 
     return OUT;

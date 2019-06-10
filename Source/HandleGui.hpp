@@ -56,7 +56,10 @@ void Renderer::RenderGui()
             RenderGuiOptionsWindow();
             break;
     }
+    //ImGui::ShowDemoWindow(0);
     ImGui::EndFrame();
+
+    
 
     // Setup context and render
     GraphicsContext& renderContext = GraphicsContext::Begin("RenderGUI");
@@ -85,8 +88,8 @@ void Renderer::RenderGuiOptionsWindow()
     ImGui::SetNextWindowPos(ImVec2(15, 20), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(635, 910), ImGuiCond_FirstUseEver);
 
-    ImGuiWindowFlags windowFlags = ImGuiWindowFlags_AlwaysVerticalScrollbar;
-    if (!ImGui::Begin("Options Window", nullptr, windowFlags))
+    ImGuiWindowFlags windowFlags = ImGuiWindowFlags_AlwaysAutoResize;
+    if (!ImGui::Begin("Options", nullptr, windowFlags))
     {
         ImGui::End();
         return;
@@ -96,10 +99,7 @@ void Renderer::RenderGuiOptionsWindow()
 
     if (TheRaytracer != nullptr && TheRaytracer->IsTracing())
     {
-        ImGui::Separator();
-        ImGui::Separator();
-        ImGui::TextColored(gTextHeadingColor, "Cpu Raytrace Info");
-        ImGui::Separator();
+        if (ImGui::CollapsingHeader("Cpu Raytrace Info"))
         {
             Raytracer::Stats stats = TheRaytracer->GetStats();
             double percentage = double(double(stats.NumPixelSamples) / double(stats.TotalNumPixelSamples));
@@ -133,121 +133,121 @@ void Renderer::RenderGuiOptionsWindow()
 
         // ------------------------------------------------------------
 
-        ImGui::Separator();
-        ImGui::Separator();
-        ImGui::TextColored(gTextHeadingColor, "Input Legend");
-        ImGui::Separator();
-        ImGui::BulletText("Translate:[WASDQE] | Camera:[hold left mouse btn]");
-        ImGui::BulletText("Cpu Trace:[SPACE] | Output:[1-9 keys] | Toggle Filtering:[U key]");
-
-        // ------------------------------------------------------------
-
-        ImGui::Separator();
-        ImGui::Separator();
-        ImGui::TextColored(gTextHeadingColor, "Global Options");
-        ImGui::Separator();
-        if (ImGui::ListBox("Scene Select", &TheUserInputData.SampleScene, SampleSceneNames, IM_ARRAYSIZE(SampleSceneNames), MaxScene))
+        if (ImGui::CollapsingHeader("Input Help"))
         {
-            LoadSceneRequested = true;
+            ImGui::BulletText("Translate:[WASDQE]");
+            ImGui::BulletText("Pan:[hold left mouse btn]");
+            ImGui::BulletText("Cpu Trace:[SPACE]");
+            ImGui::BulletText("Output:[1-9 keys]");
+            ImGui::BulletText("Toggle Filtering:[U key]");
         }
 
         // ------------------------------------------------------------
 
-        ImGui::Separator();
-        ImGui::Separator();
-        ImGui::TextColored(gTextHeadingColor, "Cpu Raytracer");
-        ImGui::Separator();
-
-        _itoa_s(TheUserInputData.CpuNumSamplesPerRay, stringBuf, 10);
-        if (ImGui::InputText("Cpu Rays/Pixel", stringBuf, IM_ARRAYSIZE(stringBuf), ImGuiInputTextFlags_CharsDecimal))
+        if (ImGui::CollapsingHeader("Global Options"))
         {
-            TheUserInputData.CpuNumSamplesPerRay = atoi(stringBuf);
-            cpuOptionsChanged = true;
-        }
-
-        _itoa_s(TheUserInputData.CpuMaxScatterDepth, stringBuf, 10);
-        if (ImGui::InputText("Cpu Ray Depth", stringBuf, IM_ARRAYSIZE(stringBuf), ImGuiInputTextFlags_CharsDecimal))
-        {
-            TheUserInputData.CpuMaxScatterDepth = atoi(stringBuf);
-            cpuOptionsChanged = true;
-        }
-
-        if (ImGui::SliderInt("Cpu Num Threads", &TheUserInputData.CpuNumThreads, 1, MaxNumCpuThreads))
-        {
-            cpuOptionsChanged = true;
-        }
-
-        ImGui::Text("");
-        if (ImGui::Button("Begin Cpu Raytrace", ImVec2(180, 30)))
-        {
-            SetEnableCpuRaytrace(true);
+            if (ImGui::ListBox("Scene Select", &TheUserInputData.SampleScene, SampleSceneNames, IM_ARRAYSIZE(SampleSceneNames), MaxScene))
+            {
+                LoadSceneRequested = true;
+            }
         }
 
         // ------------------------------------------------------------
 
-        ImGui::Separator();
-        ImGui::Separator();
-        ImGui::TextColored(gTextHeadingColor, "Gpu Raytracer");
-        ImGui::Separator();
-
-        if (ImGui::SliderInt("Rays Per Pixel", &TheUserInputData.GpuNumRaysPerPixel, 1, 10))
+        if (ImGui::CollapsingHeader("Cpu Raytracer"))
         {
-            gpuOptionsChanged = true;
+            _itoa_s(TheUserInputData.CpuNumSamplesPerRay, stringBuf, 10);
+            if (ImGui::InputText("Rays Per Pixel", stringBuf, IM_ARRAYSIZE(stringBuf), ImGuiInputTextFlags_CharsDecimal))
+            {
+                TheUserInputData.CpuNumSamplesPerRay = atoi(stringBuf);
+                cpuOptionsChanged = true;
+            }
+
+            _itoa_s(TheUserInputData.CpuMaxScatterDepth, stringBuf, 10);
+            if (ImGui::InputText("Ray Depth", stringBuf, IM_ARRAYSIZE(stringBuf), ImGuiInputTextFlags_CharsDecimal))
+            {
+                TheUserInputData.CpuMaxScatterDepth = atoi(stringBuf);
+                cpuOptionsChanged = true;
+            }
+
+            if (ImGui::SliderInt("Num Threads", &TheUserInputData.CpuNumThreads, 1, MaxNumCpuThreads))
+            {
+                cpuOptionsChanged = true;
+            }
+
+            ImGui::Text("");
+            if (ImGui::Button("Begin Cpu Raytrace", ImVec2(180, 30)))
+            {
+                SetEnableCpuRaytrace(true);
+            }
         }
 
-        if (ImGui::SliderInt("Ray Recursion Depth", &TheUserInputData.GpuRayRecursionDepth, 1, RAYTRACING_MAX_RAY_RECURSION_DEPTH))
-        {
-            gpuOptionsChanged = true;
-        }
+        // ------------------------------------------------------------
 
-        if (ImGui::SliderFloat("Direct Light Scale", &TheUserInputData.GpuDirectLightMult, 0.0f, 10.0f))
+        if (ImGui::CollapsingHeader("Gpu Raytracer"))
         {
-            gpuOptionsChanged = true;
-        }
+            if (ImGui::SliderInt("Rays Per Pixel", &TheUserInputData.GpuNumRaysPerPixel, 1, 10))
+            {
+                gpuOptionsChanged = true;
+            }
 
-        if (ImGui::SliderFloat("Indirect Light Scale", &TheUserInputData.GpuIndirectLightMult, 0.0f, 10.0f))
-        {
-            gpuOptionsChanged = true;
-        }
+            if (ImGui::SliderInt("Ray Depth", &TheUserInputData.GpuRayRecursionDepth, 1, RAYTRACING_MAX_RAY_RECURSION_DEPTH))
+            {
+                gpuOptionsChanged = true;
+            }
 
-        if (ImGui::SliderInt("Denoise Filter Iter", &TheUserInputData.GpuDenoiseFilterIterations, 0, 5))
-        {
-            gpuOptionsChanged = true;
-        }
+            if (ImGui::SliderFloat("Direct Light Scale", &TheUserInputData.GpuDirectLightMult, 0.0f, 10.0f))
+            {
+                gpuOptionsChanged = true;
+            }
 
-        if (ImGui::SliderInt("Denoise Feedback Tap", &TheUserInputData.GpuDenoiseFeedbackTap, 0, TheUserInputData.GpuDenoiseFilterIterations))
-        {
-            gpuOptionsChanged = true;
-        }
+            if (ImGui::SliderFloat("Indirect Light Scale", &TheUserInputData.GpuIndirectLightMult, 0.0f, 10.0f))
+            {
+                gpuOptionsChanged = true;
+            }
 
-        if (ImGui::SliderFloat("Denoise Alpha", &TheUserInputData.GpuDenoiseAlpha, 0.0f, 1.0f))
-        {
-            gpuOptionsChanged = true;
-        }
+            if (ImGui::Checkbox("Enable Tone Mapping", &TheUserInputData.GpuEnableToneMapping))
+            {
+                gpuOptionsChanged = true;
+            }
 
-        if (ImGui::SliderFloat("Denoise Moments Alpha", &TheUserInputData.GpuDenoiseMomentsAlpha, 0.0f, 1.0f))
-        {
-            gpuOptionsChanged = true;
-        }
+            if (ImGui::Checkbox("Enable Denoise (SVGF)", &TheUserInputData.GpuEnableDenoise))
+            {
+                gpuOptionsChanged = true;
+            }
 
-        if (ImGui::SliderFloat("Denoise Phi Color", &TheUserInputData.GpuDenoisePhiColor, 0.0f, 10.0f))
-        {
-            gpuOptionsChanged = true;
-        }
+            if (TheUserInputData.GpuEnableDenoise && ImGui::CollapsingHeader("Denoise Options"))
+            {
+                if (ImGui::SliderInt("Denoise Filter Iter", &TheUserInputData.GpuDenoiseFilterIterations, 0, 5))
+                {
+                    gpuOptionsChanged = true;
+                }
 
-        if (ImGui::SliderFloat("Denoise Phi Normal", &TheUserInputData.GpuDenoisePhiNormal, 0.0f, 10.0f))
-        {
-            gpuOptionsChanged = true;
-        }
+                if (ImGui::SliderInt("Denoise Feedback Tap", &TheUserInputData.GpuDenoiseFeedbackTap, 0, TheUserInputData.GpuDenoiseFilterIterations))
+                {
+                    gpuOptionsChanged = true;
+                }
 
-        if (ImGui::Checkbox("Enable Denoise (SVGF)", &TheUserInputData.GpuEnableDenoise))
-        {
-            gpuOptionsChanged = true;
-        }
+                if (ImGui::SliderFloat("Denoise Alpha", &TheUserInputData.GpuDenoiseAlpha, 0.0f, 1.0f))
+                {
+                    gpuOptionsChanged = true;
+                }
 
-        if (ImGui::Checkbox("Enable Tone Mapping", &TheUserInputData.GpuEnableToneMapping))
-        {
-            gpuOptionsChanged = true;
+                if (ImGui::SliderFloat("Denoise Moments Alpha", &TheUserInputData.GpuDenoiseMomentsAlpha, 0.0f, 1.0f))
+                {
+                    gpuOptionsChanged = true;
+                }
+
+                if (ImGui::SliderFloat("Denoise Phi Color", &TheUserInputData.GpuDenoisePhiColor, 0.0f, 10.0f))
+                {
+                    gpuOptionsChanged = true;
+                }
+
+                if (ImGui::SliderFloat("Denoise Phi Normal", &TheUserInputData.GpuDenoisePhiNormal, 0.0f, 10.0f))
+                {
+                    gpuOptionsChanged = true;
+                }
+            }
         }
 
         // ------------------------------------------------------------

@@ -58,7 +58,7 @@ struct CompositeConstantBuffer
     XMFLOAT4    CompositeMultipliers[3];
     XMFLOAT2    DirectIndirectLightMult;
     float       CpuNormalizeFactor;
-    float       Padding0;
+    float       AccumCount;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------

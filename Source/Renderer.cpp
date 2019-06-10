@@ -58,6 +58,7 @@ Renderer::Renderer(uint32_t width, uint32_t height)
     BackbufferFormat                                = DXGI_FORMAT_R10G10B10A2_UNORM;
     CPURaytracerTexType                             = DXGI_FORMAT_R32G32B32A32_FLOAT;
     DirectIndirectRTBufferType                      = DXGI_FORMAT_R32G32B32A32_FLOAT;
+    CompositeOutputBufferRTType                     = BackbufferFormat;
 
     ReprojBufferRTTypes[ReprojBufferType_Direct]    = DirectIndirectRTBufferType;
     ReprojBufferRTTypes[ReprojBufferType_Indirect]  = DirectIndirectRTBufferType;
@@ -160,6 +161,12 @@ void Renderer::SetupRenderBuffers()
     {
         GBuffers[i].Destroy();
         GBuffers[i].Create(GBufferTypeStrings[i], width, height, 1, GBufferRTTypes[i]);
+    }
+
+    for (int i = 0; i < 2; i++)
+    {
+        CompositeOutputBuffers[i].Destroy();
+        CompositeOutputBuffers[i].Create("Composite Buffer", width, height, 1, CompositeOutputBufferRTType);
     }
 
     CPURaytracerTex.Destroy();
@@ -403,7 +410,7 @@ void Renderer::OnUpdate(float dtSeconds)
     if (TheAppState == AppState_RenderScene)
     {
         // Temp code to test animation
-        if (true)
+        if (false)
         {
             static float                timeAccum      = 0;
             int                         index          = 6;

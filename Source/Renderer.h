@@ -187,10 +187,8 @@ private:
     {
         RaytracingShaderType_AOMiss = 0,
         RaytracingShaderType_AOHitgroup,
-
         RaytracingShaderType_AreaLightMiss,
         RaytracingShaderType_AreaLightHitGroup,
-
         RaytracingShaderType_ShadeMiss,
         RaytracingShaderType_ShadeHitGroup,
 
@@ -264,6 +262,7 @@ private:
     DXGI_FORMAT                     DirectIndirectRTBufferType;
     DXGI_FORMAT                     ReprojBufferRTTypes[ReprojBufferType_Num];
     DXGI_FORMAT                     CPURaytracerTexType;
+    DXGI_FORMAT                     CompositeOutputBufferRTType;
 
     DescriptorHeapCollection        RendererDescriptorHeapCollection;
     DescriptorHeapStack*            RendererDescriptorHeap;
@@ -278,6 +277,7 @@ private:
     ColorTarget                     ReprojectionBuffers[2][ReprojBufferType_Num];
     ColorTarget                     DenoiseDirectOutputBuffer[2];
     ColorTarget                     DenoiseIndirectOutputBuffer[2];
+    ColorTarget                     CompositeOutputBuffers[2];
 
     RootSignature                   RasterRootSignature;
     GraphicsPSO                     RasterGeometryPassPSO;

@@ -592,11 +592,8 @@ void Renderer::RenderCompositePass()
             }
 
             // Set direct and indirect textures to the denoised output
-            if (TheUserInputData.GpuEnableDenoise)
-            {
-                renderContext.SetDescriptorTable(RasterRenderRootSig::DenoisedDirect, DenoiseDirectOutputDescriptor.GePreviousGpuDescriptor());
-                renderContext.SetDescriptorTable(RasterRenderRootSig::DenoisedIndirect, DenoiseIndirectOutputDescriptor.GePreviousGpuDescriptor());
-            }
+            renderContext.SetDescriptorTable(RasterRenderRootSig::DenoisedDirect, DenoiseDirectOutputDescriptor.GePreviousGpuDescriptor());
+            renderContext.SetDescriptorTable(RasterRenderRootSig::DenoisedIndirect, DenoiseIndirectOutputDescriptor.GePreviousGpuDescriptor());
             
             // Bind render targets
             D3D12_CPU_DESCRIPTOR_HANDLE rtvs[2] =

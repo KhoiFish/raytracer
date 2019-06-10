@@ -158,7 +158,7 @@ void Renderer::OnKeyUp(uint8_t key)
         {
             TheUserInputData.GpuUnfilteredComposite = !TheUserInputData.GpuUnfilteredComposite;
             UpdateWindowTitle();
-            SetCameraDirty();
+            SetGpuOptionsDirty();
             break;
         }
 
@@ -174,7 +174,7 @@ void Renderer::OnKeyUp(uint8_t key)
         {
             SelectedBufferIndex = atoi((const char*)&key) - 1;
             UpdateWindowTitle();
-            SetCameraDirty();
+            SetGpuOptionsDirty();
             break;
         }
     }

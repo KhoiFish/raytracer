@@ -73,6 +73,7 @@ namespace RealtimeEngine
         Core::IHitable*                         Hitable;
         uint32_t                                InstanceId;
         DirectX::XMMATRIX                       WorldMatrix;
+        DirectX::XMMATRIX                       PrevWorldMatrix;
 
         std::vector<RealtimeSceneVertexEx>      Vertices;
         std::vector<uint32_t>                   Indices;

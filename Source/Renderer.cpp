@@ -403,7 +403,7 @@ void Renderer::OnUpdate(float dtSeconds)
     if (TheAppState == AppState_RenderScene)
     {
         // Temp code to test animation
-        if (false)
+        if (true)
         {
             static float                timeAccum      = 0;
             int                         index          = 6;
@@ -411,7 +411,9 @@ void Renderer::OnUpdate(float dtSeconds)
             static DirectX::XMMATRIX    origMatrix     = TheRenderScene->GetRenderSceneList()[index]->WorldMatrix;
             DirectX::XMMATRIX           newWorldMatrix = XMMatrixTranslation(0, posY, 0) * origMatrix;
 
-            TheRenderScene->GetRenderSceneList()[index]->WorldMatrix = newWorldMatrix;
+            TheRenderScene->GetRenderSceneList()[index]->PrevWorldMatrix = TheRenderScene->GetRenderSceneList()[index]->WorldMatrix;
+            TheRenderScene->GetRenderSceneList()[index]->WorldMatrix     = newWorldMatrix;
+            
             timeAccum     += (dtSeconds * 4);
             IsCameraDirty  = true;
         }

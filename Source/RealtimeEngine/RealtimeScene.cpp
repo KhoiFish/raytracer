@@ -580,6 +580,7 @@ void RealtimeEngine::RealtimeScene::AddNewNode(RealtimeSceneNode* newNode, const
     // Fill in the new node
     newNode->InstanceId                 = (uint32_t)RenderSceneList.size();
     newNode->WorldMatrix                = worldMatrix;
+    newNode->PrevWorldMatrix            = worldMatrix;
     newNode->Material                   = material;;
     newNode->Material.DiffuseTextureId  = DiffuseTextureList.GetCount();
     newNode->DiffuseTextureIndex        = DiffuseTextureList.GetCount();
@@ -670,9 +671,10 @@ void RealtimeScene::UpdateInstanceBuffer(CommandContext& context, RealtimeSceneN
 {
     RenderNodeInstanceData* pInstanceData = (RenderNodeInstanceData*)ScratchCopyBuffer;
     {
-        pInstanceData->InstanceId  = pNode->InstanceId;
-        pInstanceData->LightIndex  = pNode->LightIndex;
-        pInstanceData->WorldMatrix = XMMatrixTranspose(pNode->WorldMatrix);
+        pInstanceData->InstanceId       = pNode->InstanceId;
+        pInstanceData->LightIndex       = pNode->LightIndex;
+        pInstanceData->WorldMatrix      = XMMatrixTranspose(pNode->WorldMatrix);
+        pInstanceData->PrevWorldMatrix  = XMMatrixTranspose(pNode->PrevWorldMatrix);
     }
     context.WriteBuffer(pNode->InstanceDataBuffer, 0, ScratchCopyBuffer, ScratchCopyBufferSize);
 }

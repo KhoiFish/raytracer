@@ -59,6 +59,7 @@ struct RealtimeSceneVertex
 struct RenderNodeInstanceData
 {
     XMMATRIX    WorldMatrix;
+    XMMATRIX    PrevWorldMatrix;
     int         LightIndex;
     UINT        InstanceId;
     UINT        Padding0;

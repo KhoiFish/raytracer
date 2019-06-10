@@ -52,7 +52,7 @@ struct MRT
 SamplerState                            LinearRepeatSampler : register(s0);
 SamplerState                            AnisoRepeatSampler  : register(s1);
 
-Texture2D                               DiffuseTexture      : register(t8);
+Texture2D                               DiffuseTexture      : register(t9);
 
 ConstantBuffer<SceneConstantBuffer>     SceneCb             : register(b0);
 ConstantBuffer<RenderNodeInstanceData>  InstanceCb          : register(b1);

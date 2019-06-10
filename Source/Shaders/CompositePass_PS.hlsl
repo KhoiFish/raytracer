@@ -30,6 +30,14 @@ struct PixelShaderInput
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+struct MRT
+{
+    float4 BackBuffer       : SV_Target0;
+    float4 CompositeBuffer  : SV_Target1;
+};
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 ConstantBuffer<CompositeConstantBuffer> CompositeCB             : register(b3, space0);
 
 Texture2D                               DirectResult            : register(t0, space0);
@@ -37,10 +45,11 @@ Texture2D                               DirectAlbedo            : register(t1, s
 Texture2D                               IndirectResult          : register(t2, space0);
 Texture2D                               IndirectAlbedo          : register(t3, space0);
 Texture2D                               CpuResultsTex           : register(t4, space0);
-Texture2D                               PositionsTexture        : register(t5, space0);
-Texture2D                               NormalsTexture          : register(t6, space0);
-Texture2D                               TexCoordsTexture        : register(t7, space0);
-Texture2D                               DiffuseTexture          : register(t8, space0);
+Texture2D                               PrevResultsTexture      : register(t5, space0);
+Texture2D                               PositionsTexture        : register(t6, space0);
+Texture2D                               NormalsTexture          : register(t7, space0);
+Texture2D                               TexCoordsTexture        : register(t8, space0);
+Texture2D                               DiffuseTexture          : register(t9, space0);
 
 SamplerState                            AnisoRepeatSampler      : register(s1, space0);
 
@@ -88,13 +97,11 @@ float3 ACESFitted(float3 color)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-float4 main(PixelShaderInput IN) : SV_Target
+MRT main(PixelShaderInput IN)
 {
     // Direct lighting and ao stored in the same buffer
     float4 computedDirect   = DirectResult.Sample(AnisoRepeatSampler, IN.TexCoord)   * DirectAlbedo.Sample(AnisoRepeatSampler, IN.TexCoord);
     float4 computedIndirect = IndirectResult.Sample(AnisoRepeatSampler, IN.TexCoord) * IndirectAlbedo.Sample(AnisoRepeatSampler, IN.TexCoord);
-    //float4 computedDirect   = DirectAlbedo.Sample(AnisoRepeatSampler, IN.TexCoord);
-    //float4 computedIndirect = IndirectAlbedo.Sample(AnisoRepeatSampler, IN.TexCoord);
 
     // Get all the buffer contributions
     float4 directLight   = computedDirect                                           * CompositeCB.TextureMultipliers[1] * CompositeCB.DirectIndirectLightMult.x;
@@ -119,5 +126,13 @@ float4 main(PixelShaderInput IN) : SV_Target
     // Tone map
     finalCol = (float4(ACESFitted(finalCol.rgb), 1) * CompositeCB.CompositeMultipliers[2]) + (finalCol * (float4(1, 1, 1, 1) - CompositeCB.CompositeMultipliers[2]));
 
-    return finalCol;
+    // Temporal accumulation
+    finalCol = lerp(PrevResultsTexture.Sample(AnisoRepeatSampler, IN.TexCoord), finalCol, (1.0f / CompositeCB.AccumCount));
+
+    // Write out results
+    MRT mrt;
+    mrt.BackBuffer      = finalCol;
+    mrt.CompositeBuffer = finalCol;
+
+    return mrt;
 }

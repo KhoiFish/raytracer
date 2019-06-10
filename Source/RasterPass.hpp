@@ -35,10 +35,15 @@ namespace RasterRenderRootSig
         IndirectLightResult,
         IndirectLightAlbedo,
         CpuResultsTex,
+        PrevResultsTex,
         PositionsTex,
         NormalsTex,
         TexCoordsTex,
         DiffuseTex,
+        CurrSVGFLinearZTex,
+        PrevSVGFLinearZTex,
+        SVGFMoVecTex,
+        SVGFCompactTex,
 
         Num,
     };
@@ -54,20 +59,25 @@ namespace RasterRenderRootSig
     // [register, count, space, D3D12_DESCRIPTOR_RANGE_TYPE]
     static UINT Range[RasterRenderRootSig::Num][4] =
     {
-        { 0, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_CBV },   // SceneCB
-        { 1, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_CBV },   // InstanceCB
-        { 2, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_CBV },   // MaterialCB
-        { 3, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_CBV },   // CompositeCB
+        { 0,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_CBV },   // SceneCB
+        { 1,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_CBV },   // InstanceCB
+        { 2,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_CBV },   // MaterialCB
+        { 3,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_CBV },   // CompositeCB
 
-        { 0, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // DirectLightResult
-        { 1, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // DirectLightAlbedo
-        { 2, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // IndirectLightResult
-        { 3, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // IndirectLightAlbedo
-        { 4, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // CpuResultsTex   
-        { 5, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // PositionsTex
-        { 6, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // NormalsTex  
-        { 7, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // TexCoordsTex
-        { 8, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // DiffuseTex  
+        { 0,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // DirectLightResult
+        { 1,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // DirectLightAlbedo
+        { 2,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // IndirectLightResult
+        { 3,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // IndirectLightAlbedo
+        { 4,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // CpuResultsTex   
+        { 5,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // PrevResultsTex
+        { 6,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // PositionsTex
+        { 7,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // NormalsTex  
+        { 8,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // TexCoordsTex
+        { 9,  1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // DiffuseTex  
+        { 10, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // CurrSVGFLinearZTex
+        { 11, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // PrevSVGFLinearZTex
+        { 12, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // SVGFMoVecTex
+        { 13, 1, 0, D3D12_DESCRIPTOR_RANGE_TYPE_SRV },   // SVGFCompactTex
     };
 }
 
@@ -275,7 +285,7 @@ void Renderer::SetupRasterRootSignatures()
         ThrowIfFailed(D3DReadFileToBlob(SHADERBUILD_DIR L"\\CompositePass_VS.cso", &vertexShaderBlob));
         ThrowIfFailed(D3DReadFileToBlob(SHADERBUILD_DIR L"\\CompositePass_PS.cso", &pixelShaderBlob));
 
-        DXGI_FORMAT rtFormats[] { RenderDevice::Get().GetBackBufferFormat() };
+        DXGI_FORMAT rtFormats[] { BackbufferFormat, CompositeOutputBufferRTType };
 
         RasterCompositePassPSO.SetRootSignature(RasterRootSignature);
         RasterCompositePassPSO.SetRasterizerState(GetDefaultRasterState(true));
@@ -333,6 +343,10 @@ void Renderer::SetupRasterDescriptors()
     RendererDescriptorHeap->AllocateTexture2DSrv(
         CPURaytracerTex.GetResource(),
         CPURaytracerTexType);
+
+    RendererDescriptorHeap->AllocateTexture2DSrv(
+        CompositeOutputBuffers[0].GetResource(),
+        CompositeOutputBufferRTType);
 
     for (int i = 0; i < GBufferType_Num; i++)
     {
@@ -521,11 +535,15 @@ void Renderer::RenderCompositePass()
 
                 // Tone mapping
                 compositeCB.CompositeMultipliers[2] = enableToneMapping ? bufferOn : bufferOff;
+
+                // Accum count
+                compositeCB.AccumCount = float(AccumCount);
             }
             RasterCompositeConstantBuffer.Upload(&compositeCB, sizeof(compositeCB));
 
             // Transition resources
             renderContext.TransitionResource(CPURaytracerTex, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+            renderContext.TransitionResource(CompositeOutputBuffers[0], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
             renderContext.TransitionResource(DirectLightingBuffer[DirectIndirectBufferType_Results], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
             renderContext.TransitionResource(DirectLightingBuffer[DirectIndirectBufferType_Albedo], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
             renderContext.TransitionResource(IndirectLightingBuffer[DirectIndirectBufferType_Results], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
@@ -535,6 +553,7 @@ void Renderer::RenderCompositePass()
                 renderContext.TransitionResource(GBuffers[i], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
             }
             renderContext.TransitionResource(RenderDevice::Get().GetRenderTarget(), D3D12_RESOURCE_STATE_RENDER_TARGET);
+            renderContext.TransitionResource(CompositeOutputBuffers[1], D3D12_RESOURCE_STATE_RENDER_TARGET);
             renderContext.TransitionResource(RenderDevice::Get().GetDepthStencil(), D3D12_RESOURCE_STATE_DEPTH_READ);
 
             // Set descriptor heaps and tables
@@ -549,8 +568,15 @@ void Renderer::RenderCompositePass()
             renderContext.SetDescriptorTable(RasterRenderRootSig::DirectLightResult, DenoiseDirectOutputDescriptor.GePreviousGpuDescriptor());
             renderContext.SetDescriptorTable(RasterRenderRootSig::IndirectLightResult, DenoiseIndirectOutputDescriptor.GePreviousGpuDescriptor());
 
+            // Bind render targets
+            D3D12_CPU_DESCRIPTOR_HANDLE rtvs[2] =
+            {
+                RenderDevice::Get().GetRenderTarget().GetRTV(),
+                CompositeOutputBuffers[1].GetRTV()
+            };
+            renderContext.SetRenderTargets(ARRAYSIZE(rtvs), rtvs, RenderDevice::Get().GetDepthStencil().GetDSV());
+
             // Setup rest of the pipeline
-            renderContext.SetRenderTarget(RenderDevice::Get().GetRenderTarget().GetRTV(), RenderDevice::Get().GetDepthStencil().GetDSV());
             renderContext.SetPipelineState(RasterCompositePassPSO);
             renderContext.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
             renderContext.FlushResourceBarriers();
@@ -559,6 +585,9 @@ void Renderer::RenderCompositePass()
             renderContext.SetNullVertexBuffer(0);
             renderContext.SetNullIndexBuffer();
             renderContext.Draw(3);
+
+            // Update previous
+            renderContext.CopyBuffer(CompositeOutputBuffers[0], CompositeOutputBuffers[1]);
         }
     }
     renderContext.Finish();

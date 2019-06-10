@@ -58,7 +58,7 @@ Renderer::Renderer(uint32_t width, uint32_t height)
     BackbufferFormat                                = DXGI_FORMAT_R10G10B10A2_UNORM;
     CPURaytracerTexType                             = DXGI_FORMAT_R32G32B32A32_FLOAT;
     DirectIndirectRTBufferType                      = DXGI_FORMAT_R32G32B32A32_FLOAT;
-    CompositeOutputBufferRTType                     = BackbufferFormat;
+    CompositeOutputBufferRTType                     = DXGI_FORMAT_R32G32B32A32_FLOAT;
 
     ReprojBufferRTTypes[ReprojBufferType_Direct]    = DirectIndirectRTBufferType;
     ReprojBufferRTTypes[ReprojBufferType_Indirect]  = DirectIndirectRTBufferType;

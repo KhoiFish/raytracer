@@ -555,6 +555,13 @@ void Renderer::RenderCompositePass()
 
                 // Unfiltered composite
                 compositeCB.CompositeMultipliers[3] = TheUserInputData.GpuUnfilteredComposite ? bufferOn : bufferOff;
+                compositeCB.CompositeMultipliers[4] = TheUserInputData.GpuUnfilteredComposite ? bufferOn : bufferOff;
+
+                // Turn on unfiltered for direct/indirect when denoise is disabled
+                if (!TheUserInputData.GpuEnableDenoise)
+                {
+                    compositeCB.CompositeMultipliers[3] = bufferOn;
+                }
 
                 // Accum count
                 compositeCB.AccumCount = float(AccumCount);

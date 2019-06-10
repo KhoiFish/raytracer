@@ -136,7 +136,7 @@ MRT main(PixelShaderInput IN)
     toneMapped = lerp(PrevResultsTexture.Sample(AnisoRepeatSampler, IN.TexCoord), toneMapped, (1.0f / CompositeCB.AccumCount));
 
     // Choose between filtered or unfiltered output
-    float4 finalColor = (compositeColor * CompositeCB.CompositeMultipliers[3]) + (toneMapped * (float4(1, 1, 1, 1) - CompositeCB.CompositeMultipliers[3]));
+    float4 finalColor = (compositeColor * CompositeCB.CompositeMultipliers[4]) + (toneMapped * (float4(1, 1, 1, 1) - CompositeCB.CompositeMultipliers[4]));
 
     // Write out results
     MRT mrt;

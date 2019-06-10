@@ -448,6 +448,12 @@ void Renderer::OnUpdate(float dtSeconds)
             AccumCount = 0;
         }
     }
+
+    // Never accumulate composite output during a CPU raytrace
+    if (SelectedBufferIndex == CpuResultsBufferIndex)
+    {
+        AccumCount = 0;
+    }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

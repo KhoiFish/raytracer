@@ -137,8 +137,8 @@ void Renderer::RenderGuiOptionsWindow()
         ImGui::Separator();
         ImGui::TextColored(gTextHeadingColor, "Input Legend");
         ImGui::Separator();
-        ImGui::BulletText("Translate Camera:[WASDQE]  Pan Camera:[hold left mouse btn]");
-        ImGui::BulletText("Cpu Raytrace:[SPACE]  Select Output:[1 - 9 keys]");
+        ImGui::BulletText("Translate:[WASDQE] | Camera:[hold left mouse btn]");
+        ImGui::BulletText("Cpu Trace:[SPACE] | Output:[1-9 keys] | Toggle Filtering:[U key]");
 
         // ------------------------------------------------------------
 

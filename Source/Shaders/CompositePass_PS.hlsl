@@ -44,12 +44,15 @@ Texture2D                               DirectResult            : register(t0, s
 Texture2D                               DirectAlbedo            : register(t1, space0);
 Texture2D                               IndirectResult          : register(t2, space0);
 Texture2D                               IndirectAlbedo          : register(t3, space0);
-Texture2D                               CpuResultsTex           : register(t4, space0);
-Texture2D                               PrevResultsTexture      : register(t5, space0);
-Texture2D                               PositionsTexture        : register(t6, space0);
-Texture2D                               NormalsTexture          : register(t7, space0);
-Texture2D                               TexCoordsTexture        : register(t8, space0);
-Texture2D                               DiffuseTexture          : register(t9, space0);
+Texture2D                               DenoisedDirect          : register(t4, space0);
+Texture2D                               DenoisedIndirect        : register(t5, space0);
+Texture2D                               CpuResultsTex           : register(t6, space0);
+Texture2D                               PrevResultsTexture      : register(t7, space0);
+
+Texture2D                               PositionsTexture        : register(t0, space1);
+Texture2D                               NormalsTexture          : register(t1, space1);
+Texture2D                               TexCoordsTexture        : register(t2, space1);
+Texture2D                               DiffuseTexture          : register(t3, space1);
 
 SamplerState                            AnisoRepeatSampler      : register(s1, space0);
 
@@ -100,8 +103,12 @@ float3 ACESFitted(float3 color)
 MRT main(PixelShaderInput IN)
 {
     // Direct lighting and ao stored in the same buffer
-    float4 computedDirect   = DirectResult.Sample(AnisoRepeatSampler, IN.TexCoord)   * DirectAlbedo.Sample(AnisoRepeatSampler, IN.TexCoord);
-    float4 computedIndirect = IndirectResult.Sample(AnisoRepeatSampler, IN.TexCoord) * IndirectAlbedo.Sample(AnisoRepeatSampler, IN.TexCoord);
+    float4 rawDirect        = DirectResult.Sample(AnisoRepeatSampler, IN.TexCoord)     * DirectAlbedo.Sample(AnisoRepeatSampler, IN.TexCoord);
+    float4 rawIndirect      = IndirectResult.Sample(AnisoRepeatSampler, IN.TexCoord)   * IndirectAlbedo.Sample(AnisoRepeatSampler, IN.TexCoord);
+    float4 denoisedDirect   = DenoisedDirect.Sample(AnisoRepeatSampler, IN.TexCoord)   * DirectAlbedo.Sample(AnisoRepeatSampler, IN.TexCoord);
+    float4 denoisedIndirect = DenoisedIndirect.Sample(AnisoRepeatSampler, IN.TexCoord) * IndirectAlbedo.Sample(AnisoRepeatSampler, IN.TexCoord);
+    float4 computedDirect   = (rawDirect * CompositeCB.CompositeMultipliers[3])   + (denoisedDirect * (float4(1, 1, 1, 1) - CompositeCB.CompositeMultipliers[3]));
+    float4 computedIndirect = (rawIndirect * CompositeCB.CompositeMultipliers[3]) + (denoisedIndirect * (float4(1, 1, 1, 1) - CompositeCB.CompositeMultipliers[3]));
 
     // Get all the buffer contributions
     float4 directLight   = computedDirect                                           * CompositeCB.TextureMultipliers[1] * CompositeCB.DirectIndirectLightMult.x;
@@ -120,18 +127,21 @@ MRT main(PixelShaderInput IN)
     float4 selected      = (directLight + indirectLight + cpuRT + positions + normals + texCoord + diffuse);
 
     // Compute final color
-    float4 finalCol = (composited * CompositeCB.CompositeMultipliers[0]) + (selected * CompositeCB.CompositeMultipliers[1]);
+    float4 compositeColor = (composited * CompositeCB.CompositeMultipliers[0]) + (selected * CompositeCB.CompositeMultipliers[1]);
 
     // Tone map
-    finalCol = (float4(ACESFitted(finalCol.rgb), 1) * CompositeCB.CompositeMultipliers[2]) + (finalCol * (float4(1, 1, 1, 1) - CompositeCB.CompositeMultipliers[2]));
+    float4 toneMapped = (float4(ACESFitted(compositeColor.rgb), 1) * CompositeCB.CompositeMultipliers[2]) + (compositeColor * (float4(1, 1, 1, 1) - CompositeCB.CompositeMultipliers[2]));
 
     // Temporal accumulation
-    finalCol = lerp(PrevResultsTexture.Sample(AnisoRepeatSampler, IN.TexCoord), finalCol, (1.0f / CompositeCB.AccumCount));
+    toneMapped = lerp(PrevResultsTexture.Sample(AnisoRepeatSampler, IN.TexCoord), toneMapped, (1.0f / CompositeCB.AccumCount));
+
+    // Choose between filtered or unfiltered output
+    float4 finalColor = (compositeColor * CompositeCB.CompositeMultipliers[3]) + (toneMapped * (float4(1, 1, 1, 1) - CompositeCB.CompositeMultipliers[3]));
 
     // Write out results
     MRT mrt;
-    mrt.BackBuffer      = finalCol;
-    mrt.CompositeBuffer = finalCol;
+    mrt.BackBuffer      = finalColor;
+    mrt.CompositeBuffer = finalColor;
 
     return mrt;
 }

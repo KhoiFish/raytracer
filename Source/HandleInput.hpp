@@ -162,6 +162,17 @@ void Renderer::OnKeyUp(uint8_t key)
             break;
         }
 
+        case 'R':
+        case 'r':
+        {
+            OriginalCameraEye        = TheWorldScene->GetCamera().GetEye();
+            OriginalCameraTarget     = TheWorldScene->GetCamera().GetTarget();
+            RotateCameraAnimValue    = 0;
+            RotateCameraAroundTarget = !RotateCameraAroundTarget;
+            
+            break;
+        }
+
         case '1':
         case '2':
         case '3':

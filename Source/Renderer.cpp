@@ -18,6 +18,7 @@
 // ----------------------------------------------------------------------------------------------------------------------------
 
 #include "Renderer.h"
+#include "Core/Quat.h"
 #include "RealtimeEngine/RealtimeScene.h"
 #include "RealtimeEngine/RenderDevice.h"
 #include "RealtimeEngine/PlatformApp.h"
@@ -51,6 +52,7 @@ Renderer::Renderer(uint32_t width, uint32_t height)
     , RendererDescriptorHeap(nullptr)
     , IsCameraDirty(true)
     , LoadSceneRequested(false)
+    , RotateCameraAroundTarget(false)
     , RasterDescriptorIndexStart(0)
     , RaytracingGlobalSigDataIndexStart(0)
     , RaytracingLocalSigDataIndexStart(0)
@@ -440,9 +442,32 @@ void Renderer::OnUpdate(float dtSeconds)
         float upDownAmount   = (TheUserInputData.Up      - TheUserInputData.Down)     * scale;
 
         // Camera needs update
-        if (mouseLButton || IsCameraDirty || !CompareFloatEqual(forwardAmount, 0) || !CompareFloatEqual(strafeAmount, 0) || !CompareFloatEqual(upDownAmount, 0))
+        if (RotateCameraAroundTarget || mouseLButton || IsCameraDirty || !CompareFloatEqual(forwardAmount, 0) || !CompareFloatEqual(strafeAmount, 0) || !CompareFloatEqual(upDownAmount, 0))
         {
-            TheRenderScene->UpdateCamera(TheUserInputData.GpuNearPlane, TheUserInputData.GpuFarPlane, TheUserInputData.VertFov, forwardAmount, strafeAmount, upDownAmount, TheUserInputData.MouseDx, TheUserInputData.MouseDy, TheWorldScene->GetCamera());
+            if (RotateCameraAroundTarget)
+            {
+                Core::Vec4   lookFrom, lookAt, up;
+                float        vertFov, aspect, aperture, focusDist, t0, t1;
+                Core::Vec4   clearColor;
+                TheWorldScene->GetCamera().GetCameraParams(lookFrom, lookAt, up, vertFov, aspect, aperture, focusDist, t0, t1, clearColor);
+
+                Core::Vec4  diffVec  = (OriginalCameraEye - OriginalCameraTarget);
+                Core::Vec4  viewDir  = UnitVector(diffVec);
+
+                // Rotate around up axis
+                viewDir  = Core::Quat::RotateVector(viewDir, up, RotateCameraAnimValue);
+                lookAt   = OriginalCameraTarget;
+                lookFrom = OriginalCameraTarget + (viewDir * diffVec.Length());
+                
+                // Update camera
+                TheRenderScene->UpdateCamera(TheUserInputData.GpuNearPlane, TheUserInputData.GpuFarPlane, TheUserInputData.VertFov, lookFrom, lookAt, TheWorldScene->GetCamera());
+                RotateCameraAnimValue += dtSeconds * 30.0f;
+            }
+            else
+            {
+                TheRenderScene->UpdateCamera(TheUserInputData.GpuNearPlane, TheUserInputData.GpuFarPlane, TheUserInputData.VertFov, forwardAmount, strafeAmount, upDownAmount, TheUserInputData.MouseDx, TheUserInputData.MouseDy, TheWorldScene->GetCamera());
+            }
+
             TheUserInputData.MouseDx = 0;
             TheUserInputData.MouseDy = 0;
 

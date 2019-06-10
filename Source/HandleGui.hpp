@@ -154,7 +154,7 @@ void Renderer::RenderGuiOptionsWindow()
 
         // ------------------------------------------------------------
 
-        if (ImGui::CollapsingHeader("Cpu Raytracer"))
+        if (ImGui::CollapsingHeader("CPU Options"))
         {
             _itoa_s(TheUserInputData.CpuNumSamplesPerRay, stringBuf, 10);
             if (ImGui::InputText("Rays Per Pixel", stringBuf, IM_ARRAYSIZE(stringBuf), ImGuiInputTextFlags_CharsDecimal))
@@ -184,7 +184,7 @@ void Renderer::RenderGuiOptionsWindow()
 
         // ------------------------------------------------------------
 
-        if (ImGui::CollapsingHeader("Gpu Raytracer"))
+        if (ImGui::CollapsingHeader("Realtime Options"))
         {
             if (ImGui::SliderInt("Rays Per Pixel", &TheUserInputData.GpuNumRaysPerPixel, 1, 10))
             {

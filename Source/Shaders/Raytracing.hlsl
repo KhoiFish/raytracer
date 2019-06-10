@@ -223,7 +223,10 @@ inline LightingResult shadeMetal(RenderMaterial material, float3 incomingRayDir,
     if (dot(reflDir, worldNorm) > 0.0f)
     {
         lightResult         = shootShadeRay(RAYTRACING_INSTANCEMASK_ALL, randSeed, state, minT, worldPos, reflDir, curRayDepth);
-        lightResult.Albedo *= albedo.rgb;
+
+        // All the reflected results should go to the illumination channel for denoising
+        lightResult.Result *= lightResult.Albedo;
+        lightResult.Albedo  = albedo.rgb;
     }
 
     return lightResult;
@@ -275,7 +278,10 @@ inline LightingResult shadeDielectric(RenderMaterial material, float3 incomingRa
     }
 
     LightingResult lightResult = shootShadeRay(RAYTRACING_INSTANCEMASK_ALL, randSeed, state, minT, worldPos, specularDir, curRayDepth);
-    lightResult.Albedo *= albedo.rgb;
+
+    // All the reflected results should go to the illumination channel for denoising
+    lightResult.Result *= lightResult.Albedo;
+    lightResult.Albedo  = albedo.rgb;
 
     return lightResult;
 }
@@ -360,6 +366,10 @@ inline LightingResult sampleIndirectLighting(int raysPP, inout uint randSeed, in
         lightResult.Result /= raysPP;
         lightResult.Albedo /= raysPP;
     }
+
+    // All the reflected results should go to the illumination channel for denoising
+    lightResult.Result *= lightResult.Albedo;
+    lightResult.Albedo = float3(1, 1, 1);
 
     return lightResult;
 }

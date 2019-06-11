@@ -124,7 +124,7 @@ void RaytracingGeometry::BuildBLAS(CommandContext& context)
             blasInputs.DescsLayout       = D3D12_ELEMENTS_LAYOUT_ARRAY;
 
             D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO blasPrebuildInfo;
-            RenderDevice::Get().GetD3DDevice()->GetRaytracingAccelerationStructurePrebuildInfo(&blasInputs, &blasPrebuildInfo);
+            RenderDevice::Get().GetD3DDeviceDXR()->GetRaytracingAccelerationStructurePrebuildInfo(&blasInputs, &blasPrebuildInfo);
 
             blasSizes[i]            = blasPrebuildInfo.ResultDataMaxSizeInBytes;
             scratchBufferSizeNeeded = std::max(blasPrebuildInfo.ScratchDataSizeInBytes, scratchBufferSizeNeeded);
@@ -158,7 +158,7 @@ void RaytracingGeometry::BuildBLAS(CommandContext& context)
 
     // Finally, build the acceleration structures
     {
-        ID3D12GraphicsCommandList4* pCommandList = context.GetCommandList();
+        ID3D12GraphicsCommandList4* pCommandList = context.GetCommandListDXR();
         auto                        uavBarrier = CD3DX12_RESOURCE_BARRIER::UAV(nullptr);
         for (UINT i = 0; i < blasDescs.size(); i++)
         {
@@ -187,7 +187,7 @@ void RaytracingGeometry::BuildTLAS(CommandContext& context)
         topLevelInputs.DescsLayout      = D3D12_ELEMENTS_LAYOUT_ARRAY;
         topLevelInputs.InstanceDescs    = InstanceDataBuffer.GetGpuVirtualAddress();
 
-        RenderDevice::Get().GetD3DDevice()->GetRaytracingAccelerationStructurePrebuildInfo(&topLevelInputs, &tlasPrebuildInfo);
+        RenderDevice::Get().GetD3DDeviceDXR()->GetRaytracingAccelerationStructurePrebuildInfo(&topLevelInputs, &tlasPrebuildInfo);
     }
 
     // Allocate scratch buffer
@@ -206,7 +206,7 @@ void RaytracingGeometry::BuildTLAS(CommandContext& context)
 
     // Finally, build the acceleration structures
     {
-        ID3D12GraphicsCommandList4* pCommandList = context.GetCommandList();
+        ID3D12GraphicsCommandList4* pCommandList = context.GetCommandListDXR();
         auto                        uavBarrier   = CD3DX12_RESOURCE_BARRIER::UAV(nullptr);
         pCommandList->BuildRaytracingAccelerationStructure(&tlasDesc, 0, nullptr);
         pCommandList->ResourceBarrier(1, &uavBarrier);
@@ -243,7 +243,7 @@ void RaytracingGeometry::UpdateTLASTransforms(CommandContext& context)
 
     // Call to update TLAS
     {
-        ID3D12GraphicsCommandList4* pCommandList = context.GetCommandList();
+        ID3D12GraphicsCommandList4* pCommandList = context.GetCommandListDXR();
         auto                        uavBarrier   = CD3DX12_RESOURCE_BARRIER::UAV(nullptr);
         pCommandList->BuildRaytracingAccelerationStructure(&tlasDesc, 0, nullptr);
         pCommandList->ResourceBarrier(1, &uavBarrier);

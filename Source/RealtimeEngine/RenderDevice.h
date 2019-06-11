@@ -69,15 +69,16 @@ namespace RealtimeEngine
         bool                                                WindowSizeChanged(int width, int height, bool minimized);
         void                                                ResetDescriptors();
         DescriptorHeapStack&                                GetImguiDescriptorHeapStack();
-        bool                                                IsRaytracingSupported() const;
         
     public:
 
         bool                                                IsWindowVisible() const          { return IsWindowVisibleState; }
         bool                                                IsTearingSupported() const       { return Options & RENDERDEVICE_FLAGS_ALLOWTEARING; }
+        bool                                                IsRaytracingSupported() const    { return HasRaytracingSupport; }
 
         IDXGIAdapter1*                                      GetAdapter()                     { return Adapter.Get(); }
-        ID3D12Device5*                                      GetD3DDevice()                   { return D3DDevice.Get(); }
+        ID3D12Device*                                       GetD3DDevice()                   { return D3DDevice.Get(); }
+        ID3D12Device5*                                      GetD3DDeviceDXR()                { return (ID3D12Device5*)D3DDevice.Get(); }
         IDXGIFactory4*                                      GetDXGIFactory()                 { return DXGIFactory.Get(); }
         IDXGISwapChain3*                                    GetSwapChain()                   { return SwapChain.Get(); }
         ColorTarget&                                        GetRenderTarget()                { return ColorTargets[BackBufferIndex]; }
@@ -126,9 +127,10 @@ namespace RealtimeEngine
         Microsoft::WRL::ComPtr<IDXGIAdapter1>               Adapter;
         uint32_t                                            AdapterID;
         std::wstring                                        AdapterDescription;
-        Microsoft::WRL::ComPtr<ID3D12Device5>               D3DDevice;
+        Microsoft::WRL::ComPtr<ID3D12Device>                D3DDevice;
         Microsoft::WRL::ComPtr<IDXGIFactory4>               DXGIFactory;
         Microsoft::WRL::ComPtr<IDXGISwapChain3>             SwapChain;
+        bool                                                HasRaytracingSupport;
 
         DXGI_FORMAT                                         BackBufferFormat;
         DXGI_FORMAT                                         DepthBufferFormat;

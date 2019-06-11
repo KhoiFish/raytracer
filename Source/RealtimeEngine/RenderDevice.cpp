@@ -274,6 +274,17 @@ void RenderDevice::CreateDeviceResources()
     // Create the DX12 API device object.
     ThrowIfFailed(D3D12CreateDevice(Adapter.Get(), D3dMinFeatureLevel, IID_PPV_ARGS(&D3DDevice)));
 
+    // Check for raytracing support
+    {
+        HasRaytracingSupport = false;
+        D3D12_FEATURE_DATA_D3D12_OPTIONS5 featureSupportData = {};
+        if (SUCCEEDED(D3DDevice->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS5, &featureSupportData, sizeof(featureSupportData)))
+            && featureSupportData.RaytracingTier != D3D12_RAYTRACING_TIER_NOT_SUPPORTED)
+        {
+            HasRaytracingSupport = true;
+        }
+    }
+
     #ifndef NDEBUG
         // Configure debug device (if active).
         ComPtr<ID3D12InfoQueue> d3dInfoQueue;
@@ -319,18 +330,6 @@ void RenderDevice::CreateDeviceResources()
     {
         D3dFeatureLevel = D3dMinFeatureLevel;
     }
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-bool RenderDevice::IsRaytracingSupported() const
-{
-    if (D3dFeatureLevel == D3D_FEATURE_LEVEL_12_1)
-    {
-        return true;
-    }
-
-    return false;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

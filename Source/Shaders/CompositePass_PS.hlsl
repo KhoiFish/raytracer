@@ -125,15 +125,19 @@ MRT main(PixelShaderInput IN)
     // Compute semi-final colors
     float4 composited    = (directLight + indirectLight);
     float4 selected      = (directLight + indirectLight + cpuRT + positions + normals + texCoord + diffuse);
+    float4 noRaytracing  = diffuse;
 
     // Compute final color
-    float4 compositeColor = (composited * CompositeCB.CompositeMultipliers[0]) + (selected * CompositeCB.CompositeMultipliers[1]);
+    float4 compositeColor = (composited * CompositeCB.CompositeMultipliers[0]) + (selected * CompositeCB.CompositeMultipliers[1]) + (noRaytracing * CompositeCB.CompositeMultipliers[5]);
 
     // Tone map
     float4 toneMapped = (float4(ACESFitted(compositeColor.rgb), 1) * CompositeCB.CompositeMultipliers[2]) + (compositeColor * (float4(1, 1, 1, 1) - CompositeCB.CompositeMultipliers[2]));
 
-    // Temporal accumulation
-    toneMapped = lerp(PrevResultsTexture.Sample(AnisoRepeatSampler, IN.TexCoord), toneMapped, (1.0f / CompositeCB.AccumCount));
+    // Temporal accumulation after we get more than 1 frame
+    if (CompositeCB.AccumCount > 0)
+    {
+        toneMapped = lerp(PrevResultsTexture.Sample(AnisoRepeatSampler, IN.TexCoord), toneMapped, (1.0f / CompositeCB.AccumCount));
+    }
 
     // Choose between filtered or unfiltered output
     float4 finalColor = (compositeColor * CompositeCB.CompositeMultipliers[4]) + (toneMapped * (float4(1, 1, 1, 1) - CompositeCB.CompositeMultipliers[4]));

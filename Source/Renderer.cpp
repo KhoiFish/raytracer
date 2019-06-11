@@ -519,4 +519,5 @@ void Renderer::OnRender()
     // Present
     RenderDevice::Get().Present();
     FrameCount++;
+    AccumCount++;
 }

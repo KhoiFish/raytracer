@@ -55,7 +55,7 @@ struct SceneConstantBuffer
 struct CompositeConstantBuffer
 {
     XMFLOAT4    TextureMultipliers[9];
-    XMFLOAT4    CompositeMultipliers[5];
+    XMFLOAT4    CompositeMultipliers[6];
     XMFLOAT2    DirectIndirectLightMult;
     float       CpuNormalizeFactor;
     float       AccumCount;

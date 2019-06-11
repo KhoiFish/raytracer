@@ -533,13 +533,24 @@ void Renderer::RenderCompositePass()
 
                 if (SelectedBufferIndex == 0)
                 {
-                    compositeCB.CompositeMultipliers[0] = bufferOn;
-                    compositeCB.CompositeMultipliers[1] = bufferOff;
+                    if (RenderDevice::Get().IsRaytracingSupported())
+                    {
+                        compositeCB.CompositeMultipliers[0] = bufferOn;
+                        compositeCB.CompositeMultipliers[1] = bufferOff;
+                        compositeCB.CompositeMultipliers[5] = bufferOff;
+                    }
+                    else
+                    {
+                        compositeCB.CompositeMultipliers[0] = bufferOff;
+                        compositeCB.CompositeMultipliers[1] = bufferOff;
+                        compositeCB.CompositeMultipliers[5] = bufferOn;
+                    }
                 }
                 else
                 {
                     compositeCB.CompositeMultipliers[0] = bufferOff;
                     compositeCB.CompositeMultipliers[1] = bufferOn;
+                    compositeCB.CompositeMultipliers[5] = bufferOff;
                     enableToneMapping                   = (SelectedBufferIndex == CpuResultsBufferIndex) ? true : false;
                 }
 

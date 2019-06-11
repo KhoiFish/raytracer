@@ -711,6 +711,7 @@ void RealtimeScene::UpdateMaterialBuffer(CommandContext& context, RealtimeSceneN
 // ----------------------------------------------------------------------------------------------------------------------------
 
 RealtimeScene::RealtimeScene(Core::WorldScene* worldScene, uint32_t numHitPrograms)
+    : RaytracingGeom(nullptr), ScratchCopyBuffer(nullptr)
 {
     // Generate the scene objects from the world scene
     std::vector<DirectX::XMMATRIX>  matrixStack;
@@ -760,7 +761,12 @@ RealtimeScene::RealtimeScene(Core::WorldScene* worldScene, uint32_t numHitProgra
         }
     }
     context.Finish(true);
-    RaytracingGeom->Build();
+
+    // Create raytracing structures, if supported
+    if (RenderDevice::Get().IsRaytracingSupported())
+    {
+        RaytracingGeom->Build();
+    }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

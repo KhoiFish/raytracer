@@ -140,6 +140,7 @@ void Renderer::RenderGuiOptionsWindow()
             ImGui::BulletText("Cpu Trace:[SPACE]");
             ImGui::BulletText("Output:[1-9 keys]");
             ImGui::BulletText("Toggle Filtering:[U key]");
+            ImGui::BulletText("Rotate camera around center:[R key]");
         }
 
         // ------------------------------------------------------------

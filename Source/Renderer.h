@@ -234,7 +234,7 @@ private:
         float   GpuDenoisePhiColor              = 0.25f;
         float   GpuDenoisePhiNormal             = 128.0f;
         float   GpuNearPlane                    = 0.1f;
-        float   GpuFarPlane                     = 5000.0f;
+        float   GpuFarPlane                     = 10000.0f;
     };
 
     typedef std::uniform_real_distribution<float> RandFloatDist;

@@ -40,7 +40,7 @@ Texture2D                               Compact                     : register(t
 // ----------------------------------------------------------------------------------------------------------------------------
 
 // Computes a 3x3 gaussian blur of the variance, centered around the current pixel
-float2 computeVarianceCenter(int2 ipos, RWTexture2D<float4> sDirect, RWTexture2D<float4> sIndirect)
+inline float2 computeVarianceCenter(int2 ipos, RWTexture2D<float4> sDirect, RWTexture2D<float4> sIndirect)
 {
     float2      sum = float2(0.0, 0.0);
     const float kernel[2][2] = 

@@ -44,13 +44,6 @@ Texture2D                               SourceIndirect          : register(t4, s
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-inline float3 demodulate(float3 x, float3 albedo)
-{
-    return x / max(albedo, float3(0.001f, 0.001f, 0.001f));
-}
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
 inline bool isReprojectionValid(int2 coord, int2 imageDim, float currentZ, float previousZ, float fwidthZ, float3 currentNormal, float3 prevNormal, float fwidthNormal)
 {
     bool valid = true;

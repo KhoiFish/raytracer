@@ -9,6 +9,9 @@ This project initially grew from working through the great "Raytracing In One We
 ![alt text](https://github.com/KhoiFish/raytracer/blob/master/SavedImages/final.png "CPU traced image")
 <br>
 
+[![Watch the video](https://img.youtube.com/vi/_OyqbZHWgcQ/maxresdefault.jpg)](https://youtu.be/_OyqbZHWgcQ)
+<br>
+
 ## Features
 * RGB based
 * CPU: multi-core, SIMD accelerated

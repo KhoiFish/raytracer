@@ -15,6 +15,7 @@ mkdir %BUILD_DIR%\%SHADERBUILD%
 xcopy /Y BuildOutput\*.* %BUILD_DIR%
 xcopy /E /Y %RUNTIMEDATA%\*.* %BUILD_DIR%\%RUNTIMEDATA%
 xcopy /E /Y %SHADERBUILD%\*.* %BUILD_DIR%\%SHADERBUILD%
+copy /Y LICENSE %BUILD_DIR%\LICENSE
 
 REM Delete files we don't want to release
 del /Q %BUILD_DIR%\*.pdb

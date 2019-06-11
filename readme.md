@@ -1,5 +1,9 @@
-# Realtime GPU Raytracer and "Slowtime" CPU Raytracer
-This is a raytracing rendering application. It currently has CPU based and GPU based realtime (via DXR) raytracing. The core CPU rendering code builds for Windows, Mac and Linux. The GPU realtime raytracing is currently only supported under Windows 10. This project initially grew from working through the great "Raytracing In One Weekend" series by Peter Shirley.
+# Realtime GPU Raytracer with Reference CPU Raytracer
+This is (yet another) raytracing rendering application. It currently has CPU based and GPU based realtime (via DXR) raytracing.
+
+The core CPU rendering code builds for Windows, Mac and Linux. The GPU realtime raytracing is currently only supported under Windows 10. 
+
+This project initially grew from working through the great "Raytracing In One Weekend" series by Peter Shirley. This projects serves as a sample implementation of raytracing that ties the different compututation approaches of raytracing: CPU, GPU compute (CUDA) and GPU realtime (DXR). I hope this helps you in some way.
 <br>
 
 ![alt text](https://github.com/KhoiFish/raytracer/blob/master/SavedImages/final.png "CPU traced image")
@@ -8,13 +12,25 @@ This is a raytracing rendering application. It currently has CPU based and GPU b
 ## Features
 * RGB based
 * CPU: multi-core, SIMD accelerated
-* GPU: DXR accelerated raytracing
-* Area lighting
-* Raytraced direct, indirect lighting (single bounce)
-* Raytraced ambient occlusion
-* Anti-aliasing (via camera jitter + temporal accumulation)
+* GPU: DXR accelerated
+* Area lighting, soft shadows
+* Multi-bounce GI
+* Denoising (SVGF)
+* Materials (lambert, metal, dielectric)
 <br>
 
+## Requirements
+* Windows 10 with October 2018 Update (or later)
+* DX12 Compatatible card, at least Pascal-based, Turing-based recommended
+* Visual Studio 2019 (should compile in VS 2017 as well)
+* Current Windows SDK 10 (10.0.18362.0 is the current latest)
+<br>
+
+## How To Build
+There is a solution file,"RayTracer.sln" at the root of the project. Build "RayTracerWindows" for realtime raytracer. RayTracerConsole is a console application that runs CPU raytracing exclusively.
+
+## Screenshots
+<br>
 ![alt text](https://github.com/KhoiFish/raytracer/blob/master/SavedImages/realtime1.png "GPU traced image")
 ![alt text](https://github.com/KhoiFish/raytracer/blob/master/SavedImages/realtime2.png "GPU traced image")
 ![alt text](https://github.com/KhoiFish/raytracer/blob/master/SavedImages/realtime3.png "GPU traced image")
@@ -30,11 +46,11 @@ The following are really good references for someone getting into raytracing. If
 
 **Peter Shirley**
 <br>
-*His great book "Ray Tracing In A Weekend" started this whole shin-dig.*
+*His great series of articles, "Ray Tracing In A Weekend" started this whole shin-dig.*
   
 **Matt Pharr, Wenzel Jakob**
 <br>
-*Their magnificent and massive "Physically based rendering" book is a must read.*
+*The massive "Physically based rendering" book is a must read.*
 
 **Eric Haines, Tomas Akenine-Möller**
 <br>
@@ -64,10 +80,6 @@ The following are really good references for someone getting into raytracing. If
 **Vcl / Agner Fog**
 <br>
 [https://www.agner.org/optimize/vectorclass.pdf]
-
-**Jeremiah**
-<br>
-[https://www.3dgep.com/learning-directx12-1/]
 
 **IMGUI**
 <br>

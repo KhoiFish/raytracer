@@ -3,10 +3,23 @@ This is (yet another) raytracing rendering application. It currently has CPU bas
 
 The core CPU rendering code builds for Windows, Mac and Linux. The GPU realtime raytracing is currently only supported under Windows 10. 
 
-This project initially grew from working through the great "Raytracing In One Weekend" series by Peter Shirley. This projects serves as a sample implementation of raytracing that ties the different compututation approaches of raytracing: CPU, GPU compute (CUDA) and GPU realtime (DXR). I hope this helps you in some way.
+This project initially grew from working through the great "Raytracing In One Weekend" series by Peter Shirley. This projects serves as a sample implementation of raytracing that ties the different compututation approaches of raytracing: CPU, GPU compute (CUDA) and GPU realtime (DXR).
+
+I hope this is educative and helps you in some way. Enjoy!
+
+Link to build:
+<br>
+https://drive.google.com/open?id=1DpcPUm0ZCBWQ5jZUT9EYeBY3nG_5PHJ1
+
 <br>
 
 ![alt text](https://github.com/KhoiFish/raytracer/blob/master/SavedImages/final.png "CPU traced image")
+<br>
+
+### Video Preview
+Click image below to view video on youtube:
+
+[![Watch the video](https://img.youtube.com/vi/_OyqbZHWgcQ/maxresdefault.jpg)](https://youtu.be/_OyqbZHWgcQ)
 <br>
 
 ## Features

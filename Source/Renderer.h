@@ -123,6 +123,7 @@ private:
     enum AppState
     {
         AppState_Loading,
+        AppState_FinishLoading,
         AppState_RenderScene,
     };
 

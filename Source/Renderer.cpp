@@ -244,6 +244,7 @@ void Renderer::LoadingThread(Renderer* pRenderer)
     
     // Setup the rest of the pipeline
     pRenderer->TheRenderScene->SetupResourceViews(*pRenderer->RendererDescriptorHeap);
+    pRenderer->SetupRenderBuffers();
     pRenderer->SetupRasterDescriptors();
     pRenderer->SetupGpuRaytracingDescriptors();
     pRenderer->SetupGpuRaytracingPSO();
@@ -251,7 +252,7 @@ void Renderer::LoadingThread(Renderer* pRenderer)
     pRenderer->SetCameraDirty();
 
     // Done loading
-    pRenderer->TheAppState = AppState_RenderScene;
+    pRenderer->TheAppState = AppState_FinishLoading;
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -407,6 +408,12 @@ void Renderer::OnCpuRaytraceComplete(Raytracer* tracer, bool actuallyFinished)
 void Renderer::OnUpdate(float dtSeconds)
 {
     CurrentDeltaTime = dtSeconds;
+
+    // Switch to rendering if finishing loading
+    if (TheAppState == AppState_FinishLoading)
+    {
+        TheAppState = AppState_RenderScene;
+    }
 
     // Handle new scene load requests
     if (LoadSceneRequested)

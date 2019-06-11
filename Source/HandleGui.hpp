@@ -218,32 +218,32 @@ void Renderer::RenderGuiOptionsWindow()
 
             if (TheUserInputData.GpuEnableDenoise && ImGui::CollapsingHeader("Denoise Options"))
             {
-                if (ImGui::SliderInt("Denoise Filter Iter", &TheUserInputData.GpuDenoiseFilterIterations, 0, 5))
+                if (ImGui::SliderInt("Filter Iterations", &TheUserInputData.GpuDenoiseFilterIterations, 0, 5))
                 {
                     gpuOptionsChanged = true;
                 }
 
-                if (ImGui::SliderInt("Denoise Feedback Tap", &TheUserInputData.GpuDenoiseFeedbackTap, 0, TheUserInputData.GpuDenoiseFilterIterations))
+                if (ImGui::SliderInt("Feedback Tap", &TheUserInputData.GpuDenoiseFeedbackTap, 0, TheUserInputData.GpuDenoiseFilterIterations))
                 {
                     gpuOptionsChanged = true;
                 }
 
-                if (ImGui::SliderFloat("Denoise Alpha", &TheUserInputData.GpuDenoiseAlpha, 0.0f, 1.0f))
+                if (ImGui::SliderFloat("Alpha", &TheUserInputData.GpuDenoiseAlpha, 0.0f, 1.0f))
                 {
                     gpuOptionsChanged = true;
                 }
 
-                if (ImGui::SliderFloat("Denoise Moments Alpha", &TheUserInputData.GpuDenoiseMomentsAlpha, 0.0f, 1.0f))
+                if (ImGui::SliderFloat("Moments Alpha", &TheUserInputData.GpuDenoiseMomentsAlpha, 0.0f, 1.0f))
                 {
                     gpuOptionsChanged = true;
                 }
 
-                if (ImGui::SliderFloat("Denoise Phi Color", &TheUserInputData.GpuDenoisePhiColor, 0.0f, 10.0f))
+                if (ImGui::SliderFloat("Phi Color", &TheUserInputData.GpuDenoisePhiColor, 0.0f, 10.0f))
                 {
                     gpuOptionsChanged = true;
                 }
 
-                if (ImGui::SliderFloat("Denoise Phi Normal", &TheUserInputData.GpuDenoisePhiNormal, 0.0f, 10.0f))
+                if (ImGui::SliderFloat("Phi Normal", &TheUserInputData.GpuDenoisePhiNormal, 0.0f, 10.0f))
                 {
                     gpuOptionsChanged = true;
                 }

@@ -133,8 +133,11 @@ void Renderer::RenderGuiOptionsWindow()
 
         // ------------------------------------------------------------
 
-        if (ImGui::CollapsingHeader("Input Help"))
+        if (ImGui::CollapsingHeader("Help"))
         {
+            std::string dxrSupport = std::string("Hardware Support For Realtime (DXR): ") + (RenderDevice::Get().IsRaytracingSupported() ? "Yes" : "No");
+
+            ImGui::BulletText(dxrSupport.c_str());
             ImGui::BulletText("Translate:[WASDQE]");
             ImGui::BulletText("Pan:[hold left mouse btn]");
             ImGui::BulletText("Cpu Trace:[SPACE]");
@@ -155,7 +158,7 @@ void Renderer::RenderGuiOptionsWindow()
 
         // ------------------------------------------------------------
 
-        if (ImGui::CollapsingHeader("CPU Options"))
+        if (ImGui::CollapsingHeader("Offline Render"))
         {
             _itoa_s(TheUserInputData.CpuNumSamplesPerRay, stringBuf, 10);
             if (ImGui::InputText("Rays Per Pixel", stringBuf, IM_ARRAYSIZE(stringBuf), ImGuiInputTextFlags_CharsDecimal))
@@ -185,7 +188,7 @@ void Renderer::RenderGuiOptionsWindow()
 
         // ------------------------------------------------------------
 
-        if (ImGui::CollapsingHeader("Realtime Options"))
+        if (RenderDevice::Get().IsRaytracingSupported() && ImGui::CollapsingHeader("Realtime Render"))
         {
             if (ImGui::SliderInt("Rays Per Pixel", &TheUserInputData.GpuNumRaysPerPixel, 1, 10))
             {

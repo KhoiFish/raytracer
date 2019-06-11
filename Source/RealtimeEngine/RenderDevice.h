@@ -58,7 +58,7 @@ namespace RealtimeEngine
                                                                 DXGI_FORMAT         backBufferFormat    = DXGI_FORMAT_B8G8R8A8_UNORM,
                                                                 DXGI_FORMAT         depthBufferFormat   = DXGI_FORMAT_D32_FLOAT,
                                                                 uint32_t            backBufferCount     = 2,
-                                                                D3D_FEATURE_LEVEL   minFeatureLevel     = D3D_FEATURE_LEVEL_12_1,
+                                                                D3D_FEATURE_LEVEL   minFeatureLevel     = D3D_FEATURE_LEVEL_11_0,
                                                                 uint32_t            flags               = RENDERDEVICE_FLAGS_REQUIRETEARINGSUPPORT,
                                                                 uint32_t            adapterIDoverride   = UINT_MAX,
                                                                 float               depthClearValue     = 1.0f);
@@ -69,6 +69,7 @@ namespace RealtimeEngine
         bool                                                WindowSizeChanged(int width, int height, bool minimized);
         void                                                ResetDescriptors();
         DescriptorHeapStack&                                GetImguiDescriptorHeapStack();
+        bool                                                IsRaytracingSupported() const;
         
     public:
 

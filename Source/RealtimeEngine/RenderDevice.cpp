@@ -323,6 +323,18 @@ void RenderDevice::CreateDeviceResources()
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
+bool RenderDevice::IsRaytracingSupported() const
+{
+    if (D3dFeatureLevel == D3D_FEATURE_LEVEL_12_1)
+    {
+        return true;
+    }
+
+    return false;
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
 void RenderDevice::CreateWindowSizeDependentResources()
 {
     if (!Window)

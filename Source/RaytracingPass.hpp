@@ -184,6 +184,11 @@ void Renderer::SetupGpuRaytracingPipeline()
 
 void Renderer::SetupGpuRaytracingRootSignatures()
 {
+    if (!RenderDevice::Get().IsRaytracingSupported())
+    {
+        return;
+    }
+
     // Allocate scene constant buffer
     RaytracingSceneConstantBuffer.Create(L"Raytracing Scene Globals Buffer", 1, (uint32_t)AlignUp(sizeof(RaytracingGlobalCB), 256));
 
@@ -225,6 +230,11 @@ void Renderer::SetupGpuRaytracingRootSignatures()
 
 void Renderer::SetupGpuRaytracingDescriptors()
 {
+    if (!RenderDevice::Get().IsRaytracingSupported())
+    {
+        return;
+    }
+
     RaytracingGlobalSigDataIndexStart = RendererDescriptorHeap->GetCount();
 
     UINT currOffset = 0;
@@ -401,6 +411,11 @@ void Renderer::SetupGpuRaytracingDescriptors()
 
 void Renderer::SetupGpuRaytracingPSO()
 {
+    if (!RenderDevice::Get().IsRaytracingSupported())
+    {
+        return;
+    }
+
     // Delete old one, if it exists
     if (RaytracingPSOPtr != nullptr)
     {
@@ -513,6 +528,11 @@ void Renderer::SetupGpuRaytracingPSO()
 
 void Renderer::RenderGpuRaytracing()
 {
+    if (!RenderDevice::Get().IsRaytracingSupported())
+    {
+        return;
+    }
+
     ComputeContext& computeContext = ComputeContext::Begin("Raytracing");
     {
         // Update TLAS transforms
@@ -529,7 +549,7 @@ void Renderer::RenderGpuRaytracing()
             sceneCB.AORadius                = TheUserInputData.GpuAORadius;
             sceneCB.FrameCount              = FrameCount;
             sceneCB.RaysPerPixel            = TheUserInputData.GpuNumRaysPerPixel;
-            sceneCB.AccumCount              = AccumCount++;
+            sceneCB.AccumCount              = AccumCount;
             sceneCB.MaxRayDepth             = TheUserInputData.GpuRayRecursionDepth;
             sceneCB.NumLights               = (UINT)TheRenderScene->GetAreaLightsList().size();
             sceneCB.NumHitPrograms          = GetNumberHitPrograms();

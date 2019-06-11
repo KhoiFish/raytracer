@@ -334,6 +334,11 @@ void Renderer::SetupDenoiseDescriptors()
 
 void Renderer::RenderDenoisePass()
 {
+    if (!RenderDevice::Get().IsRaytracingSupported())
+    {
+        return;
+    }
+
     // Bail if denoise is disabled
     if (!TheUserInputData.GpuEnableDenoise)
     {

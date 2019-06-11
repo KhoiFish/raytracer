@@ -35,15 +35,11 @@
 #define RAYTRACING_INSTANCEMASK_OPAQUE      (1 << 0)
 #define RAYTRACING_INSTANCEMASK_AREALIGHT   (1 << 1)
 
-// ----------------------------------------------------------------------------------------------------------------------------
-
-enum RenderMaterialType
-{
-    RenderMaterialType_Light = 0,
-    RenderMaterialType_Lambert,
-    RenderMaterialType_Metal,
-    RenderMaterialType_MDielectric,
-};
+// These would be nice as an enum, but alas not supported under shader model 5.0
+#define RenderMaterialType_Light            0
+#define RenderMaterialType_Lambert          1
+#define RenderMaterialType_Metal            2
+#define RenderMaterialType_MDielectric      3
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
@@ -72,7 +68,7 @@ struct RenderMaterial
 {
     XMFLOAT4            Emissive;
     XMFLOAT4            Diffuse;
-    RenderMaterialType  Type;
+    UINT                Type;
     UINT                DiffuseTextureId;
     float               Fuzz;
     float               ReflIndex;

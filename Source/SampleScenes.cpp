@@ -277,7 +277,7 @@ static WorldScene* sampleSceneMesh()
     int numLs = 0;
 
     // Create random hitable boxes, in BVH tree
-    list[total++] = new HitableBox(Vec4(-2000, -100, -2000), Vec4(2000, 100, 2000), ground);
+    list[total++] = new HitableBox(Vec4(-5000, -100, -5000), Vec4(5000, 100, 5000), ground);
 
     // Create light
     {

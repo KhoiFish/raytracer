@@ -3,7 +3,7 @@ This is (yet another) raytracing rendering application. It currently has CPU bas
 
 The core CPU rendering code builds for Windows, Mac and Linux. The GPU realtime raytracing is currently only supported under Windows 10. 
 
-This project initially grew from working through the great "Raytracing In One Weekend" series by Peter Shirley. This projects serves as a sample implementation of raytracing that ties the different compututation approaches of raytracing: CPU, GPU compute (CUDA) and GPU realtime (DXR).
+This project initially grew from working through the great "Raytracing In One Weekend" series by Peter Shirley. This projects serves as a sample raytracing implementation, demonstrating three modern approaches: CPU, GPU compute (CUDA) and GPU realtime (DXR).
 
 I hope this is educative and helps you in some way. Enjoy!
 
@@ -24,12 +24,14 @@ Click image below to view video on youtube:
 
 ## Features
 * RGB based
-* CPU: multi-core, SIMD accelerated
-* GPU: DXR accelerated
+* CPU: multi-threaded/core, SIMD accelerated
+* GPU Realtime: DXR accelerated
+* GPU Compute: Not yet implemented
 * Area lighting, soft shadows
 * Multi-bounce GI
 * Denoising (SVGF)
 * Materials (lambert, metal, dielectric)
+* Temporal accumulation and tonemapping
 <br>
 
 ## Requirements
@@ -40,7 +42,7 @@ Click image below to view video on youtube:
 <br>
 
 ## How To Build
-There is a solution file,"RayTracer.sln" at the root of the project. Build "RayTracerWindows" for realtime raytracer. RayTracerConsole is a console application that runs CPU raytracing exclusively.
+There is a solution file,"RayTracer.sln" at the root of the project. Build "RayTracerWindows" for the realtime raytracer. RayTracerConsole is a console application that runs only CPU raytracing exclusively.
 
 ## Screenshots
 <br>

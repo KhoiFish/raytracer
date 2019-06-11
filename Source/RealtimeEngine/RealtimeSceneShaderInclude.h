@@ -66,12 +66,12 @@ struct RenderNodeInstanceData
 
 struct RenderMaterial
 {
-    XMFLOAT4            Emissive;
-    XMFLOAT4            Diffuse;
-    UINT                Type;
-    UINT                DiffuseTextureId;
-    float               Fuzz;
-    float               ReflIndex;
+    XMFLOAT4    Emissive;
+    XMFLOAT4    Diffuse;
+    UINT        Type;
+    UINT        DiffuseTextureId;
+    float       Fuzz;
+    float       ReflIndex;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------

@@ -141,7 +141,8 @@ namespace RealtimeEngine
 
         GraphicsContext&            GetGraphicsContext()                    { return reinterpret_cast<GraphicsContext&>(*this); }
         ComputeContext&             GetComputeContext()                     { return reinterpret_cast<ComputeContext&>(*this); }
-        ID3D12GraphicsCommandList4* GetCommandList()                        { return TheCommandList; }
+        ID3D12GraphicsCommandList*  GetCommandList()                        { return TheCommandList; }
+        ID3D12GraphicsCommandList4* GetCommandListDXR()                     { return (ID3D12GraphicsCommandList4*)TheCommandList; }
         DynAlloc                    ReserveUploadMemory(size_t SizeInBytes) { return CpuLinearAllocator.Allocate(SizeInBytes); }
 
     protected:
@@ -152,7 +153,7 @@ namespace RealtimeEngine
     protected:
 
         CommandListManager*         OwningManager;
-        ID3D12GraphicsCommandList4* TheCommandList;
+        ID3D12GraphicsCommandList*  TheCommandList;
         ID3D12CommandAllocator*     CurrentAllocator;
 
         ID3D12RootSignature*        CurGraphicsRootSignature;

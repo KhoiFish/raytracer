@@ -315,7 +315,7 @@ void ComputeContext::SetPipelineState(const ComputePSO& pso)
 
 void ComputeContext::SetPipelineState(RaytracingPSO& pso)
 {
-    TheCommandList->SetPipelineState1(pso.GetRaytracingPipelineStateObject());
+    GetCommandListDXR()->SetPipelineState1(pso.GetRaytracingPipelineStateObject());
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
@@ -477,7 +477,7 @@ void ComputeContext::DispatchRays(RaytracingPSO& pso, uint32_t width, uint32_t h
     raytraceDesc.HitGroupTable.SizeInBytes              = pso.GetHitGroupShaderTable().ShaderTableBuffer.GetBufferSize();
 
     // Dispatch
-    TheCommandList->DispatchRays(&raytraceDesc);
+    GetCommandListDXR()->DispatchRays(&raytraceDesc);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

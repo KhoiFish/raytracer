@@ -422,7 +422,7 @@ void RaytracingPSO::Finalize()
     desc.pSubobjects    = Subobjects;
     desc.Type           = D3D12_STATE_OBJECT_TYPE_RAYTRACING_PIPELINE;
 
-    RTL_HRESULT_SUCCEEDED(RenderDevice::Get().GetD3DDevice()->CreateStateObject(&desc, IID_PPV_ARGS(&RaytracingPipelineStateObject)));
+    RTL_HRESULT_SUCCEEDED(RenderDevice::Get().GetD3DDeviceDXR()->CreateStateObject(&desc, IID_PPV_ARGS(&RaytracingPipelineStateObject)));
 
     // Build the shader tables
     RaygenShaderTable.Build(RaytracingPipelineStateObject);

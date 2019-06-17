@@ -26,6 +26,6 @@
 
 int CALLBACK wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLine, int nCmdShow)
 {
-    Renderer renderer(1920, 1080);
+    RealtimeEngine::Renderer renderer(1920, 1080);
     return RealtimeEngine::PlatformApp::Run(&renderer, hInstance, nCmdShow);
 }

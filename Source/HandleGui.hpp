@@ -135,15 +135,15 @@ void Renderer::RenderGuiOptionsWindow()
 
         if (ImGui::CollapsingHeader("Help"))
         {
-            std::string dxrSupport = std::string("Hardware Support For Realtime (DXR): ") + (RenderDevice::Get().IsRaytracingSupported() ? "Yes" : "No");
+            std::string dxrSupport = std::string("Realtime (DXR) Hardware: ") + (RenderDevice::Get().IsRaytracingSupported() ? "[YES]" : "[NO]");
 
             ImGui::BulletText(dxrSupport.c_str());
-            ImGui::BulletText("Translate:[WASDQE]");
-            ImGui::BulletText("Pan:[hold left mouse btn]");
-            ImGui::BulletText("Cpu Trace:[SPACE]");
-            ImGui::BulletText("Output:[1-9 keys]");
-            ImGui::BulletText("Toggle Filtering:[U key]");
-            ImGui::BulletText("Rotate camera around center:[R key]");
+            ImGui::BulletText("Translate:               [WASDQE]");
+            ImGui::BulletText("Pan:                     [Left mouse btn]");
+            ImGui::BulletText("Cpu Trace:               [SPACE]");
+            ImGui::BulletText("Output:                  [1-9 keys]");
+            ImGui::BulletText("Toggle Filtering:        [U key]");
+            ImGui::BulletText("Rotate around center:    [R key]");
         }
 
         // ------------------------------------------------------------

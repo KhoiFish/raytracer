@@ -31,43 +31,13 @@
     <Filter Include="Realtime\Renderer">
       <UniqueIdentifier>{fc065fb0-5774-4c9e-85dc-e8d5077a4857}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Realtime\Engine">
+      <UniqueIdentifier>{519b933a-1b52-4928-97cc-0d26289346d8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\ThirdParty\StbImage\stb_image.h">
       <Filter>ThirdParty\StbImage</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\RealtimeEngine\CommandContext.h">
-      <Filter>Realtime</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\RealtimeEngine\CommandList.h">
-      <Filter>Realtime</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\RealtimeEngine\Globals.h">
-      <Filter>Realtime</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\RealtimeEngine\GpuBuffer.h">
-      <Filter>Realtime</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\RealtimeEngine\GPUResource.h">
-      <Filter>Realtime</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\RealtimeEngine\LinearAllocator.h">
-      <Filter>Realtime</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\RealtimeEngine\PipelineStateObject.h">
-      <Filter>Realtime</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\RealtimeEngine\PlatformApp.h">
-      <Filter>Realtime</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\RealtimeEngine\RenderDevice.h">
-      <Filter>Realtime</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\RealtimeEngine\RenderInterface.h">
-      <Filter>Realtime</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\RealtimeEngine\RootSignature.h">
-      <Filter>Realtime</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\Core\AABB.h">
       <Filter>Core</Filter>
@@ -147,17 +117,11 @@
     <ClInclude Include="..\..\Source\Core\XYZRect.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\RealtimeEngine\RTTexture.h">
-      <Filter>Realtime</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Source\Core\CoreTriangle.h">
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\Core\CoreTexture.h">
       <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\RealtimeEngine\ShaderCompat.h">
-      <Filter>Realtime</Filter>
     </ClInclude>
     <ClInclude Include="..\..\ThirdParty\imgui\imconfig.h">
       <Filter>ThirdParty\imgui</Filter>
@@ -182,24 +146,6 @@
     </ClInclude>
     <ClInclude Include="..\..\ThirdParty\imgui\examples\imgui_impl_win32.h">
       <Filter>ThirdParty\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\RealtimeEngine\RealtimeScene.h">
-      <Filter>Realtime</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\RealtimeEngine\RealtimeCamera.h">
-      <Filter>Realtime</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\RealtimeEngine\RealtimeSceneShaderInclude.h">
-      <Filter>Realtime</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\RealtimeEngine\RaytracingGeometry.h">
-      <Filter>Realtime</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\RealtimeEngine\DescriptorHeapStack.h">
-      <Filter>Realtime</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\RealtimeEngine\RenderTarget.h">
-      <Filter>Realtime</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\RealtimeEngine\Shaders\SVGF\SVGFCommon.h">
       <Filter>Realtime\Shaders\Denoise</Filter>
@@ -231,34 +177,67 @@
     <ClInclude Include="..\..\Source\RealtimeEngine\Renderer\RendererShaderInclude.h">
       <Filter>Realtime\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\CommandContext.h">
+      <Filter>Realtime\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\CommandList.h">
+      <Filter>Realtime\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\DescriptorHeapStack.h">
+      <Filter>Realtime\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\Globals.h">
+      <Filter>Realtime\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\GpuBuffer.h">
+      <Filter>Realtime\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\GPUResource.h">
+      <Filter>Realtime\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\LinearAllocator.h">
+      <Filter>Realtime\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\PipelineStateObject.h">
+      <Filter>Realtime\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\PlatformApp.h">
+      <Filter>Realtime\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\RaytracingGeometry.h">
+      <Filter>Realtime\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\RealtimeCamera.h">
+      <Filter>Realtime\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\RealtimeScene.h">
+      <Filter>Realtime\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\RealtimeSceneShaderInclude.h">
+      <Filter>Realtime\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\RenderDevice.h">
+      <Filter>Realtime\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\RenderInterface.h">
+      <Filter>Realtime\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\RenderTarget.h">
+      <Filter>Realtime\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\RootSignature.h">
+      <Filter>Realtime\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\RTTexture.h">
+      <Filter>Realtime\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\ShaderCompat.h">
+      <Filter>Realtime\Engine</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\ThirdParty\StbImage\StbImageImpl.cpp">
       <Filter>ThirdParty\StbImage</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\RealtimeEngine\CommandContext.cpp">
-      <Filter>Realtime</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\RealtimeEngine\CommandList.cpp">
-      <Filter>Realtime</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\RealtimeEngine\GpuBuffer.cpp">
-      <Filter>Realtime</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\RealtimeEngine\LinearAllocator.cpp">
-      <Filter>Realtime</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\RealtimeEngine\PipelineStateObject.cpp">
-      <Filter>Realtime</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\RealtimeEngine\PlatformApp.cpp">
-      <Filter>Realtime</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\RealtimeEngine\RenderDevice.cpp">
-      <Filter>Realtime</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\RealtimeEngine\RootSignature.cpp">
-      <Filter>Realtime</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Core\BVHNode.cpp">
       <Filter>Core</Filter>
@@ -308,9 +287,6 @@
     <ClCompile Include="..\..\Source\Core\XYZRect.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\RealtimeEngine\RTTexture.cpp">
-      <Filter>Realtime</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Source\Core\CoreTriangle.cpp">
       <Filter>Core</Filter>
     </ClCompile>
@@ -335,26 +311,53 @@
     <ClCompile Include="..\..\ThirdParty\imgui\imgui_demo.cpp">
       <Filter>ThirdParty\imgui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\RealtimeEngine\RealtimeScene.cpp">
-      <Filter>Realtime</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\RealtimeEngine\RealtimeCamera.cpp">
-      <Filter>Realtime</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\RealtimeEngine\RaytracingGeometry.cpp">
-      <Filter>Realtime</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\RealtimeEngine\DescriptorHeapStack.cpp">
-      <Filter>Realtime</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\RealtimeEngine\RenderTarget.cpp">
-      <Filter>Realtime</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Source\Core\SampleScenes.cpp">
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\RealtimeEngine\Renderer\Renderer.cpp">
       <Filter>Realtime\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\RealtimeEngine\CommandContext.cpp">
+      <Filter>Realtime\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\RealtimeEngine\CommandList.cpp">
+      <Filter>Realtime\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\RealtimeEngine\DescriptorHeapStack.cpp">
+      <Filter>Realtime\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\RealtimeEngine\GpuBuffer.cpp">
+      <Filter>Realtime\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\RealtimeEngine\LinearAllocator.cpp">
+      <Filter>Realtime\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\RealtimeEngine\PipelineStateObject.cpp">
+      <Filter>Realtime\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\RealtimeEngine\PlatformApp.cpp">
+      <Filter>Realtime\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\RealtimeEngine\RaytracingGeometry.cpp">
+      <Filter>Realtime\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\RealtimeEngine\RealtimeCamera.cpp">
+      <Filter>Realtime\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\RealtimeEngine\RealtimeScene.cpp">
+      <Filter>Realtime\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\RealtimeEngine\RenderDevice.cpp">
+      <Filter>Realtime\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\RealtimeEngine\RenderTarget.cpp">
+      <Filter>Realtime\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\RealtimeEngine\RootSignature.cpp">
+      <Filter>Realtime\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\RealtimeEngine\RTTexture.cpp">
+      <Filter>Realtime\Engine</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

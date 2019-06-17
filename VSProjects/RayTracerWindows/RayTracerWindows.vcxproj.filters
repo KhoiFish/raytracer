@@ -28,11 +28,11 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Source\Windows\WinMain.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
+    <None Include="..\RayTracerLib\RayTracerLib.licenseheader" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\RayTracerLib\RayTracerLib.licenseheader" />
+    <ClCompile Include="..\..\Source\Main\WinMain.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

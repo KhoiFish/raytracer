@@ -19,7 +19,7 @@
 
 #include "Core/Camera.h"
 #include "Core/Raytracer.h"
-#include "SampleScenes.h"
+#include "Core/SampleScenes.h"
 #include <cstring>
 
 using namespace Core;

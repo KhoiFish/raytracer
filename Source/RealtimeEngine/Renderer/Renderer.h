@@ -22,7 +22,7 @@
 #include "Core/Raytracer.h"
 #include "Core/Camera.h"
 #include "Core/IHitable.h"
-#include "SampleScenes.h"
+#include "Core/SampleScenes.h"
 #include "RealtimeEngine/Globals.h"
 #include "RealtimeEngine/RenderInterface.h"
 #include "RealtimeEngine/RootSignature.h"

@@ -17,7 +17,7 @@
 // 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-#include "Renderer.h"
+#include "RealtimeEngine/Renderer/Renderer.h"
 #include "RealtimeEngine/Globals.h"
 #include "RealtimeEngine/RenderInterface.h"
 #include "RealtimeEngine/PlatformApp.h"

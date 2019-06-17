@@ -4,19 +4,11 @@
     <ClCompile Include="..\..\Source\ConsoleMain.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\SampleScenes.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Source">
       <UniqueIdentifier>{465defa6-999e-49d2-a158-cb2f1deaf7a2}</UniqueIdentifier>
     </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\Source\SampleScenes.h">
-      <Filter>Source</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\RayTracerLib\RayTracerLib.licenseheader" />

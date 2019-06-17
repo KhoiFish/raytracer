@@ -19,10 +19,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Source\ConsoleMain.cpp" />
+    <None Include="..\RayTracerLib\RayTracerLib.licenseheader" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\RayTracerLib\RayTracerLib.licenseheader" />
+    <ClCompile Include="..\..\Source\Main\ConsoleMain.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
@@ -104,7 +104,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Source;$(SolutionDir)ThirdParty</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
@@ -136,7 +136,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Source;$(SolutionDir)ThirdParty</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>

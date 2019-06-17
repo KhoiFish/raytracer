@@ -16,6 +16,21 @@
     <Filter Include="ThirdParty\imgui">
       <UniqueIdentifier>{0e6e9232-cb2b-4745-89a4-b956d11d66e7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Realtime\Shaders">
+      <UniqueIdentifier>{6cbe4f03-3713-4875-8b47-55189da7d67e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Realtime\Shaders\Raster">
+      <UniqueIdentifier>{580120ae-1ae7-48bf-90ba-ba9647cc357e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Realtime\Shaders\Raytrace">
+      <UniqueIdentifier>{8fa26da3-84a2-4d49-aee4-a20d77722b9c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Realtime\Shaders\Denoise">
+      <UniqueIdentifier>{1ec93762-0605-4d03-a081-c639a0468f19}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Realtime\Renderer">
+      <UniqueIdentifier>{fc065fb0-5774-4c9e-85dc-e8d5077a4857}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\ThirdParty\StbImage\stb_image.h">
@@ -186,6 +201,36 @@
     <ClInclude Include="..\..\Source\RealtimeEngine\RenderTarget.h">
       <Filter>Realtime</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\Shaders\SVGF\SVGFCommon.h">
+      <Filter>Realtime\Shaders\Denoise</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Core\SampleScenes.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\Renderer\DenoisePass.hpp">
+      <Filter>Realtime\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\Renderer\HandleGui.hpp">
+      <Filter>Realtime\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\Renderer\HandleInput.hpp">
+      <Filter>Realtime\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\Renderer\RasterPass.hpp">
+      <Filter>Realtime\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\Renderer\RaytracingPass.hpp">
+      <Filter>Realtime\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\Renderer\RaytracingShaderInclude.h">
+      <Filter>Realtime\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\Renderer\Renderer.h">
+      <Filter>Realtime\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\RealtimeEngine\Renderer\RendererShaderInclude.h">
+      <Filter>Realtime\Renderer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\ThirdParty\StbImage\StbImageImpl.cpp">
@@ -305,8 +350,43 @@
     <ClCompile Include="..\..\Source\RealtimeEngine\RenderTarget.cpp">
       <Filter>Realtime</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\Core\SampleScenes.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\RealtimeEngine\Renderer\Renderer.cpp">
+      <Filter>Realtime\Renderer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="RayTracerLib.licenseheader" />
+    <None Include="..\..\Source\RealtimeEngine\Shaders\RaytracingHelpers.hlsli">
+      <Filter>Realtime\Shaders\Raytrace</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\..\Source\RealtimeEngine\Shaders\CompositePass_PS.hlsl">
+      <Filter>Realtime\Shaders\Raster</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\RealtimeEngine\Shaders\CompositePass_VS.hlsl">
+      <Filter>Realtime\Shaders\Raster</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\RealtimeEngine\Shaders\GeometryPass_PS.hlsl">
+      <Filter>Realtime\Shaders\Raster</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\RealtimeEngine\Shaders\GeometryPass_VS.hlsl">
+      <Filter>Realtime\Shaders\Raster</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\RealtimeEngine\Shaders\Raytracing.hlsl">
+      <Filter>Realtime\Shaders\Raytrace</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\RealtimeEngine\Shaders\SVGF\SVGFAtrous_CS.hlsl">
+      <Filter>Realtime\Shaders\Denoise</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\RealtimeEngine\Shaders\SVGF\SVGFFilterMoments_CS.hlsl">
+      <Filter>Realtime\Shaders\Denoise</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\Source\RealtimeEngine\Shaders\SVGF\SVGFReproject_CS.hlsl">
+      <Filter>Realtime\Shaders\Denoise</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

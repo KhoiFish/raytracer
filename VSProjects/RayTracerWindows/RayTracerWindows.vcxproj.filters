@@ -8,52 +8,10 @@
     <Filter Include="Source">
       <UniqueIdentifier>{32e8e1c5-e8f6-4850-be09-1ce1f2349f7f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Shaders">
-      <UniqueIdentifier>{3335aa2c-b747-49b4-89d5-c673be41be9e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Shaders\Raster">
-      <UniqueIdentifier>{90c1055e-6467-46b7-b1a2-fa8c8daf1c51}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Shaders\Raytrace">
-      <UniqueIdentifier>{4bc2bbf9-863d-46be-a90e-52774b45d6a7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Shaders\Denoise">
-      <UniqueIdentifier>{c097e8d8-94ec-4a96-8d99-8e20b82380fd}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Source\SampleScenes.h">
-      <Filter>Source</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Source\Windows\Resource.h">
       <Filter>Resource Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Renderer.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\HandleInput.hpp">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\HandleGui.hpp">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\RendererShaderInclude.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\RaytracingShaderInclude.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\RaytracingPass.hpp">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\RasterPass.hpp">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\DenoisePass.hpp">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\Shaders\SVGF\SVGFCommon.h">
-      <Filter>Shaders\Denoise</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -73,43 +31,8 @@
     <ClCompile Include="..\..\Source\Windows\WinMain.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\SampleScenes.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\Renderer.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="..\..\Source\Shaders\CompositePass_PS.hlsl">
-      <Filter>Shaders\Raster</Filter>
-    </FxCompile>
-    <FxCompile Include="..\..\Source\Shaders\CompositePass_VS.hlsl">
-      <Filter>Shaders\Raster</Filter>
-    </FxCompile>
-    <FxCompile Include="..\..\Source\Shaders\GeometryPass_PS.hlsl">
-      <Filter>Shaders\Raster</Filter>
-    </FxCompile>
-    <FxCompile Include="..\..\Source\Shaders\GeometryPass_VS.hlsl">
-      <Filter>Shaders\Raster</Filter>
-    </FxCompile>
-    <FxCompile Include="..\..\Source\Shaders\Raytracing.hlsl">
-      <Filter>Shaders\Raytrace</Filter>
-    </FxCompile>
-    <FxCompile Include="..\..\Source\Shaders\SVGF\SVGFReproject_CS.hlsl">
-      <Filter>Shaders\Denoise</Filter>
-    </FxCompile>
-    <FxCompile Include="..\..\Source\Shaders\SVGF\SVGFFilterMoments_CS.hlsl">
-      <Filter>Shaders\Denoise</Filter>
-    </FxCompile>
-    <FxCompile Include="..\..\Source\Shaders\SVGF\SVGFAtrous_CS.hlsl">
-      <Filter>Shaders\Denoise</Filter>
-    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\RayTracerLib\RayTracerLib.licenseheader" />
-    <None Include="..\..\Source\Shaders\RaytracingHelpers.hlsli">
-      <Filter>Shaders\Raytrace</Filter>
-    </None>
   </ItemGroup>
 </Project>

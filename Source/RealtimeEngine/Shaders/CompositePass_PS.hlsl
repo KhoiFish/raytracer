@@ -18,8 +18,8 @@
 // ----------------------------------------------------------------------------------------------------------------------------
 
 #define HLSL
-#include "../RealtimeEngine/RealtimeSceneShaderInclude.h"
-#include "../RendererShaderInclude.h"
+#include "../RealtimeSceneShaderInclude.h"
+#include "../Renderer/RendererShaderInclude.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 

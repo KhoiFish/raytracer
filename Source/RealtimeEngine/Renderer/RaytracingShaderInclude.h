@@ -17,33 +17,74 @@
 // 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-#define HLSL
-#include "../RealtimeEngine/RealtimeSceneShaderInclude.h"
-#include "../RendererShaderInclude.h"
+#ifndef RAYTRACINGSHADER_H
+#define RAYTRACINGSHADER_H
+
+#include "../ShaderCompat.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-struct VertexInput
+struct HaltonState
 {
-    uint Id : SV_VERTEXID;
+    UINT Dimension;
+    UINT SequenceIndex;
 };
 
-struct VertexShaderOutput
+struct LightingResult
 {
-    float2 TexCoord : TEXCOORD;
-    float4 Position : SV_Position;  // Note the position needs to be last, I don't know why??
+    XMFLOAT3 Result;
+    XMFLOAT3 Albedo;
 };
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-VertexShaderOutput main(VertexInput IN)
+struct ShadowRayPayload
 {
-    VertexShaderOutput OUT;
+    float Value;
+};
 
-    uint id = IN.Id;
+struct AreaLightRayPayload
+{
+    XMFLOAT3 LightColor;
+    int      LightIndex;
+};
 
-    OUT.TexCoord = float2(uint2(id, id << 1) & 2);
-    OUT.Position = float4(lerp(float2(-1, 1), float2(1, -1), OUT.TexCoord), 0, 1);
+struct ShadeRayPayload
+{
+    LightingResult  Results;
+    UINT            RndSeed;
+    UINT            RayDepth;
+    HaltonState     HState;
+};
 
-    return OUT;
-}
+// Set this to the largest payload struct from above
+#define RAYTRACER_MAX_PAYLOAD_SIZE  sizeof(ShadeRayPayload)
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+ALIGN_BEGIN(16)
+struct RaytracingGlobalCB
+{
+    XMFLOAT4    CameraPosition;
+    XMFLOAT4    CameraTarget;
+    XMFLOAT4X4  InverseTransposeViewProjectionMatrix;
+    XMFLOAT2    OutputResolution;
+
+    float       AORadius;
+    int         FrameCount;
+    int         RaysPerPixel;
+    int         AccumCount;
+    int         NumLights;
+    int         MaxRayDepth;
+    int         NumHitPrograms;
+
+    int         AOMissIndex;
+    int         AOHitGroupIndex;
+    int         AreaLightMissIndex;
+    int         AreaLightHitGroupIndex;
+    int         ShadeMissIndex;
+    int         ShadeHitGroupIndex;
+};
+ALIGN_END
+
+#endif

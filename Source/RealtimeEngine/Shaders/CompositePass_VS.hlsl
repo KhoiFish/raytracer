@@ -17,74 +17,33 @@
 // 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-#ifndef RAYTRACINGSHADER_H
-#define RAYTRACINGSHADER_H
-
-#include "RealtimeEngine/ShaderCompat.h"
-
-// ----------------------------------------------------------------------------------------------------------------------------
-
-struct HaltonState
-{
-    UINT Dimension;
-    UINT SequenceIndex;
-};
-
-struct LightingResult
-{
-    XMFLOAT3 Result;
-    XMFLOAT3 Albedo;
-};
+#define HLSL
+#include "../RealtimeSceneShaderInclude.h"
+#include "../Renderer/RendererShaderInclude.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-struct ShadowRayPayload
+struct VertexInput
 {
-    float Value;
+    uint Id : SV_VERTEXID;
 };
 
-struct AreaLightRayPayload
+struct VertexShaderOutput
 {
-    XMFLOAT3 LightColor;
-    int      LightIndex;
+    float2 TexCoord : TEXCOORD;
+    float4 Position : SV_Position;  // Note the position needs to be last, I don't know why??
 };
-
-struct ShadeRayPayload
-{
-    LightingResult  Results;
-    UINT            RndSeed;
-    UINT            RayDepth;
-    HaltonState     HState;
-};
-
-// Set this to the largest payload struct from above
-#define RAYTRACER_MAX_PAYLOAD_SIZE  sizeof(ShadeRayPayload)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-ALIGN_BEGIN(16)
-struct RaytracingGlobalCB
+VertexShaderOutput main(VertexInput IN)
 {
-    XMFLOAT4    CameraPosition;
-    XMFLOAT4    CameraTarget;
-    XMFLOAT4X4  InverseTransposeViewProjectionMatrix;
-    XMFLOAT2    OutputResolution;
+    VertexShaderOutput OUT;
 
-    float       AORadius;
-    int         FrameCount;
-    int         RaysPerPixel;
-    int         AccumCount;
-    int         NumLights;
-    int         MaxRayDepth;
-    int         NumHitPrograms;
+    uint id = IN.Id;
 
-    int         AOMissIndex;
-    int         AOHitGroupIndex;
-    int         AreaLightMissIndex;
-    int         AreaLightHitGroupIndex;
-    int         ShadeMissIndex;
-    int         ShadeHitGroupIndex;
-};
-ALIGN_END
+    OUT.TexCoord = float2(uint2(id, id << 1) & 2);
+    OUT.Position = float4(lerp(float2(-1, 1), float2(1, -1), OUT.TexCoord), 0, 1);
 
-#endif
+    return OUT;
+}

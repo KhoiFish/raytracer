@@ -19,11 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Source\SampleScenes.h" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="..\..\Source\ConsoleMain.cpp" />
-    <ClCompile Include="..\..\Source\SampleScenes.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\RayTracerLib\RayTracerLib.licenseheader" />

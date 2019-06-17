@@ -20,7 +20,7 @@
 #ifndef RENDERERSHADERINCLUDE_H
 #define RENDERERSHADERINCLUDE_H
 
-#include "RealtimeEngine/ShaderCompat.h"
+#include "../ShaderCompat.h"
 
 // ----------------------------------------------------------------------------------------------------------------------------
 

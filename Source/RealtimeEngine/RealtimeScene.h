@@ -63,13 +63,21 @@ namespace RealtimeEngine
 
     struct RealtimeSceneNode
     {
+        enum Flags
+        {
+            Flags_AreaLightDirty = (1 << 0),
+            Flags_InstanceDirty  = (1 << 1),
+            Flags_MaterialDirty  = (1 << 2),
+        };
+
         RealtimeSceneNode()
-            : Hitable(nullptr), InstanceId(0), LightIndex(-1)
+            : NodeFlags(0), Hitable(nullptr), InstanceId(0), LightIndex(-1)
             , InstanceDataHeapIndex(0), MaterialHeapIndex(0), DiffuseTextureIndex(0)
         {}
 
         ~RealtimeSceneNode() {}
 
+        uint32_t                                NodeFlags;
         Core::IHitable*                         Hitable;
         uint32_t                                InstanceId;
         DirectX::XMMATRIX                       WorldMatrix;

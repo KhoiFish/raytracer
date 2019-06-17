@@ -578,6 +578,7 @@ void RealtimeEngine::RealtimeScene::AddNewNode(RealtimeSceneNode* newNode, const
     }
 
     // Fill in the new node
+    newNode->NodeFlags                  = RealtimeSceneNode::Flags_AreaLightDirty | RealtimeSceneNode::Flags_InstanceDirty | RealtimeSceneNode::Flags_MaterialDirty;
     newNode->InstanceId                 = (uint32_t)RenderSceneList.size();
     newNode->WorldMatrix                = worldMatrix;
     newNode->PrevWorldMatrix            = worldMatrix;
@@ -679,10 +680,11 @@ void RealtimeScene::UpdateCamera(float nearPlane, float farPlane, float newVertF
 
 void RealtimeScene::UpdateAreaLightBuffer(CommandContext& context, RealtimeSceneNode* pNode)
 {
-    if (pNode->Hitable->IsALightShape())
+    if ((pNode->NodeFlags & RealtimeSceneNode::Flags_AreaLightDirty) && pNode->Hitable->IsALightShape())
     {
         memcpy(ScratchCopyBuffer, &pNode->AreaLight, sizeof(RealtimeAreaLight));
         context.WriteBuffer(pNode->AreaLightBuffer, 0, ScratchCopyBuffer, ScratchCopyBufferSize);
+        pNode->NodeFlags &= ~RealtimeSceneNode::Flags_AreaLightDirty;
     }
 }
 
@@ -690,22 +692,32 @@ void RealtimeScene::UpdateAreaLightBuffer(CommandContext& context, RealtimeScene
 
 void RealtimeScene::UpdateInstanceBuffer(CommandContext& context, RealtimeSceneNode* pNode)
 {
-    RenderNodeInstanceData* pInstanceData = (RenderNodeInstanceData*)ScratchCopyBuffer;
+    if(pNode->NodeFlags & RealtimeSceneNode::Flags_InstanceDirty)
     {
-        pInstanceData->InstanceId       = pNode->InstanceId;
-        pInstanceData->LightIndex       = pNode->LightIndex;
-        pInstanceData->WorldMatrix      = XMMatrixTranspose(pNode->WorldMatrix);
-        pInstanceData->PrevWorldMatrix  = XMMatrixTranspose(pNode->PrevWorldMatrix);
+        RenderNodeInstanceData* pInstanceData = (RenderNodeInstanceData*)ScratchCopyBuffer;
+        {
+            pInstanceData->InstanceId       = pNode->InstanceId;
+            pInstanceData->LightIndex       = pNode->LightIndex;
+            pInstanceData->WorldMatrix      = XMMatrixTranspose(pNode->WorldMatrix);
+            pInstanceData->PrevWorldMatrix  = XMMatrixTranspose(pNode->PrevWorldMatrix);
+        }
+        context.WriteBuffer(pNode->InstanceDataBuffer, 0, ScratchCopyBuffer, ScratchCopyBufferSize);
+
+        pNode->NodeFlags &= ~RealtimeSceneNode::Flags_InstanceDirty;
     }
-    context.WriteBuffer(pNode->InstanceDataBuffer, 0, ScratchCopyBuffer, ScratchCopyBufferSize);
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
 void RealtimeScene::UpdateMaterialBuffer(CommandContext& context, RealtimeSceneNode* pNode)
 {
-    memcpy(ScratchCopyBuffer, &pNode->Material, sizeof(RenderMaterial));
-    context.WriteBuffer(pNode->MaterialBuffer, 0, ScratchCopyBuffer, ScratchCopyBufferSize);
+    if (pNode->NodeFlags & RealtimeSceneNode::Flags_MaterialDirty)
+    {
+        memcpy(ScratchCopyBuffer, &pNode->Material, sizeof(RenderMaterial));
+        context.WriteBuffer(pNode->MaterialBuffer, 0, ScratchCopyBuffer, ScratchCopyBufferSize);
+
+        pNode->NodeFlags &= ~RealtimeSceneNode::Flags_MaterialDirty;
+    }
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------

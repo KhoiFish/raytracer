@@ -34,6 +34,9 @@
     <Filter Include="Realtime\Engine">
       <UniqueIdentifier>{519b933a-1b52-4928-97cc-0d26289346d8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Cuda">
+      <UniqueIdentifier>{b997344b-af3e-4ac1-8d80-95aa4c5e95d6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\ThirdParty\StbImage\stb_image.h">
@@ -364,6 +367,9 @@
     <None Include="RayTracerLib.licenseheader" />
     <None Include="..\..\Source\RealtimeEngine\Shaders\RaytracingHelpers.hlsli">
       <Filter>Realtime\Shaders\Raytrace</Filter>
+    </None>
+    <None Include="..\..\Source\Cuda\test.cu">
+      <Filter>Cuda</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

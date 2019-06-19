@@ -25,14 +25,14 @@
 #include <wrl.h>
 #include <shellapi.h>
 #include <atlbase.h>
+#include <comdef.h>
 
 // DirectX includes
-#include <dxgi.h>
-#include <dxgi1_6.h>
+#include <DX12/dxgi.h>
+#include <DX12/dxgi1_6.h>
 #include <DX12/d3d12.h>
 #include <DX12/d3dx12.h>
-#include <dxgidebug.h>
-#include <comdef.h>
+#include <DX12/dxgidebug.h>
 
 // Standard includes
 #include <stdint.h>

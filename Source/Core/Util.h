@@ -37,13 +37,16 @@ namespace Core
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-void                        PrintCompletion(const char* otherInfo, double percentage);
-const char*                 ProgressPrint(Core::Raytracer* tracer, bool enablePercentBar = true);
-std::string                 GetTimeAndDateString();
-void                        WriteImageAndLog(Core::Raytracer* raytracer, std::string name);
-std::vector<std::string>    GetStringTokens(std::string sourceStr, std::string delim);
-std::string                 GetParentDir(std::string filePath);
-std::string                 GetAbsolutePath(std::string relativePath);
+namespace Core
+{
+    void                        PrintCompletion(const char* otherInfo, double percentage);
+    const char*                 ProgressPrint(Core::Raytracer* tracer, bool enablePercentBar = true);
+    std::string                 GetTimeAndDateString();
+    void                        WriteImageAndLog(Core::Raytracer* raytracer, std::string name);
+    std::vector<std::string>    GetStringTokens(std::string sourceStr, std::string delim);
+    std::string                 GetParentDir(std::string filePath);
+    std::string                 GetAbsolutePath(std::string relativePath);
+}
 
 // ----------------------------------------------------------------------------------------------------------------------------
 

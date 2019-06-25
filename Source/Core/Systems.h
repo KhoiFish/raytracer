@@ -29,15 +29,21 @@
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-#define DEBUG_PRINTF(fmt, ...) RenderDebugPrintf(fmt, ##__VA_ARGS__)
-void RenderDebugPrintf(const char *fmt, ...);
+namespace Core
+{
+    void RenderDebugPrintf(const char* fmt, ...);
+    void _RtlAssert(const char* message, const char* file, int line);
+}
+
+// ----------------------------------------------------------------------------------------------------------------------------
+
+#define DEBUG_PRINTF(fmt, ...) Core::RenderDebugPrintf(fmt, ##__VA_ARGS__)
 
 // ----------------------------------------------------------------------------------------------------------------------------
 
 // Enable asserts in release builds
-void _RtlAssert(const char* message, const char* file, int line);
-#define RTL_ASSERT(expression)           (void)((!!(expression)) || (_RtlAssert(#expression, __FILE__, (int)__LINE__), 0))
-#define RTL_ASSERT_MSG(expression, msg)  (void)((!!(expression)) || (_RtlAssert(#msg, __FILE__, (int)__LINE__), 0))
+#define RTL_ASSERT(expression)           (void)((!!(expression)) || (Core::_RtlAssert(#expression, __FILE__, (int)__LINE__), 0))
+#define RTL_ASSERT_MSG(expression, msg)  (void)((!!(expression)) || (Core::_RtlAssert(#msg, __FILE__, (int)__LINE__), 0))
 
 // ----------------------------------------------------------------------------------------------------------------------------
 

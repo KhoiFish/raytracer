@@ -123,7 +123,7 @@ int PlatformApp::Run(RenderInterface* pRenderInterface, HINSTANCE hInstance, int
     }
     catch (std::exception& e)
     {
-        RenderDebugPrintf("Application hit a problem: %s", e.what());
+        DEBUG_PRINTF("Application hit a problem: %s", e.what());
         retValue = EXIT_FAILURE;
     }
 

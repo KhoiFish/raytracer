@@ -254,10 +254,10 @@ void RenderDevice::InitializeDXGIAdapter()
 
         if (FAILED(hr) || !allowTearing)
         {
-            RenderDebugPrintf("WARNING: Variable refresh rate displays are not supported.\n");
+            DEBUG_PRINTF("WARNING: Variable refresh rate displays are not supported.\n");
             if (Options & RENDERDEVICE_FLAGS_REQUIRETEARINGSUPPORT)
             {
-                RenderDebugPrintf("Error: Sample must be run on an OS with tearing support.\n");
+                DEBUG_PRINTF("Error: Sample must be run on an OS with tearing support.\n");
                 throw HrException(hr);
             }
             Options &= ~RENDERDEVICE_FLAGS_ALLOWTEARING;
@@ -338,7 +338,7 @@ void RenderDevice::CreateWindowSizeDependentResources()
 {
     if (!Window)
     {
-        RenderDebugPrintf("Call SetWindow with a valid Win32 window handle.\n");
+        DEBUG_PRINTF("Call SetWindow with a valid Win32 window handle.\n");
         throw HrException(E_HANDLE);
     }
 
@@ -570,7 +570,7 @@ void RenderDevice::Present()
     // If the device was reset we must completely reinitialize the renderer.
     if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
     {
-        RenderDebugPrintf("Device Lost on Present: Reason code 0x%08X\n", (hr == DXGI_ERROR_DEVICE_REMOVED) ? D3DDevice->GetDeviceRemovedReason() : hr);
+        DEBUG_PRINTF("Device Lost on Present: Reason code 0x%08X\n", (hr == DXGI_ERROR_DEVICE_REMOVED) ? D3DDevice->GetDeviceRemovedReason() : hr);
         HandleDeviceLost();
     }
     else

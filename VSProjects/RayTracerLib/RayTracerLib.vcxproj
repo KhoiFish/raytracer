@@ -399,6 +399,12 @@
       </AdditionalOptions>
     </FxCompile>
   </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="..\..\Source\Cuda\CudaCompile.cu">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </CudaCompile>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="..\..\ThirdParty\Cuda\extras\visual_studio_integration\MSBuildExtensions\CUDA 10.1.targets" />

@@ -17,7 +17,6 @@
 // 
 // ----------------------------------------------------------------------------------------------------------------------------
 
-#include "Util.h"
 #include "BVHNode.hpp"
 #include "Camera.hpp"
 #include "ConstantMedium.hpp"

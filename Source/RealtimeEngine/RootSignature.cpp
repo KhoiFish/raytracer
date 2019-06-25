@@ -80,7 +80,7 @@ void RootSignature::InitStaticSampler(uint32_t reg, const D3D12_SAMPLER_DESC& no
             nonStaticSamplerDesc.BorderColor[2] == 1.0f &&
             nonStaticSamplerDesc.BorderColor[3] == 1.0f)
         {
-            RenderDebugPrintf("Sampler border color does not match static sampler limitations");
+            DEBUG_PRINTF("Sampler border color does not match static sampler limitations");
         }
 
         if (nonStaticSamplerDesc.BorderColor[3] == 1.0f)

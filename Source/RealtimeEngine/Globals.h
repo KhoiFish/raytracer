@@ -58,7 +58,7 @@ typedef std::string  string_t;
 #define RTL_HRESULT_SUCCEEDED(hr, ...) \
     if (FAILED(hr)) \
     { \
-        RenderDebugPrintf("HRESULT: %#016x\n", hr); \
+        Core::RenderDebugPrintf("HRESULT: %#016x\n", hr); \
         __debugbreak(); \
     }
 

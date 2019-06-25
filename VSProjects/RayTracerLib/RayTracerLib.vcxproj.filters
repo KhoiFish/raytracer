@@ -403,5 +403,8 @@
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="..\..\Source\Cuda\test.cu" />
+    <CudaCompile Include="..\..\Source\Cuda\CudaCompile.cu">
+      <Filter>Cuda</Filter>
+    </CudaCompile>
   </ItemGroup>
 </Project>

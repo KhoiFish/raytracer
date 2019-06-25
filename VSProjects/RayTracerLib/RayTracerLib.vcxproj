@@ -106,33 +106,53 @@
   <ItemGroup>
     <ClInclude Include="..\..\Source\Core\AABB.h" />
     <ClInclude Include="..\..\Source\Core\BVHNode.h" />
+    <ClInclude Include="..\..\Source\Core\BVHNode.hpp" />
     <ClInclude Include="..\..\Source\Core\Camera.h" />
+    <ClInclude Include="..\..\Source\Core\Camera.hpp" />
     <ClInclude Include="..\..\Source\Core\ConstantMedium.h" />
+    <ClInclude Include="..\..\Source\Core\ConstantMedium.hpp" />
+    <ClInclude Include="..\..\Source\Core\CoreTexture.h" />
+    <ClInclude Include="..\..\Source\Core\CoreTexture.hpp" />
+    <ClInclude Include="..\..\Source\Core\CoreTriangle.h" />
+    <ClInclude Include="..\..\Source\Core\CoreTriangle.hpp" />
     <ClInclude Include="..\..\Source\Core\FlipNormals.h" />
+    <ClInclude Include="..\..\Source\Core\FlipNormals.hpp" />
     <ClInclude Include="..\..\Source\Core\HitableBox.h" />
+    <ClInclude Include="..\..\Source\Core\HitableBox.hpp" />
     <ClInclude Include="..\..\Source\Core\HitableList.h" />
+    <ClInclude Include="..\..\Source\Core\HitableList.hpp" />
     <ClInclude Include="..\..\Source\Core\HitableTransform.h" />
+    <ClInclude Include="..\..\Source\Core\HitableTransform.hpp" />
     <ClInclude Include="..\..\Source\Core\IHitable.h" />
     <ClInclude Include="..\..\Source\Core\ImageIO.h" />
+    <ClInclude Include="..\..\Source\Core\ImageIO.hpp" />
     <ClInclude Include="..\..\Source\Core\Material.h" />
-    <ClInclude Include="..\..\Source\Core\SampleScenes.h" />
-    <ClInclude Include="..\..\Source\Core\Systems.h" />
-    <ClInclude Include="..\..\Source\Core\TriMesh.h" />
+    <ClInclude Include="..\..\Source\Core\Material.hpp" />
     <ClInclude Include="..\..\Source\Core\MovingSphere.h" />
+    <ClInclude Include="..\..\Source\Core\MovingSphere.hpp" />
     <ClInclude Include="..\..\Source\Core\OrthoNormalBasis.h" />
     <ClInclude Include="..\..\Source\Core\Pdf.h" />
     <ClInclude Include="..\..\Source\Core\Perlin.h" />
+    <ClInclude Include="..\..\Source\Core\Perlin.hpp" />
     <ClInclude Include="..\..\Source\Core\Quat.h" />
     <ClInclude Include="..\..\Source\Core\Ray.h" />
     <ClInclude Include="..\..\Source\Core\Raytracer.h" />
+    <ClInclude Include="..\..\Source\Core\Raytracer.hpp" />
+    <ClInclude Include="..\..\Source\Core\SafeQueue.h" />
+    <ClInclude Include="..\..\Source\Core\SampleScenes.h" />
+    <ClInclude Include="..\..\Source\Core\SampleScenes.hpp" />
     <ClInclude Include="..\..\Source\Core\Sphere.h" />
-    <ClInclude Include="..\..\Source\Core\CoreTexture.h" />
+    <ClInclude Include="..\..\Source\Core\Sphere.hpp" />
+    <ClInclude Include="..\..\Source\Core\Systems.h" />
     <ClInclude Include="..\..\Source\Core\ThreadEvent.h" />
-    <ClInclude Include="..\..\Source\Core\CoreTriangle.h" />
+    <ClInclude Include="..\..\Source\Core\TriMesh.h" />
+    <ClInclude Include="..\..\Source\Core\TriMesh.hpp" />
     <ClInclude Include="..\..\Source\Core\Util.h" />
+    <ClInclude Include="..\..\Source\Core\Util.hpp" />
     <ClInclude Include="..\..\Source\Core\Vec4.h" />
     <ClInclude Include="..\..\Source\Core\WorldScene.h" />
     <ClInclude Include="..\..\Source\Core\XYZRect.h" />
+    <ClInclude Include="..\..\Source\Core\XYZRect.hpp" />
     <ClInclude Include="..\..\Source\RealtimeEngine\Renderer\DenoisePass.hpp" />
     <ClInclude Include="..\..\Source\RealtimeEngine\Renderer\HandleGui.hpp" />
     <ClInclude Include="..\..\Source\RealtimeEngine\Renderer\HandleInput.hpp" />
@@ -172,25 +192,7 @@
     <ClInclude Include="..\..\ThirdParty\StbImage\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Source\Core\BVHNode.cpp" />
-    <ClCompile Include="..\..\Source\Core\Camera.cpp" />
-    <ClCompile Include="..\..\Source\Core\ConstantMedium.cpp" />
-    <ClCompile Include="..\..\Source\Core\FlipNormals.cpp" />
-    <ClCompile Include="..\..\Source\Core\HitableBox.cpp" />
-    <ClCompile Include="..\..\Source\Core\HitableList.cpp" />
-    <ClCompile Include="..\..\Source\Core\HitableTransform.cpp" />
-    <ClCompile Include="..\..\Source\Core\ImageIO.cpp" />
-    <ClCompile Include="..\..\Source\Core\Material.cpp" />
-    <ClCompile Include="..\..\Source\Core\MovingSphere.cpp" />
-    <ClCompile Include="..\..\Source\Core\Perlin.cpp" />
-    <ClCompile Include="..\..\Source\Core\Raytracer.cpp" />
-    <ClCompile Include="..\..\Source\Core\SampleScenes.cpp" />
-    <ClCompile Include="..\..\Source\Core\Sphere.cpp" />
-    <ClCompile Include="..\..\Source\Core\CoreTexture.cpp" />
-    <ClCompile Include="..\..\Source\Core\CoreTriangle.cpp" />
-    <ClCompile Include="..\..\Source\Core\TriMesh.cpp" />
-    <ClCompile Include="..\..\Source\Core\Util.cpp" />
-    <ClCompile Include="..\..\Source\Core\XYZRect.cpp" />
+    <ClCompile Include="..\..\Source\Core\CPUCompile.cpp" />
     <ClCompile Include="..\..\Source\RealtimeEngine\Renderer\Renderer.cpp" />
     <ClCompile Include="..\..\Source\RealtimeEngine\RenderTarget.cpp" />
     <ClCompile Include="..\..\Source\RealtimeEngine\CommandContext.cpp" />
@@ -215,7 +217,6 @@
     <ClCompile Include="..\..\ThirdParty\StbImage\StbImageImpl.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="..\..\Source\Cuda\test.cu" />
     <None Include="..\..\Source\RealtimeEngine\Shaders\RaytracingHelpers.hlsli">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>

@@ -10,3 +10,4 @@ OutputImages/*.ppm
 *.log
 RaytracerReleasePkg.zip
 imgui.ini
+ThirdParty/Cuda

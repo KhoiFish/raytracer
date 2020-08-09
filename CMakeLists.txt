@@ -11,8 +11,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++17 -pthread")
 include_directories(Source ThirdParty)
 file(GLOB CORE_SOURCE "Source/Core/*.cpp")
 set(STB_SOURCE  "ThirdParty/StbImage/StbImageImpl.cpp")
-set(SAMPLE_SOURCE "Source/SampleScenes.cpp")
-set(MAIN_SOURCE "Source/ConsoleMain.cpp")
+set(MAIN_SOURCE "Source/Main/ConsoleMain.cpp")
 
 # Build target
 add_executable(${PROJECT_NAME} ${CORE_SOURCE} ${STB_SOURCE} ${SAMPLE_SOURCE} ${MAIN_SOURCE})

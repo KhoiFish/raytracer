@@ -2,8 +2,8 @@
 Debug/
 Release/
 BuildOutput/
-ShaderBuild/
 CMakeBuildOutput/
+ShaderBuild/*.cso
 OutputImages/*.png
 OutputImages/*.ppm
 *.aps

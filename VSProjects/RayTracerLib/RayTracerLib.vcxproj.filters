@@ -34,9 +34,6 @@
     <Filter Include="Realtime\Engine">
       <UniqueIdentifier>{519b933a-1b52-4928-97cc-0d26289346d8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Cuda">
-      <UniqueIdentifier>{b997344b-af3e-4ac1-8d80-95aa4c5e95d6}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\ThirdParty\StbImage\stb_image.h">
@@ -400,11 +397,5 @@
     <FxCompile Include="..\..\Source\RealtimeEngine\Shaders\SVGF\SVGFReproject_CS.hlsl">
       <Filter>Realtime\Shaders\Denoise</Filter>
     </FxCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <CudaCompile Include="..\..\Source\Cuda\test.cu" />
-    <CudaCompile Include="..\..\Source\Cuda\CudaCompile.cu">
-      <Filter>Cuda</Filter>
-    </CudaCompile>
   </ItemGroup>
 </Project>

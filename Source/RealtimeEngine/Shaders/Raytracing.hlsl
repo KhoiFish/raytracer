@@ -309,6 +309,10 @@ inline LightingResult shade(RenderMaterial material, float3 incomingRayDir, int 
         case RenderMaterialType_MDielectric:
             result = shadeDielectric(material, incomingRayDir, randSeed, state, minT, worldPos, worldNorm, albedo, curRayDepth);
         break;
+
+        default:
+            result.Albedo = float3(0, 0, 0);
+            result.Result = float3(0, 0, 0);
     }
 
     return result;
